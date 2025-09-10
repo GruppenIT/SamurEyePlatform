@@ -23,7 +23,7 @@ import { CredentialFormData } from "@/types";
 
 const credentialSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
-  type: z.enum(['ssh', 'wmi', 'omi'], {
+  type: z.enum(['ssh', 'wmi', 'omi', 'ad'], {
     required_error: "Tipo de credencial é obrigatório",
   }),
   hostOverride: z.string().optional(),
@@ -61,6 +61,8 @@ export default function CredentialForm({ onSubmit, onCancel, isLoading = false }
         return 135;
       case 'omi':
         return 5985;
+      case 'ad':
+        return 389;
       default:
         return undefined;
     }
@@ -72,6 +74,7 @@ export default function CredentialForm({ onSubmit, onCancel, isLoading = false }
         return 'Senha ou Chave Privada';
       case 'wmi':
       case 'omi':
+      case 'ad':
         return 'Senha';
       default:
         return 'Senha/Chave';
@@ -85,6 +88,8 @@ export default function CredentialForm({ onSubmit, onCancel, isLoading = false }
       case 'wmi':
       case 'omi':
         return 'Senha do usuário';
+      case 'ad':
+        return 'Senha do usuário Active Directory';
       default:
         return '';
     }
@@ -139,6 +144,7 @@ export default function CredentialForm({ onSubmit, onCancel, isLoading = false }
                   <SelectItem value="ssh">SSH</SelectItem>
                   <SelectItem value="wmi">WMI (Windows)</SelectItem>
                   <SelectItem value="omi">OMI (Linux/Unix)</SelectItem>
+                  <SelectItem value="ad">AD/LDAP</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

@@ -32,7 +32,7 @@ export const userRoleEnum = pgEnum('user_role', ['global_administrator', 'operat
 export const assetTypeEnum = pgEnum('asset_type', ['host', 'range']);
 
 // Credential types enum
-export const credentialTypeEnum = pgEnum('credential_type', ['ssh', 'wmi', 'omi']);
+export const credentialTypeEnum = pgEnum('credential_type', ['ssh', 'wmi', 'omi', 'ad']);
 
 // Journey types enum
 export const journeyTypeEnum = pgEnum('journey_type', ['attack_surface', 'ad_hygiene', 'edr_av']);

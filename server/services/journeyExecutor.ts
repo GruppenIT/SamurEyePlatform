@@ -3,6 +3,7 @@ import { threatEngine } from './threatEngine';
 import { encryptionService } from './encryption';
 import { networkScanner } from './scanners/networkScanner';
 import { vulnScanner } from './scanners/vulnScanner';
+import { adScanner } from './scanners/adScanner';
 import { type Journey, type Job } from '@shared/schema';
 
 export interface JourneyProgress {
@@ -187,7 +188,7 @@ class JourneyExecutorService {
       throw new Error('Credencial não especificada para análise AD');
     }
 
-    onProgress({ status: 'running', progress: 30, currentTask: 'Conectando ao Active Directory' });
+    onProgress({ status: 'running', progress: 20, currentTask: 'Obtendo credenciais' });
 
     // Get and decrypt credential
     const credential = await storage.getCredential(credentialId);
@@ -195,38 +196,61 @@ class JourneyExecutorService {
       throw new Error('Credencial não encontrada');
     }
 
-    // Decrypt credential (in real implementation, this would be used for actual AD connection)
+    // Decrypt credential for actual AD connection
     const decryptedPassword = encryptionService.decryptCredential(
       credential.secretEncrypted, 
       credential.dekEncrypted
     );
 
-    onProgress({ status: 'running', progress: 50, currentTask: 'Analisando usuários e grupos' });
-    
-    await this.delay(3000); // Simulate AD analysis
+    onProgress({ status: 'running', progress: 30, currentTask: 'Conectando ao Active Directory' });
 
-    onProgress({ status: 'running', progress: 70, currentTask: 'Verificando políticas' });
-    
-    await this.delay(2000);
+    try {
+      // Real AD hygiene scan using adScanner
+      const findings = await adScanner.scanADHygiene(
+        domain,
+        credential.username,
+        decryptedPassword
+      );
 
-    // Generate AD hygiene findings
-    const findings = this.generateADHygieneFindings(domain);
+      onProgress({ status: 'running', progress: 80, currentTask: 'Processando resultados' });
 
-    // Store results
-    await storage.createJobResult({
-      jobId,
-      stdout: `Análise AD concluída. ${findings.length} problemas encontrados.`,
-      stderr: '',
-      artifacts: {
-        findings,
-        summary: {
-          domain,
-          totalUsers: 1247,
-          totalGroups: 89,
-          issuesFound: findings.length,
+      // Store results
+      await storage.createJobResult({
+        jobId,
+        stdout: `Análise AD concluída para domínio ${domain}. ${findings.length} achados identificados.`,
+        stderr: '',
+        artifacts: {
+          findings,
+          summary: {
+            domain,
+            totalFindings: findings.length,
+            findingsByCategory: this.groupFindingsByCategory(findings),
+            findingsBySeverity: this.groupFindingsBySeverity(findings),
+            scanDuration: new Date().toISOString(),
+          },
         },
-      },
-    });
+      });
+
+    } catch (error) {
+      console.error('Erro durante análise AD:', error);
+      
+      // Store error result
+      await storage.createJobResult({
+        jobId,
+        stdout: '',
+        stderr: `Erro durante análise AD: ${error.message}`,
+        artifacts: {
+          findings: [],
+          summary: {
+            domain,
+            error: error.message,
+            scanDuration: new Date().toISOString(),
+          },
+        },
+      });
+      
+      throw error;
+    }
   }
 
   /**
@@ -445,6 +469,34 @@ class JourneyExecutorService {
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Agrupa achados por categoria
+   */
+  private groupFindingsByCategory(findings: any[]): Record<string, number> {
+    const categoryCount: Record<string, number> = {};
+    
+    for (const finding of findings) {
+      const category = finding.category || 'other';
+      categoryCount[category] = (categoryCount[category] || 0) + 1;
+    }
+    
+    return categoryCount;
+  }
+
+  /**
+   * Agrupa achados por severidade
+   */
+  private groupFindingsBySeverity(findings: any[]): Record<string, number> {
+    const severityCount: Record<string, number> = {};
+    
+    for (const finding of findings) {
+      const severity = finding.severity || 'unknown';
+      severityCount[severity] = (severityCount[severity] || 0) + 1;
+    }
+    
+    return severityCount;
   }
 }
 

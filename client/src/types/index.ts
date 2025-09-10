@@ -29,7 +29,7 @@ export interface AssetFormData {
 
 export interface CredentialFormData {
   name: string;
-  type: 'ssh' | 'wmi' | 'omi';
+  type: 'ssh' | 'wmi' | 'omi' | 'ad';
   hostOverride?: string;
   port?: number;
   username: string;
