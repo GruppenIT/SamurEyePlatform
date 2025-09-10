@@ -1,20 +1,30 @@
 import crypto from 'crypto';
 
 const ALGORITHM = 'aes-256-gcm';
-const IV_LENGTH = 16;
-const SALT_LENGTH = 64;
-const TAG_LENGTH = 16;
+const IV_LENGTH = 12; // 96 bits é o tamanho ideal para AES-GCM
+const TAG_LENGTH = 16; // 128 bits para auth tag
+const KEY_LENGTH = 32; // 256 bits para AES-256
 
 // Get KEK from environment or generate one for development
 function getKEK(): Buffer {
   const kekHex = process.env.ENCRYPTION_KEK;
-  if (kekHex) {
-    return Buffer.from(kekHex, 'hex');
+  
+  // Em produção, a chave DEVE estar configurada
+  if (process.env.NODE_ENV === 'production' && !kekHex) {
+    throw new Error('ENCRYPTION_KEK must be set in production environment');
   }
   
-  // For development, use a fixed key (NOT for production!)
+  if (kekHex) {
+    const kek = Buffer.from(kekHex, 'hex');
+    if (kek.length !== KEY_LENGTH) {
+      throw new Error(`ENCRYPTION_KEK must be ${KEY_LENGTH * 2} hex characters (${KEY_LENGTH} bytes)`);
+    }
+    return kek;
+  }
+  
+  // Para desenvolvimento, usar chave derivada (NOT for production!)
   console.warn('Using development encryption key. Set ENCRYPTION_KEK for production!');
-  return crypto.scryptSync('samureye-dev-key', 'salt', 32);
+  return crypto.scryptSync('samureye-dev-key', 'salt', KEY_LENGTH);
 }
 
 export class EncryptionService {
@@ -27,44 +37,26 @@ export class EncryptionService {
   /**
    * Encrypts a credential using DEK (Data Encryption Key) approach
    * 1. Generate random DEK
-   * 2. Encrypt secret with DEK
-   * 3. Encrypt DEK with KEK (Key Encryption Key)
+   * 2. Encrypt secret with DEK using AES-256-GCM
+   * 3. Encrypt DEK with KEK (Key Encryption Key) using AES-256-GCM
    */
   encryptCredential(secret: string): { secretEncrypted: string; dekEncrypted: string } {
-    // Generate random DEK
-    const dek = crypto.randomBytes(32);
-    
-    // Encrypt secret with DEK
-    const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipher(ALGORITHM, dek);
-    cipher.setAAD(Buffer.from('samureye-credential'));
-    
-    let encrypted = cipher.update(secret, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    const authTag = cipher.getAuthTag();
-    
-    const secretEncrypted = Buffer.concat([
-      iv,
-      authTag,
-      Buffer.from(encrypted, 'hex')
-    ]).toString('base64');
-    
-    // Encrypt DEK with KEK
-    const dekIv = crypto.randomBytes(IV_LENGTH);
-    const dekCipher = crypto.createCipher(ALGORITHM, this.kek);
-    dekCipher.setAAD(Buffer.from('samureye-dek'));
-    
-    let dekEncryptedHex = dekCipher.update(dek, undefined, 'hex');
-    dekEncryptedHex += dekCipher.final('hex');
-    const dekAuthTag = dekCipher.getAuthTag();
-    
-    const dekEncrypted = Buffer.concat([
-      dekIv,
-      dekAuthTag,
-      Buffer.from(dekEncryptedHex, 'hex')
-    ]).toString('base64');
-    
-    return { secretEncrypted, dekEncrypted };
+    try {
+      // Generate random DEK
+      const dek = crypto.randomBytes(KEY_LENGTH);
+      
+      // Encrypt secret with DEK
+      const secretResult = this.encryptData(secret, dek, 'samureye-credential');
+      const secretEncrypted = secretResult.encrypted;
+      
+      // Encrypt DEK with KEK
+      const dekResult = this.encryptData(dek.toString('hex'), this.kek, 'samureye-dek');
+      const dekEncrypted = dekResult.encrypted;
+      
+      return { secretEncrypted, dekEncrypted };
+    } catch (error) {
+      throw new Error(`Falha ao criptografar credencial: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+    }
   }
 
   /**
@@ -73,36 +65,19 @@ export class EncryptionService {
   decryptCredential(secretEncrypted: string, dekEncrypted: string): string {
     try {
       // Decrypt DEK with KEK
-      const dekBuffer = Buffer.from(dekEncrypted, 'base64');
-      const dekIv = dekBuffer.subarray(0, IV_LENGTH);
-      const dekAuthTag = dekBuffer.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
-      const dekCiphertext = dekBuffer.subarray(IV_LENGTH + TAG_LENGTH);
-      
-      const dekDecipher = crypto.createDecipher(ALGORITHM, this.kek);
-      dekDecipher.setAuthTag(dekAuthTag);
-      dekDecipher.setAAD(Buffer.from('samureye-dek'));
-      
-      let dekHex = dekDecipher.update(dekCiphertext, undefined, 'hex');
-      dekHex += dekDecipher.final('hex');
+      const dekHex = this.decryptData(dekEncrypted, this.kek, 'samureye-dek');
       const dek = Buffer.from(dekHex, 'hex');
-      const dekBuffer2 = Buffer.from(dek, 'hex');
+      
+      if (dek.length !== KEY_LENGTH) {
+        throw new Error('DEK inválida após descriptografia');
+      }
       
       // Decrypt secret with DEK
-      const secretBuffer = Buffer.from(secretEncrypted, 'base64');
-      const iv = secretBuffer.subarray(0, IV_LENGTH);
-      const authTag = secretBuffer.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
-      const ciphertext = secretBuffer.subarray(IV_LENGTH + TAG_LENGTH);
+      const secret = this.decryptData(secretEncrypted, dek, 'samureye-credential');
       
-      const decipher = crypto.createDecipher(ALGORITHM, dekBuffer2);
-      decipher.setAuthTag(authTag);
-      decipher.setAAD(Buffer.from('samureye-credential'));
-      
-      let decrypted = decipher.update(ciphertext, undefined, 'utf8');
-      decrypted += decipher.final('utf8');
-      
-      return decrypted;
+      return secret;
     } catch (error) {
-      throw new Error('Falha ao descriptografar credencial');
+      throw new Error(`Falha ao descriptografar credencial: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     }
   }
 
@@ -113,6 +88,81 @@ export class EncryptionService {
     try {
       this.decryptCredential(secretEncrypted, dekEncrypted);
       return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Internal method to encrypt data using AES-256-GCM
+   */
+  private encryptData(data: string, key: Buffer, aad: string): { encrypted: string } {
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+    
+    // Set Additional Authenticated Data
+    cipher.setAAD(Buffer.from(aad, 'utf8'));
+    
+    // Encrypt the data
+    let ciphertext = cipher.update(data, 'utf8');
+    ciphertext = Buffer.concat([ciphertext, cipher.final()]);
+    
+    // Get authentication tag
+    const authTag = cipher.getAuthTag();
+    
+    // Combine IV + AuthTag + Ciphertext
+    const combined = Buffer.concat([iv, authTag, ciphertext]);
+    
+    return {
+      encrypted: combined.toString('base64')
+    };
+  }
+
+  /**
+   * Internal method to decrypt data using AES-256-GCM
+   */
+  private decryptData(encryptedBase64: string, key: Buffer, aad: string): string {
+    const combined = Buffer.from(encryptedBase64, 'base64');
+    
+    if (combined.length < IV_LENGTH + TAG_LENGTH) {
+      throw new Error('Dados criptografados são muito curtos');
+    }
+    
+    // Extract components
+    const iv = combined.subarray(0, IV_LENGTH);
+    const authTag = combined.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
+    const ciphertext = combined.subarray(IV_LENGTH + TAG_LENGTH);
+    
+    // Create decipher
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+    
+    // Set Additional Authenticated Data
+    decipher.setAAD(Buffer.from(aad, 'utf8'));
+    
+    // Set authentication tag (MUST be called after setAAD)
+    decipher.setAuthTag(authTag);
+    
+    // Decrypt
+    let decrypted = decipher.update(ciphertext, undefined, 'utf8');
+    decrypted += decipher.final('utf8');
+    
+    return decrypted;
+  }
+
+  /**
+   * Utility method to generate a new KEK for production use
+   */
+  static generateKEK(): string {
+    return crypto.randomBytes(KEY_LENGTH).toString('hex');
+  }
+
+  /**
+   * Utility method to validate KEK format
+   */
+  static validateKEK(kekHex: string): boolean {
+    try {
+      const kek = Buffer.from(kekHex, 'hex');
+      return kek.length === KEY_LENGTH;
     } catch {
       return false;
     }
