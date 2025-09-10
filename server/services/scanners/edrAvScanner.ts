@@ -124,32 +124,51 @@ export class EDRAVScanner {
   }
 
   /**
-   * Deploy EICAR via SMB usando smbclient
+   * Deploy EICAR via SMB usando smbclient com arquivo de autenticação seguro
    */
   private async deployEicarViaSMB(
     hostname: string,
     credential: { username: string; password: string; domain?: string }
   ): Promise<{ success: boolean; filePath?: string; error?: string }> {
+    let tempFile: string | null = null;
+    let authFile: string | null = null;
+    
     try {
+      // Verificar se smbclient está disponível
+      const smbclientAvailable = await this.checkBinaryExists('smbclient');
+      if (!smbclientAvailable) {
+        return {
+          success: false,
+          error: 'smbclient não está instalado ou não está no PATH',
+        };
+      }
+
       // Criar arquivo EICAR temporário
       const tempDir = '/tmp';
-      const tempFile = path.join(tempDir, `eicar_${Date.now()}.txt`);
+      tempFile = path.join(tempDir, `eicar_${Date.now()}.txt`);
+      authFile = path.join(tempDir, `smbauth_${Date.now()}`);
       const targetPath = 'C$\\Windows\\Temp\\samureye_eicar.txt';
       
       await fs.writeFile(tempFile, this.eicarContent);
 
+      // Criar arquivo de autenticação seguro para evitar exposição de credenciais
+      const authContent = [
+        `username=${credential.username}`,
+        `password=${credential.password}`,
+        credential.domain ? `domain=${credential.domain}` : '',
+      ].filter(Boolean).join('\n');
+      
+      await fs.writeFile(authFile, authContent, { mode: 0o600 }); // Apenas proprietário pode ler
+
       const args = [
         `//${hostname}/C$`,
-        '-U', this.formatCredentials(credential),
+        '-A', authFile, // Usar arquivo de autenticação em vez de linha de comando
         '-c', `put "${tempFile}" "Windows\\Temp\\samureye_eicar.txt"`
       ];
 
-      console.log(`Executando: smbclient ${args.join(' ').replace(/-U.*?-c/, '-U [HIDDEN] -c')}`);
+      console.log(`Executando: smbclient //${hostname}/C$ -A [AUTH_FILE] -c [PUT_COMMAND]`);
 
       const result = await this.executeCommand('smbclient', args, 30000);
-
-      // Limpar arquivo temporário
-      await fs.unlink(tempFile).catch(() => {});
 
       if (result.exitCode === 0) {
         return {
@@ -167,69 +186,61 @@ export class EDRAVScanner {
         success: false,
         error: error instanceof Error ? error.message : String(error),
       };
+    } finally {
+      // Garantir limpeza de arquivos sensíveis mesmo em caso de erro
+      if (tempFile) {
+        await fs.unlink(tempFile).catch(() => {});
+      }
+      if (authFile) {
+        await fs.unlink(authFile).catch(() => {});
+      }
     }
   }
 
   /**
-   * Deploy EICAR via WMI usando wmic (se disponível)
+   * Deploy EICAR via WMI - DESABILITADO POR QUESTÕES DE SEGURANÇA
+   * WMI expõe credenciais em argumentos de processo, não recomendado para produção
    */
   private async deployEicarViaWMI(
     hostname: string,
     credential: { username: string; password: string; domain?: string }
   ): Promise<{ success: boolean; filePath?: string; error?: string }> {
-    try {
-      const targetPath = `C:\\Windows\\Temp\\samureye_eicar.txt`;
-      const encodedEicar = Buffer.from(this.eicarContent).toString('base64');
-
-      // Usar PowerShell remoto via SSH (se disponível) ou fall back para wmic
-      const psCommand = `
-        $bytes = [System.Convert]::FromBase64String('${encodedEicar}');
-        [System.IO.File]::WriteAllBytes('${targetPath}', $bytes);
-        Write-Host 'EICAR deployed successfully'
-      `;
-
-      const args = [
-        '/node:' + hostname,
-        '/user:' + this.formatCredentials(credential),
-        'process', 'call', 'create',
-        `cmd.exe /c "powershell.exe -Command \\"${psCommand.replace(/"/g, '\\"')}\\""`,
-      ];
-
-      console.log(`Executando: wmic ${args.join(' ').replace(/\/user:.*?process/, '/user:[HIDDEN] process')}`);
-
-      const result = await this.executeCommand('wmic', args, 30000);
-
-      if (result.exitCode === 0 && result.stdout.includes('ReturnValue = 0')) {
-        return {
-          success: true,
-          filePath: `\\\\${hostname}\\C$\\Windows\\Temp\\samureye_eicar.txt`,
-        };
-      } else {
-        return {
-          success: false,
-          error: result.stderr || result.stdout || 'Erro desconhecido no wmic',
-        };
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
+    // Método WMI desabilitado por questões de segurança
+    // Credenciais seriam expostas em argumentos de processo
+    console.warn('Deploy via WMI desabilitado por questões de segurança - usando apenas SMB');
+    
+    return {
+      success: false,
+      error: 'WMI deployment desabilitado por questões de segurança. Use SMB.',
+    };
   }
 
   /**
-   * Verifica se o arquivo EICAR ainda existe
+   * Verifica se o arquivo EICAR ainda existe usando autenticação segura
    */
   private async checkEicarFileExists(
     hostname: string,
     credential: { username: string; password: string; domain?: string },
     filePath: string
   ): Promise<boolean> {
+    let authFile: string | null = null;
+    
     try {
+      // Criar arquivo de autenticação temporário
+      const tempDir = '/tmp';
+      authFile = path.join(tempDir, `smbauth_check_${Date.now()}`);
+      
+      const authContent = [
+        `username=${credential.username}`,
+        `password=${credential.password}`,
+        credential.domain ? `domain=${credential.domain}` : '',
+      ].filter(Boolean).join('\n');
+      
+      await fs.writeFile(authFile, authContent, { mode: 0o600 });
+
       const args = [
         `//${hostname}/C$`,
-        '-U', this.formatCredentials(credential),
+        '-A', authFile,
         '-c', 'ls "Windows\\Temp\\samureye_eicar.txt"'
       ];
 
@@ -241,40 +252,68 @@ export class EDRAVScanner {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.log(`Erro verificando arquivo em ${hostname}:`, errorMessage);
       return false;
+    } finally {
+      // Garantir limpeza do arquivo de autenticação
+      if (authFile) {
+        await fs.unlink(authFile).catch(() => {});
+      }
     }
   }
 
   /**
-   * Remove o arquivo EICAR (cleanup)
+   * Remove o arquivo EICAR (cleanup) usando autenticação segura
    */
   private async cleanupEicarFile(
     hostname: string,
     credential: { username: string; password: string; domain?: string },
     filePath: string
   ): Promise<void> {
+    let authFile: string | null = null;
+    
     try {
+      // Criar arquivo de autenticação temporário
+      const tempDir = '/tmp';
+      authFile = path.join(tempDir, `smbauth_cleanup_${Date.now()}`);
+      
+      const authContent = [
+        `username=${credential.username}`,
+        `password=${credential.password}`,
+        credential.domain ? `domain=${credential.domain}` : '',
+      ].filter(Boolean).join('\n');
+      
+      await fs.writeFile(authFile, authContent, { mode: 0o600 });
+
       const args = [
         `//${hostname}/C$`,
-        '-U', this.formatCredentials(credential),
+        '-A', authFile,
         '-c', 'rm "Windows\\Temp\\samureye_eicar.txt"'
       ];
 
       await this.executeCommand('smbclient', args, 10000);
+      
       console.log(`Arquivo EICAR removido de ${hostname}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.log(`Erro removendo arquivo EICAR de ${hostname}:`, errorMessage);
+    } finally {
+      // Garantir limpeza do arquivo de autenticação
+      if (authFile) {
+        await fs.unlink(authFile).catch(() => {});
+      }
     }
   }
 
   /**
-   * Formata credenciais para ferramentas
+   * Verifica se um binário existe no sistema
    */
-  private formatCredentials(credential: { username: string; password: string; domain?: string }): string {
-    if (credential.domain) {
-      return `${credential.domain}\\${credential.username}%${credential.password}`;
+  private async checkBinaryExists(binaryName: string): Promise<boolean> {
+    try {
+      const result = await this.executeCommand('which', [binaryName], 5000);
+      return result.exitCode === 0;
+    } catch (error) {
+      console.log(`Erro verificando existência de ${binaryName}:`, error);
+      return false;
     }
-    return `${credential.username}%${credential.password}`;
   }
 
   /**
