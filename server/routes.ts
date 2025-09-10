@@ -184,8 +184,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const credential = await storage.createCredential({
         name: credentialData.name,
         type: credentialData.type,
-        hostOverride: credentialData.hostOverride,
-        port: credentialData.port,
+        hostOverride: credentialData.hostOverride ?? null,
+        port: credentialData.port ?? null,
         username: credentialData.username,
         secretEncrypted,
         dekEncrypted,
@@ -196,6 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'create',
         objectType: 'credential',
         objectId: credential.id,
+        before: null,
         after: { ...credential, secretEncrypted: '[ENCRYPTED]', dekEncrypted: '[ENCRYPTED]' },
       });
       
@@ -222,6 +223,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'delete',
         objectType: 'credential',
         objectId: id,
+        before: null,
+        after: null,
       });
       
       res.status(204).send();
@@ -253,6 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'create',
         objectType: 'journey',
         objectId: journey.id,
+        before: null,
         after: journey,
       });
       

@@ -25,8 +25,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Users as UsersIcon, Shield, User, Crown } from "lucide-react";
-import { User } from "@shared/schema";
+import { Search, Users as UsersIcon, Shield, User as UserIcon, Crown } from "lucide-react";
+import type { User } from "@shared/schema";
 
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
