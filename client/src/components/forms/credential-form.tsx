@@ -28,6 +28,7 @@ const credentialSchema = z.object({
   }),
   hostOverride: z.string().optional(),
   port: z.number().min(1).max(65535).optional(),
+  domain: z.string().optional(),
   username: z.string().min(1, "Usuário é obrigatório"),
   secret: z.string().min(1, "Senha/chave é obrigatória"),
 });
@@ -46,6 +47,7 @@ export default function CredentialForm({ onSubmit, onCancel, isLoading = false }
       type: 'ssh',
       hostOverride: '',
       port: undefined,
+      domain: '',
       username: '',
       secret: '',
     },

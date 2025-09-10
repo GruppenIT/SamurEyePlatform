@@ -224,7 +224,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                     </FormControl>
                     <SelectContent>
                       {credentials
-                        .filter(cred => cred.type === 'wmi' || cred.type === 'omi')
+                        .filter(cred => cred.type === 'wmi' || cred.type === 'omi' || cred.type === 'ad')
                         .map((credential) => (
                           <SelectItem key={credential.id} value={credential.id}>
                             {credential.name} ({credential.type})
@@ -233,7 +233,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Credencial com privilégios de leitura no AD
+                    Credencial com privilégios de leitura no AD (recomendado: tipo AD/LDAP)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -283,7 +283,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                     </FormControl>
                     <SelectContent>
                       {credentials
-                        .filter(cred => cred.type === 'wmi' || cred.type === 'omi')
+                        .filter(cred => cred.type === 'wmi' || cred.type === 'omi' || cred.type === 'ad')
                         .map((credential) => (
                           <SelectItem key={credential.id} value={credential.id}>
                             {credential.name} ({credential.type})
@@ -292,7 +292,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Credencial com privilégios administrativos locais
+                    Credencial com privilégios administrativos (AD/LDAP, WMI ou OMI)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

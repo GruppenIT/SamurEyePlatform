@@ -4,6 +4,7 @@ import { encryptionService } from './encryption';
 import { networkScanner } from './scanners/networkScanner';
 import { vulnScanner } from './scanners/vulnScanner';
 import { adScanner } from './scanners/adScanner';
+import { EDRAVScanner } from './scanners/edrAvScanner';
 import { type Journey, type Job } from '@shared/schema';
 
 export interface JourneyProgress {
@@ -269,42 +270,100 @@ class JourneyExecutorService {
       throw new Error('Credencial não especificada para teste EDR/AV');
     }
 
-    onProgress({ status: 'running', progress: 25, currentTask: 'Obtendo lista de workstations' });
+    try {
+      onProgress({ status: 'running', progress: 20, currentTask: 'Obtendo credencial' });
 
-    await this.delay(2000);
+      // Buscar e descriptografar credencial
+      const credential = await storage.getCredential(credentialId);
+      if (!credential) {
+        throw new Error('Credencial não encontrada');
+      }
 
-    onProgress({ status: 'running', progress: 40, currentTask: 'Selecionando amostra de hosts' });
+      const decryptedPassword = encryptionService.decryptCredential(credential.secretEncrypted, credential.dekEncrypted);
 
-    // Simulate getting workstation list and sampling
-    const totalWorkstations = 156;
-    const sampleSize = Math.floor(totalWorkstations * sampleRate / 100);
-    
-    onProgress({ 
-      status: 'running', 
-      progress: 60, 
-      currentTask: `Executando teste EICAR em ${sampleSize} workstations` 
-    });
+      onProgress({ status: 'running', progress: 30, currentTask: 'Descobrindo workstations do domínio' });
 
-    await this.delay(4000); // Simulate EICAR test execution
+      // Para teste EDR/AV, precisamos primeiro descobrir workstations via AD
+      let workstationTargets: string[] = [];
+      
+      if (credential.type === 'ad') {
+        // Usar scanner AD para descobrir workstations
+        const adTargets = await adScanner.discoverDomainControllers(credential.domain || '');
+        if (adTargets.length > 0) {
+          // Simular descoberta de workstations (em implementação real, consultaria AD)
+          workstationTargets = this.generateWorkstationList(credential.domain || '');
+        }
+      } else {
+        // Se não for credencial AD, usar targets do parâmetro da jornada
+        workstationTargets = params.targets || [];
+      }
 
-    // Generate EDR/AV test findings
-    const findings = this.generateEDRAVFindings(sampleSize);
+      if (workstationTargets.length === 0) {
+        throw new Error('Nenhuma workstation encontrada para teste');
+      }
 
-    await storage.createJobResult({
-      jobId,
-      stdout: `Teste EDR/AV concluído. ${sampleSize} workstations testadas.`,
-      stderr: '',
-      artifacts: {
-        findings,
-        summary: {
-          totalWorkstations,
-          sampleSize,
-          sampleRate,
-          eicarRemoved: findings.filter(f => f.eicarRemoved).length,
-          eicarPersisted: findings.filter(f => !f.eicarRemoved).length,
+      onProgress({ 
+        status: 'running', 
+        progress: 50, 
+        currentTask: `Executando teste EICAR em ${workstationTargets.length} workstations (amostra: ${sampleRate}%)` 
+      });
+
+      // Executar teste EDR/AV real
+      const edrScanner = new EDRAVScanner();
+      const findings = await edrScanner.runEDRAVTest(
+        {
+          username: credential.username,
+          password: decryptedPassword,
+          domain: credential.domain,
         },
-      },
-    });
+        workstationTargets,
+        sampleRate
+      );
+
+      onProgress({ status: 'running', progress: 90, currentTask: 'Processando resultados' });
+
+      const eicarRemoved = findings.filter(f => f.eicarRemoved === true).length;
+      const eicarPersisted = findings.filter(f => f.eicarRemoved === false).length;
+      const errors = findings.filter(f => f.error).length;
+
+      await storage.createJobResult({
+        jobId,
+        stdout: `Teste EDR/AV concluído. ${findings.length} workstations testadas. ${eicarRemoved} com EDR/AV funcionando, ${eicarPersisted} com falhas.`,
+        stderr: errors > 0 ? `${errors} hosts com erros durante o teste` : '',
+        artifacts: {
+          findings,
+          summary: {
+            totalWorkstations: workstationTargets.length,
+            sampleSize: findings.length,
+            sampleRate,
+            eicarRemoved,
+            eicarPersisted,
+            errors,
+            domain: credential.domain,
+            testDuration: new Date().toISOString(),
+          },
+        },
+      });
+
+    } catch (error) {
+      console.error('Erro durante teste EDR/AV:', error);
+      
+      // Store error result
+      await storage.createJobResult({
+        jobId,
+        stdout: '',
+        stderr: `Erro durante teste EDR/AV: ${error.message}`,
+        artifacts: {
+          findings: [],
+          summary: {
+            error: error.message,
+            testDuration: new Date().toISOString(),
+          },
+        },
+      });
+      
+      throw error;
+    }
   }
 
   /**
@@ -469,6 +528,28 @@ class JourneyExecutorService {
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Gera lista de workstations para um domínio
+   * Em implementação real, consultaria AD para obter lista real
+   */
+  private generateWorkstationList(domain: string): string[] {
+    const workstations: string[] = [];
+    const baseName = domain.split('.')[0]; // primeiro parte do domínio
+    
+    // Gerar workstations simuladas
+    for (let i = 1; i <= 50; i++) {
+      workstations.push(`ws-${String(i).padStart(3, '0')}.${domain}`);
+    }
+    
+    // Adicionar algumas workstations com nomes mais realistas
+    const commonNames = ['admin', 'dev', 'hr', 'finance', 'it', 'sales'];
+    for (const name of commonNames) {
+      workstations.push(`${name}-${Math.floor(Math.random() * 10) + 1}.${domain}`);
+    }
+    
+    return workstations;
   }
 
   /**

@@ -79,6 +79,7 @@ export const credentials = pgTable("credentials", {
   type: credentialTypeEnum("type").notNull(),
   hostOverride: text("host_override"), // Optional specific host
   port: integer("port"),
+  domain: text("domain"), // Domain for AD/LDAP credentials
   username: text("username").notNull(),
   secretEncrypted: text("secret_encrypted").notNull(), // AES-256-GCM encrypted
   dekEncrypted: text("dek_encrypted").notNull(), // Data Encryption Key encrypted with KEK
