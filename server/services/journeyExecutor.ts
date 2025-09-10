@@ -1,6 +1,8 @@
 import { storage } from '../storage';
 import { threatEngine } from './threatEngine';
 import { encryptionService } from './encryption';
+import { networkScanner } from './scanners/networkScanner';
+import { vulnScanner } from './scanners/vulnScanner';
 import { type Journey, type Job } from '@shared/schema';
 
 export interface JourneyProgress {
@@ -78,25 +80,80 @@ class JourneyExecutorService {
       onProgress({ 
         status: 'running', 
         progress: progressPercent, 
-        currentTask: `Verificando ${asset.value} (${currentAsset}/${assets.length})` 
+        currentTask: `Escaneando portas em ${asset.value} (${currentAsset}/${assets.length})` 
       });
 
-      // Simulate nmap scan
-      await this.delay(2000); // Simulate scan time
-      
-      // Generate realistic findings based on asset type
-      const assetFindings = this.generateAttackSurfaceFindings(asset.value);
-      findings.push(...assetFindings);
+      try {
+        // Real port scan using networkScanner
+        let portResults;
+        
+        if (asset.type === 'range') {
+          // For CIDR ranges, scan each host in the range
+          portResults = await networkScanner.scanCidrRange(asset.value);
+        } else {
+          // For individual hosts, scan common ports
+          portResults = await networkScanner.scanPorts(asset.value);
+        }
+        
+        findings.push(...portResults);
+        
+        if (asset.type === 'range') {
+          // For ranges, group port results by host and scan each host individually
+          const hostPortMap = new Map<string, string[]>();
+          
+          for (const result of portResults) {
+            if (result.state === 'open') {
+              const existingPorts = hostPortMap.get(result.target) || [];
+              existingPorts.push(result.port);
+              hostPortMap.set(result.target, existingPorts);
+            }
+          }
+          
+          // Scan vulnerabilities for each host with its open ports
+          for (const [host, openPorts] of hostPortMap.entries()) {
+            if (openPorts.length > 0) {
+              onProgress({ 
+                status: 'running', 
+                progress: progressPercent + 10, 
+                currentTask: `Analisando vulnerabilidades em ${host}` 
+              });
+              
+              // Real vulnerability scan using vulnScanner for each host
+              const vulnResults = await vulnScanner.scanVulnerabilities(host, openPorts);
+              findings.push(...vulnResults);
+            }
+          }
+        } else {
+          // For individual hosts, scan vulnerabilities normally
+          const openPorts = portResults
+            .filter(result => result.state === 'open')
+            .map(result => result.port);
+            
+          if (openPorts.length > 0) {
+            onProgress({ 
+              status: 'running', 
+              progress: progressPercent + 10, 
+              currentTask: `Analisando vulnerabilidades em ${asset.value}` 
+            });
+            
+            // Real vulnerability scan using vulnScanner
+            const vulnResults = await vulnScanner.scanVulnerabilities(asset.value, openPorts);
+            findings.push(...vulnResults);
+          }
+        }
+        
+      } catch (error) {
+        console.error(`Erro ao escanear ${asset.value}:`, error);
+        
+        // Add error finding
+        findings.push({
+          type: 'error',
+          target: asset.value,
+          message: `Erro durante escaneamento: ${error.message}`,
+          timestamp: new Date().toISOString(),
+        });
+      }
     }
-
-    onProgress({ status: 'running', progress: 80, currentTask: 'Executando nuclei' });
-    
-    // Simulate nuclei execution
-    await this.delay(3000);
-    
-    // Add nuclei findings
-    const nucleiFindings = this.generateNucleiFindings();
-    findings.push(...nucleiFindings);
 
     // Store results
     await storage.createJobResult({
