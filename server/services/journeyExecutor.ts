@@ -1,0 +1,394 @@
+import { storage } from '../storage';
+import { threatEngine } from './threatEngine';
+import { encryptionService } from './encryption';
+import { type Journey, type Job } from '@shared/schema';
+
+export interface JourneyProgress {
+  status: Job['status'];
+  progress: number;
+  currentTask: string;
+}
+
+type ProgressCallback = (progress: JourneyProgress) => void;
+
+class JourneyExecutorService {
+  /**
+   * Executes a journey based on its type
+   */
+  async executeJourney(
+    journey: Journey, 
+    jobId: string, 
+    onProgress: ProgressCallback
+  ): Promise<void> {
+    onProgress({ status: 'running', progress: 10, currentTask: 'Preparando execução' });
+
+    switch (journey.type) {
+      case 'attack_surface':
+        await this.executeAttackSurface(journey, jobId, onProgress);
+        break;
+      case 'ad_hygiene':
+        await this.executeADHygiene(journey, jobId, onProgress);
+        break;
+      case 'edr_av':
+        await this.executeEDRAV(journey, jobId, onProgress);
+        break;
+      default:
+        throw new Error(`Tipo de jornada não suportado: ${journey.type}`);
+    }
+
+    onProgress({ status: 'running', progress: 90, currentTask: 'Analisando resultados' });
+    
+    // Process results and generate threats
+    await threatEngine.processJobResults(jobId);
+    
+    onProgress({ status: 'completed', progress: 100, currentTask: 'Execução finalizada' });
+  }
+
+  /**
+   * Executes Attack Surface journey
+   */
+  private async executeAttackSurface(
+    journey: Journey, 
+    jobId: string, 
+    onProgress: ProgressCallback
+  ): Promise<void> {
+    const params = journey.params;
+    const assetIds = params.assetIds || [];
+    
+    if (assetIds.length === 0) {
+      throw new Error('Nenhum ativo selecionado para varredura');
+    }
+
+    onProgress({ status: 'running', progress: 20, currentTask: 'Carregando ativos' });
+
+    // Get assets
+    const assets = [];
+    for (const assetId of assetIds) {
+      const asset = await storage.getAsset(assetId);
+      if (asset) assets.push(asset);
+    }
+
+    const findings = [];
+    let currentAsset = 0;
+
+    for (const asset of assets) {
+      currentAsset++;
+      const progressPercent = 20 + (currentAsset / assets.length) * 50;
+      
+      onProgress({ 
+        status: 'running', 
+        progress: progressPercent, 
+        currentTask: `Verificando ${asset.value} (${currentAsset}/${assets.length})` 
+      });
+
+      // Simulate nmap scan
+      await this.delay(2000); // Simulate scan time
+      
+      // Generate realistic findings based on asset type
+      const assetFindings = this.generateAttackSurfaceFindings(asset.value);
+      findings.push(...assetFindings);
+    }
+
+    onProgress({ status: 'running', progress: 80, currentTask: 'Executando nuclei' });
+    
+    // Simulate nuclei execution
+    await this.delay(3000);
+    
+    // Add nuclei findings
+    const nucleiFindings = this.generateNucleiFindings();
+    findings.push(...nucleiFindings);
+
+    // Store results
+    await storage.createJobResult({
+      jobId,
+      stdout: `Varredura concluída. ${findings.length} achados encontrados.`,
+      stderr: '',
+      artifacts: {
+        findings,
+        summary: {
+          totalAssets: assets.length,
+          totalFindings: findings.length,
+          scanDuration: '8m 42s',
+        },
+      },
+    });
+  }
+
+  /**
+   * Executes AD Hygiene journey
+   */
+  private async executeADHygiene(
+    journey: Journey, 
+    jobId: string, 
+    onProgress: ProgressCallback
+  ): Promise<void> {
+    const params = journey.params;
+    const domain = params.domain || 'corp.local';
+    const credentialId = params.credentialId;
+
+    if (!credentialId) {
+      throw new Error('Credencial não especificada para análise AD');
+    }
+
+    onProgress({ status: 'running', progress: 30, currentTask: 'Conectando ao Active Directory' });
+
+    // Get and decrypt credential
+    const credential = await storage.getCredential(credentialId);
+    if (!credential) {
+      throw new Error('Credencial não encontrada');
+    }
+
+    // Decrypt credential (in real implementation, this would be used for actual AD connection)
+    const decryptedPassword = encryptionService.decryptCredential(
+      credential.secretEncrypted, 
+      credential.dekEncrypted
+    );
+
+    onProgress({ status: 'running', progress: 50, currentTask: 'Analisando usuários e grupos' });
+    
+    await this.delay(3000); // Simulate AD analysis
+
+    onProgress({ status: 'running', progress: 70, currentTask: 'Verificando políticas' });
+    
+    await this.delay(2000);
+
+    // Generate AD hygiene findings
+    const findings = this.generateADHygieneFindings(domain);
+
+    // Store results
+    await storage.createJobResult({
+      jobId,
+      stdout: `Análise AD concluída. ${findings.length} problemas encontrados.`,
+      stderr: '',
+      artifacts: {
+        findings,
+        summary: {
+          domain,
+          totalUsers: 1247,
+          totalGroups: 89,
+          issuesFound: findings.length,
+        },
+      },
+    });
+  }
+
+  /**
+   * Executes EDR/AV Testing journey
+   */
+  private async executeEDRAV(
+    journey: Journey, 
+    jobId: string, 
+    onProgress: ProgressCallback
+  ): Promise<void> {
+    const params = journey.params;
+    const sampleRate = params.sampleRate || 15; // percentage
+    const credentialId = params.credentialId;
+
+    if (!credentialId) {
+      throw new Error('Credencial não especificada para teste EDR/AV');
+    }
+
+    onProgress({ status: 'running', progress: 25, currentTask: 'Obtendo lista de workstations' });
+
+    await this.delay(2000);
+
+    onProgress({ status: 'running', progress: 40, currentTask: 'Selecionando amostra de hosts' });
+
+    // Simulate getting workstation list and sampling
+    const totalWorkstations = 156;
+    const sampleSize = Math.floor(totalWorkstations * sampleRate / 100);
+    
+    onProgress({ 
+      status: 'running', 
+      progress: 60, 
+      currentTask: `Executando teste EICAR em ${sampleSize} workstations` 
+    });
+
+    await this.delay(4000); // Simulate EICAR test execution
+
+    // Generate EDR/AV test findings
+    const findings = this.generateEDRAVFindings(sampleSize);
+
+    await storage.createJobResult({
+      jobId,
+      stdout: `Teste EDR/AV concluído. ${sampleSize} workstations testadas.`,
+      stderr: '',
+      artifacts: {
+        findings,
+        summary: {
+          totalWorkstations,
+          sampleSize,
+          sampleRate,
+          eicarRemoved: findings.filter(f => f.eicarRemoved).length,
+          eicarPersisted: findings.filter(f => !f.eicarRemoved).length,
+        },
+      },
+    });
+  }
+
+  /**
+   * Generate realistic attack surface findings
+   */
+  private generateAttackSurfaceFindings(target: string): any[] {
+    const findings = [];
+    
+    // Port scan findings
+    const commonPorts = [22, 80, 443, 3389, 5985];
+    for (const port of commonPorts) {
+      if (Math.random() > 0.3) { // 70% chance port is open
+        findings.push({
+          type: 'port',
+          target,
+          port: port.toString(),
+          state: 'open',
+          service: this.getServiceForPort(port),
+          version: this.getRandomVersion(port),
+        });
+      }
+    }
+
+    // Add some vulnerabilities
+    if (Math.random() > 0.7) { // 30% chance of critical vulnerability
+      findings.push({
+        type: 'vulnerability',
+        target,
+        cve: 'CVE-2024-1234',
+        severity: 'critical',
+        cvss: 9.8,
+        description: 'Vulnerabilidade crítica em Apache HTTP Server permite execução remota de código',
+        service: 'http',
+        port: '80',
+        details: 'Buffer overflow in HTTP request parsing',
+      });
+    }
+
+    return findings;
+  }
+
+  /**
+   * Generate nuclei findings
+   */
+  private generateNucleiFindings(): any[] {
+    const findings = [];
+    
+    // Some common web vulnerabilities
+    const vulns = [
+      { name: 'Apache Server Status', severity: 'low' },
+      { name: 'Directory Listing', severity: 'medium' },
+      { name: 'Weak SSL/TLS Configuration', severity: 'medium' },
+    ];
+
+    for (const vuln of vulns) {
+      if (Math.random() > 0.5) {
+        findings.push({
+          type: 'web_vulnerability',
+          name: vuln.name,
+          severity: vuln.severity,
+          template: vuln.name.toLowerCase().replace(/\s+/g, '-'),
+        });
+      }
+    }
+
+    return findings;
+  }
+
+  /**
+   * Generate AD hygiene findings
+   */
+  private generateADHygieneFindings(domain: string): any[] {
+    const findings = [];
+
+    // Users with old passwords
+    const problematicUsers = [
+      'administrador.silva',
+      'backup.service',
+      'sql.admin',
+    ];
+
+    for (const username of problematicUsers) {
+      if (Math.random() > 0.4) {
+        findings.push({
+          type: 'ad_user',
+          username,
+          domain,
+          passwordAge: Math.floor(Math.random() * 200) + 90, // 90-290 days
+          groups: username.includes('admin') ? ['Domain Admins'] : ['Domain Users'],
+          lastLogon: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+          enabled: true,
+        });
+      }
+    }
+
+    // Password never expires accounts
+    const serviceAccounts = ['svc_backup', 'svc_sql', 'svc_web'];
+    for (const account of serviceAccounts) {
+      if (Math.random() > 0.6) {
+        findings.push({
+          type: 'ad_user',
+          username: account,
+          domain,
+          passwordNeverExpires: true,
+          enabled: true,
+          lastLogon: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+      }
+    }
+
+    return findings;
+  }
+
+  /**
+   * Generate EDR/AV test findings
+   */
+  private generateEDRAVFindings(sampleSize: number): any[] {
+    const findings = [];
+
+    for (let i = 0; i < sampleSize; i++) {
+      const hostname = `ws-${String(i + 1).padStart(3, '0')}.corp.local`;
+      const eicarRemoved = Math.random() > 0.1; // 90% success rate
+      
+      findings.push({
+        type: 'edr_test',
+        hostname,
+        filePath: `\\\\${hostname}\\C$\\Windows\\Temp\\samureye_eicar.txt`,
+        eicarRemoved,
+        testDuration: Math.floor(Math.random() * 300) + 30, // 30-330 seconds
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return findings;
+  }
+
+  /**
+   * Helper methods
+   */
+  private getServiceForPort(port: number): string {
+    const services: Record<number, string> = {
+      22: 'ssh',
+      80: 'http',
+      443: 'https',
+      3389: 'rdp',
+      5985: 'winrm',
+    };
+    return services[port] || 'unknown';
+  }
+
+  private getRandomVersion(port: number): string {
+    const versions: Record<number, string[]> = {
+      22: ['OpenSSH 8.9', 'OpenSSH 8.2', 'OpenSSH 7.4'],
+      80: ['Apache 2.4.52', 'nginx 1.18.0', 'IIS 10.0'],
+      443: ['Apache 2.4.52', 'nginx 1.18.0', 'IIS 10.0'],
+      3389: ['Microsoft Terminal Services'],
+      5985: ['Microsoft WinRM 2.0'],
+    };
+    const options = versions[port] || ['unknown'];
+    return options[Math.floor(Math.random() * options.length)];
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+
+export const journeyExecutor = new JourneyExecutorService();

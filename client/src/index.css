@@ -1,0 +1,183 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --radius: 8px;
+  
+  /* Dark security theme colors */
+  --background: hsl(222, 15%, 7%);
+  --foreground: hsl(210, 20%, 95%);
+  
+  --card: hsl(222, 15%, 10%);
+  --card-foreground: hsl(210, 20%, 95%);
+  
+  --popover: hsl(222, 15%, 10%);
+  --popover-foreground: hsl(210, 20%, 95%);
+  
+  --primary: hsl(197, 100%, 45%);
+  --primary-foreground: hsl(222, 15%, 7%);
+  
+  --secondary: hsl(222, 15%, 15%);
+  --secondary-foreground: hsl(210, 20%, 85%);
+  
+  --muted: hsl(222, 15%, 12%);
+  --muted-foreground: hsl(210, 10%, 65%);
+  
+  --accent: hsl(45, 100%, 65%);
+  --accent-foreground: hsl(222, 15%, 7%);
+  
+  --destructive: hsl(0, 85%, 60%);
+  --destructive-foreground: hsl(210, 20%, 95%);
+  
+  --border: hsl(222, 15%, 18%);
+  --input: hsl(222, 15%, 15%);
+  --ring: hsl(197, 100%, 45%);
+  
+  --chart-1: hsl(197, 100%, 45%);
+  --chart-2: hsl(45, 100%, 65%);
+  --chart-3: hsl(0, 85%, 60%);
+  --chart-4: hsl(142, 76%, 36%);
+  --chart-5: hsl(280, 65%, 60%);
+  
+  --sidebar: hsl(222, 15%, 10%);
+  --sidebar-foreground: hsl(210, 20%, 95%);
+  --sidebar-primary: hsl(197, 100%, 45%);
+  --sidebar-primary-foreground: hsl(222, 15%, 7%);
+  --sidebar-accent: hsl(222, 15%, 15%);
+  --sidebar-accent-foreground: hsl(210, 20%, 85%);
+  --sidebar-border: hsl(222, 15%, 18%);
+  --sidebar-ring: hsl(197, 100%, 45%);
+  
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  /* Shadow variables */
+  --shadow-2xs: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00), 0px 1px 2px -1px hsl(197, 100%, 45%, 0.00);
+  --shadow: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00), 0px 1px 2px -1px hsl(197, 100%, 45%, 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00), 0px 2px 4px -1px hsl(197, 100%, 45%, 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00), 0px 4px 6px -1px hsl(197, 100%, 45%, 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00), 0px 8px 10px -1px hsl(197, 100%, 45%, 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00);
+  
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+/* Custom security theme styles */
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-success { 
+  background-color: hsl(142, 76%, 36%); 
+}
+
+.status-warning { 
+  background-color: hsl(45, 100%, 65%); 
+}
+
+.status-error { 
+  background-color: hsl(0, 85%, 60%); 
+}
+
+.status-info { 
+  background-color: hsl(197, 100%, 45%); 
+}
+
+.status-pending { 
+  background-color: hsl(210, 10%, 65%); 
+}
+
+.sidebar-item:hover {
+  background-color: hsl(222, 15%, 15%);
+}
+
+.sidebar-item.active {
+  background-color: hsl(197, 100%, 45%, 0.1);
+  border-right: 3px solid hsl(197, 100%, 45%);
+}
+
+.metric-card {
+  background: linear-gradient(135deg, hsl(222, 15%, 10%) 0%, hsl(222, 15%, 12%) 100%);
+  border: 1px solid hsl(222, 15%, 18%);
+}
+
+.threat-critical { 
+  border-left: 4px solid hsl(0, 85%, 60%); 
+}
+
+.threat-high { 
+  border-left: 4px solid hsl(25, 95%, 53%); 
+}
+
+.threat-medium { 
+  border-left: 4px solid hsl(45, 100%, 65%); 
+}
+
+.threat-low { 
+  border-left: 4px solid hsl(142, 76%, 36%); 
+}
+
+.pulse-animation {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1; 
+  }
+  50% { 
+    opacity: .5; 
+  }
+}
+
+.job-running {
+  background: linear-gradient(90deg, transparent, hsl(197, 100%, 45%, 0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { 
+    background-position: -200% 0; 
+  }
+  100% { 
+    background-position: 200% 0; 
+  }
+}
+
+/* Scrollbar styles for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(222, 15%, 10%);
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(222, 15%, 18%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(222, 15%, 25%);
+}
