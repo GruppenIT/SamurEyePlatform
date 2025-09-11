@@ -464,6 +464,95 @@ run_migrations() {
     log "Migrações executadas com sucesso"
 }
 
+# Função para criar usuário administrador inicial
+create_admin_user() {
+    log "Criando usuário administrador inicial..."
+    
+    cd $INSTALL_DIR
+    
+    # Configurações de email (pode ser personalizada via variável de ambiente)
+    ADMIN_EMAIL="${ADMIN_EMAIL:-admin@samureye.com.br}"
+    
+    # Gera senha aleatória forte para o primeiro acesso
+    ADMIN_TEMP_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-16)
+    
+    # Verifica se bcryptjs está disponível
+    if ! node -e "require('bcryptjs')" 2>/dev/null; then
+        error "Biblioteca bcryptjs não encontrada. Execute: npm install"
+        exit 1
+    fi
+    
+    # Cria hash da senha usando Node.js com mesma biblioteca da aplicação
+    log "Gerando hash seguro da senha..."
+    ADMIN_PASSWORD_HASH=$(node -e "
+        const bcrypt = require('bcryptjs');
+        const password = process.argv[1];
+        const hash = bcrypt.hashSync(password, 12);
+        console.log(hash);
+    " "$ADMIN_TEMP_PASSWORD" 2>/dev/null)
+    
+    if [[ -z "$ADMIN_PASSWORD_HASH" ]]; then
+        error "Falha ao gerar hash da senha"
+        exit 1
+    fi
+    
+    # Cria usuário administrador inicial usando transação atômica com parâmetros seguros
+    PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+        -v admin_email="$ADMIN_EMAIL" \
+        -v admin_hash="$ADMIN_PASSWORD_HASH" \
+        -c "
+        DO \$create_admin\$ 
+        BEGIN 
+            IF NOT EXISTS (
+                SELECT 1 FROM users 
+                WHERE role = 'global_administrator' OR email = :'admin_email'
+            ) THEN
+                INSERT INTO users (email, password_hash, first_name, last_name, role) 
+                VALUES (
+                    :'admin_email', 
+                    :'admin_hash',
+                    'Administrador', 
+                    'SamurEye', 
+                    'global_administrator'
+                );
+                RAISE NOTICE 'Usuário administrador criado: %', :'admin_email';
+            ELSE
+                RAISE NOTICE 'Usuário administrador já existe, ignorando criação';
+            END IF;
+        END \$create_admin\$;
+    " || {
+        error "Falha ao criar usuário administrador inicial"
+        exit 1
+    }
+    
+    # Escreve credenciais em arquivo seguro (apenas uma vez)
+    CREDENTIALS_FILE="$INSTALL_DIR/ADMIN_CREDENTIALS"
+    cat > "$CREDENTIALS_FILE" << EOF
+===============================================
+    CREDENCIAIS DO ADMINISTRADOR INICIAL
+===============================================
+
+📧 Email: $ADMIN_EMAIL
+🔑 Senha temporária: $ADMIN_TEMP_PASSWORD
+
+🚨 IMPORTANTE: 
+- Faça login imediatamente e altere a senha
+- Este arquivo será removido após o primeiro login
+- Não compartilhe essas credenciais
+===============================================
+EOF
+    
+    # Define permissões seguras
+    chown $SERVICE_USER:$SERVICE_GROUP "$CREDENTIALS_FILE"
+    chmod 600 "$CREDENTIALS_FILE"
+    
+    log "✅ Usuário administrador configurado"
+    log "📧 Email: $ADMIN_EMAIL"
+    log "📄 Credenciais salvas em: $CREDENTIALS_FILE"
+    log ""
+    log "🚨 IMPORTANTE: Leia o arquivo de credenciais e faça login imediatamente!"
+}
+
 # Função para configurar serviços systemd
 setup_systemd_services() {
     log "Configurando serviços systemd..."
@@ -828,6 +917,7 @@ main() {
     install_application
     setup_environment
     run_migrations
+    create_admin_user
     setup_systemd_services
     setup_nginx_proxy
     setup_backup_scripts
