@@ -100,7 +100,8 @@ install_system_deps() {
         tree \
         jq \
         openssl \
-        net-tools
+        net-tools \
+        python3
 
     log "Dependências básicas instaladas com sucesso"
 }
@@ -342,7 +343,7 @@ setup_environment() {
     # Cria arquivo .env
     cat > $INSTALL_DIR/.env << EOF
 # Configuração do Banco de Dados
-DATABASE_URL=postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME
+DATABASE_URL=postgresql://$DB_USER:$(echo -n "$DB_PASSWORD" | python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip(), safe=''))")@localhost:5432/$DB_NAME
 PGHOST=localhost
 PGPORT=5432
 PGUSER=$DB_USER
@@ -414,7 +415,7 @@ Type=simple
 User=$SERVICE_USER
 Group=$SERVICE_GROUP
 WorkingDirectory=$INSTALL_DIR
-ExecStart=/usr/bin/node dist/server/index.js
+ExecStart=/usr/bin/node dist/index.js
 Restart=always
 RestartSec=10
 Environment=NODE_ENV=production

@@ -1,0 +1,151 @@
+Receiving objects: 100% (286/286), 261.81 KiB | 4.22 MiB/s, done.
+Resolving deltas: 100% (144/144), done.
+[INFO] Instalando dependências da aplicação...
+npm warn config production Use `--omit=dev` instead.
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+
+added 511 packages, and audited 512 packages in 12s
+
+69 packages are looking for funding
+  run `npm fund` for details
+
+8 vulnerabilities (1 low, 7 moderate)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.6.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.0
+npm notice To update run: npm install -g npm@11.6.0
+npm notice
+[INFO] Compilando aplicação...
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+Browserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 1754 modules transformed.
+../dist/public/index.html                   2.20 kB │ gzip:   0.86 kB
+../dist/public/assets/index-B33ibakt.css   62.13 kB │ gzip:  11.21 kB
+../dist/public/assets/index-BipKPYHK.js   554.13 kB │ gzip: 158.05 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 6.11s
+
+  dist/index.js  120.0kb
+
+⚡ Done in 11ms
+[INFO] Aplicação instalada com sucesso
+[INFO] Configurando variáveis de ambiente...
+[INFO] Variáveis de ambiente configuradas
+[INFO] Executando migrações do banco de dados...
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/opt/samureye/drizzle.config.ts'
+Using 'pg' driver for database querying
+[⣷] Pulling schema from database...
+TypeError: Invalid URL
+    at new URL (node:internal/url:806:29)
+    at parse (/opt/samureye/node_modules/pg-connection-string/index.js:29:14)
+    at new ConnectionParameters (/opt/samureye/node_modules/pg/lib/connection-parameters.js:56:42)
+    at new Client (/opt/samureye/node_modules/pg/lib/client.js:18:33)
+    at BoundPool.newClient (/opt/samureye/node_modules/pg-pool/index.js:218:20)
+    at BoundPool.connect (/opt/samureye/node_modules/pg-pool/index.js:212:10)
+    at BoundPool.query (/opt/samureye/node_modules/pg-pool/index.js:399:10)
+    at Object.query (/opt/samureye/node_modules/drizzle-kit/bin.cjs:66575:39)
+    at fromDatabase2 (/opt/samureye/node_modules/drizzle-kit/bin.cjs:18700:34)
+    at pgPushIntrospect (/opt/samureye/node_modules/drizzle-kit/bin.cjs:69374:9) {
+  code: 'ERR_INVALID_URL',
+  input: 'postgresql://samureye:mfQkNv54Xu2a0RvkHagmAOOpFQp5zOPVHQHP/2D8JgQ=@localhost:5432/samureye_db',
+  base: 'postgres://base'
+}
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.6.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.0
+npm notice To update run: npm install -g npm@11.6.0
+npm notice
+[INFO] Migrações executadas com sucesso
+[INFO] Configurando serviços systemd...
+Created symlink /etc/systemd/system/multi-user.target.wants/samureye-api.service → /etc/systemd/system/samureye-api.service.
+[INFO] Serviços systemd configurados
+[INFO] Configurando proxy reverso Nginx...
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[INFO] Proxy reverso Nginx configurado
+[INFO] Criando scripts de backup...
+[INFO] Scripts de backup configurados
+[INFO] Iniciando serviços...
+[ERROR] ✗ Falha ao iniciar serviço samureye-api
+● samureye-api.service - SamurEye API Server
+     Loaded: loaded (/etc/systemd/system/samureye-api.service; enabled; preset: enabled)
+     Active: activating (auto-restart) (Result: exit-code) since Thu 2025-09-11 12:50:43 UTC; 4s ago
+    Process: 80590 ExecStart=/usr/bin/node dist/server/index.js (code=exited, status=1/FAILURE)
+   Main PID: 80590 (code=exited, status=1/FAILURE)
+        CPU: 58ms
+root@vlxsam99:~# journalctl -u samureye-api.service -b --no-pager -n 50
+Sep 11 12:51:44 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 11 12:51:44 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Sep 11 12:51:55 vlxsam99 systemd[1]: samureye-api.service: Scheduled restart job, restart counter is at 7.
+Sep 11 12:51:55 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 11 12:51:55 vlxsam99 node[80670]: node:internal/modules/cjs/loader:1210
+Sep 11 12:51:55 vlxsam99 node[80670]:   throw err;
+Sep 11 12:51:55 vlxsam99 node[80670]:   ^
+Sep 11 12:51:55 vlxsam99 node[80670]: Error: Cannot find module '/opt/samureye/dist/server/index.js'
+Sep 11 12:51:55 vlxsam99 node[80670]:     at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+Sep 11 12:51:55 vlxsam99 node[80670]:     at Module._load (node:internal/modules/cjs/loader:1038:27)
+Sep 11 12:51:55 vlxsam99 node[80670]:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+Sep 11 12:51:55 vlxsam99 node[80670]:     at node:internal/main/run_main_module:28:49 {
+Sep 11 12:51:55 vlxsam99 node[80670]:   code: 'MODULE_NOT_FOUND',
+Sep 11 12:51:55 vlxsam99 node[80670]:   requireStack: []
+Sep 11 12:51:55 vlxsam99 node[80670]: }
+Sep 11 12:51:55 vlxsam99 node[80670]: Node.js v20.19.5
+Sep 11 12:51:55 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 11 12:51:55 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Sep 11 12:52:05 vlxsam99 systemd[1]: samureye-api.service: Scheduled restart job, restart counter is at 8.
+Sep 11 12:52:05 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 11 12:52:05 vlxsam99 node[80681]: node:internal/modules/cjs/loader:1210
+Sep 11 12:52:05 vlxsam99 node[80681]:   throw err;
+Sep 11 12:52:05 vlxsam99 node[80681]:   ^
+Sep 11 12:52:05 vlxsam99 node[80681]: Error: Cannot find module '/opt/samureye/dist/server/index.js'
+Sep 11 12:52:05 vlxsam99 node[80681]:     at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+Sep 11 12:52:05 vlxsam99 node[80681]:     at Module._load (node:internal/modules/cjs/loader:1038:27)
+Sep 11 12:52:05 vlxsam99 node[80681]:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+Sep 11 12:52:05 vlxsam99 node[80681]:     at node:internal/main/run_main_module:28:49 {
+Sep 11 12:52:05 vlxsam99 node[80681]:   code: 'MODULE_NOT_FOUND',
+Sep 11 12:52:05 vlxsam99 node[80681]:   requireStack: []
+Sep 11 12:52:05 vlxsam99 node[80681]: }
+Sep 11 12:52:05 vlxsam99 node[80681]: Node.js v20.19.5
+Sep 11 12:52:05 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 11 12:52:05 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Sep 11 12:52:15 vlxsam99 systemd[1]: samureye-api.service: Scheduled restart job, restart counter is at 9.
+Sep 11 12:52:15 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 11 12:52:15 vlxsam99 node[80691]: node:internal/modules/cjs/loader:1210
+Sep 11 12:52:15 vlxsam99 node[80691]:   throw err;
+Sep 11 12:52:15 vlxsam99 node[80691]:   ^
+Sep 11 12:52:15 vlxsam99 node[80691]: Error: Cannot find module '/opt/samureye/dist/server/index.js'
+Sep 11 12:52:15 vlxsam99 node[80691]:     at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+Sep 11 12:52:15 vlxsam99 node[80691]:     at Module._load (node:internal/modules/cjs/loader:1038:27)
+Sep 11 12:52:15 vlxsam99 node[80691]:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+Sep 11 12:52:15 vlxsam99 node[80691]:     at node:internal/main/run_main_module:28:49 {
+Sep 11 12:52:15 vlxsam99 node[80691]:   code: 'MODULE_NOT_FOUND',
+Sep 11 12:52:15 vlxsam99 node[80691]:   requireStack: []
+Sep 11 12:52:15 vlxsam99 node[80691]: }
+Sep 11 12:52:15 vlxsam99 node[80691]: Node.js v20.19.5
+Sep 11 12:52:15 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 11 12:52:15 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+root@vlxsam99:~#
