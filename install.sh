@@ -301,17 +301,50 @@ setup_firewall() {
 install_application() {
     log "Baixando e instalando aplicação SamurEye..."
     
-    # Cria diretório de instalação
-    mkdir -p $INSTALL_DIR
-    cd $INSTALL_DIR
+    # Hard reset - remove diretório existente se houver
+    if [[ -d "$INSTALL_DIR" ]]; then
+        # Verificações de segurança antes do rm -rf
+        if [[ -z "$INSTALL_DIR" || "$INSTALL_DIR" == "/" || "$INSTALL_DIR" == "/opt" ]]; then
+            error "INSTALL_DIR inválido ou perigoso: $INSTALL_DIR"
+            exit 1
+        fi
+        
+        # Verifica se é um caminho seguro do SamurEye
+        if [[ ! "$INSTALL_DIR" =~ ^/opt/samureye ]]; then
+            error "INSTALL_DIR deve estar em /opt/samureye: $INSTALL_DIR"
+            exit 1
+        fi
+        
+        # Para o serviço se estiver rodando
+        log "Parando serviços existentes..."
+        systemctl stop samureye-api || true
+        systemctl disable samureye-api || true
+        
+        # Preserva backups existentes se houverem
+        local temp_backup_dir=""
+        if [[ -d "$INSTALL_DIR/backups" ]]; then
+            temp_backup_dir="/tmp/samureye_backups_$(date +%s)"
+            log "Preservando backups existentes..."
+            mv "$INSTALL_DIR/backups" "$temp_backup_dir" || true
+        fi
+        
+        log "Removendo instalação anterior..."
+        rm -rf "$INSTALL_DIR"
+    fi
     
-    # Clona repositório
-    if [[ ! -d ".git" ]]; then
-        log "Clonando repositório..."
-        git clone $REPO_URL .
-    else
-        log "Repositório já existe, atualizando..."
-        git pull origin main
+    # Cria diretório de instalação limpo
+    mkdir -p "$INSTALL_DIR"
+    cd "$INSTALL_DIR"
+    
+    # Clone limpo do repositório sempre
+    log "Clonando repositório..."
+    git clone "$REPO_URL" .
+    
+    # Restaura backups preservados se houverem
+    if [[ -n "$temp_backup_dir" && -d "$temp_backup_dir" ]]; then
+        log "Restaurando backups preservados..."
+        rm -rf "$INSTALL_DIR/backups" 2>/dev/null || true
+        mv "$temp_backup_dir" "$INSTALL_DIR/backups" || true
     fi
     
     # Instala dependências Node.js
