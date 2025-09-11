@@ -82,8 +82,7 @@ export function getSession() {
     tableName: "sessions",
   });
 
-  const isProduction = process.env.NODE_ENV === 'production';
-  
+  // Use express-session's built-in HTTPS detection with trust proxy
   return session({
     secret: process.env.SESSION_SECRET,
     store: sessionStore,
@@ -91,7 +90,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: isProduction, // Only secure cookies over HTTPS in production
+      secure: 'auto', // Automatically detects HTTPS based on trust proxy + X-Forwarded-Proto
       sameSite: 'lax', // CSRF protection
       maxAge: sessionTtl,
     },
@@ -228,11 +227,11 @@ export async function setupAuth(app: Express) {
           return res.status(500).json({ message: 'Erro interno do servidor' });
         }
 
-        // Clear the session cookie
+        // Clear the session cookie with same settings as session
         res.clearCookie('connect.sid', {
           path: '/',
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          secure: req.secure || req.get('X-Forwarded-Proto') === 'https', // Match session cookie security
           sameSite: 'lax'
         });
 
