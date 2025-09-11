@@ -15,11 +15,13 @@ NC='\033[0m' # No Color
 
 # Variáveis de configuração
 INSTALL_DIR="/opt/samureye"
-SERVICE_USER="www-data"
+SERVICE_USER="samureye"
+SERVICE_GROUP="samureye"
 DB_NAME="samureye_db"
 DB_USER="samureye"
 REPO_URL="https://github.com/GruppenIT/SamurEyePlatform.git"
-NODE_VERSION="18"
+NODE_VERSION="20"
+NONINTERACTIVE="${NONINTERACTIVE:-true}"
 
 # Função para logging
 log() {
@@ -209,6 +211,29 @@ install_security_tools() {
     log "Ferramentas de segurança instaladas com sucesso"
 }
 
+# Função para criar usuário do sistema
+create_system_user() {
+    log "Configurando usuário do sistema..."
+    
+    # Criar grupo se não existir
+    if ! getent group "$SERVICE_GROUP" &>/dev/null; then
+        log "Criando grupo $SERVICE_GROUP..."
+        groupadd -r "$SERVICE_GROUP"
+    fi
+    
+    # Criar usuário se não existir
+    if ! id "$SERVICE_USER" &>/dev/null; then
+        log "Criando usuário $SERVICE_USER..."
+        useradd -r -s /bin/false -d "$INSTALL_DIR" -g "$SERVICE_GROUP" "$SERVICE_USER"
+    else
+        log "Usuário $SERVICE_USER já existe"
+    fi
+    
+    # Criar diretório de instalação
+    mkdir -p "$INSTALL_DIR"
+    chown -R "$SERVICE_USER:$SERVICE_GROUP" "$INSTALL_DIR"
+}
+
 # Função para configurar firewall
 setup_firewall() {
     log "Configurando firewall UFW..."
@@ -222,17 +247,25 @@ setup_firewall() {
         log "Porta SSH detectada: $SSH_PORT"
     fi
     
-    # Confirmação antes de habilitar firewall
-    warn "O firewall será configurado com as seguintes regras:"
-    warn "- SSH permitido na porta $SSH_PORT"
-    warn "- HTTP (80) e HTTPS (443) permitidos"
-    warn "- Aplicação (5000) bloqueada externamente"
-    
-    read -p "Continuar com configuração do firewall? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        warn "Configuração do firewall ignorada"
-        return 0
+    # Configurar de forma não-interativa se NONINTERACTIVE=true
+    if [[ "$NONINTERACTIVE" == "true" ]]; then
+        log "Configurando firewall automaticamente (modo não-interativo):"
+        log "- SSH permitido na porta $SSH_PORT"
+        log "- HTTP (80) e HTTPS (443) permitidos"  
+        log "- Aplicação (5000) bloqueada externamente"
+    else
+        # Confirmação antes de habilitar firewall
+        warn "O firewall será configurado com as seguintes regras:"
+        warn "- SSH permitido na porta $SSH_PORT"
+        warn "- HTTP (80) e HTTPS (443) permitidos"
+        warn "- Aplicação (5000) bloqueada externamente"
+        
+        read -p "Continuar com configuração do firewall? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            warn "Configuração do firewall ignorada"
+            return 0
+        fi
     fi
     
     # Configura UFW
@@ -350,28 +383,31 @@ run_migrations() {
     log "Migrações executadas com sucesso"
 }
 
-# Função para configurar serviço systemd
-setup_systemd_service() {
-    log "Configurando serviço systemd..."
+# Função para configurar serviços systemd
+setup_systemd_services() {
+    log "Configurando serviços systemd..."
     
-    cat > /etc/systemd/system/samureye.service << EOF
+    # Serviço principal da API (inclui toda a aplicação)
+    cat > /etc/systemd/system/samureye-api.service << EOF
 [Unit]
-Description=SamurEye Adversarial Exposure Validation Platform
+Description=SamurEye API Server
 After=network.target postgresql.service
 Requires=postgresql.service
 
 [Service]
 Type=simple
 User=$SERVICE_USER
-Group=$SERVICE_USER
+Group=$SERVICE_GROUP
 WorkingDirectory=$INSTALL_DIR
-ExecStart=/usr/bin/node dist/index.js
+ExecStart=/usr/bin/node dist/server/index.js
 Restart=always
 RestartSec=10
 Environment=NODE_ENV=production
 EnvironmentFile=$INSTALL_DIR/.env
+StandardOutput=journal
+StandardError=journal
 
-# Security
+# Security hardening
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes
@@ -386,11 +422,11 @@ SystemCallArchitectures=native
 WantedBy=multi-user.target
 EOF
 
-    # Recarrega systemd e habilita serviço
+    # Recarrega systemd e habilita serviços
     systemctl daemon-reload
-    systemctl enable samureye
+    systemctl enable samureye-api
     
-    log "Serviço systemd configurado"
+    log "Serviços systemd configurados"
 }
 
 # Função para configurar Nginx reverse proxy
@@ -518,17 +554,29 @@ EOF
 start_services() {
     log "Iniciando serviços..."
     
-    # Inicia serviço SamurEye
-    systemctl start samureye
+    # Inicia serviços PostgreSQL e Nginx primeiro
+    systemctl start postgresql nginx
     
-    # Verifica status
+    # Inicia serviços SamurEye
+    systemctl start samureye-api
+    
+    # Verifica status dos serviços
     sleep 5
-    if systemctl is-active --quiet samureye; then
-        log "Serviço SamurEye iniciado com sucesso"
-    else
-        error "Falha ao iniciar serviço SamurEye"
-        systemctl status samureye
-        journalctl -u samureye --no-pager -n 20
+    local services_ok=true
+    
+    for service in "samureye-api" "postgresql" "nginx"; do
+        if systemctl is-active --quiet "$service"; then
+            log "✓ Serviço $service iniciado com sucesso"
+        else
+            error "✗ Falha ao iniciar serviço $service"
+            systemctl status "$service"
+            journalctl -u "$service" --no-pager -n 20
+            services_ok=false
+        fi
+    done
+    
+    if [[ "$services_ok" != "true" ]]; then
+        error "Um ou mais serviços falharam ao iniciar"
         exit 1
     fi
     
@@ -536,23 +584,23 @@ start_services() {
     log "Testando resposta da aplicação..."
     for i in {1..30}; do
         if curl -f http://localhost:5000/api/health &>/dev/null; then
-            log "Aplicação respondendo corretamente"
-            return 0
+            log "✓ Aplicação respondendo corretamente"
+            break
         fi
         if [[ $i -eq 30 ]]; then
-            error "Aplicação não está respondendo após 30 tentativas"
-            systemctl status samureye
-            journalctl -u samureye --no-pager -n 50
+            error "✗ Aplicação não está respondendo após 30 tentativas"
+            systemctl status samureye-api
+            journalctl -u samureye-api --no-pager -n 50
             exit 1
         fi
         sleep 2
     done
     
     # Testa Nginx
-    if ! curl -f http://localhost/ &>/dev/null; then
-        warn "Nginx pode não estar configurado corretamente"
+    if curl -f http://localhost/ &>/dev/null; then
+        log "✓ Proxy reverso Nginx funcionando"
     else
-        log "Proxy reverso Nginx funcionando"
+        warn "⚠ Nginx pode não estar configurado corretamente"
     fi
 }
 
@@ -570,7 +618,7 @@ show_final_info() {
     log "   Externo: http://$server_ip"
     echo
     log "📊 Status dos serviços:"
-    log "   SamurEye: $(systemctl is-active samureye)"
+    log "   SamurEye: $(systemctl is-active samureye-api)"
     log "   PostgreSQL: $(systemctl is-active postgresql)"
     log "   Nginx: $(systemctl is-active nginx)"
     echo
@@ -581,11 +629,16 @@ show_final_info() {
     log "   Configuração: $INSTALL_DIR/.env"
     echo
     log "🔧 Comandos úteis:"
-    log "   Status: systemctl status samureye"
-    log "   Logs: journalctl -u samureye -f"
-    log "   Restart: systemctl restart samureye"
+    log "   Status: systemctl status samureye-api"
+    log "   Logs: journalctl -u samureye-api -f"
+    log "   Restart: systemctl restart samureye-api"
     log "   Backup: $INSTALL_DIR/scripts/backup.sh"
     log "   Upgrade: cd $INSTALL_DIR && ./upgrade.sh"
+    echo
+    log "👤 Primeiro Acesso:"
+    log "   1. Acesse a aplicação no navegador"
+    log "   2. Use o usuário administrador padrão criado na instalação"
+    log "   3. IMPORTANTE: Altere a senha padrão no primeiro login"
     echo
     warn "⚠️  AÇÕES NECESSÁRIAS:"
     warn "1. Configure SSL/HTTPS para produção:"
@@ -623,11 +676,12 @@ main() {
     setup_database
     install_nginx
     install_security_tools
+    create_system_user
     setup_firewall
     install_application
     setup_environment
     run_migrations
-    setup_systemd_service
+    setup_systemd_services
     setup_nginx_proxy
     setup_backup_scripts
     start_services
