@@ -370,7 +370,7 @@ setup_environment() {
     log "Configurando variáveis de ambiente..."
     
     # Gera chaves de criptografia
-    ENCRYPTION_KEK=$(openssl rand -base64 32)
+    ENCRYPTION_KEK=$(openssl rand -hex 32)
     SESSION_SECRET=$(openssl rand -base64 64)
     
     # Cria arquivo .env

@@ -1,0 +1,55 @@
+[INFO] Executando migrações do banco de dados...
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/opt/samureye/drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
+[✓] Changes applied
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.6.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.0
+npm notice To update run: npm install -g npm@11.6.0
+npm notice
+[INFO] Migrações executadas com sucesso
+[INFO] Configurando serviços systemd...
+Created symlink /etc/systemd/system/multi-user.target.wants/samureye-api.service → /etc/systemd/system/samureye-api.service.
+[INFO] Serviços systemd configurados
+[INFO] Configurando proxy reverso Nginx...
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[INFO] Proxy reverso Nginx configurado
+[INFO] Criando scripts de backup...
+[INFO] Scripts de backup configurados
+[INFO] Iniciando serviços...
+[ERROR] ✗ Falha ao iniciar serviço samureye-api
+● samureye-api.service - SamurEye API Server
+     Loaded: loaded (/etc/systemd/system/samureye-api.service; enabled; preset: enabled)
+     Active: activating (auto-restart) (Result: exit-code) since Thu 2025-09-11 13:28:46 UTC; 4s ago
+    Process: 90129 ExecStart=/usr/bin/node dist/index.js (code=exited, status=1/FAILURE)
+   Main PID: 90129 (code=exited, status=1/FAILURE)
+        CPU: 850ms
+root@vlxsam99:~# journalctl -u samureye-api.service -b --no-pager -n 20
+Sep 11 13:30:01 vlxsam99 node[90237]:     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+Sep 11 13:30:01 vlxsam99 node[90237]:     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+Sep 11 13:30:01 vlxsam99 node[90237]: Node.js v20.19.5
+Sep 11 13:30:01 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 11 13:30:01 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Sep 11 13:30:11 vlxsam99 systemd[1]: samureye-api.service: Scheduled restart job, restart counter is at 8.
+Sep 11 13:30:11 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 11 13:30:12 vlxsam99 node[90253]: file:///opt/samureye/dist/index.js:1025
+Sep 11 13:30:12 vlxsam99 node[90253]:       throw new Error(`ENCRYPTION_KEK must be ${KEY_LENGTH * 2} hex characters (${KEY_LENGTH} bytes)`);
+Sep 11 13:30:12 vlxsam99 node[90253]:             ^
+Sep 11 13:30:12 vlxsam99 node[90253]: Error: ENCRYPTION_KEK must be 64 hex characters (32 bytes)
+Sep 11 13:30:12 vlxsam99 node[90253]:     at getKEK (file:///opt/samureye/dist/index.js:1025:13)
+Sep 11 13:30:12 vlxsam99 node[90253]:     at new EncryptionService (file:///opt/samureye/dist/index.js:1035:16)
+Sep 11 13:30:12 vlxsam99 node[90253]:     at file:///opt/samureye/dist/index.js:1133:25
+Sep 11 13:30:12 vlxsam99 node[90253]:     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+Sep 11 13:30:12 vlxsam99 node[90253]:     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+Sep 11 13:30:12 vlxsam99 node[90253]:     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+Sep 11 13:30:12 vlxsam99 node[90253]: Node.js v20.19.5
+Sep 11 13:30:12 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 11 13:30:12 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+root@vlxsam99:~#
