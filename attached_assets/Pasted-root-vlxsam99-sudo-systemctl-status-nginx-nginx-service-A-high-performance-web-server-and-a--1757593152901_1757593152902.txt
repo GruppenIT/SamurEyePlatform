@@ -1,0 +1,35 @@
+root@vlxsam99:~# sudo systemctl status nginx
+● nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2025-09-11 12:00:08 UTC; 18min ago
+       Docs: man:nginx(8)
+   Main PID: 65889 (nginx)
+      Tasks: 5 (limit: 9443)
+     Memory: 3.7M (peak: 8.1M)
+        CPU: 34ms
+     CGroup: /system.slice/nginx.service
+             ├─65889 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;"
+             ├─65892 "nginx: worker process"
+             ├─65893 "nginx: worker process"
+             ├─65894 "nginx: worker process"
+             └─65895 "nginx: worker process"
+
+Sep 11 12:00:08 vlxsam99 systemd[1]: Starting nginx.service - A high performance web server and a reverse proxy server...
+Sep 11 12:00:08 vlxsam99 systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.
+root@vlxsam99:~# sudo systemctl status samureye-api
+Unit samureye-api.service could not be found.
+root@vlxsam99:~# sudo systemctl status samureye-worker
+Unit samureye-worker.service could not be found.
+root@vlxsam99:~# sudo systemctl list-units --state=active | grep samur
+root@vlxsam99:~# sudo ss -tulnp | grep -E ':80|:443|:5000'
+tcp   LISTEN 0      511          0.0.0.0:80        0.0.0.0:*    users:(("nginx",pid=65895,fd=5),("nginx",pid=65894,fd=5),("nginx",pid=65893,fd=5),("nginx",pid=65892,fd=5),("nginx",pid=65889,fd=5))
+tcp   LISTEN 0      511             [::]:80           [::]:*    users:(("nginx",pid=65895,fd=6),("nginx",pid=65894,fd=6),("nginx",pid=65893,fd=6),("nginx",pid=65892,fd=6),("nginx",pid=65889,fd=6))
+root@vlxsam99:~# sudo netstat -tlnp | grep :443
+root@vlxsam99:~# sudo tail -f /var/log/nginx/error.log
+2025/09/11 12:00:08 [notice] 65889#65889: using inherited sockets from "5;6;"
+^C
+root@vlxsam99:~# sudo tail -f /var/log/nginx/access.log
+^C
+root@vlxsam99:~# sudo journalctl -u samureye-api -f --since "10 minutes ago"
+^C
+root@vlxsam99:~#
