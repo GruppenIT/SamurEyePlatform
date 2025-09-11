@@ -184,6 +184,7 @@ export async function setupAuth(app: Express) {
             action: 'login_failed',
             objectType: 'user',
             objectId: null,
+            before: null,
             after: {
               email: req.body.email,
               reason: info?.message || 'Credenciais inválidas',
@@ -196,13 +197,13 @@ export async function setupAuth(app: Express) {
       }
 
       // Regenerate session ID to prevent session fixation
-      req.session.regenerate((err) => {
+      req.session.regenerate((err: any) => {
         if (err) {
           console.error("Erro ao regenerar sessão:", err);
           return res.status(500).json({ message: 'Erro interno do servidor' });
         }
 
-        req.logIn(user, (err) => {
+        req.logIn(user, async (err: any) => {
           if (err) {
             console.error("Erro ao fazer login:", err);
             return res.status(500).json({ message: 'Erro interno do servidor' });
@@ -214,6 +215,7 @@ export async function setupAuth(app: Express) {
             action: 'login',
             objectType: 'user',
             objectId: user.id,
+            before: null,
             after: {
               email: user.email,
               timestamp: new Date().toISOString(),
@@ -253,16 +255,17 @@ export async function setupAuth(app: Express) {
           action: 'logout',
           objectType: 'user',
           objectId: user.id,
+          before: null,
           after: {
             email: user.email,
             timestamp: new Date().toISOString(),
             clientIP: req.ip || req.connection.remoteAddress || 'unknown'
           },
-        }).catch(err => console.error("Erro ao logar audit de logout:", err));
+        }).catch((err: any) => console.error("Erro ao logar audit de logout:", err));
       }
 
       // Destroy the session and clear cookie
-      req.session.destroy((err) => {
+      req.session.destroy((err: any) => {
         if (err) {
           console.error("Erro ao destruir sessão:", err);
           return res.status(500).json({ message: 'Erro interno do servidor' });
@@ -332,6 +335,7 @@ export async function setupAuth(app: Express) {
         action: 'change_password',
         objectType: 'user',
         objectId: user.id,
+        before: null,
         after: {
           email: user.email,
           timestamp: new Date().toISOString(),

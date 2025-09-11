@@ -382,6 +382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'create',
         objectType: 'schedule',
         objectId: schedule.id,
+        before: null,
         after: schedule,
       });
       
