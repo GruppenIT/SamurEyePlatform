@@ -19,7 +19,7 @@
 #   NODE_VERSION    - Versão Node.js (padrão: 20)
 #   NONINTERACTIVE  - Modo não-interativo (padrão: true)
 
-set -e
+set -Eeuo pipefail
 
 # Cores para output
 RED='\033[0;31m'
@@ -29,13 +29,15 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Variáveis de configuração
-INSTALL_DIR="/opt/samureye"
-SERVICE_USER="samureye"
-SERVICE_GROUP="samureye"
-DB_NAME="samureye_db"
-DB_USER="samureye"
-REPO_URL="https://github.com/GruppenIT/SamurEyePlatform.git"
-NODE_VERSION="20"
+INSTALL_DIR="${INSTALL_DIR:-/opt/samureye}"
+SERVICE_USER="${SERVICE_USER:-samureye}"
+SERVICE_GROUP="${SERVICE_GROUP:-samureye}"
+SERVICE_NAME="${SERVICE_NAME:-samureye-api}"
+DB_NAME="${DB_NAME:-samureye_db}"
+DB_USER="${DB_USER:-samureye}"
+REPO_URL="${REPO_URL:-https://github.com/GruppenIT/SamurEyePlatform.git}"
+BRANCH="${BRANCH:-main}"
+NODE_VERSION="${NODE_VERSION:-20}"
 NONINTERACTIVE="${NONINTERACTIVE:-true}"
 
 # Função para logging
@@ -338,7 +340,7 @@ install_application() {
     
     # Clone limpo do repositório sempre
     log "Clonando repositório..."
-    git clone "$REPO_URL" .
+    git clone -b "$BRANCH" "$REPO_URL" .
     
     # Restaura backups preservados se houverem
     if [[ -n "$temp_backup_dir" && -d "$temp_backup_dir" ]]; then
@@ -351,9 +353,35 @@ install_application() {
     log "Instalando dependências da aplicação..."
     npm install --production=false
     
+    # Aplicar correções críticas do WebSocket (PostgreSQL driver)
+    log "Aplicando correções do driver de banco de dados..."
+    npm uninstall @neondatabase/serverless || true
+    npm install pg @types/pg
+    npm dedupe && npm prune
+    
+    # Verificar se a correção foi aplicada
+    if npm list pg > /dev/null 2>&1; then
+        log "✅ Driver PostgreSQL (pg) instalado com sucesso"
+    else
+        error "❌ Falha ao instalar driver PostgreSQL correto"
+        exit 1
+    fi
+    
     # Compila aplicação
     log "Compilando aplicação..."
     npm run build
+    
+    # Verificar se build foi bem-sucedido e contém as correções
+    if [[ -f "dist/index.js" ]]; then
+        if grep -q "from.*['\"]pg['\"]" dist/index.js || grep -q "require.*['\"]pg['\"]" dist/index.js; then
+            log "✅ Build finalizado com driver PostgreSQL correto"
+        else
+            warn "⚠️  Build concluído mas não foi possível verificar driver PostgreSQL"
+        fi
+    else
+        error "❌ Falha no build da aplicação"
+        exit 1
+    fi
     
     # Cria diretórios necessários
     mkdir -p logs backups temp
