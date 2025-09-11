@@ -496,34 +496,33 @@ create_admin_user() {
         exit 1
     fi
     
-    # Cria usuário administrador inicial usando transação atômica com parâmetros seguros
-    PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
-        -v admin_email="$ADMIN_EMAIL" \
-        -v admin_hash="$ADMIN_PASSWORD_HASH" \
-        -c "
+    # Cria usuário administrador inicial usando transação atômica
+    local SQL_COMMAND="
         DO \$create_admin\$ 
         BEGIN 
             IF NOT EXISTS (
                 SELECT 1 FROM users 
-                WHERE role = 'global_administrator' OR email = :'admin_email'
+                WHERE role = 'global_administrator'
             ) THEN
                 INSERT INTO users (email, password_hash, first_name, last_name, role) 
                 VALUES (
-                    :'admin_email', 
-                    :'admin_hash',
+                    '$ADMIN_EMAIL', 
+                    '$ADMIN_PASSWORD_HASH',
                     'Administrador', 
                     'SamurEye', 
                     'global_administrator'
                 );
-                RAISE NOTICE 'Usuário administrador criado: %', :'admin_email';
+                RAISE NOTICE 'Usuário administrador criado: $ADMIN_EMAIL';
             ELSE
                 RAISE NOTICE 'Usuário administrador já existe, ignorando criação';
             END IF;
         END \$create_admin\$;
-    " || {
+    "
+    
+    if ! PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" -c "$SQL_COMMAND"; then
         error "Falha ao criar usuário administrador inicial"
         exit 1
-    }
+    fi
     
     # Escreve credenciais em arquivo seguro (apenas uma vez)
     CREDENTIALS_FILE="$INSTALL_DIR/ADMIN_CREDENTIALS"
