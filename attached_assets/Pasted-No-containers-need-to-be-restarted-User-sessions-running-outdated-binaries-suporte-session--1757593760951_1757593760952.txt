@@ -1,0 +1,74 @@
+No containers need to be restarted.
+
+User sessions running outdated binaries:
+ suporte @ session #123: sshd[38923]
+ suporte @ user manager service: systemd[38928]
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+[INFO] Node.js v18.20.8 e npm 10.8.2 instalados com sucesso
+[INFO] Instalando PostgreSQL...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+postgresql is already the newest version (16+257build1.1).
+postgresql-contrib is already the newest version (16+257build1.1).
+postgresql-client is already the newest version (16+257build1.1).
+0 upgraded, 0 newly installed, 0 to remove and 6 not upgraded.
+Synchronizing state of postgresql.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable postgresql
+[INFO] PostgreSQL instalado e iniciado com sucesso
+[INFO] Configurando banco de dados PostgreSQL...
+ERROR:  role "samureye" already exists
+ALTER ROLE
+ERROR:  database "samureye_db" already exists
+ALTER ROLE
+[INFO] Banco de dados configurado com sucesso
+[INFO] Instalando Nginx...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+nginx is already the newest version (1.24.0-2ubuntu7.5).
+0 upgraded, 0 newly installed, 0 to remove and 6 not upgraded.
+Synchronizing state of nginx.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable nginx
+[INFO] Nginx instalado com sucesso
+[INFO] Instalando ferramentas de segurança...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+nmap is already the newest version (7.94+git20230807.3be01efb1+dfsg-3build2).
+0 upgraded, 0 newly installed, 0 to remove and 6 not upgraded.
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+smbclient is already the newest version (2:4.19.5+dfsg-4ubuntu9.3).
+ldap-utils is already the newest version (2.6.7+dfsg-1~exp1ubuntu8.2).
+0 upgraded, 0 newly installed, 0 to remove and 6 not upgraded.
+[INFO] Ferramentas de segurança instaladas com sucesso
+[INFO] Configurando firewall UFW...
+[INFO] Porta SSH detectada: 22
+[WARN] O firewall será configurado com as seguintes regras:
+[WARN] - SSH permitido na porta 22
+[WARN] - HTTP (80) e HTTPS (443) permitidos
+[WARN] - Aplicação (5000) bloqueada externamente
+root@vlxsam99:~# sudo -u postgres psql -c "\l"
+                                                        List of databases
+    Name     |  Owner   | Encoding | Locale Provider |   Collate   |    Ctype    | ICU Locale | ICU Rules |   Access privileges
+-------------+----------+----------+-----------------+-------------+-------------+------------+-----------+-----------------------
+ postgres    | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |            |           |
+ samureye_db | samureye | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |            |           |
+ template0   | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |            |           | =c/postgres          +
+             |          |          |                 |             |             |            |           | postgres=CTc/postgres
+ template1   | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |            |           | =c/postgres          +
+             |          |          |                 |             |             |            |           | postgres=CTc/postgres
+(4 rows)
+
+root@vlxsam99:~# cat /etc/passwd | grep samureye
+root@vlxsam99:~# sudo find /opt -name "*samur*" -type d
+root@vlxsam99:~# sudo journalctl -p err --since "2 hours ago"
+-- No entries --
+root@vlxsam99:~# sudo systemctl status samureye-api
+Unit samureye-api.service could not be found.
+root@vlxsam99:~# sudo systemctl status samureye-worker
+Unit samureye-worker.service could not be found.
+root@vlxsam99:~#
