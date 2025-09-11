@@ -1,6 +1,8 @@
+
 # SamurEye - Adversarial Exposure Validation Platform
 
-![SamurEye Logo](https://img.shields.io/badge/SamurEye-AEV%20Platform-darkred)
+![SamurEye Logo](
+)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
