@@ -139,26 +139,37 @@ install_postgresql() {
     log "PostgreSQL instalado e iniciado com sucesso"
 }
 
-# Função para configurar banco de dados
+# Função para configurar banco de dados (HARD RESET - sempre recria)
 setup_database() {
-    log "Configurando banco de dados PostgreSQL..."
+    log "🔄 HARD RESET: Recriando banco de dados PostgreSQL..."
     
-    # Gera senha aleatória para o usuário do banco
+    # ⚠️ HARD RESET: Remove completamente banco e usuário existentes
+    log "🗑️ Removendo banco de dados existente..."
+    sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;" 2>/dev/null || true
+    
+    log "🗑️ Removendo usuário do banco existente..."
+    sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;" 2>/dev/null || true
+    
+    # Gera nova senha aleatória para o usuário do banco
     DB_PASSWORD=$(openssl rand -base64 32)
     
+    log "👤 Criando novo usuário do banco de dados..."
     # Cria usuário com privilégios mínimos necessários
-    sudo -u postgres psql -c "CREATE USER $DB_USER WITH LOGIN CREATEDB;" || true
+    sudo -u postgres psql -c "CREATE USER $DB_USER WITH LOGIN CREATEDB;"
     sudo -u postgres psql -c "ALTER USER $DB_USER WITH ENCRYPTED PASSWORD '$DB_PASSWORD';"
-    sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;" || true
+    
+    log "🏗️ Criando novo banco de dados..."
+    sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
     
     # Remove privilégio CREATEDB após criação do banco (least privilege)
     sudo -u postgres psql -c "ALTER USER $DB_USER NOCREATEDB;"
     
     # Testa conexão
     if sudo -u postgres psql -d $DB_NAME -c "SELECT version();" > /dev/null 2>&1; then
-        log "Banco de dados configurado com sucesso"
+        log "✅ Banco de dados recriado com sucesso"
+        log "🔑 Nova senha do banco gerada"
     else
-        error "Falha ao configurar o banco de dados"
+        error "❌ Falha ao recriar o banco de dados"
         exit 1
     fi
 }
@@ -464,60 +475,24 @@ run_migrations() {
     log "Migrações executadas com sucesso"
 }
 
-# Função para criar usuário administrador inicial
+# Função para criar usuário administrador inicial (HARD RESET - sempre recria)
 create_admin_user() {
-    log "Configurando usuário administrador inicial..."
+    log "🔄 HARD RESET: Criando novo usuário administrador..."
     
     cd $INSTALL_DIR
     
     # Configurações de email (pode ser personalizada via variável de ambiente)
     ADMIN_EMAIL="${ADMIN_EMAIL:-admin@samureye.com.br}"
     
-    # Flag para forçar reset de senha (padrão: false para ser idempotente)
-    ADMIN_RESET="${ADMIN_RESET:-false}"
-    
-    # Verifica status do usuário administrador
-    USER_STATUS=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
-        -v admin_email="$ADMIN_EMAIL" \
-        -t -A \
-        -c "SELECT role FROM users WHERE email = :'admin_email' LIMIT 1;" 2>/dev/null)
-    
-    # Arquivo de credenciais (para limpeza se necessário)
+    # Arquivo de credenciais (sempre recriado)
     CREDENTIALS_FILE="$INSTALL_DIR/ADMIN_CREDENTIALS"
     
-    # Se usuário já existe
-    if [[ -n "$USER_STATUS" ]]; then
-        if [[ "$USER_STATUS" == "global_administrator" ]] && [[ "$ADMIN_RESET" != "true" ]]; then
-            # Admin já existe, modo idempotente: limpar arquivo obsoleto
-            log "✅ Usuário administrador já existe: $ADMIN_EMAIL"
-            log "ℹ️  Para resetar senha use: ADMIN_RESET=true ./install.sh"
-            
-            # CRÍTICO: Remove arquivo de credenciais obsoleto para evitar confusão
-            if [[ -f "$CREDENTIALS_FILE" ]]; then
-                rm -f "$CREDENTIALS_FILE"
-                log "🧹 Arquivo de credenciais obsoleto removido (modo idempotente)"
-            fi
-            
-            log "ℹ️  Nenhuma ação necessária - sistema já configurado"
-            return 0
-        elif [[ "$USER_STATUS" != "global_administrator" ]] && [[ "$ADMIN_RESET" != "true" ]]; then
-            # Usuário existe mas não é admin, exige reset explícito para evitar elevação acidental
-            error "⚠️  Usuário $ADMIN_EMAIL existe mas não é administrador (role: $USER_STATUS)"
-            error "    Para elevar a administrador use: ADMIN_RESET=true ./install.sh"
-            error "    Isto é necessário para evitar escalação não intencional de privilégios"
-            exit 1
-        else
-            # ADMIN_RESET=true: permite reset ou elevação
-            if [[ "$USER_STATUS" == "global_administrator" ]]; then
-                log "🔄 ADMIN_RESET=true: Resetando senha do administrador existente"
-            else
-                log "⬆️  ADMIN_RESET=true: Elevando usuário existente ($USER_STATUS → global_administrator)"
-            fi
-        fi
-    else
-        # Usuário não existe, criar novo
-        log "🆕 Criando novo usuário administrador"
-    fi
+    # ⚠️ HARD RESET: Remove qualquer usuário administrador existente
+    log "🗑️ Removendo usuários administradores existentes..."
+    PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+        -c "DELETE FROM users WHERE role = 'global_administrator' OR email = '$ADMIN_EMAIL';" 2>/dev/null || true
+    
+    log "🆕 Criando novo usuário administrador: $ADMIN_EMAIL"
     
     # Gera senha aleatória forte para o primeiro acesso (sem caracteres problemáticos)
     ADMIN_TEMP_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/\"\'\\" | cut -c1-16)
@@ -560,33 +535,23 @@ create_admin_user() {
     
     log "Hash gerado com ${#ADMIN_PASSWORD_HASH} caracteres"
     
-    # Insere ou atualiza usuário administrador (UPSERT idempotente)
-    log "Inserindo/atualizando usuário administrador no banco..."
-    UPSERT_RESULT=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+    # Insere novo usuário administrador (simples INSERT após limpeza)
+    log "👤 Inserindo novo usuário administrador no banco..."
+    if ! PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
         -v admin_email="$ADMIN_EMAIL" \
         -v admin_hash="$ADMIN_PASSWORD_HASH" \
-        -t -A \
         -c "
         INSERT INTO users (email, password_hash, first_name, last_name, role) 
-        VALUES (:'admin_email', :'admin_hash', 'Administrador', 'SamurEye', 'global_administrator')
-        ON CONFLICT (email) 
-        DO UPDATE SET 
-            password_hash = EXCLUDED.password_hash,
-            first_name = EXCLUDED.first_name,
-            last_name = EXCLUDED.last_name,
-            role = EXCLUDED.role
-        RETURNING 'UPDATED';
-        " 2>/dev/null)
-    
-    if [[ -z "$UPSERT_RESULT" ]]; then
-        error "Falha ao inserir/atualizar usuário administrador"
+        VALUES (:'admin_email', :'admin_hash', 'Administrador', 'SamurEye', 'global_administrator');
+        " 2>/dev/null; then
+        error "Falha ao inserir usuário administrador"
         exit 1
     fi
     
-    log "✅ Usuário administrador processado no banco"
+    log "✅ Usuário administrador inserido no banco"
     
     # CRÍTICO: Busca o hash REAL do banco para validação
-    log "Verificando credenciais contra o banco de dados..."
+    log "🔍 Verificando credenciais contra o banco de dados..."
     STORED_HASH=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
         -v admin_email="$ADMIN_EMAIL" \
         -t -A \
@@ -598,7 +563,7 @@ create_admin_user() {
     fi
     
     # Testa a senha contra o hash REAL armazenado no banco
-    log "Validando senha contra hash do banco de dados..."
+    log "🧪 Validando senha contra hash do banco de dados..."
     DB_TEST_RESULT=$(node -e "
         const bcrypt = require('bcryptjs');
         const password = '$ADMIN_TEMP_PASSWORD';
@@ -615,13 +580,13 @@ create_admin_user() {
     
     log "✅ Validação contra banco de dados PASSOU"
     
-    # Remove arquivo antigo se existir (para evitar confusão)
+    # Remove arquivo antigo se existir
     [[ -f "$CREDENTIALS_FILE" ]] && rm -f "$CREDENTIALS_FILE"
     
-    # Cria novo arquivo com credenciais atuais APENAS quando criou/resetou
+    # Cria novo arquivo com credenciais válidas
     cat > "$CREDENTIALS_FILE" << EOF
 ===============================================
-    CREDENCIAIS DO ADMINISTRADOR
+    CREDENCIAIS DO ADMINISTRADOR (HARD RESET)
 ===============================================
 
 📧 Email: $ADMIN_EMAIL
@@ -633,6 +598,7 @@ create_admin_user() {
 - Não compartilhe essas credenciais
 
 ✅ VERIFICADO: Credenciais testadas contra banco real
+🔄 HARD RESET: Nova senha gerada a cada instalação  
 💡 Gerado em: $(date '+%d/%m/%Y às %H:%M:%S')
 ===============================================
 EOF
@@ -641,18 +607,8 @@ EOF
     chown $SERVICE_USER:$SERVICE_GROUP "$CREDENTIALS_FILE"
     chmod 600 "$CREDENTIALS_FILE"
     
-    # Mensagem baseada na ação realizada
-    if [[ -n "$USER_STATUS" ]] && [[ "$USER_STATUS" == "global_administrator" ]]; then
-        log "✅ Senha do administrador foi RESETADA com sucesso"
-        log "🔄 Nova senha gerada devido ao ADMIN_RESET=true"
-    elif [[ -n "$USER_STATUS" ]]; then
-        log "✅ Usuário elevado a ADMINISTRADOR com sucesso"
-        log "⬆️  Role alterada: $USER_STATUS → global_administrator"
-    else
-        log "✅ Usuário administrador CRIADO com sucesso"
-        log "🆕 Primeiro administrador configurado no sistema"
-    fi
-    
+    log "✅ Usuário administrador CRIADO com sucesso (HARD RESET)"
+    log "🆕 Novo administrador configurado no sistema"
     log "📧 Email: $ADMIN_EMAIL"
     log "📄 Credenciais salvas em: $CREDENTIALS_FILE"
     log ""
