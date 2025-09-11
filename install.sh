@@ -416,17 +416,10 @@ run_migrations() {
     
     cd $INSTALL_DIR
     
-    # Lê variáveis de ambiente do arquivo
-    source $INSTALL_DIR/.env
-    
-    # Executa migrações com variáveis inline para evitar problemas com sudo -E
+    # Executa migrações usando o arquivo .env diretamente (sem source)
+    # O systemd e npm lerão o arquivo automaticamente
     sudo -u $SERVICE_USER \
-        DATABASE_URL="$DATABASE_URL" \
-        PGHOST="$PGHOST" \
-        PGPORT="$PGPORT" \
-        PGUSER="$PGUSER" \
-        PGPASSWORD="$PGPASSWORD" \
-        PGDATABASE="$PGDATABASE" \
+        DATABASE_URL="postgresql://$DB_USER:$(echo -n "$DB_PASSWORD" | python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip(), safe=''))")@localhost:5432/$DB_NAME" \
         npm run db:push
     
     log "Migrações executadas com sucesso"
