@@ -495,7 +495,7 @@ create_admin_user() {
     log "🆕 Criando novo usuário administrador: $ADMIN_EMAIL"
     
     # Gera senha aleatória forte para o primeiro acesso (sem caracteres problemáticos)
-    ADMIN_TEMP_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/\"\'\\" | cut -c1-16)
+    ADMIN_TEMP_PASSWORD=$(openssl rand -base64 32 | tr -d '=+/"'"'"'\\' | cut -c1-16)
     
     # Verifica se a senha foi gerada corretamente
     if [[ -z "$ADMIN_TEMP_PASSWORD" ]] || [[ ${#ADMIN_TEMP_PASSWORD} -lt 16 ]]; then
@@ -537,14 +537,28 @@ create_admin_user() {
     
     # Insere novo usuário administrador (simples INSERT após limpeza)
     log "👤 Inserindo novo usuário administrador no banco..."
-    if ! PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+    
+    # Debug: mostra informações antes da inserção
+    log "🔍 Email: $ADMIN_EMAIL"
+    log "🔍 Hash length: ${#ADMIN_PASSWORD_HASH}"
+    
+    INSERT_RESULT=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
         -v admin_email="$ADMIN_EMAIL" \
         -v admin_hash="$ADMIN_PASSWORD_HASH" \
         -c "
         INSERT INTO users (email, password_hash, first_name, last_name, role) 
         VALUES (:'admin_email', :'admin_hash', 'Administrador', 'SamurEye', 'global_administrator');
-        " 2>/dev/null; then
+        " 2>&1)
+    
+    if [[ $? -ne 0 ]]; then
         error "Falha ao inserir usuário administrador"
+        error "Erro SQL: $INSERT_RESULT"
+        
+        # Debug adicional: verifica se tabela existe
+        log "🔍 Verificando estrutura da tabela users..."
+        PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+            -c "\d users" 2>&1 || true
+        
         exit 1
     fi
     
