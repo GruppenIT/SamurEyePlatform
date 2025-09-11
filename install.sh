@@ -466,15 +466,69 @@ run_migrations() {
 
 # Função para criar usuário administrador inicial
 create_admin_user() {
-    log "Criando usuário administrador inicial..."
+    log "Configurando usuário administrador inicial..."
     
     cd $INSTALL_DIR
     
     # Configurações de email (pode ser personalizada via variável de ambiente)
     ADMIN_EMAIL="${ADMIN_EMAIL:-admin@samureye.com.br}"
     
-    # Gera senha aleatória forte para o primeiro acesso
-    ADMIN_TEMP_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-16)
+    # Flag para forçar reset de senha (padrão: false para ser idempotente)
+    ADMIN_RESET="${ADMIN_RESET:-false}"
+    
+    # Verifica status do usuário administrador
+    USER_STATUS=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+        -v admin_email="$ADMIN_EMAIL" \
+        -t -A \
+        -c "SELECT role FROM users WHERE email = :'admin_email' LIMIT 1;" 2>/dev/null)
+    
+    # Arquivo de credenciais (para limpeza se necessário)
+    CREDENTIALS_FILE="$INSTALL_DIR/ADMIN_CREDENTIALS"
+    
+    # Se usuário já existe
+    if [[ -n "$USER_STATUS" ]]; then
+        if [[ "$USER_STATUS" == "global_administrator" ]] && [[ "$ADMIN_RESET" != "true" ]]; then
+            # Admin já existe, modo idempotente: limpar arquivo obsoleto
+            log "✅ Usuário administrador já existe: $ADMIN_EMAIL"
+            log "ℹ️  Para resetar senha use: ADMIN_RESET=true ./install.sh"
+            
+            # CRÍTICO: Remove arquivo de credenciais obsoleto para evitar confusão
+            if [[ -f "$CREDENTIALS_FILE" ]]; then
+                rm -f "$CREDENTIALS_FILE"
+                log "🧹 Arquivo de credenciais obsoleto removido (modo idempotente)"
+            fi
+            
+            log "ℹ️  Nenhuma ação necessária - sistema já configurado"
+            return 0
+        elif [[ "$USER_STATUS" != "global_administrator" ]] && [[ "$ADMIN_RESET" != "true" ]]; then
+            # Usuário existe mas não é admin, exige reset explícito para evitar elevação acidental
+            error "⚠️  Usuário $ADMIN_EMAIL existe mas não é administrador (role: $USER_STATUS)"
+            error "    Para elevar a administrador use: ADMIN_RESET=true ./install.sh"
+            error "    Isto é necessário para evitar escalação não intencional de privilégios"
+            exit 1
+        else
+            # ADMIN_RESET=true: permite reset ou elevação
+            if [[ "$USER_STATUS" == "global_administrator" ]]; then
+                log "🔄 ADMIN_RESET=true: Resetando senha do administrador existente"
+            else
+                log "⬆️  ADMIN_RESET=true: Elevando usuário existente ($USER_STATUS → global_administrator)"
+            fi
+        fi
+    else
+        # Usuário não existe, criar novo
+        log "🆕 Criando novo usuário administrador"
+    fi
+    
+    # Gera senha aleatória forte para o primeiro acesso (sem caracteres problemáticos)
+    ADMIN_TEMP_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/\"\'\\" | cut -c1-16)
+    
+    # Verifica se a senha foi gerada corretamente
+    if [[ -z "$ADMIN_TEMP_PASSWORD" ]] || [[ ${#ADMIN_TEMP_PASSWORD} -lt 16 ]]; then
+        error "Falha ao gerar senha temporária"
+        exit 1
+    fi
+    
+    log "Senha temporária gerada: ${#ADMIN_TEMP_PASSWORD} caracteres"
     
     # Verifica se bcryptjs está disponível
     if ! node -e "require('bcryptjs')" 2>/dev/null; then
@@ -486,49 +540,88 @@ create_admin_user() {
     log "Gerando hash seguro da senha..."
     ADMIN_PASSWORD_HASH=$(node -e "
         const bcrypt = require('bcryptjs');
-        const password = process.argv[1];
+        const password = '$ADMIN_TEMP_PASSWORD';
         const hash = bcrypt.hashSync(password, 12);
+        
+        // Testa se o hash foi gerado corretamente
+        const isValid = bcrypt.compareSync(password, hash);
+        if (!isValid) {
+            console.error('ERRO: Hash gerado não confere com a senha!');
+            process.exit(1);
+        }
+        
         console.log(hash);
-    " "$ADMIN_TEMP_PASSWORD" 2>/dev/null)
+    " 2>/dev/null)
     
     if [[ -z "$ADMIN_PASSWORD_HASH" ]]; then
         error "Falha ao gerar hash da senha"
         exit 1
     fi
     
-    # Cria usuário administrador inicial usando transação atômica
-    local SQL_COMMAND="
-        DO \$create_admin\$ 
-        BEGIN 
-            IF NOT EXISTS (
-                SELECT 1 FROM users 
-                WHERE role = 'global_administrator'
-            ) THEN
-                INSERT INTO users (email, password_hash, first_name, last_name, role) 
-                VALUES (
-                    '$ADMIN_EMAIL', 
-                    '$ADMIN_PASSWORD_HASH',
-                    'Administrador', 
-                    'SamurEye', 
-                    'global_administrator'
-                );
-                RAISE NOTICE 'Usuário administrador criado: $ADMIN_EMAIL';
-            ELSE
-                RAISE NOTICE 'Usuário administrador já existe, ignorando criação';
-            END IF;
-        END \$create_admin\$;
-    "
+    log "Hash gerado com ${#ADMIN_PASSWORD_HASH} caracteres"
     
-    if ! PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" -c "$SQL_COMMAND"; then
-        error "Falha ao criar usuário administrador inicial"
+    # Insere ou atualiza usuário administrador (UPSERT idempotente)
+    log "Inserindo/atualizando usuário administrador no banco..."
+    UPSERT_RESULT=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+        -v admin_email="$ADMIN_EMAIL" \
+        -v admin_hash="$ADMIN_PASSWORD_HASH" \
+        -t -A \
+        -c "
+        INSERT INTO users (email, password_hash, first_name, last_name, role) 
+        VALUES (:'admin_email', :'admin_hash', 'Administrador', 'SamurEye', 'global_administrator')
+        ON CONFLICT (email) 
+        DO UPDATE SET 
+            password_hash = EXCLUDED.password_hash,
+            first_name = EXCLUDED.first_name,
+            last_name = EXCLUDED.last_name,
+            role = EXCLUDED.role
+        RETURNING 'UPDATED';
+        " 2>/dev/null)
+    
+    if [[ -z "$UPSERT_RESULT" ]]; then
+        error "Falha ao inserir/atualizar usuário administrador"
         exit 1
     fi
     
-    # Escreve credenciais em arquivo seguro (apenas uma vez)
-    CREDENTIALS_FILE="$INSTALL_DIR/ADMIN_CREDENTIALS"
+    log "✅ Usuário administrador processado no banco"
+    
+    # CRÍTICO: Busca o hash REAL do banco para validação
+    log "Verificando credenciais contra o banco de dados..."
+    STORED_HASH=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+        -v admin_email="$ADMIN_EMAIL" \
+        -t -A \
+        -c "SELECT password_hash FROM users WHERE email = :'admin_email' LIMIT 1;" 2>/dev/null)
+    
+    if [[ -z "$STORED_HASH" ]]; then
+        error "Não foi possível recuperar hash do usuário do banco"
+        exit 1
+    fi
+    
+    # Testa a senha contra o hash REAL armazenado no banco
+    log "Validando senha contra hash do banco de dados..."
+    DB_TEST_RESULT=$(node -e "
+        const bcrypt = require('bcryptjs');
+        const password = '$ADMIN_TEMP_PASSWORD';
+        const storedHash = '$STORED_HASH';
+        const isValid = bcrypt.compareSync(password, storedHash);
+        console.log(isValid ? 'SUCESSO' : 'ERRO');
+    " 2>/dev/null)
+    
+    if [[ "$DB_TEST_RESULT" != "SUCESSO" ]]; then
+        error "CRÍTICO: Senha não confere com hash armazenado no banco!"
+        error "Este é um erro crítico de segurança - credenciais não funcionarão"
+        exit 1
+    fi
+    
+    log "✅ Validação contra banco de dados PASSOU"
+    
+    # Remove arquivo antigo se existir (para evitar confusão)
+    [[ -f "$CREDENTIALS_FILE" ]] && rm -f "$CREDENTIALS_FILE"
+    
+    # Cria novo arquivo com credenciais atuais APENAS quando criou/resetou
     cat > "$CREDENTIALS_FILE" << EOF
 ===============================================
-    CREDENCIAIS DO ADMINISTRADOR INICIAL
+    CREDENCIAIS DO ADMINISTRADOR
 ===============================================
 
 📧 Email: $ADMIN_EMAIL
@@ -536,8 +629,11 @@ create_admin_user() {
 
 🚨 IMPORTANTE: 
 - Faça login imediatamente e altere a senha
-- Este arquivo será removido após o primeiro login
+- Remova este arquivo após o primeiro login
 - Não compartilhe essas credenciais
+
+✅ VERIFICADO: Credenciais testadas contra banco real
+💡 Gerado em: $(date '+%d/%m/%Y às %H:%M:%S')
 ===============================================
 EOF
     
@@ -545,11 +641,24 @@ EOF
     chown $SERVICE_USER:$SERVICE_GROUP "$CREDENTIALS_FILE"
     chmod 600 "$CREDENTIALS_FILE"
     
-    log "✅ Usuário administrador configurado"
+    # Mensagem baseada na ação realizada
+    if [[ -n "$USER_STATUS" ]] && [[ "$USER_STATUS" == "global_administrator" ]]; then
+        log "✅ Senha do administrador foi RESETADA com sucesso"
+        log "🔄 Nova senha gerada devido ao ADMIN_RESET=true"
+    elif [[ -n "$USER_STATUS" ]]; then
+        log "✅ Usuário elevado a ADMINISTRADOR com sucesso"
+        log "⬆️  Role alterada: $USER_STATUS → global_administrator"
+    else
+        log "✅ Usuário administrador CRIADO com sucesso"
+        log "🆕 Primeiro administrador configurado no sistema"
+    fi
+    
     log "📧 Email: $ADMIN_EMAIL"
     log "📄 Credenciais salvas em: $CREDENTIALS_FILE"
     log ""
     log "🚨 IMPORTANTE: Leia o arquivo de credenciais e faça login imediatamente!"
+    log ""
+    log "🔒 SEGURANÇA: Execute 'rm $CREDENTIALS_FILE' após primeiro login"
 }
 
 # Função para configurar serviços systemd
