@@ -3,6 +3,21 @@
 # SamurEye - Adversarial Exposure Validation Platform
 # Script de Instalação Automática para Ubuntu 20.04+
 # Versão: 1.0.0
+#
+# USAGE:
+#   sudo ./install.sh                    # Instalação padrão não-interativa
+#   sudo NONINTERACTIVE=false ./install.sh   # Instalação interativa (deprecated)
+#   sudo INSTALL_DIR=/custom/path ./install.sh # Diretório customizado
+#
+# VARIABLES:
+#   INSTALL_DIR     - Diretório de instalação (padrão: /opt/samureye)
+#   SERVICE_USER    - Usuário do serviço (padrão: samureye)
+#   SERVICE_GROUP   - Grupo do serviço (padrão: samureye)
+#   DB_NAME         - Nome do banco (padrão: samureye_db)
+#   DB_USER         - Usuário do banco (padrão: samureye)
+#   REPO_URL        - URL do repositório (padrão: https://github.com/GruppenIT/SamurEyePlatform.git)
+#   NODE_VERSION    - Versão Node.js (padrão: 20)
+#   NONINTERACTIVE  - Modo não-interativo (padrão: true)
 
 set -e
 
@@ -310,7 +325,7 @@ install_application() {
     mkdir -p logs backups temp
     
     # Define permissões
-    chown -R $SERVICE_USER:$SERVICE_USER $INSTALL_DIR
+    chown -R $SERVICE_USER:$SERVICE_GROUP $INSTALL_DIR
     chmod +x install.sh upgrade.sh
     
     log "Aplicação instalada com sucesso"
@@ -355,7 +370,7 @@ LOG_LEVEL=info
 EOF
 
     # Define permissões seguras
-    chown $SERVICE_USER:$SERVICE_USER $INSTALL_DIR/.env
+    chown $SERVICE_USER:$SERVICE_GROUP $INSTALL_DIR/.env
     chmod 600 $INSTALL_DIR/.env
     
     log "Variáveis de ambiente configuradas"
@@ -542,7 +557,7 @@ echo "Aplicação: $APP_BACKUP"
 EOF
 
     chmod +x $INSTALL_DIR/scripts/backup.sh
-    chown $SERVICE_USER:$SERVICE_USER $INSTALL_DIR/scripts/backup.sh
+    chown $SERVICE_USER:$SERVICE_GROUP $INSTALL_DIR/scripts/backup.sh
     
     # Adiciona backup ao cron (diário às 2h da manhã)
     (crontab -l 2>/dev/null; echo "0 2 * * * $INSTALL_DIR/scripts/backup.sh") | crontab -
