@@ -25,19 +25,84 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Users as UsersIcon, Shield, User as UserIcon, Crown } from "lucide-react";
-import type { User } from "@shared/schema";
+import { Search, Users as UsersIcon, Shield, User as UserIcon, Crown, Plus } from "lucide-react";
+import type { User, RegisterUser } from "@shared/schema";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+// Schema for user creation
+const createUserSchema = z.object({
+  email: z.string().email("Email inválido"),
+  firstName: z.string().min(1, "Nome é obrigatório"),
+  lastName: z.string().min(1, "Sobrenome é obrigatório"),
+  password: z.string()
+    .min(8, "Senha deve ter pelo menos 8 caracteres")
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
+      "Senha deve conter pelo menos: 1 letra minúscula, 1 maiúscula e 1 número"),
+  role: z.enum(['global_administrator', 'operator', 'read_only']),
+});
+
+type CreateUserForm = z.infer<typeof createUserSchema>;
 
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
 
+  const createUserForm = useForm<CreateUserForm>({
+    resolver: zodResolver(createUserSchema),
+    defaultValues: {
+      email: "",
+      firstName: "",
+      lastName: "",
+      password: "",
+      role: "read_only",
+    },
+  });
+
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: async (data: CreateUserForm) => {
+      return await apiRequest('POST', '/api/users', data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Usuário Criado",
+        description: "Novo usuário foi criado com sucesso",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setIsCreateDialogOpen(false);
+      createUserForm.reset();
+    },
+    onError: (error: any) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Não autorizado",
+          description: "Você foi desconectado. Fazendo login novamente...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao criar usuário",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Redirect if not admin
   useEffect(() => {
-    if (currentUser && currentUser.role !== 'global_administrator') {
+    if (currentUser && (currentUser as any).role !== 'global_administrator') {
       toast({
         title: "Acesso Negado",
         description: "Você não tem permissão para acessar esta área",
@@ -49,7 +114,7 @@ export default function Users() {
 
   const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
-    enabled: currentUser?.role === 'global_administrator',
+    enabled: (currentUser as any)?.role === 'global_administrator',
   });
 
   const updateUserRoleMutation = useMutation({
@@ -97,9 +162,9 @@ export default function Users() {
       case 'operator':
         return Shield;
       case 'read_only':
-        return User;
+        return UserIcon;
       default:
-        return User;
+        return UserIcon;
     }
   };
 
@@ -129,8 +194,12 @@ export default function Users() {
     }
   };
 
+  const onCreateUser = (data: CreateUserForm) => {
+    createUserMutation.mutate(data);
+  };
+
   const handleRoleChange = (user: User, newRole: string) => {
-    if (user.id === currentUser?.id && newRole !== 'global_administrator') {
+    if (user.id === (currentUser as any)?.id && newRole !== 'global_administrator') {
       toast({
         title: "Ação Negada",
         description: "Você não pode alterar seu próprio papel de administrador",
@@ -152,7 +221,7 @@ export default function Users() {
   };
 
   // Don't render if not admin
-  if (currentUser?.role !== 'global_administrator') {
+  if ((currentUser as any)?.role !== 'global_administrator') {
     return null;
   }
 
@@ -184,6 +253,116 @@ export default function Users() {
                 <Badge variant="secondary" data-testid="users-count">
                   {filteredUsers.length} usuários
                 </Badge>
+                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-create-user">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Criar Usuário
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Criar Novo Usuário</DialogTitle>
+                    </DialogHeader>
+                    <Form {...createUserForm}>
+                      <form onSubmit={createUserForm.handleSubmit(onCreateUser)} className="space-y-4">
+                        <FormField
+                          control={createUserForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input {...field} type="email" placeholder="usuario@exemplo.com" data-testid="input-create-email" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={createUserForm.control}
+                            name="firstName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nome</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Nome" data-testid="input-create-firstname" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={createUserForm.control}
+                            name="lastName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Sobrenome</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Sobrenome" data-testid="input-create-lastname" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={createUserForm.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Senha</FormLabel>
+                              <FormControl>
+                                <Input {...field} type="password" placeholder="Senha segura" data-testid="input-create-password" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createUserForm.control}
+                          name="role"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Papel</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-create-role">
+                                    <SelectValue placeholder="Selecionar papel" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="read_only">Somente Leitura</SelectItem>
+                                  <SelectItem value="operator">Operador</SelectItem>
+                                  <SelectItem value="global_administrator">Administrador Global</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsCreateDialogOpen(false)}
+                            data-testid="button-cancel-create"
+                          >
+                            Cancelar
+                          </Button>
+                          <Button
+                            type="submit"
+                            disabled={createUserMutation.isPending}
+                            data-testid="button-submit-create"
+                          >
+                            {createUserMutation.isPending ? "Criando..." : "Criar Usuário"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
@@ -259,7 +438,7 @@ export default function Users() {
                                 <p className="font-medium text-foreground">
                                   {formatUserName(user)}
                                 </p>
-                                {user.id === currentUser?.id && (
+                                {user.id === (currentUser as any)?.id && (
                                   <p className="text-xs text-primary">Você</p>
                                 )}
                               </div>

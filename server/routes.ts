@@ -460,6 +460,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const actorRole = req.user.role || 'read_only';
+      if (actorRole !== 'global_administrator') {
+        return res.status(403).json({ message: "Acesso negado - apenas administradores podem criar usuários" });
+      }
+
+      const { email, firstName, lastName, password, role } = req.body;
+      const actorId = req.user.id;
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email já está em uso' });
+      }
+
+      // Hash password
+      const bcrypt = await import('bcryptjs');
+      const passwordHash = await bcrypt.default.hash(password, 12);
+
+      // Create user
+      const newUser = await storage.createUser({
+        email,
+        passwordHash,
+        firstName,
+        lastName,
+        role: role || 'read_only',
+      });
+
+      // Log audit
+      await storage.logAudit({
+        actorId,
+        action: 'create',
+        objectType: 'user',
+        objectId: newUser.id,
+        before: null,
+        after: newUser,
+      });
+
+      res.json({ 
+        message: 'Usuário criado com sucesso',
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          role: newUser.role
+        }
+      });
+    } catch (error: any) {
+      console.error("Erro ao criar usuário:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          message: 'Dados inválidos',
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
   app.patch('/api/users/:id/role', isAuthenticated, async (req: any, res) => {
     try {
       const actorRole = req.user.role || 'read_only';
