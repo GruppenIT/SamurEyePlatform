@@ -58,6 +58,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name").notNull(),
   profileImageUrl: varchar("profile_image_url"),
   role: userRoleEnum("role").default('read_only').notNull(),
+  mustChangePassword: boolean("must_change_password").default(false).notNull(), // Force password change on next login
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastLogin: timestamp("last_login"),
