@@ -177,6 +177,21 @@ export async function setupAuth(app: Express) {
       }
       
       if (!user) {
+        // Log failed login attempt (but only occasionally to avoid spam)
+        if (Math.random() < 0.1) { // Log 10% of failed attempts to avoid spam
+          storage.logAudit({
+            actorId: 'system',
+            action: 'login_failed',
+            objectType: 'user',
+            objectId: null,
+            after: {
+              email: req.body.email,
+              reason: info?.message || 'Credenciais inválidas',
+              timestamp: new Date().toISOString(),
+              clientIP: req.ip || req.connection.remoteAddress || 'unknown'
+            },
+          }).catch(err => console.error("Erro ao logar tentativa de login falhada:", err));
+        }
         return res.status(401).json({ message: info?.message || 'Credenciais inválidas' });
       }
 
@@ -193,6 +208,19 @@ export async function setupAuth(app: Express) {
             return res.status(500).json({ message: 'Erro interno do servidor' });
           }
           
+          // Log successful login
+          await storage.logAudit({
+            actorId: user.id,
+            action: 'login',
+            objectType: 'user',
+            objectId: user.id,
+            after: {
+              email: user.email,
+              timestamp: new Date().toISOString(),
+              clientIP: req.ip || req.connection.remoteAddress || 'unknown'
+            },
+          });
+
           res.json({ 
             message: 'Login realizado com sucesso',
             user: {
@@ -209,11 +237,28 @@ export async function setupAuth(app: Express) {
   });
 
   // Logout route
-  app.post('/api/auth/logout', (req, res) => {
+  app.post('/api/auth/logout', async (req: any, res) => {
+    const user = req.user;
+    
     req.logout((err) => {
       if (err) {
         console.error("Erro ao fazer logout:", err);
         return res.status(500).json({ message: 'Erro interno do servidor' });
+      }
+
+      // Log logout if user was authenticated
+      if (user) {
+        storage.logAudit({
+          actorId: user.id,
+          action: 'logout',
+          objectType: 'user',
+          objectId: user.id,
+          after: {
+            email: user.email,
+            timestamp: new Date().toISOString(),
+            clientIP: req.ip || req.connection.remoteAddress || 'unknown'
+          },
+        }).catch(err => console.error("Erro ao logar audit de logout:", err));
       }
 
       // Destroy the session and clear cookie
@@ -280,6 +325,19 @@ export async function setupAuth(app: Express) {
 
       // Update password and clear mustChangePassword flag
       await storage.updateUserPassword(user.id, newPasswordHash);
+
+      // Log password change
+      await storage.logAudit({
+        actorId: user.id,
+        action: 'change_password',
+        objectType: 'user',
+        objectId: user.id,
+        after: {
+          email: user.email,
+          timestamp: new Date().toISOString(),
+          clientIP: req.ip || req.connection.remoteAddress || 'unknown'
+        },
+      });
 
       res.json({ message: 'Senha alterada com sucesso' });
     } catch (error) {
