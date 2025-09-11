@@ -132,18 +132,14 @@ export async function setupAuth(app: Express) {
   ));
 
   passport.serializeUser((user: any, done) => {
-    console.log("🔍 [AUTH] Serializing user:", user.id);
     done(null, user.id);
   });
 
   passport.deserializeUser(async (id: string, done) => {
     try {
-      console.log("🔍 [AUTH] Deserializing user ID:", id);
       const user = await storage.getUser(id);
-      console.log("🔍 [AUTH] User found:", !!user);
       done(null, user);
     } catch (error) {
-      console.error("❌ [AUTH] Deserialization error:", error);
       done(error);
     }
   });
@@ -260,17 +256,9 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = (req, res, next) => {
-  const hasSession = !!req.session;
-  const hasCookie = !!req.headers.cookie;
-  const isAuth = req.isAuthenticated();
-  
-  console.log(`🔍 [AUTH] Check: session=${hasSession}, cookie=${hasCookie}, authenticated=${isAuth}`);
-  
   if (req.isAuthenticated()) {
     return next();
   }
-  
-  console.log("❌ [AUTH] Not authenticated - 401");
   res.status(401).json({ message: "Não autorizado" });
 };
 
