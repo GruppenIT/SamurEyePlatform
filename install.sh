@@ -164,10 +164,15 @@ setup_database() {
     # Remove privilégio CREATEDB após criação do banco (least privilege)
     sudo -u postgres psql -c "ALTER USER $DB_USER NOCREATEDB;"
     
+    # Instala extensão pgcrypto necessária para gen_random_uuid()
+    log "🔧 Instalando extensões necessárias..."
+    sudo -u postgres psql -d "$DB_NAME" -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;" || true
+    
     # Testa conexão
     if sudo -u postgres psql -d $DB_NAME -c "SELECT version();" > /dev/null 2>&1; then
         log "✅ Banco de dados recriado com sucesso"
         log "🔑 Nova senha do banco gerada"
+        log "🔧 Extensão pgcrypto instalada"
     else
         error "❌ Falha ao recriar o banco de dados"
         exit 1
@@ -494,8 +499,8 @@ create_admin_user() {
     
     log "🆕 Criando novo usuário administrador: $ADMIN_EMAIL"
     
-    # Gera senha aleatória forte para o primeiro acesso (sem caracteres problemáticos)
-    ADMIN_TEMP_PASSWORD=$(openssl rand -base64 32 | tr -d '=+/"'"'"'\\' | cut -c1-16)
+    # Gera senha aleatória forte (apenas alfanuméricos para evitar problemas)
+    ADMIN_TEMP_PASSWORD=$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c16)
     
     # Verifica se a senha foi gerada corretamente
     if [[ -z "$ADMIN_TEMP_PASSWORD" ]] || [[ ${#ADMIN_TEMP_PASSWORD} -lt 16 ]]; then
@@ -542,12 +547,14 @@ create_admin_user() {
     log "🔍 Email: $ADMIN_EMAIL"
     log "🔍 Hash length: ${#ADMIN_PASSWORD_HASH}"
     
-    INSERT_RESULT=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
-        -v admin_email="$ADMIN_EMAIL" \
-        -v admin_hash="$ADMIN_PASSWORD_HASH" \
-        -c "
-        INSERT INTO users (email, password_hash, first_name, last_name, role) 
-        VALUES (:'admin_email', :'admin_hash', 'Administrador', 'SamurEye', 'global_administrator');
+    INSERT_RESULT=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" -c "
+        INSERT INTO users (email, password_hash, first_name, last_name, role)
+        VALUES (\$\$${ADMIN_EMAIL}\$\$, \$\$${ADMIN_PASSWORD_HASH}\$\$, 'Administrador', 'SamurEye', 'global_administrator'::user_role)
+        ON CONFLICT (email) DO UPDATE SET
+            password_hash = EXCLUDED.password_hash,
+            first_name = EXCLUDED.first_name,
+            last_name = EXCLUDED.last_name,
+            role = 'global_administrator'::user_role;
         " 2>&1)
     
     if [[ $? -ne 0 ]]; then
