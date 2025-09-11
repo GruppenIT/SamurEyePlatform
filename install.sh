@@ -573,29 +573,70 @@ create_admin_user() {
     
     # CRÍTICO: Busca o hash REAL do banco para validação
     log "🔍 Verificando credenciais contra o banco de dados..."
-    STORED_HASH=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
-        -v admin_email="$ADMIN_EMAIL" \
-        -t -A \
-        -c "SELECT password_hash FROM users WHERE email = :'admin_email' LIMIT 1;" 2>/dev/null)
     
-    if [[ -z "$STORED_HASH" ]]; then
-        error "Não foi possível recuperar hash do usuário do banco"
+    # Debug: verificar se usuário foi realmente inserido
+    USER_COUNT=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+        -t -A \
+        -c "SELECT COUNT(*) FROM users WHERE email = \$\$${ADMIN_EMAIL}\$\$;" 2>&1)
+    
+    log "🔍 DEBUG: Usuários encontrados: $USER_COUNT"
+    
+    if [[ "$USER_COUNT" != "1" ]]; then
+        error "PROBLEMA: Usuário não foi inserido corretamente (count: $USER_COUNT)"
+        # Debug: mostrar todos os usuários
+        log "🔍 DEBUG: Listando todos os usuários:"
+        PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+            -c "SELECT email, role, created_at FROM users;" 2>&1 || true
+        exit 1
+    fi
+    
+    # Buscar hash usando dollar-quoted (mesma sintaxe do INSERT)
+    STORED_HASH_RESULT=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+        -t -A \
+        -c "SELECT password_hash FROM users WHERE email = \$\$${ADMIN_EMAIL}\$\$ LIMIT 1;" 2>&1)
+    
+    log "🔍 DEBUG: Resultado da query hash: ${#STORED_HASH_RESULT} caracteres"
+    
+    # Extrair apenas o hash (remover espaços/quebras)
+    STORED_HASH=$(echo "$STORED_HASH_RESULT" | tr -d ' \n\r\t')
+    
+    log "🔍 DEBUG: Hash limpo: ${#STORED_HASH} caracteres"
+    
+    if [[ -z "$STORED_HASH" ]] || [[ ${#STORED_HASH} -lt 50 ]]; then
+        error "Não foi possível recuperar hash válido do usuário do banco"
+        error "Hash resultado: '$STORED_HASH_RESULT'"
+        error "Hash limpo: '$STORED_HASH'"
         exit 1
     fi
     
     # Testa a senha contra o hash REAL armazenado no banco
     log "🧪 Validando senha contra hash do banco de dados..."
-    DB_TEST_RESULT=$(node -e "
-        const bcrypt = require('bcryptjs');
-        const password = '$ADMIN_TEMP_PASSWORD';
-        const storedHash = '$STORED_HASH';
-        const isValid = bcrypt.compareSync(password, storedHash);
-        console.log(isValid ? 'SUCESSO' : 'ERRO');
-    " 2>/dev/null)
     
-    if [[ "$DB_TEST_RESULT" != "SUCESSO" ]]; then
+    log "🔍 DEBUG: Senha para testar: '$ADMIN_TEMP_PASSWORD' (${#ADMIN_TEMP_PASSWORD} chars)"
+    log "🔍 DEBUG: Hash para testar: ${#STORED_HASH} chars (${STORED_HASH:0:10}...)"
+    
+    DB_TEST_RESULT=$(node -e "
+        try {
+            const bcrypt = require('bcryptjs');
+            const password = '$ADMIN_TEMP_PASSWORD';
+            const storedHash = '$STORED_HASH';
+            
+            console.log('Password:', password);
+            console.log('Hash length:', storedHash.length);
+            console.log('Hash start:', storedHash.substring(0, 10));
+            
+            const isValid = bcrypt.compareSync(password, storedHash);
+            console.log(isValid ? 'SUCESSO' : 'ERRO');
+        } catch (err) {
+            console.log('ERRO_NODE:', err.message);
+        }
+    " 2>&1)
+    
+    log "🔍 DEBUG: Resultado do teste bcrypt: $DB_TEST_RESULT"
+    
+    if [[ "$DB_TEST_RESULT" != *"SUCESSO"* ]]; then
         error "CRÍTICO: Senha não confere com hash armazenado no banco!"
-        error "Este é um erro crítico de segurança - credenciais não funcionarão"
+        error "Resultado do teste: $DB_TEST_RESULT"
         exit 1
     fi
     
@@ -1014,8 +1055,8 @@ main() {
     log "Instalação concluída em $(date)"
 }
 
-# Captura erros e limpa arquivos temporários
-trap 'error "Erro na instalação. Verifique os logs acima."; rm -f /tmp/db_credentials; exit 1' ERR
+# Captura erros e limpa arquivos temporários (sem mensagem duplicada)
+trap 'rm -f /tmp/db_credentials; exit 1' ERR
 
 # Executa instalação
 main "$@"
