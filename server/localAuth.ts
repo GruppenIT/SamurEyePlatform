@@ -145,50 +145,6 @@ export async function setupAuth(app: Express) {
     }
   });
 
-  // Register route
-  app.post('/api/auth/register', async (req, res) => {
-    try {
-      const userData = registerUserSchema.parse(req.body);
-      
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmail(userData.email);
-      if (existingUser) {
-        return res.status(400).json({ message: 'Email já está em uso' });
-      }
-
-      // Hash password
-      const passwordHash = await bcrypt.hash(userData.password, 12);
-
-      // Create user
-      const newUser = await storage.createUser({
-        email: userData.email,
-        passwordHash,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        role: userData.role || 'read_only',
-      });
-
-      res.json({ 
-        message: 'Usuário criado com sucesso',
-        user: {
-          id: newUser.id,
-          email: newUser.email,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          role: newUser.role
-        }
-      });
-    } catch (error: any) {
-      console.error("Erro ao registrar usuário:", error);
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ 
-          message: 'Dados inválidos',
-          errors: error.errors 
-        });
-      }
-      res.status(500).json({ message: 'Erro interno do servidor' });
-    }
-  });
 
   // Login route
   app.post('/api/auth/login', (req, res, next) => {
