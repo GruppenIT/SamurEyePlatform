@@ -1,0 +1,72 @@
+./install.sh: line 800: [[: 0
+0: syntax error in expression (error token is "0")
+[INFO] ✅ Aplicação iniciou corretamente (mensagens de startup encontradas)
+[INFO] ✅ API Health check passou - aplicação totalmente funcional
+[INFO] ✅ Verificação das correções de WebSocket PASSOU - problema resolvido!
+
+[INFO] ==========================================
+[INFO]     INSTALAÇÃO CONCLUÍDA COM SUCESSO!
+[INFO] ==========================================
+
+[INFO] 🌐 Acesso à aplicação:
+[INFO]    Local: http://localhost
+[INFO]    Externo: http://200.143.101.226
+
+[INFO] 📊 Status dos serviços:
+[INFO]    SamurEye: active
+[INFO]    PostgreSQL: active
+[INFO]    Nginx: active
+
+[INFO] 📁 Diretórios importantes:
+[INFO]    Aplicação: /opt/samureye
+[INFO]    Logs: /opt/samureye/logs
+[INFO]    Backups: /opt/samureye/backups
+[INFO]    Configuração: /opt/samureye/.env
+
+[INFO] 🔧 Comandos úteis:
+[INFO]    Status: systemctl status samureye-api
+[INFO]    Logs: journalctl -u samureye-api -f
+[INFO]    Restart: systemctl restart samureye-api
+[INFO]    Backup: /opt/samureye/scripts/backup.sh
+[INFO]    Upgrade: cd /opt/samureye && ./upgrade.sh
+
+[INFO] 👤 Primeiro Acesso:
+[INFO]    1. Acesse a aplicação no navegador
+[INFO]    2. Use o usuário administrador padrão criado na instalação
+[INFO]    3. IMPORTANTE: Altere a senha padrão no primeiro login
+
+[WARN] ⚠️  AÇÕES NECESSÁRIAS:
+[WARN] 1. Configure SSL/HTTPS para produção:
+[WARN]    sudo apt install certbot python3-certbot-nginx
+[WARN]    sudo certbot --nginx -d seu-dominio.com
+
+[WARN] 2. Configure autenticação OIDC no arquivo:
+[WARN]    /opt/samureye/.env
+
+[WARN] 3. Revise configurações de firewall:
+[WARN]    sudo ufw status
+
+[INFO] 📖 Documentação completa: README.md
+[INFO] 🆘 Suporte: https://github.com/GruppenIT/SamurEyePlatform/issues
+
+[INFO] Instalação concluída em Thu Sep 11 05:57:17 PM UTC 2025
+root@vlxsam99:~# cat /opt/samureye
+samureye/                        samureye_backup_20250911_143727/
+root@vlxsam99:~# cat /opt/samureye/
+ADMIN_CREDENTIALS   client/             drizzle.config.ts   .gitignore          node_modules/       package-lock.json   .replit             server/             temp/               vite.config.ts
+attached_assets/    components.json     .env                install.sh          .npm/               postcss.config.js   replit.md           shared/             tsconfig.json
+backups/            dist/               .git/               logs/               package.json        README.md           scripts/            tailwind.config.ts  upgrade.sh
+root@vlxsam99:~# cat /opt/samureye/ADMIN_CREDENTIALS
+===============================================
+    CREDENCIAIS DO ADMINISTRADOR INICIAL
+===============================================
+
+📧 Email: admin@samureye.com.br
+🔑 Senha temporária: zA11rbIJu2XRwn4Y
+
+🚨 IMPORTANTE:
+- Faça login imediatamente e altere a senha
+- Este arquivo será removido após o primeiro login
+- Não compartilhe essas credenciais
+===============================================
+root@vlxsam99:~#
