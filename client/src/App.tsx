@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
-import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
 import Assets from "@/pages/assets";
 import Credentials from "@/pages/credentials";
@@ -42,7 +41,6 @@ function Router() {
         <>
           <Route path="/" component={Landing} />
           <Route path="/login" component={Login} />
-          <Route path="/registro" component={Register} />
         </>
       ) : (
         <>

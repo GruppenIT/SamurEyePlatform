@@ -7,7 +7,6 @@ export default function Landing() {
   const [, setLocation] = useLocation();
 
   const handleLogin = () => setLocation("/login");
-  const handleRegister = () => setLocation("/registro");
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,15 +42,6 @@ export default function Landing() {
                 data-testid="button-login"
               >
                 Fazer Login
-              </Button>
-              <Button 
-                variant="outline"
-                size="lg" 
-                className="text-lg px-8 py-4"
-                onClick={handleRegister}
-                data-testid="button-register"
-              >
-                Registrar-se
               </Button>
             </div>
           </div>
@@ -186,14 +176,6 @@ export default function Landing() {
               data-testid="button-login-cta"
             >
               Fazer Login
-            </Button>
-            <Button 
-              variant="outline"
-              size="lg" 
-              onClick={handleRegister}
-              data-testid="button-register-cta"
-            >
-              Criar Conta
             </Button>
           </div>
         </div>

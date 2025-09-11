@@ -54,9 +54,6 @@ export default function Login() {
     loginMutation.mutate(data);
   };
 
-  const handleRegisterClick = () => {
-    setLocation("/registro");
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
@@ -152,19 +149,6 @@ export default function Login() {
             </form>
           </Form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Não tem uma conta?{" "}
-              <Button
-                variant="link"
-                className="p-0 h-auto text-primary"
-                onClick={handleRegisterClick}
-                data-testid="link-register"
-              >
-                Registrar-se
-              </Button>
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
