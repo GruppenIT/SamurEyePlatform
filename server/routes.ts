@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./localAuth";
 import { jobQueue } from "./services/jobQueue";
 import { threatEngine } from "./services/threatEngine";
 import { encryptionService } from "./services/encryption";
@@ -35,17 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     broadcast({ type: 'jobUpdate', data: update });
   });
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Erro ao buscar usuário:", error);
-      res.status(500).json({ message: "Falha ao buscar usuário" });
-    }
-  });
+  // Auth routes are now handled in localAuth.ts
 
   // Dashboard routes
   app.get('/api/dashboard/metrics', isAuthenticated, async (req, res) => {
@@ -92,7 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/assets', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const assetData = insertAssetSchema.parse(req.body);
       const asset = await storage.createAsset(assetData, userId);
       
@@ -115,7 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/assets/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { id } = req.params;
       const updates = req.body;
       
@@ -140,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/assets/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { id } = req.params;
       
       const beforeAsset = await storage.getAsset(id);
@@ -175,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/credentials', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const credentialData = insertCredentialSchema.parse(req.body);
       
       // Encrypt the secret
@@ -213,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/credentials/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { id } = req.params;
       
       await storage.deleteCredential(id);
@@ -247,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/journeys', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const journeyData = insertJourneySchema.parse(req.body);
       const journey = await storage.createJourney(journeyData, userId);
       
@@ -269,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/journeys/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { id } = req.params;
       const updates = req.body;
       
@@ -294,7 +284,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/journeys/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { id } = req.params;
       
       const beforeJourney = await storage.getJourney(id);
@@ -328,7 +318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/schedules', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const scheduleData = insertScheduleSchema.parse(req.body);
       const schedule = await storage.createSchedule(scheduleData, userId);
       
@@ -361,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/jobs/execute', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { journeyId } = req.body;
       
       if (!journeyId) {
@@ -421,7 +411,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/threats/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { id } = req.params;
       const updates = req.body;
       
@@ -457,7 +447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User management routes (admin only)
   app.get('/api/users', isAuthenticated, async (req: any, res) => {
     try {
-      const userRole = req.user.claims.role || 'read_only';
+      const userRole = req.user.role || 'read_only';
       if (userRole !== 'global_administrator') {
         return res.status(403).json({ message: "Acesso negado" });
       }
@@ -472,14 +462,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/users/:id/role', isAuthenticated, async (req: any, res) => {
     try {
-      const actorRole = req.user.claims.role || 'read_only';
+      const actorRole = req.user.role || 'read_only';
       if (actorRole !== 'global_administrator') {
         return res.status(403).json({ message: "Acesso negado" });
       }
       
       const { id } = req.params;
       const { role } = req.body;
-      const actorId = req.user.claims.sub;
+      const actorId = req.user.id;
       
       const beforeUser = await storage.getUser(id);
       const user = await storage.updateUserRole(id, role);
@@ -503,7 +493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Audit log routes
   app.get('/api/audit', isAuthenticated, async (req: any, res) => {
     try {
-      const userRole = req.user.claims.role || 'read_only';
+      const userRole = req.user.role || 'read_only';
       if (userRole !== 'global_administrator') {
         return res.status(403).json({ message: "Acesso negado" });
       }

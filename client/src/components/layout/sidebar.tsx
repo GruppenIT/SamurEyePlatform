@@ -2,6 +2,8 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   Shield, 
   BarChart3, 
@@ -44,12 +46,30 @@ const adminItems: NavItem[] = [
 export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const isAdmin = user?.role === 'global_administrator';
   const canViewAdminItems = isAdmin;
 
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest('POST', '/api/auth/logout', {});
+    },
+    onSuccess: () => {
+      // Limpa o cache de usuário e redireciona para landing
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.clear();
+      window.location.href = '/';
+    },
+    onError: () => {
+      // Em caso de erro, força redirecionamento
+      queryClient.clear();
+      window.location.href = '/';
+    },
+  });
+
   const handleLogout = () => {
-    window.location.href = '/api/logout';
+    logoutMutation.mutate();
   };
 
   return (

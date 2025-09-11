@@ -1,8 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Shield, Search, Users, Worm, AlertTriangle, Activity } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function Landing() {
+  const [, setLocation] = useLocation();
+
+  const handleLogin = () => setLocation("/login");
+  const handleRegister = () => setLocation("/registro");
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -29,14 +35,25 @@ export default function Landing() {
               de superfície de ataque, higiene de Active Directory e eficácia de EDR/AV.
             </p>
             
-            <Button 
-              size="lg" 
-              className="text-lg px-8 py-4"
-              onClick={() => window.location.href = '/api/login'}
-              data-testid="button-login"
-            >
-              Fazer Login
-            </Button>
+            <div className="flex gap-4 justify-center">
+              <Button 
+                size="lg" 
+                className="text-lg px-8 py-4"
+                onClick={handleLogin}
+                data-testid="button-login"
+              >
+                Fazer Login
+              </Button>
+              <Button 
+                variant="outline"
+                size="lg" 
+                className="text-lg px-8 py-4"
+                onClick={handleRegister}
+                data-testid="button-register"
+              >
+                Registrar-se
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -162,13 +179,23 @@ export default function Landing() {
           <p className="text-xl text-muted-foreground mb-8">
             Comece a validar sua postura de segurança de forma contínua e automatizada.
           </p>
-          <Button 
-            size="lg" 
-            onClick={() => window.location.href = '/api/login'}
-            data-testid="button-login-cta"
-          >
-            Acessar Plataforma
-          </Button>
+          <div className="flex gap-4 justify-center">
+            <Button 
+              size="lg" 
+              onClick={handleLogin}
+              data-testid="button-login-cta"
+            >
+              Fazer Login
+            </Button>
+            <Button 
+              variant="outline"
+              size="lg" 
+              onClick={handleRegister}
+              data-testid="button-register-cta"
+            >
+              Criar Conta
+            </Button>
+          </div>
         </div>
       </div>
     </div>
