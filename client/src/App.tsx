@@ -46,7 +46,7 @@ function Router() {
       ) : (
         <>
           {/* Change Password Modal - appears for authenticated users who must change password */}
-          {user?.mustChangePassword && (
+          {(user as any)?.mustChangePassword && (
             <ChangePasswordModal open={true} mustChange={true} />
           )}
           
