@@ -42,7 +42,7 @@ Role-based access control (RBAC) supports three user roles: global_administrator
 ## External Dependencies
 
 ### Core Framework Dependencies
-- **@neondatabase/serverless**: PostgreSQL connection pooling and serverless database connectivity
+- **pg**: Standard PostgreSQL driver for Node.js with connection pooling
 - **drizzle-orm**: Type-safe ORM with PostgreSQL adapter
 - **express**: Web server framework with middleware support
 - **@tanstack/react-query**: Server state management and caching

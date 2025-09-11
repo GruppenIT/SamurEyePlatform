@@ -609,5 +609,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }));
   });
 
+  // Export cleanup function for graceful shutdown
+  (httpServer as any).closeWebSocket = () => {
+    return new Promise<void>((resolve) => {
+      // Close all client connections
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.close();
+        }
+      });
+      
+      // Close the WebSocket server
+      wss.close(() => {
+        resolve();
+      });
+    });
+  };
+
   return httpServer;
 }
