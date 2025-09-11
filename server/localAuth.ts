@@ -5,7 +5,7 @@ import type { Express, RequestHandler } from "express";
 import bcrypt from "bcryptjs";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
-import { registerUserSchema, loginUserSchema, type RegisterUser, type LoginUser } from "@shared/schema";
+import { loginUserSchema, type LoginUser } from "@shared/schema";
 
 // Simple in-memory rate limiting for login attempts
 interface RateLimitEntry {

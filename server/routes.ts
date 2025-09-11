@@ -10,7 +10,8 @@ import {
   insertAssetSchema, 
   insertCredentialSchema, 
   insertJourneySchema, 
-  insertScheduleSchema 
+  insertScheduleSchema,
+  registerUserSchema 
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -467,7 +468,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado - apenas administradores podem criar usuários" });
       }
 
-      const { email, firstName, lastName, password, role } = req.body;
+      // Validate request body
+      const validatedData = registerUserSchema.parse(req.body);
+      const { email, firstName, lastName, password, role } = validatedData;
       const actorId = req.user.id;
 
       // Check if user already exists
