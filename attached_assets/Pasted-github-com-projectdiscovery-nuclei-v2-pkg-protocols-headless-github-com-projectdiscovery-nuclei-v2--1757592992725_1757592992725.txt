@@ -1,0 +1,357 @@
+github.com/projectdiscovery/nuclei/v2/pkg/protocols/headless
+github.com/projectdiscovery/nuclei/v2/pkg/protocols/http
+github.com/projectdiscovery/nuclei/v2/pkg/protocols/offlinehttp
+github.com/projectdiscovery/nuclei/v2/pkg/protocols/ssl
+github.com/projectdiscovery/nuclei/v2/pkg/protocols/websocket
+github.com/projectdiscovery/nuclei/v2/pkg/protocols/whois
+github.com/projectdiscovery/nuclei/v2/pkg/templates
+github.com/projectdiscovery/nuclei/v2/pkg/catalog/loader/filter
+github.com/projectdiscovery/nuclei/v2/pkg/protocols/common/uncover
+github.com/projectdiscovery/nuclei/v2/pkg/core
+github.com/projectdiscovery/nuclei/v2/pkg/core/inputs/hybrid
+github.com/projectdiscovery/nuclei/v2/pkg/parsers
+github.com/projectdiscovery/nuclei/v2/pkg/catalog/loader
+github.com/projectdiscovery/nuclei/v2/pkg/protocols/common/automaticscan
+github.com/projectdiscovery/nuclei/v2/internal/runner
+github.com/projectdiscovery/nuclei/v2/cmd/nuclei
+[INFO] Nuclei instalado com sucesso
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following additional packages will be installed:
+  libavahi-client3 libavahi-common-data libavahi-common3 libcups2t64 libldb2 libsmbclient0 libtalloc2 libtdb1 libtevent0t64 libwbclient0 python3-gpg python3-ldb python3-markdown python3-samba python3-talloc
+  python3-tdb samba-common samba-common-bin samba-dsdb-modules samba-libs
+Suggested packages:
+  libsasl2-modules-gssapi-mit | libsasl2-modules-gssapi-heimdal cups-common python-markdown-doc heimdal-clients python3-dnspython cifs-utils
+The following NEW packages will be installed:
+  ldap-utils libavahi-client3 libavahi-common-data libavahi-common3 libcups2t64 libldb2 libsmbclient0 libtalloc2 libtdb1 libtevent0t64 libwbclient0 python3-gpg python3-ldb python3-markdown python3-samba
+  python3-talloc python3-tdb samba-common samba-common-bin samba-dsdb-modules samba-libs smbclient
+0 upgraded, 22 newly installed, 0 to remove and 6 not upgraded.
+Need to get 12.3 MB of archives.
+After this operation, 56.6 MB of additional disk space will be used.
+Get:1 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 ldap-utils amd64 2.6.7+dfsg-1~exp1ubuntu8.2 [153 kB]
+Get:2 http://br.archive.ubuntu.com/ubuntu noble/main amd64 libavahi-common-data amd64 0.8-13ubuntu6 [29.7 kB]
+Get:3 http://br.archive.ubuntu.com/ubuntu noble/main amd64 libavahi-common3 amd64 0.8-13ubuntu6 [23.3 kB]
+Get:4 http://br.archive.ubuntu.com/ubuntu noble/main amd64 libavahi-client3 amd64 0.8-13ubuntu6 [26.8 kB]
+Get:5 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 libcups2t64 amd64 2.4.7-1.2ubuntu7.3 [272 kB]
+Get:6 http://br.archive.ubuntu.com/ubuntu noble/main amd64 libtalloc2 amd64 2.4.2-1build2 [27.3 kB]
+Get:7 http://br.archive.ubuntu.com/ubuntu noble/main amd64 libtdb1 amd64 1.4.10-1build1 [46.8 kB]
+Get:8 http://br.archive.ubuntu.com/ubuntu noble/main amd64 libtevent0t64 amd64 0.16.1-2build1 [42.6 kB]
+Get:9 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 libldb2 amd64 2:2.8.0+samba4.19.5+dfsg-4ubuntu9.3 [188 kB]
+Get:10 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 libwbclient0 amd64 2:4.19.5+dfsg-4ubuntu9.3 [71.4 kB]
+Get:11 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 samba-libs amd64 2:4.19.5+dfsg-4ubuntu9.3 [6,018 kB]
+Get:12 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 libsmbclient0 amd64 2:4.19.5+dfsg-4ubuntu9.3 [62.4 kB]
+Get:13 http://br.archive.ubuntu.com/ubuntu noble/main amd64 python3-gpg amd64 1.18.0-4.1ubuntu4 [209 kB]
+Get:14 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 python3-ldb amd64 2:2.8.0+samba4.19.5+dfsg-4ubuntu9.3 [41.8 kB]
+Get:15 http://br.archive.ubuntu.com/ubuntu noble/main amd64 python3-markdown all 3.5.2-1 [72.0 kB]
+Get:16 http://br.archive.ubuntu.com/ubuntu noble/main amd64 python3-tdb amd64 1.4.10-1build1 [15.3 kB]
+Get:17 http://br.archive.ubuntu.com/ubuntu noble/main amd64 python3-talloc amd64 2.4.2-1build2 [12.9 kB]
+Get:18 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 python3-samba amd64 2:4.19.5+dfsg-4ubuntu9.3 [2,895 kB]
+Get:19 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 samba-common all 2:4.19.5+dfsg-4ubuntu9.3 [64.9 kB]
+Get:20 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 samba-common-bin amd64 2:4.19.5+dfsg-4ubuntu9.3 [1,279 kB]
+Get:21 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 samba-dsdb-modules amd64 2:4.19.5+dfsg-4ubuntu9.3 [317 kB]
+Get:22 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 smbclient amd64 2:4.19.5+dfsg-4ubuntu9.3 [470 kB]
+Fetched 12.3 MB in 2s (7,201 kB/s)
+Selecting previously unselected package ldap-utils.
+(Reading database ... 135491 files and directories currently installed.)
+Preparing to unpack .../00-ldap-utils_2.6.7+dfsg-1~exp1ubuntu8.2_amd64.deb ...
+Unpacking ldap-utils (2.6.7+dfsg-1~exp1ubuntu8.2) ...
+Selecting previously unselected package libavahi-common-data:amd64.
+Preparing to unpack .../01-libavahi-common-data_0.8-13ubuntu6_amd64.deb ...
+Unpacking libavahi-common-data:amd64 (0.8-13ubuntu6) ...
+Selecting previously unselected package libavahi-common3:amd64.
+Preparing to unpack .../02-libavahi-common3_0.8-13ubuntu6_amd64.deb ...
+Unpacking libavahi-common3:amd64 (0.8-13ubuntu6) ...
+Selecting previously unselected package libavahi-client3:amd64.
+Preparing to unpack .../03-libavahi-client3_0.8-13ubuntu6_amd64.deb ...
+Unpacking libavahi-client3:amd64 (0.8-13ubuntu6) ...
+Selecting previously unselected package libcups2t64:amd64.
+Preparing to unpack .../04-libcups2t64_2.4.7-1.2ubuntu7.3_amd64.deb ...
+Unpacking libcups2t64:amd64 (2.4.7-1.2ubuntu7.3) ...
+Selecting previously unselected package libtalloc2:amd64.
+Preparing to unpack .../05-libtalloc2_2.4.2-1build2_amd64.deb ...
+Unpacking libtalloc2:amd64 (2.4.2-1build2) ...
+Selecting previously unselected package libtdb1:amd64.
+Preparing to unpack .../06-libtdb1_1.4.10-1build1_amd64.deb ...
+Unpacking libtdb1:amd64 (1.4.10-1build1) ...
+Selecting previously unselected package libtevent0t64:amd64.
+Preparing to unpack .../07-libtevent0t64_0.16.1-2build1_amd64.deb ...
+Unpacking libtevent0t64:amd64 (0.16.1-2build1) ...
+Selecting previously unselected package libldb2:amd64.
+Preparing to unpack .../08-libldb2_2%3a2.8.0+samba4.19.5+dfsg-4ubuntu9.3_amd64.deb ...
+Unpacking libldb2:amd64 (2:2.8.0+samba4.19.5+dfsg-4ubuntu9.3) ...
+Selecting previously unselected package libwbclient0:amd64.
+Preparing to unpack .../09-libwbclient0_2%3a4.19.5+dfsg-4ubuntu9.3_amd64.deb ...
+Unpacking libwbclient0:amd64 (2:4.19.5+dfsg-4ubuntu9.3) ...
+Selecting previously unselected package samba-libs:amd64.
+Preparing to unpack .../10-samba-libs_2%3a4.19.5+dfsg-4ubuntu9.3_amd64.deb ...
+Unpacking samba-libs:amd64 (2:4.19.5+dfsg-4ubuntu9.3) ...
+Selecting previously unselected package libsmbclient0:amd64.
+Preparing to unpack .../11-libsmbclient0_2%3a4.19.5+dfsg-4ubuntu9.3_amd64.deb ...
+Unpacking libsmbclient0:amd64 (2:4.19.5+dfsg-4ubuntu9.3) ...
+Selecting previously unselected package python3-gpg.
+Preparing to unpack .../12-python3-gpg_1.18.0-4.1ubuntu4_amd64.deb ...
+Unpacking python3-gpg (1.18.0-4.1ubuntu4) ...
+Selecting previously unselected package python3-ldb.
+Preparing to unpack .../13-python3-ldb_2%3a2.8.0+samba4.19.5+dfsg-4ubuntu9.3_amd64.deb ...
+Unpacking python3-ldb (2:2.8.0+samba4.19.5+dfsg-4ubuntu9.3) ...
+Selecting previously unselected package python3-markdown.
+Preparing to unpack .../14-python3-markdown_3.5.2-1_all.deb ...
+Unpacking python3-markdown (3.5.2-1) ...
+Selecting previously unselected package python3-tdb.
+Preparing to unpack .../15-python3-tdb_1.4.10-1build1_amd64.deb ...
+Unpacking python3-tdb (1.4.10-1build1) ...
+Selecting previously unselected package python3-talloc:amd64.
+Preparing to unpack .../16-python3-talloc_2.4.2-1build2_amd64.deb ...
+Unpacking python3-talloc:amd64 (2.4.2-1build2) ...
+Selecting previously unselected package python3-samba.
+Preparing to unpack .../17-python3-samba_2%3a4.19.5+dfsg-4ubuntu9.3_amd64.deb ...
+Unpacking python3-samba (2:4.19.5+dfsg-4ubuntu9.3) ...
+Selecting previously unselected package samba-common.
+Preparing to unpack .../18-samba-common_2%3a4.19.5+dfsg-4ubuntu9.3_all.deb ...
+Unpacking samba-common (2:4.19.5+dfsg-4ubuntu9.3) ...
+Selecting previously unselected package samba-common-bin.
+Preparing to unpack .../19-samba-common-bin_2%3a4.19.5+dfsg-4ubuntu9.3_amd64.deb ...
+Unpacking samba-common-bin (2:4.19.5+dfsg-4ubuntu9.3) ...
+Selecting previously unselected package samba-dsdb-modules:amd64.
+Preparing to unpack .../20-samba-dsdb-modules_2%3a4.19.5+dfsg-4ubuntu9.3_amd64.deb ...
+Unpacking samba-dsdb-modules:amd64 (2:4.19.5+dfsg-4ubuntu9.3) ...
+Selecting previously unselected package smbclient.
+Preparing to unpack .../21-smbclient_2%3a4.19.5+dfsg-4ubuntu9.3_amd64.deb ...
+Unpacking smbclient (2:4.19.5+dfsg-4ubuntu9.3) ...
+Setting up libtdb1:amd64 (1.4.10-1build1) ...
+Setting up samba-common (2:4.19.5+dfsg-4ubuntu9.3) ...
+
+Creating config file /etc/samba/smb.conf with new version
+Setting up ldap-utils (2.6.7+dfsg-1~exp1ubuntu8.2) ...
+Setting up libwbclient0:amd64 (2:4.19.5+dfsg-4ubuntu9.3) ...
+Setting up libtalloc2:amd64 (2.4.2-1build2) ...
+Setting up python3-tdb (1.4.10-1build1) ...
+Setting up python3-gpg (1.18.0-4.1ubuntu4) ...
+Setting up libavahi-common-data:amd64 (0.8-13ubuntu6) ...
+Setting up python3-markdown (3.5.2-1) ...
+Setting up libtevent0t64:amd64 (0.16.1-2build1) ...
+Setting up python3-talloc:amd64 (2.4.2-1build2) ...
+Setting up libavahi-common3:amd64 (0.8-13ubuntu6) ...
+Setting up libldb2:amd64 (2:2.8.0+samba4.19.5+dfsg-4ubuntu9.3) ...
+Setting up libavahi-client3:amd64 (0.8-13ubuntu6) ...
+Setting up samba-libs:amd64 (2:4.19.5+dfsg-4ubuntu9.3) ...
+Setting up python3-ldb (2:2.8.0+samba4.19.5+dfsg-4ubuntu9.3) ...
+Setting up samba-dsdb-modules:amd64 (2:4.19.5+dfsg-4ubuntu9.3) ...
+Setting up libsmbclient0:amd64 (2:4.19.5+dfsg-4ubuntu9.3) ...
+Setting up libcups2t64:amd64 (2.4.7-1.2ubuntu7.3) ...
+Setting up python3-samba (2:4.19.5+dfsg-4ubuntu9.3) ...
+Setting up smbclient (2:4.19.5+dfsg-4ubuntu9.3) ...
+Setting up samba-common-bin (2:4.19.5+dfsg-4ubuntu9.3) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.5) ...
+Scanning processes...
+Scanning candidates...
+Scanning linux images...
+
+Pending kernel upgrade!
+Running kernel version:
+  6.8.0-41-generic
+Diagnostics:
+  The currently running kernel version is not the expected kernel version 6.8.0-79-generic.
+
+Restarting the system to load the new kernel will not be handled automatically, so you should consider rebooting.
+
+Restarting services...
+
+Service restarts being deferred:
+ /etc/needrestart/restart.d/dbus.service
+ systemctl restart getty@tty1.service
+ systemctl restart systemd-logind.service
+ systemctl restart unattended-upgrades.service
+
+No containers need to be restarted.
+
+User sessions running outdated binaries:
+ suporte @ session #123: sshd[38923]
+ suporte @ user manager service: systemd[38928]
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+[INFO] Ferramentas de segurança instaladas com sucesso
+[INFO] Configurando firewall UFW...
+[INFO] Porta SSH detectada: 22
+[WARN] O firewall será configurado com as seguintes regras:
+[WARN] - SSH permitido na porta 22
+[WARN] - HTTP (80) e HTTPS (443) permitidos
+[WARN] - Aplicação (5000) bloqueada externamente
+root@vlxsam99:~# curl -fsSL https://raw.githubusercontent.com/GruppenIT/SamurEyePlatform/main/install.sh | sudo bash
+
+[INFO] ==========================================
+[INFO]   SamurEye - Instalação Automática v1.0
+[INFO] ==========================================
+
+[INFO] Distribuição detectada: ubuntu 24.04
+[INFO] Iniciando instalação em Thu Sep 11 12:07:57 PM UTC 2025
+[INFO] Atualizando repositórios do sistema...
+Hit:1 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:3 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease
+Hit:4 https://deb.nodesource.com/node_18.x nodistro InRelease
+Hit:5 http://security.ubuntu.com/ubuntu noble-security InRelease
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+6 packages can be upgraded. Run 'apt list --upgradable' to see them.
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Calculating upgrade... Done
+The following upgrades have been deferred due to phasing:
+  bind9-dnsutils bind9-host bind9-libs openssh-client openssh-server openssh-sftp-server
+0 upgraded, 0 newly installed, 0 to remove and 6 not upgraded.
+[INFO] Instalando dependências básicas do sistema...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+curl is already the newest version (8.5.0-2ubuntu10.6).
+wget is already the newest version (1.21.4-1ubuntu4.1).
+git is already the newest version (1:2.43.0-1ubuntu7.3).
+unzip is already the newest version (6.0-28ubuntu4.1).
+build-essential is already the newest version (12.10ubuntu1).
+software-properties-common is already the newest version (0.99.49.3).
+apt-transport-https is already the newest version (2.8.3).
+ca-certificates is already the newest version (20240203).
+gnupg is already the newest version (2.4.4-2ubuntu17.3).
+lsb-release is already the newest version (12.0-2).
+ufw is already the newest version (0.36.2-6).
+htop is already the newest version (3.3.0-4build1).
+tree is already the newest version (2.1.1-2ubuntu3).
+jq is already the newest version (1.7.1-3ubuntu0.24.04.1).
+openssl is already the newest version (3.0.13-0ubuntu3.5).
+net-tools is already the newest version (2.10-0.1ubuntu4.4).
+0 upgraded, 0 newly installed, 0 to remove and 6 not upgraded.
+[INFO] Dependências básicas instaladas com sucesso
+[INFO] Instalando Node.js 18...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Package 'npm' is not installed, so not removed
+The following packages will be REMOVED:
+  nodejs
+0 upgraded, 0 newly installed, 1 to remove and 6 not upgraded.
+After this operation, 187 MB disk space will be freed.
+(Reading database ... 136320 files and directories currently installed.)
+Removing nodejs (18.20.8-1nodesource1) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+2025-09-11 12:08:06 - Installing pre-requisites
+Hit:1 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:3 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease
+Hit:4 https://deb.nodesource.com/node_18.x nodistro InRelease
+Hit:5 http://security.ubuntu.com/ubuntu noble-security InRelease
+Reading package lists... Done
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+apt-transport-https is already the newest version (2.8.3).
+ca-certificates is already the newest version (20240203).
+curl is already the newest version (8.5.0-2ubuntu10.6).
+gnupg is already the newest version (2.4.4-2ubuntu17.3).
+0 upgraded, 0 newly installed, 0 to remove and 6 not upgraded.
+Hit:1 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:3 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease
+Hit:4 https://deb.nodesource.com/node_18.x nodistro InRelease
+Hit:5 http://security.ubuntu.com/ubuntu noble-security InRelease
+Reading package lists... Done
+2025-09-11 12:08:11 - Repository configured successfully.
+2025-09-11 12:08:11 - To install Node.js, run: apt-get install nodejs -y
+2025-09-11 12:08:11 - You can use N|solid Runtime as a node.js alternative
+2025-09-11 12:08:11 - To install N|solid Runtime, run: apt-get install nsolid -y
+
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following NEW packages will be installed:
+  nodejs
+0 upgraded, 1 newly installed, 0 to remove and 6 not upgraded.
+Need to get 29.7 MB of archives.
+After this operation, 187 MB of additional disk space will be used.
+Get:1 https://deb.nodesource.com/node_18.x nodistro/main amd64 nodejs amd64 18.20.8-1nodesource1 [29.7 MB]
+Fetched 29.7 MB in 3s (8,565 kB/s)
+Selecting previously unselected package nodejs.
+(Reading database ... 131003 files and directories currently installed.)
+Preparing to unpack .../nodejs_18.20.8-1nodesource1_amd64.deb ...
+Unpacking nodejs (18.20.8-1nodesource1) ...
+Setting up nodejs (18.20.8-1nodesource1) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+Scanning processes...
+Scanning candidates...
+Scanning linux images...
+
+Pending kernel upgrade!
+Running kernel version:
+  6.8.0-41-generic
+Diagnostics:
+  The currently running kernel version is not the expected kernel version 6.8.0-79-generic.
+
+Restarting the system to load the new kernel will not be handled automatically, so you should consider rebooting.
+
+Restarting services...
+
+Service restarts being deferred:
+ /etc/needrestart/restart.d/dbus.service
+ systemctl restart getty@tty1.service
+ systemctl restart systemd-logind.service
+ systemctl restart unattended-upgrades.service
+
+No containers need to be restarted.
+
+User sessions running outdated binaries:
+ suporte @ session #123: sshd[38923]
+ suporte @ user manager service: systemd[38928]
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+[INFO] Node.js v18.20.8 e npm 10.8.2 instalados com sucesso
+[INFO] Instalando PostgreSQL...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+postgresql is already the newest version (16+257build1.1).
+postgresql-contrib is already the newest version (16+257build1.1).
+postgresql-client is already the newest version (16+257build1.1).
+0 upgraded, 0 newly installed, 0 to remove and 6 not upgraded.
+Warning: The unit file, source configuration file or drop-ins of postgresql.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+Synchronizing state of postgresql.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable postgresql
+[INFO] PostgreSQL instalado e iniciado com sucesso
+[INFO] Configurando banco de dados PostgreSQL...
+ERROR:  role "samureye" already exists
+ALTER ROLE
+ERROR:  database "samureye_db" already exists
+ALTER ROLE
+[INFO] Banco de dados configurado com sucesso
+[INFO] Instalando Nginx...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+nginx is already the newest version (1.24.0-2ubuntu7.5).
+0 upgraded, 0 newly installed, 0 to remove and 6 not upgraded.
+Synchronizing state of nginx.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable nginx
+[INFO] Nginx instalado com sucesso
+[INFO] Instalando ferramentas de segurança...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+nmap is already the newest version (7.94+git20230807.3be01efb1+dfsg-3build2).
+0 upgraded, 0 newly installed, 0 to remove and 6 not upgraded.
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+smbclient is already the newest version (2:4.19.5+dfsg-4ubuntu9.3).
+ldap-utils is already the newest version (2.6.7+dfsg-1~exp1ubuntu8.2).
+0 upgraded, 0 newly installed, 0 to remove and 6 not upgraded.
+[INFO] Ferramentas de segurança instaladas com sucesso
+[INFO] Configurando firewall UFW...
+[INFO] Porta SSH detectada: 22
+[WARN] O firewall será configurado com as seguintes regras:
+[WARN] - SSH permitido na porta 22
+[WARN] - HTTP (80) e HTTPS (443) permitidos
+[WARN] - Aplicação (5000) bloqueada externamente
+root@vlxsam99:~# netstat -ano |grep 443
