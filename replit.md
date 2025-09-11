@@ -21,7 +21,14 @@ The server runs on **Express.js** with TypeScript, following a modular service-o
 - **Encryption Service**: Provides secure credential storage using DEK (Data Encryption Key) methodology
 
 ### Authentication & Authorization
-The application uses **Replit's OIDC authentication** with session management via **express-session** and PostgreSQL session storage. Role-based access control (RBAC) supports three user roles: global_administrator, operator, and read_only. User sessions are managed with JWT tokens and refresh token rotation for security.
+The application uses **local authentication** with secure password hashing via **bcrypt** (12 rounds), replacing the previous OIDC integration. Session management is handled through **express-session** with PostgreSQL session storage, including comprehensive security measures:
+- **Session fixation protection**: Session IDs are regenerated on login
+- **Secure logout**: Complete session destruction and cookie clearing
+- **Rate limiting**: Brute force protection with 5 attempts per minute
+- **Secure cookies**: httpOnly, sameSite, secure flags for production
+- **Production hardening**: SESSION_SECRET requirement and HTTPS enforcement
+
+Role-based access control (RBAC) supports three user roles: global_administrator, operator, and read_only.
 
 ### Data Storage
 **PostgreSQL** serves as the primary database with **Drizzle ORM** providing type-safe database operations. The schema includes comprehensive tables for users, assets, credentials, journeys, schedules, jobs, threats, and audit logs. Credentials are encrypted at rest using a Key Encryption Key (KEK) and Data Encryption Key (DEK) pattern for enhanced security.
@@ -47,10 +54,10 @@ The application uses **Replit's OIDC authentication** with session management vi
 - **lucide-react**: Icon library for consistent iconography
 
 ### Authentication and Security
-- **openid-client**: OIDC authentication with Replit integration
-- **passport**: Authentication middleware
-- **bcryptjs**: Password hashing and verification
-- **connect-pg-simple**: PostgreSQL session store
+- **passport**: Local authentication middleware with strategies
+- **bcryptjs**: Secure password hashing and verification (12 rounds)
+- **connect-pg-simple**: PostgreSQL session store for persistent sessions
+- **express-session**: Session management with security hardening
 
 ### Development Tools
 - **vite**: Frontend build tool with HMR support
