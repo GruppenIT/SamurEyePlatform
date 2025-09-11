@@ -1,0 +1,223 @@
+[INFO] - Aplicação (5000) bloqueada externamente
+Backing up 'user.rules' to '/etc/ufw/user.rules.20250911_133425'
+Backing up 'before.rules' to '/etc/ufw/before.rules.20250911_133425'
+Backing up 'after.rules' to '/etc/ufw/after.rules.20250911_133425'
+Backing up 'user6.rules' to '/etc/ufw/user6.rules.20250911_133425'
+Backing up 'before6.rules' to '/etc/ufw/before6.rules.20250911_133425'
+Backing up 'after6.rules' to '/etc/ufw/after6.rules.20250911_133425'
+
+Default incoming policy changed to 'deny'
+(be sure to update your rules accordingly)
+Default outgoing policy changed to 'allow'
+(be sure to update your rules accordingly)
+Rules updated
+Rules updated (v6)
+Rules updated
+Rules updated (v6)
+Rules updated
+Rules updated (v6)
+Rules updated
+Rules updated (v6)
+Firewall is active and enabled on system startup
+[INFO] Firewall configurado com sucesso
+[INFO] Baixando e instalando aplicação SamurEye...
+[INFO] Parando serviços existentes...
+Removed "/etc/systemd/system/multi-user.target.wants/samureye-api.service".
+[INFO] Preservando backups existentes...
+[INFO] Removendo instalação anterior...
+[INFO] Clonando repositório...
+Cloning into '.'...
+remote: Enumerating objects: 308, done.
+remote: Counting objects: 100% (308/308), done.
+remote: Compressing objects: 100% (160/160), done.
+remote: Total 308 (delta 163), reused 286 (delta 141), pack-reused 0 (from 0)
+Receiving objects: 100% (308/308), 269.05 KiB | 4.27 MiB/s, done.
+Resolving deltas: 100% (163/163), done.
+[INFO] Restaurando backups preservados...
+[INFO] Instalando dependências da aplicação...
+npm warn config production Use `--omit=dev` instead.
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+
+added 511 packages, and audited 512 packages in 8s
+
+69 packages are looking for funding
+  run `npm fund` for details
+
+8 vulnerabilities (1 low, 7 moderate)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+[INFO] Compilando aplicação...
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+Browserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 1754 modules transformed.
+../dist/public/index.html                   2.20 kB │ gzip:   0.86 kB
+../dist/public/assets/index-B33ibakt.css   62.13 kB │ gzip:  11.21 kB
+../dist/public/assets/index-BipKPYHK.js   554.13 kB │ gzip: 158.05 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.56s
+
+  dist/index.js  120.0kb
+
+⚡ Done in 11ms
+[INFO] Aplicação instalada com sucesso
+[INFO] Configurando variáveis de ambiente...
+[INFO] Variáveis de ambiente configuradas
+[INFO] Executando migrações do banco de dados...
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/opt/samureye/drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
+[i] No changes detected
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.6.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.0
+npm notice To update run: npm install -g npm@11.6.0
+npm notice
+[INFO] Migrações executadas com sucesso
+[INFO] Configurando serviços systemd...
+Created symlink /etc/systemd/system/multi-user.target.wants/samureye-api.service → /etc/systemd/system/samureye-api.service.
+[INFO] Serviços systemd configurados
+[INFO] Configurando proxy reverso Nginx...
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[INFO] Proxy reverso Nginx configurado
+[INFO] Criando scripts de backup...
+[INFO] Scripts de backup configurados
+[INFO] Iniciando serviços...
+[INFO] ✓ Serviço samureye-api iniciado com sucesso
+[INFO] ✓ Serviço postgresql iniciado com sucesso
+[INFO] ✓ Serviço nginx iniciado com sucesso
+[INFO] Testando resposta da aplicação...
+[INFO] ✓ Aplicação respondendo corretamente
+[INFO] ✓ Proxy reverso Nginx funcionando
+
+[INFO] ==========================================
+[INFO]     INSTALAÇÃO CONCLUÍDA COM SUCESSO!
+[INFO] ==========================================
+
+[INFO] 🌐 Acesso à aplicação:
+[INFO]    Local: http://localhost
+[INFO]    Externo: http://200.143.101.226
+
+[INFO] 📊 Status dos serviços:
+[INFO]    SamurEye: active
+[INFO]    PostgreSQL: active
+[INFO]    Nginx: active
+
+[INFO] 📁 Diretórios importantes:
+[INFO]    Aplicação: /opt/samureye
+[INFO]    Logs: /opt/samureye/logs
+[INFO]    Backups: /opt/samureye/backups
+[INFO]    Configuração: /opt/samureye/.env
+
+[INFO] 🔧 Comandos úteis:
+[INFO]    Status: systemctl status samureye-api
+[INFO]    Logs: journalctl -u samureye-api -f
+[INFO]    Restart: systemctl restart samureye-api
+[INFO]    Backup: /opt/samureye/scripts/backup.sh
+[INFO]    Upgrade: cd /opt/samureye && ./upgrade.sh
+
+[INFO] 👤 Primeiro Acesso:
+[INFO]    1. Acesse a aplicação no navegador
+[INFO]    2. Use o usuário administrador padrão criado na instalação
+[INFO]    3. IMPORTANTE: Altere a senha padrão no primeiro login
+
+[WARN] ⚠️  AÇÕES NECESSÁRIAS:
+[WARN] 1. Configure SSL/HTTPS para produção:
+[WARN]    sudo apt install certbot python3-certbot-nginx
+[WARN]    sudo certbot --nginx -d seu-dominio.com
+
+[WARN] 2. Configure autenticação OIDC no arquivo:
+[WARN]    /opt/samureye/.env
+
+[WARN] 3. Revise configurações de firewall:
+[WARN]    sudo ufw status
+
+[INFO] 📖 Documentação completa: README.md
+[INFO] 🆘 Suporte: https://github.com/GruppenIT/SamurEyePlatform/issues
+
+[INFO] Instalação concluída em Thu Sep 11 01:34:50 PM UTC 2025
+root@vlxsam99:~# journalctl -u samureye-api.service -b --no-pager -n 20
+Sep 11 14:05:08 vlxsam99 node[94279]:   },
+Sep 11 14:05:08 vlxsam99 node[94279]:   [Symbol(kType)]: 'error',
+Sep 11 14:05:08 vlxsam99 node[94279]:   [Symbol(kError)]: Error: connect ECONNREFUSED 127.0.0.1:443
+Sep 11 14:05:08 vlxsam99 node[94279]:       at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {
+Sep 11 14:05:08 vlxsam99 node[94279]:     errno: -111,
+Sep 11 14:05:08 vlxsam99 node[94279]:     code: 'ECONNREFUSED',
+Sep 11 14:05:08 vlxsam99 node[94279]:     syscall: 'connect',
+Sep 11 14:05:08 vlxsam99 node[94279]:     address: '127.0.0.1',
+Sep 11 14:05:08 vlxsam99 node[94279]:     port: 443
+Sep 11 14:05:08 vlxsam99 node[94279]:   },
+Sep 11 14:05:08 vlxsam99 node[94279]:   [Symbol(kMessage)]: 'connect ECONNREFUSED 127.0.0.1:443'
+Sep 11 14:05:08 vlxsam99 node[94279]: }
+Sep 11 14:05:08 vlxsam99 node[94279]: Node.js v20.19.5
+Sep 11 14:05:08 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 11 14:05:08 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Sep 11 14:05:08 vlxsam99 systemd[1]: samureye-api.service: Consumed 1.052s CPU time.
+Sep 11 14:05:18 vlxsam99 systemd[1]: samureye-api.service: Scheduled restart job, restart counter is at 45.
+Sep 11 14:05:18 vlxsam99 systemd[1]: samureye-api.service: Ignoring invalid environment assignment 'zODmhrPf74M5b+EwKNKX+g==': /opt/samureye/.env
+Sep 11 14:05:18 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 11 14:05:19 vlxsam99 node[94299]: 2:05:19 PM [express] serving on port 5000
+root@vlxsam99:~# journalctl -u samureye-api.service -b --no-pager -n 40
+Sep 11 14:05:08 vlxsam99 node[94279]:     _closeFrameReceived: false,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _closeFrameSent: false,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _closeMessage: Buffer(0) [Uint8Array] [],
+Sep 11 14:05:08 vlxsam99 node[94279]:     _closeTimer: null,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _errorEmitted: true,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _extensions: {},
+Sep 11 14:05:08 vlxsam99 node[94279]:     _paused: false,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _protocol: '',
+Sep 11 14:05:08 vlxsam99 node[94279]:     _readyState: 3,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _receiver: null,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _sender: null,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _socket: null,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _bufferedAmount: 0,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _isServer: false,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _redirects: 0,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _autoPong: true,
+Sep 11 14:05:08 vlxsam99 node[94279]:     _url: 'wss://localhost/v2',
+Sep 11 14:05:08 vlxsam99 node[94279]:     _req: null,
+Sep 11 14:05:08 vlxsam99 node[94279]:     [Symbol(shapeMode)]: false,
+Sep 11 14:05:08 vlxsam99 node[94279]:     [Symbol(kCapture)]: false
+Sep 11 14:05:08 vlxsam99 node[94279]:   },
+Sep 11 14:05:08 vlxsam99 node[94279]:   [Symbol(kType)]: 'error',
+Sep 11 14:05:08 vlxsam99 node[94279]:   [Symbol(kError)]: Error: connect ECONNREFUSED 127.0.0.1:443
+Sep 11 14:05:08 vlxsam99 node[94279]:       at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {
+Sep 11 14:05:08 vlxsam99 node[94279]:     errno: -111,
+Sep 11 14:05:08 vlxsam99 node[94279]:     code: 'ECONNREFUSED',
+Sep 11 14:05:08 vlxsam99 node[94279]:     syscall: 'connect',
+Sep 11 14:05:08 vlxsam99 node[94279]:     address: '127.0.0.1',
+Sep 11 14:05:08 vlxsam99 node[94279]:     port: 443
+Sep 11 14:05:08 vlxsam99 node[94279]:   },
+Sep 11 14:05:08 vlxsam99 node[94279]:   [Symbol(kMessage)]: 'connect ECONNREFUSED 127.0.0.1:443'
+Sep 11 14:05:08 vlxsam99 node[94279]: }
+Sep 11 14:05:08 vlxsam99 node[94279]: Node.js v20.19.5
+Sep 11 14:05:08 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 11 14:05:08 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Sep 11 14:05:08 vlxsam99 systemd[1]: samureye-api.service: Consumed 1.052s CPU time.
+Sep 11 14:05:18 vlxsam99 systemd[1]: samureye-api.service: Scheduled restart job, restart counter is at 45.
+Sep 11 14:05:18 vlxsam99 systemd[1]: samureye-api.service: Ignoring invalid environment assignment 'zODmhrPf74M5b+EwKNKX+g==': /opt/samureye/.env
+Sep 11 14:05:18 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 11 14:05:19 vlxsam99 node[94299]: 2:05:19 PM [express] serving on port 5000
+root@vlxsam99:~#

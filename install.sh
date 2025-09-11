@@ -371,7 +371,7 @@ setup_environment() {
     
     # Gera chaves de criptografia
     ENCRYPTION_KEK=$(openssl rand -hex 32)
-    SESSION_SECRET=$(openssl rand -base64 64)
+    SESSION_SECRET=$(openssl rand -base64 64 | tr -d '\n')
     
     # Cria arquivo .env
     cat > $INSTALL_DIR/.env << EOF
@@ -391,7 +391,7 @@ PORT=5000
 ENCRYPTION_KEK=$ENCRYPTION_KEK
 
 # Configuração de Sessão
-SESSION_SECRET=$SESSION_SECRET
+SESSION_SECRET="$SESSION_SECRET"
 
 # Configuração de Logs
 LOG_LEVEL=info
