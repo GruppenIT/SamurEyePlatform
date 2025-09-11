@@ -1,0 +1,82 @@
+root@vlxsam99:~# journalctl -u samureye-api.service -b --no-pager -n 80
+Sep 11 14:28:14 vlxsam99 node[97684]: }
+Sep 11 14:28:14 vlxsam99 node[97684]: Node.js v20.19.5
+Sep 11 14:28:14 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 11 14:28:14 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Sep 11 14:28:14 vlxsam99 systemd[1]: samureye-api.service: Consumed 1.023s CPU time.
+Sep 11 14:28:24 vlxsam99 systemd[1]: samureye-api.service: Scheduled restart job, restart counter is at 23.
+Sep 11 14:28:24 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 11 14:28:25 vlxsam99 node[97711]: 2:28:25 PM [express] serving on port 5000
+Sep 11 14:28:55 vlxsam99 node[97711]: file:///opt/samureye/node_modules/@neondatabase/serverless/index.mjs:1345
+Sep 11 14:28:55 vlxsam99 node[97711]: o?t(o):n(u)},"cb"),s=new r(function(o,u){n=o,t=u}).catch(o=>{throw Error.captureStackTrace(
+Sep 11 14:28:55 vlxsam99 node[97711]:                                                                          ^
+Sep 11 14:28:55 vlxsam99 node[97711]: ErrorEvent {
+Sep 11 14:28:55 vlxsam99 node[97711]:   [Symbol(kTarget)]: WebSocket {
+Sep 11 14:28:55 vlxsam99 node[97711]:     _events: [Object: null prototype] {
+Sep 11 14:28:55 vlxsam99 node[97711]:       error: [Function: onError] {
+Sep 11 14:28:55 vlxsam99 node[97711]:         [Symbol(kIsForOnEventAttribute)]: false,
+Sep 11 14:28:55 vlxsam99 node[97711]:         [Symbol(kListener)]: [Function (anonymous)]
+Sep 11 14:28:55 vlxsam99 node[97711]:       },
+Sep 11 14:28:55 vlxsam99 node[97711]:       message: [Function: onMessage] {
+Sep 11 14:28:55 vlxsam99 node[97711]:         [Symbol(kIsForOnEventAttribute)]: false,
+Sep 11 14:28:55 vlxsam99 node[97711]:         [Symbol(kListener)]: [Function (anonymous)]
+Sep 11 14:28:55 vlxsam99 node[97711]:       },
+Sep 11 14:28:55 vlxsam99 node[97711]:       close: [Function: onClose] {
+Sep 11 14:28:55 vlxsam99 node[97711]:         [Symbol(kIsForOnEventAttribute)]: false,
+Sep 11 14:28:55 vlxsam99 node[97711]:         [Symbol(kListener)]: [Function (anonymous)]
+Sep 11 14:28:55 vlxsam99 node[97711]:       },
+Sep 11 14:28:55 vlxsam99 node[97711]:       open: [Function: onOpen] {
+Sep 11 14:28:55 vlxsam99 node[97711]:         [Symbol(kIsForOnEventAttribute)]: false,
+Sep 11 14:28:55 vlxsam99 node[97711]:         [Symbol(kListener)]: [Function: handleWebSocketOpen]
+Sep 11 14:28:55 vlxsam99 node[97711]:       }
+Sep 11 14:28:55 vlxsam99 node[97711]:     },
+Sep 11 14:28:55 vlxsam99 node[97711]:     _eventsCount: 4,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _maxListeners: undefined,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _binaryType: 'arraybuffer',
+Sep 11 14:28:55 vlxsam99 node[97711]:     _closeCode: 1006,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _closeFrameReceived: false,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _closeFrameSent: false,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _closeMessage: Buffer(0) [Uint8Array] [],
+Sep 11 14:28:55 vlxsam99 node[97711]:     _closeTimer: null,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _errorEmitted: true,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _extensions: {},
+Sep 11 14:28:55 vlxsam99 node[97711]:     _paused: false,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _protocol: '',
+Sep 11 14:28:55 vlxsam99 node[97711]:     _readyState: 3,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _receiver: null,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _sender: null,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _socket: null,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _bufferedAmount: 0,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _isServer: false,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _redirects: 0,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _autoPong: true,
+Sep 11 14:28:55 vlxsam99 node[97711]:     _url: 'wss://localhost/v2',
+Sep 11 14:28:55 vlxsam99 node[97711]:     _req: null,
+Sep 11 14:28:55 vlxsam99 node[97711]:     [Symbol(shapeMode)]: false,
+Sep 11 14:28:55 vlxsam99 node[97711]:     [Symbol(kCapture)]: false
+Sep 11 14:28:55 vlxsam99 node[97711]:   },
+Sep 11 14:28:55 vlxsam99 node[97711]:   [Symbol(kType)]: 'error',
+Sep 11 14:28:55 vlxsam99 node[97711]:   [Symbol(kError)]: Error: connect ECONNREFUSED 127.0.0.1:443
+Sep 11 14:28:55 vlxsam99 node[97711]:       at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {
+Sep 11 14:28:55 vlxsam99 node[97711]:     errno: -111,
+Sep 11 14:28:55 vlxsam99 node[97711]:     code: 'ECONNREFUSED',
+Sep 11 14:28:55 vlxsam99 node[97711]:     syscall: 'connect',
+Sep 11 14:28:55 vlxsam99 node[97711]:     address: '127.0.0.1',
+Sep 11 14:28:55 vlxsam99 node[97711]:     port: 443
+Sep 11 14:28:55 vlxsam99 node[97711]:   },
+Sep 11 14:28:55 vlxsam99 node[97711]:   [Symbol(kMessage)]: 'connect ECONNREFUSED 127.0.0.1:443'
+Sep 11 14:28:55 vlxsam99 node[97711]: }
+Sep 11 14:28:55 vlxsam99 node[97711]: Node.js v20.19.5
+Sep 11 14:28:55 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 11 14:28:55 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Sep 11 14:28:55 vlxsam99 systemd[1]: samureye-api.service: Consumed 1.117s CPU time.
+Sep 11 14:29:05 vlxsam99 systemd[1]: samureye-api.service: Scheduled restart job, restart counter is at 24.
+Sep 11 14:29:05 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 11 14:29:06 vlxsam99 node[99593]: 2:29:06 PM [express] serving on port 5000
+Sep 11 14:29:10 vlxsam99 systemd[1]: Stopping samureye-api.service - SamurEye API Server...
+Sep 11 14:29:10 vlxsam99 systemd[1]: samureye-api.service: Deactivated successfully.
+Sep 11 14:29:10 vlxsam99 systemd[1]: Stopped samureye-api.service - SamurEye API Server.
+Sep 11 14:29:28 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 11 14:29:28 vlxsam99 node[100609]: 2:29:28 PM [express] serving on port 5000
+Sep 11 14:29:33 vlxsam99 node[100609]: 2:29:33 PM [express] GET /api/health 200 in 11ms :: {"status":"ok","timestamp":"2025-09-11T14:29:33.…
+root@vlxsam99:~#
