@@ -319,8 +319,8 @@ install_application() {
         
         # Para o serviço se estiver rodando
         log "Parando serviços existentes..."
-        systemctl stop samureye-api || true
-        systemctl disable samureye-api || true
+        systemctl stop ${SERVICE_NAME} || true
+        systemctl disable ${SERVICE_NAME} || true
         
         # Preserva backups existentes se houverem
         local temp_backup_dir=""
@@ -371,15 +371,26 @@ install_application() {
     log "Compilando aplicação..."
     npm run build
     
-    # Verificar se build foi bem-sucedido e contém as correções
+    # Verificar se build foi bem-sucedido
     if [[ -f "dist/index.js" ]]; then
-        if grep -q "from.*['\"]pg['\"]" dist/index.js || grep -q "require.*['\"]pg['\"]" dist/index.js; then
-            log "✅ Build finalizado com driver PostgreSQL correto"
+        log "✅ Build da aplicação finalizado com sucesso"
+        
+        # Verificar se package.json contém os scripts necessários
+        if grep -q '"start".*"node.*dist/index.js"' package.json; then
+            log "✅ Script de produção configurado corretamente"
         else
-            warn "⚠️  Build concluído mas não foi possível verificar driver PostgreSQL"
+            warn "⚠️  Script de produção pode não estar configurado corretamente"
+        fi
+        
+        # Verificar se as dependências corretas estão instaladas
+        if [[ -d "node_modules/pg" ]]; then
+            log "✅ Driver PostgreSQL (pg) disponível no node_modules"
+        else
+            error "❌ Driver PostgreSQL não encontrado após instalação"
+            exit 1
         fi
     else
-        error "❌ Falha no build da aplicação"
+        error "❌ Falha no build da aplicação - arquivo dist/index.js não foi criado"
         exit 1
     fi
     
@@ -457,8 +468,8 @@ run_migrations() {
 setup_systemd_services() {
     log "Configurando serviços systemd..."
     
-    # Serviço principal da API (inclui toda a aplicação)
-    cat > /etc/systemd/system/samureye-api.service << EOF
+    # Serviço principal da API (inclui toda a aplicação) com graceful shutdown
+    cat > /etc/systemd/system/${SERVICE_NAME}.service << EOF
 [Unit]
 Description=SamurEye API Server
 After=network.target postgresql.service
@@ -469,9 +480,16 @@ Type=simple
 User=$SERVICE_USER
 Group=$SERVICE_GROUP
 WorkingDirectory=$INSTALL_DIR
-ExecStart=/usr/bin/node dist/index.js
+ExecStart=/usr/bin/npm run start
 Restart=always
 RestartSec=10
+
+# Graceful shutdown configuration
+KillSignal=SIGTERM
+TimeoutStopSec=30
+ExecStop=/bin/kill -s SIGTERM \$MAINPID
+
+# Environment configuration
 Environment=NODE_ENV=production
 EnvironmentFile=$INSTALL_DIR/.env
 StandardOutput=journal
@@ -494,7 +512,7 @@ EOF
 
     # Recarrega systemd e habilita serviços
     systemctl daemon-reload
-    systemctl enable samureye-api
+    systemctl enable ${SERVICE_NAME}
     
     log "Serviços systemd configurados"
 }
@@ -628,13 +646,13 @@ start_services() {
     systemctl start postgresql nginx
     
     # Inicia serviços SamurEye
-    systemctl start samureye-api
+    systemctl start ${SERVICE_NAME}
     
     # Verifica status dos serviços
     sleep 5
     local services_ok=true
     
-    for service in "samureye-api" "postgresql" "nginx"; do
+    for service in "${SERVICE_NAME}" "postgresql" "nginx"; do
         if systemctl is-active --quiet "$service"; then
             log "✓ Serviço $service iniciado com sucesso"
         else
@@ -659,8 +677,8 @@ start_services() {
         fi
         if [[ $i -eq 30 ]]; then
             error "✗ Aplicação não está respondendo após 30 tentativas"
-            systemctl status samureye-api
-            journalctl -u samureye-api --no-pager -n 50
+            systemctl status ${SERVICE_NAME}
+            journalctl -u ${SERVICE_NAME} --no-pager -n 50
             exit 1
         fi
         sleep 2
@@ -672,6 +690,65 @@ start_services() {
     else
         warn "⚠ Nginx pode não estar configurado corretamente"
     fi
+}
+
+# Função para verificar se as correções do WebSocket funcionaram
+verify_websocket_fix() {
+    log "Verificando se as correções do WebSocket foram aplicadas..."
+    
+    # Aguarda o serviço estabilizar
+    sleep 10
+    
+    # Verifica se o serviço está ativo
+    if ! systemctl is-active --quiet ${SERVICE_NAME}; then
+        error "❌ Serviço ${SERVICE_NAME} não está ativo"
+        return 1
+    fi
+    
+    # Verifica logs recentes por erros de WebSocket do NeonDB
+    log "Verificando logs recentes por erros de WebSocket..."
+    local websocket_errors=$(journalctl -u ${SERVICE_NAME} --since "5 minutes ago" --no-pager -q | grep -c "wss://localhost/v2\|connect ECONNREFUSED.*:443\|@neondatabase/serverless.*WebSocket" || echo "0")
+    
+    if [[ "$websocket_errors" -gt 0 ]]; then
+        error "❌ Detectados $websocket_errors erro(s) de WebSocket nos logs recentes!"
+        log "Últimos erros encontrados:"
+        journalctl -u ${SERVICE_NAME} --since "5 minutes ago" --no-pager -n 20 | grep -A5 -B5 "wss://localhost/v2\|connect ECONNREFUSED.*:443\|@neondatabase/serverless.*WebSocket"
+        return 1
+    fi
+    
+    # Verifica se aplicação está rodando corretamente
+    local startup_success=$(journalctl -u ${SERVICE_NAME} --since "5 minutes ago" --no-pager -q | grep -c "serving on port\|express.*serving" || echo "0")
+    
+    if [[ "$startup_success" -eq 0 ]]; then
+        warn "⚠️  Não foi encontrada mensagem de startup bem-sucedido nos logs recentes"
+        log "Logs recentes do serviço:"
+        journalctl -u ${SERVICE_NAME} --since "5 minutes ago" --no-pager -n 20
+    else
+        log "✅ Aplicação iniciou corretamente (mensagens de startup encontradas)"
+    fi
+    
+    # Teste final de saúde da API
+    local health_check_attempts=0
+    local health_check_success=false
+    
+    while [[ $health_check_attempts -lt 10 ]]; do
+        if curl -f -s http://localhost:5000/api/health &>/dev/null; then
+            health_check_success=true
+            break
+        fi
+        sleep 2
+        ((health_check_attempts++))
+    done
+    
+    if [[ "$health_check_success" == "true" ]]; then
+        log "✅ API Health check passou - aplicação totalmente funcional"
+    else
+        error "❌ API Health check falhou - aplicação pode ter problemas"
+        return 1
+    fi
+    
+    log "✅ Verificação das correções de WebSocket PASSOU - problema resolvido!"
+    return 0
 }
 
 # Função para exibir informações finais
@@ -688,7 +765,7 @@ show_final_info() {
     log "   Externo: http://$server_ip"
     echo
     log "📊 Status dos serviços:"
-    log "   SamurEye: $(systemctl is-active samureye-api)"
+    log "   SamurEye: $(systemctl is-active ${SERVICE_NAME})"
     log "   PostgreSQL: $(systemctl is-active postgresql)"
     log "   Nginx: $(systemctl is-active nginx)"
     echo
@@ -699,9 +776,9 @@ show_final_info() {
     log "   Configuração: $INSTALL_DIR/.env"
     echo
     log "🔧 Comandos úteis:"
-    log "   Status: systemctl status samureye-api"
-    log "   Logs: journalctl -u samureye-api -f"
-    log "   Restart: systemctl restart samureye-api"
+    log "   Status: systemctl status ${SERVICE_NAME}"
+    log "   Logs: journalctl -u ${SERVICE_NAME} -f"
+    log "   Restart: systemctl restart ${SERVICE_NAME}"
     log "   Backup: $INSTALL_DIR/scripts/backup.sh"
     log "   Upgrade: cd $INSTALL_DIR && ./upgrade.sh"
     echo
@@ -755,6 +832,7 @@ main() {
     setup_nginx_proxy
     setup_backup_scripts
     start_services
+    verify_websocket_fix
     
     show_final_info
     
