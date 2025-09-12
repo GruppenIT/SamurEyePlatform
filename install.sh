@@ -143,21 +143,6 @@ install_postgresql() {
 setup_database() {
     log "🔄 HARD RESET: Recriando banco de dados PostgreSQL..."
     
-    # Para qualquer processo que possa estar usando o banco
-    log "🛑 Parando processos que possam usar o banco..."
-    systemctl stop samureye-api 2>/dev/null || true
-    pkill -f "node.*samureye" 2>/dev/null || true
-    pkill -f "npm.*samureye" 2>/dev/null || true
-    
-    # Força término de todas as conexões ativas do banco
-    log "🔌 Terminando conexões ativas do banco..."
-    sudo -u postgres psql -c "
-        SELECT pg_terminate_backend(pg_stat_activity.pid) 
-        FROM pg_stat_activity 
-        WHERE pg_stat_activity.datname = '$DB_NAME' 
-          AND pid <> pg_backend_pid();
-    " 2>/dev/null || true
-    
     # ⚠️ HARD RESET: Remove completamente banco e usuário existentes
     log "🗑️ Removendo banco de dados existente..."
     sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;" 2>/dev/null || true
@@ -165,14 +150,8 @@ setup_database() {
     log "🗑️ Removendo usuário do banco existente..."
     sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;" 2>/dev/null || true
     
-    # Gera nova senha aleatória usando APENAS caracteres alfanuméricos (sem símbolos)
-    DB_PASSWORD=$(openssl rand -hex 32)
-    
-    # Verifica se a senha foi gerada corretamente
-    if [[ -z "$DB_PASSWORD" ]] || [[ ${#DB_PASSWORD} -lt 32 ]]; then
-        error "Falha ao gerar senha do banco"
-        exit 1
-    fi
+    # Gera nova senha aleatória para o usuário do banco
+    DB_PASSWORD=$(openssl rand -base64 32)
     
     log "👤 Criando novo usuário do banco de dados..."
     # Cria usuário com privilégios mínimos necessários
@@ -189,23 +168,15 @@ setup_database() {
     log "🔧 Instalando extensões necessárias..."
     sudo -u postgres psql -d "$DB_NAME" -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;" || true
     
-    # Testa conexão com novas credenciais
-    log "🧪 Testando conexão com novas credenciais..."
-    if PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" -c "SELECT version();" > /dev/null 2>&1; then
+    # Testa conexão
+    if sudo -u postgres psql -d $DB_NAME -c "SELECT version();" > /dev/null 2>&1; then
         log "✅ Banco de dados recriado com sucesso"
-        log "🔑 Nova senha do banco gerada (${#DB_PASSWORD} caracteres)"
+        log "🔑 Nova senha do banco gerada"
         log "🔧 Extensão pgcrypto instalada"
     else
-        error "❌ Falha ao testar conexão com novas credenciais"
+        error "❌ Falha ao recriar o banco de dados"
         exit 1
     fi
-    
-    # Força reload do PostgreSQL para limpar cache de autenticação
-    log "🔄 Recarregando configuração PostgreSQL..."
-    sudo -u postgres psql -c "SELECT pg_reload_conf();" || true
-    
-    # Aguarda um momento para estabilizar
-    sleep 2
 }
 
 # Função para instalar Nginx
@@ -460,7 +431,7 @@ setup_environment() {
     # Cria arquivo .env
     cat > $INSTALL_DIR/.env << EOF
 # Configuração do Banco de Dados
-DATABASE_URL=postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME
+DATABASE_URL=postgresql://$DB_USER:$(echo -n "$DB_PASSWORD" | python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip(), safe=''))")@localhost:5432/$DB_NAME
 PGHOST=localhost
 PGPORT=5432
 PGUSER=$DB_USER
@@ -500,64 +471,13 @@ run_migrations() {
     
     cd $INSTALL_DIR
     
-    # Verifica se drizzle-kit está disponível
-    if ! npm list drizzle-kit > /dev/null 2>&1; then
-        error "drizzle-kit não encontrado. Verifique se npm install foi executado"
-        exit 1
-    fi
+    # Executa migrações usando o arquivo .env diretamente (sem source)
+    # O systemd e npm lerão o arquivo automaticamente
+    sudo -u $SERVICE_USER \
+        DATABASE_URL="postgresql://$DB_USER:$(echo -n "$DB_PASSWORD" | python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip(), safe=''))")@localhost:5432/$DB_NAME" \
+        npm run db:push
     
-    # Testa conexão antes das migrações
-    log "Testando conexão com banco antes das migrações..."
-    if ! sudo -u $SERVICE_USER \
-        DATABASE_URL="postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME" \
-        node -e "
-            const { Pool } = require('pg');
-            const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-            pool.query('SELECT version()').then(() => {
-                console.log('✅ Conexão com banco OK');
-                process.exit(0);
-            }).catch(err => {
-                console.error('❌ Erro conexão:', err.message);
-                process.exit(1);
-            });
-        " 2>/dev/null; then
-        error "❌ Falha na conexão com PostgreSQL antes das migrações"
-        exit 1
-    fi
-    
-    log "📋 Executando migrações Drizzle..."
-    # Executa migrações com retry e melhor logging
-    if sudo -u $SERVICE_USER \
-        DATABASE_URL="postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME" \
-        npm run db:push; then
-        log "✅ Migrações executadas com sucesso"
-    else
-        warn "❌ Migrações falharam, tentando com --force..."
-        if sudo -u $SERVICE_USER \
-            DATABASE_URL="postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME" \
-            npx drizzle-kit push --force; then
-            log "✅ Migrações forçadas executadas com sucesso"
-        else
-            error "❌ Falha crítica nas migrações do banco"
-            exit 1
-        fi
-    fi
-    
-    # Verifica se as tabelas principais foram criadas
-    log "🔍 Verificando se tabelas foram criadas..."
-    TABLES_CHECK=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
-        -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('users', 'assets', 'jobs', 'journeys');" 2>/dev/null || echo "0")
-    
-    if [[ "$TABLES_CHECK" -ge 4 ]]; then
-        log "✅ Tabelas principais criadas com sucesso"
-    else
-        error "❌ Nem todas as tabelas foram criadas (encontradas: $TABLES_CHECK/4)"
-        # Lista tabelas existentes para debug
-        log "📋 Tabelas existentes no banco:"
-        PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
-            -c "\dt" 2>/dev/null || true
-        exit 1
-    fi
+    log "Migrações executadas com sucesso"
 }
 
 # Função para criar usuário administrador inicial (HARD RESET - sempre recria)

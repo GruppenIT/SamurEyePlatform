@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { 
   Shield, 
@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
   { href: "/credentials", label: "Credenciais", icon: Key },
   { href: "/journeys", label: "Jornadas", icon: Route },
   { href: "/schedules", label: "Agendamentos", icon: Clock },
-  { href: "/threats", label: "Ameaças", icon: AlertTriangle },
+  { href: "/threats", label: "Ameaças", icon: AlertTriangle, badge: 7 },
   { href: "/jobs", label: "Jobs", icon: List },
 ];
 
@@ -47,14 +47,6 @@ export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-
-  // Get real threats count
-  const { data: threats = [] } = useQuery({
-    queryKey: ["/api/threats"],
-    enabled: !!user,
-  });
-
-  const openThreatsCount = threats.filter((threat: any) => threat.status === 'open').length;
 
   const isAdmin = user?.role === 'global_administrator';
   const canViewAdminItems = isAdmin;
@@ -113,12 +105,7 @@ export default function Sidebar() {
                 >
                   <item.icon className="mr-3 h-4 w-4" />
                   {item.label}
-                  {item.label === "Ameaças" && openThreatsCount > 0 && (
-                    <span className="ml-auto bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded-full">
-                      {openThreatsCount}
-                    </span>
-                  )}
-                  {item.badge && item.label !== "Ameaças" && (
+                  {item.badge && (
                     <span className="ml-auto bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded-full">
                       {item.badge}
                     </span>

@@ -177,52 +177,22 @@ export async function setupAuth(app: Express) {
       }
       
       if (!user) {
-        // Log failed login attempt (but only occasionally to avoid spam)
-        if (Math.random() < 0.1) { // Log 10% of failed attempts to avoid spam
-          storage.logAudit({
-            actorId: 'system',
-            action: 'login_failed',
-            objectType: 'user',
-            objectId: null,
-            before: null,
-            after: {
-              email: req.body.email,
-              reason: info?.message || 'Credenciais inválidas',
-              timestamp: new Date().toISOString(),
-              clientIP: req.ip || req.connection.remoteAddress || 'unknown'
-            },
-          }).catch(err => console.error("Erro ao logar tentativa de login falhada:", err));
-        }
         return res.status(401).json({ message: info?.message || 'Credenciais inválidas' });
       }
 
       // Regenerate session ID to prevent session fixation
-      req.session.regenerate((err: any) => {
+      req.session.regenerate((err) => {
         if (err) {
           console.error("Erro ao regenerar sessão:", err);
           return res.status(500).json({ message: 'Erro interno do servidor' });
         }
 
-        req.logIn(user, async (err: any) => {
+        req.logIn(user, (err) => {
           if (err) {
             console.error("Erro ao fazer login:", err);
             return res.status(500).json({ message: 'Erro interno do servidor' });
           }
           
-          // Log successful login
-          await storage.logAudit({
-            actorId: user.id,
-            action: 'login',
-            objectType: 'user',
-            objectId: user.id,
-            before: null,
-            after: {
-              email: user.email,
-              timestamp: new Date().toISOString(),
-              clientIP: req.ip || req.connection.remoteAddress || 'unknown'
-            },
-          });
-
           res.json({ 
             message: 'Login realizado com sucesso',
             user: {
@@ -239,33 +209,15 @@ export async function setupAuth(app: Express) {
   });
 
   // Logout route
-  app.post('/api/auth/logout', async (req: any, res) => {
-    const user = req.user;
-    
+  app.post('/api/auth/logout', (req, res) => {
     req.logout((err) => {
       if (err) {
         console.error("Erro ao fazer logout:", err);
         return res.status(500).json({ message: 'Erro interno do servidor' });
       }
 
-      // Log logout if user was authenticated
-      if (user) {
-        storage.logAudit({
-          actorId: user.id,
-          action: 'logout',
-          objectType: 'user',
-          objectId: user.id,
-          before: null,
-          after: {
-            email: user.email,
-            timestamp: new Date().toISOString(),
-            clientIP: req.ip || req.connection.remoteAddress || 'unknown'
-          },
-        }).catch((err: any) => console.error("Erro ao logar audit de logout:", err));
-      }
-
       // Destroy the session and clear cookie
-      req.session.destroy((err: any) => {
+      req.session.destroy((err) => {
         if (err) {
           console.error("Erro ao destruir sessão:", err);
           return res.status(500).json({ message: 'Erro interno do servidor' });
@@ -328,20 +280,6 @@ export async function setupAuth(app: Express) {
 
       // Update password and clear mustChangePassword flag
       await storage.updateUserPassword(user.id, newPasswordHash);
-
-      // Log password change
-      await storage.logAudit({
-        actorId: user.id,
-        action: 'change_password',
-        objectType: 'user',
-        objectId: user.id,
-        before: null,
-        after: {
-          email: user.email,
-          timestamp: new Date().toISOString(),
-          clientIP: req.ip || req.connection.remoteAddress || 'unknown'
-        },
-      });
 
       res.json({ message: 'Senha alterada com sucesso' });
     } catch (error) {

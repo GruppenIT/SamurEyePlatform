@@ -46,7 +46,7 @@ export default function Audit() {
   }, [currentUser, toast]);
 
   const { data: auditLog = [], isLoading } = useQuery<AuditLogEntry[]>({
-    queryKey: ["/api/audit"],
+    queryKey: ["/api/audit", { limit: 100 }],
     enabled: currentUser?.role === 'global_administrator',
     refetchInterval: 30000, // Refresh every 30 seconds
   });

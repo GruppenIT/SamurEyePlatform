@@ -70,60 +70,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // System metrics endpoint
-  app.get('/api/system/metrics', isAuthenticated, async (req, res) => {
-    try {
-      const { exec } = require('child_process');
-      const { promisify } = require('util');
-      const execAsync = promisify(exec);
-
-      // Get memory info
-      const { stdout: memInfo } = await execAsync('free -m');
-      const memLines = memInfo.split('\n');
-      const memLine = memLines[1].split(/\s+/);
-      const totalMem = parseInt(memLine[1]);
-      const usedMem = parseInt(memLine[2]);
-      const memoryUsage = Math.round((usedMem / totalMem) * 100);
-
-      // Get CPU usage (1 second average)
-      const { stdout: cpuInfo } = await execAsync("top -bn1 | grep 'Cpu(s)' | awk '{print $2}' | cut -d'%' -f1");
-      let cpuUsage = parseFloat(cpuInfo.replace(',', '.')) || 0;
-      
-      // If top doesn't work, try alternative method
-      if (isNaN(cpuUsage) || cpuUsage === 0) {
-        const { stdout: loadAvg } = await execAsync("uptime | awk '{print $(NF-2)}' | cut -d',' -f1");
-        const load = parseFloat(loadAvg) || 0;
-        // Estimate CPU usage from load average (rough approximation)
-        cpuUsage = Math.min(100, load * 12.5); // 8 cores, so 100% = 8.0 load
-      }
-
-      // Check service status
-      const services = [
-        { name: "API Backend", status: "online", color: "status-success" },
-        { name: "PostgreSQL", status: "conectado", color: "status-success" },
-        { name: "Worker Queue", status: "ativo", color: "status-success" },
-      ];
-
-      res.json({
-        cpu: Math.round(cpuUsage * 10) / 10,
-        memory: memoryUsage,
-        services,
-      });
-    } catch (error) {
-      console.error("Erro ao buscar métricas do sistema:", error);
-      // Fallback to basic metrics if system commands fail
-      res.json({
-        cpu: 15.0,
-        memory: 45,
-        services: [
-          { name: "API Backend", status: "online", color: "status-success" },
-          { name: "PostgreSQL", status: "conectado", color: "status-success" },
-          { name: "Worker Queue", status: "ativo", color: "status-success" },
-        ],
-      });
-    }
-  });
-
   // Asset routes
   app.get('/api/assets', isAuthenticated, async (req, res) => {
     try {
@@ -382,7 +328,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'create',
         objectType: 'schedule',
         objectId: schedule.id,
-        before: null,
         after: schedule,
       });
       
