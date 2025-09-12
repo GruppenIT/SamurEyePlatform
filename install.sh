@@ -471,13 +471,64 @@ run_migrations() {
     
     cd $INSTALL_DIR
     
-    # Executa migrações usando o arquivo .env diretamente (sem source)
-    # O systemd e npm lerão o arquivo automaticamente
-    sudo -u $SERVICE_USER \
-        DATABASE_URL="postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME" \
-        npm run db:push
+    # Verifica se drizzle-kit está disponível
+    if ! npm list drizzle-kit > /dev/null 2>&1; then
+        error "drizzle-kit não encontrado. Verifique se npm install foi executado"
+        exit 1
+    fi
     
-    log "Migrações executadas com sucesso"
+    # Testa conexão antes das migrações
+    log "Testando conexão com banco antes das migrações..."
+    if ! sudo -u $SERVICE_USER \
+        DATABASE_URL="postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME" \
+        node -e "
+            const { Pool } = require('pg');
+            const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+            pool.query('SELECT version()').then(() => {
+                console.log('✅ Conexão com banco OK');
+                process.exit(0);
+            }).catch(err => {
+                console.error('❌ Erro conexão:', err.message);
+                process.exit(1);
+            });
+        " 2>/dev/null; then
+        error "❌ Falha na conexão com PostgreSQL antes das migrações"
+        exit 1
+    fi
+    
+    log "📋 Executando migrações Drizzle..."
+    # Executa migrações com retry e melhor logging
+    if sudo -u $SERVICE_USER \
+        DATABASE_URL="postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME" \
+        npm run db:push; then
+        log "✅ Migrações executadas com sucesso"
+    else
+        warn "❌ Migrações falharam, tentando com --force..."
+        if sudo -u $SERVICE_USER \
+            DATABASE_URL="postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME" \
+            npx drizzle-kit push --force; then
+            log "✅ Migrações forçadas executadas com sucesso"
+        else
+            error "❌ Falha crítica nas migrações do banco"
+            exit 1
+        fi
+    fi
+    
+    # Verifica se as tabelas principais foram criadas
+    log "🔍 Verificando se tabelas foram criadas..."
+    TABLES_CHECK=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+        -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('users', 'assets', 'jobs', 'journeys');" 2>/dev/null || echo "0")
+    
+    if [[ "$TABLES_CHECK" -ge 4 ]]; then
+        log "✅ Tabelas principais criadas com sucesso"
+    else
+        error "❌ Nem todas as tabelas foram criadas (encontradas: $TABLES_CHECK/4)"
+        # Lista tabelas existentes para debug
+        log "📋 Tabelas existentes no banco:"
+        PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" \
+            -c "\dt" 2>/dev/null || true
+        exit 1
+    fi
 }
 
 # Função para criar usuário administrador inicial (HARD RESET - sempre recria)

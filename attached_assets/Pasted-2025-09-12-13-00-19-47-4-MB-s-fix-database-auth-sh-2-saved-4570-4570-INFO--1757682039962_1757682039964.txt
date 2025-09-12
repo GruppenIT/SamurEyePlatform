@@ -1,0 +1,76 @@
+2025-09-12 13:00:19 (47.4 MB/s) - ‘fix-database-auth.sh.2’ saved [4570/4570]
+
+[INFO] ==========================================
+       SamurEye - Correção de Auth DB
+==========================================
+[INFO] Parando serviço SamurEye...
+[INFO] Fazendo backup do .env atual...
+[INFO] Gerando nova senha do banco (apenas caracteres seguros)...
+[INFO] Atualizando senha do usuário samureye no PostgreSQL...
+ALTER ROLE
+[INFO] ✅ Senha do usuário samureye atualizada com sucesso
+[INFO] Atualizando arquivo .env...
+[INFO] ✅ Arquivo .env atualizado com nova senha
+[INFO] Testando conexão com o banco...
+✅ Conexão PostgreSQL OK
+[INFO] ✅ Conexão com PostgreSQL funcionando
+[INFO] Reiniciando serviço SamurEye...
+[INFO] ✅ Serviço SamurEye iniciado com sucesso
+[INFO] ✅ Correção da autenticação PostgreSQL concluída!
+[INFO]
+[INFO] 🔍 Para verificar logs: journalctl -u samureye-api -f
+[INFO] 🌐 Para acessar: http://192.168.100.151:5000
+[INFO] ==========================================
+       Correção de Auth DB Finalizada
+==========================================
+root@vlxsam99:/tmp# journalctl -u samureye-api -f
+Sep 12 13:00:19 vlxsam99 npm[175797]: 1:00:19 PM [express] WebSocket server closed
+Sep 12 13:00:19 vlxsam99 npm[175797]: 1:00:19 PM [express] PostgreSQL pool closed
+Sep 12 13:00:19 vlxsam99 npm[175797]: 1:00:19 PM [express] Shutdown completed successfully
+Sep 12 13:00:19 vlxsam99 systemd[1]: samureye-api.service: Deactivated successfully.
+Sep 12 13:00:19 vlxsam99 systemd[1]: Stopped samureye-api.service - SamurEye API Server.
+Sep 12 13:00:19 vlxsam99 systemd[1]: samureye-api.service: Consumed 1.230s CPU time.
+Sep 12 13:00:19 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 12 13:00:19 vlxsam99 npm[175857]: > rest-express@1.0.0 start
+Sep 12 13:00:19 vlxsam99 npm[175857]: > NODE_ENV=production node dist/index.js
+Sep 12 13:00:20 vlxsam99 npm[175870]: 1:00:20 PM [express] serving on port 5000
+Sep 12 13:00:42 vlxsam99 npm[175870]: 1:00:42 PM [express] GET /api/auth/user 401 in 3ms :: {"message":"Não autorizado"}
+Sep 12 13:00:50 vlxsam99 npm[175870]: 1:00:50 PM [express] Unhandled rejection: error: relation "jobs" does not exist
+Sep 12 13:00:50 vlxsam99 npm[175870]: 1:00:50 PM [express] unhandledRejection received. Shutting down gracefully...
+Sep 12 13:00:50 vlxsam99 npm[175870]: 1:00:50 PM [express] HTTP server stopped accepting new connections
+Sep 12 13:00:50 vlxsam99 npm[175870]: 1:00:50 PM [express] WebSocket server closed
+Sep 12 13:00:50 vlxsam99 npm[175870]: 1:00:50 PM [express] PostgreSQL pool closed
+Sep 12 13:00:50 vlxsam99 npm[175870]: 1:00:50 PM [express] Shutdown completed successfully
+Sep 12 13:00:50 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 12 13:00:50 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Sep 12 13:00:50 vlxsam99 systemd[1]: samureye-api.service: Consumed 1.359s CPU time.
+Sep 12 13:01:00 vlxsam99 systemd[1]: samureye-api.service: Scheduled restart job, restart counter is at 1.
+Sep 12 13:01:00 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 12 13:01:01 vlxsam99 npm[175892]: > rest-express@1.0.0 start
+Sep 12 13:01:01 vlxsam99 npm[175892]: > NODE_ENV=production node dist/index.js
+Sep 12 13:01:01 vlxsam99 npm[175904]: 1:01:01 PM [express] serving on port 5000
+Sep 12 13:01:10 vlxsam99 npm[175904]: Erro de autenticação: error: relation "users" does not exist
+Sep 12 13:01:10 vlxsam99 npm[175904]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 12 13:01:10 vlxsam99 npm[175904]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 12 13:01:10 vlxsam99 npm[175904]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 12 13:01:10 vlxsam99 npm[175904]:     at async DatabaseStorage.getUserByEmail (file:///opt/samureye/dist/index.js:373:20)
+Sep 12 13:01:10 vlxsam99 npm[175904]:     at async Strategy._verify (file:///opt/samureye/dist/index.js:688:22) {
+Sep 12 13:01:10 vlxsam99 npm[175904]:   length: 105,
+Sep 12 13:01:10 vlxsam99 npm[175904]:   severity: 'ERROR',
+Sep 12 13:01:10 vlxsam99 npm[175904]:   code: '42P01',
+Sep 12 13:01:10 vlxsam99 npm[175904]:   detail: undefined,
+Sep 12 13:01:10 vlxsam99 npm[175904]:   hint: undefined,
+Sep 12 13:01:10 vlxsam99 npm[175904]:   position: '142',
+Sep 12 13:01:10 vlxsam99 npm[175904]:   internalPosition: undefined,
+Sep 12 13:01:10 vlxsam99 npm[175904]:   internalQuery: undefined,
+Sep 12 13:01:10 vlxsam99 npm[175904]:   where: undefined,
+Sep 12 13:01:10 vlxsam99 npm[175904]:   schema: undefined,
+Sep 12 13:01:10 vlxsam99 npm[175904]:   table: undefined,
+Sep 12 13:01:10 vlxsam99 npm[175904]:   column: undefined,
+Sep 12 13:01:10 vlxsam99 npm[175904]:   dataType: undefined,
+Sep 12 13:01:10 vlxsam99 npm[175904]:   constraint: undefined,
+Sep 12 13:01:10 vlxsam99 npm[175904]:   file: 'parse_relation.c',
+Sep 12 13:01:10 vlxsam99 npm[175904]:   line: '1449',
+Sep 12 13:01:10 vlxsam99 npm[175904]:   routine: 'parserOpenTable'
+Sep 12 13:01:10 vlxsam99 npm[175904]: }
+Sep 12 13:01:10 vlxsam99 npm[175904]: 1:01:10 PM [express] POST /api/auth/login 500 in 43ms :: {"message":"Erro interno do servidor"}
