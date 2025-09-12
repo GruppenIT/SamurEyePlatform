@@ -86,14 +86,13 @@ export class VulnerabilityScanner {
     
     const args = [
       '-target', target, 
-      '-json', 
+      '-jsonl', // Usar formato JSONL correto
       '-silent',
-      '-no-update-templates', // Evitar tentativa de download de templates
       '-disable-update-check', // Desabilitar verificação de atualizações
       '-no-interactsh', // Desabilitar interactsh (requer acesso à rede)
-      '-no-color', // Desabilitar cores no output
-      '-no-meta', // Não mostrar metadata
-      '-rate-limit', '10', // Limitar taxa de requisições
+      '-nc', // Desabilitar cores no output (sintaxe correta)
+      '-nm', // Não mostrar metadata (sintaxe correta)
+      '-rl', '10', // Limitar taxa de requisições (rate-limit correto)
       '-timeout', '5', // Timeout de 5 segundos por request
       '-retries', '1', // Apenas 1 retry por falha
     ];
