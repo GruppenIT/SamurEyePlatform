@@ -218,6 +218,34 @@ export class NetworkScanner {
     for (let i = 0; i < ports.length; i += maxConcurrent) {
       const batch = ports.slice(i, i + maxConcurrent);
       const promises = batch.map(async (port) => {
+        try {
+          const isOpen = await this.checkTcpPort(target, port, timeout);
+          const serviceInfo = this.getServiceInfo(port);
+          
+          if (isOpen) {
+            // Tentar obter banner se a porta estiver aberta
+            const banner = await this.getBanner(target, port);
+            
+            return {
+              type: 'port' as const,
+              target,
+              port: port.toString(),
+              state: 'open' as const,
+              service: serviceInfo.name,
+              version: serviceInfo.version,
+              banner,
+            };
+          }
+          return null;
+        } catch (error) {
+          // Porta fechada ou filtrada - não incluir no resultado
+          return null;
+        }
+      });
+
+      const batchResults = await Promise.all(promises);
+      results.push(...batchResults.filter(result => result !== null));
+    }
 
     return results;
   }

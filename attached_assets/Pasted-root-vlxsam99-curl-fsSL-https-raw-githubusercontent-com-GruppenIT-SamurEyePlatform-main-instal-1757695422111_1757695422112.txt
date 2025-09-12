@@ -1,0 +1,338 @@
+root@vlxsam99:~# curl -fsSL https://raw.githubusercontent.com/GruppenIT/SamurEyePlatform/main/install.sh | sudo bash
+
+[INFO] ==========================================
+[INFO]   SamurEye - Instalação Automática v1.0
+[INFO] ==========================================
+
+[INFO] Distribuição detectada: ubuntu 24.04
+[INFO] Iniciando instalação em Fri Sep 12 04:42:49 PM UTC 2025
+[INFO] Atualizando repositórios do sistema...
+Hit:1 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:3 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease
+Hit:4 https://deb.nodesource.com/node_20.x nodistro InRelease
+Hit:5 http://security.ubuntu.com/ubuntu noble-security InRelease
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+3 packages can be upgraded. Run 'apt list --upgradable' to see them.
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Calculating upgrade... Done
+The following upgrades have been deferred due to phasing:
+  bind9-dnsutils bind9-host bind9-libs
+0 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+[INFO] Instalando dependências básicas do sistema...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+curl is already the newest version (8.5.0-2ubuntu10.6).
+wget is already the newest version (1.21.4-1ubuntu4.1).
+git is already the newest version (1:2.43.0-1ubuntu7.3).
+unzip is already the newest version (6.0-28ubuntu4.1).
+build-essential is already the newest version (12.10ubuntu1).
+software-properties-common is already the newest version (0.99.49.3).
+apt-transport-https is already the newest version (2.8.3).
+ca-certificates is already the newest version (20240203).
+gnupg is already the newest version (2.4.4-2ubuntu17.3).
+lsb-release is already the newest version (12.0-2).
+ufw is already the newest version (0.36.2-6).
+htop is already the newest version (3.3.0-4build1).
+tree is already the newest version (2.1.1-2ubuntu3).
+jq is already the newest version (1.7.1-3ubuntu0.24.04.1).
+openssl is already the newest version (3.0.13-0ubuntu3.5).
+net-tools is already the newest version (2.10-0.1ubuntu4.4).
+python3 is already the newest version (3.12.3-0ubuntu2).
+0 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+[INFO] Dependências básicas instaladas com sucesso
+[INFO] Instalando Node.js 20...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Package 'npm' is not installed, so not removed
+The following packages will be REMOVED:
+  nodejs
+0 upgraded, 0 newly installed, 1 to remove and 3 not upgraded.
+After this operation, 197 MB disk space will be freed.
+(Reading database ... 136366 files and directories currently installed.)
+Removing nodejs (20.19.5-1nodesource1) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+2025-09-12 16:42:58 - Installing pre-requisites
+Hit:1 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:3 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease
+Hit:4 https://deb.nodesource.com/node_20.x nodistro InRelease
+Hit:5 http://security.ubuntu.com/ubuntu noble-security InRelease
+Reading package lists... Done
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+apt-transport-https is already the newest version (2.8.3).
+ca-certificates is already the newest version (20240203).
+curl is already the newest version (8.5.0-2ubuntu10.6).
+gnupg is already the newest version (2.4.4-2ubuntu17.3).
+0 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+Hit:1 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:3 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease
+Hit:4 https://deb.nodesource.com/node_20.x nodistro InRelease
+Hit:5 http://security.ubuntu.com/ubuntu noble-security InRelease
+Reading package lists... Done
+2025-09-12 16:43:03 - Repository configured successfully.
+2025-09-12 16:43:03 - To install Node.js, run: apt-get install nodejs -y
+2025-09-12 16:43:03 - You can use N|solid Runtime as a node.js alternative
+2025-09-12 16:43:03 - To install N|solid Runtime, run: apt-get install nsolid -y
+
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following NEW packages will be installed:
+  nodejs
+0 upgraded, 1 newly installed, 0 to remove and 3 not upgraded.
+Need to get 32.0 MB of archives.
+After this operation, 197 MB of additional disk space will be used.
+Get:1 https://deb.nodesource.com/node_20.x nodistro/main amd64 nodejs amd64 20.19.5-1nodesource1 [32.0 MB]
+Fetched 32.0 MB in 4s (7,413 kB/s)
+Selecting previously unselected package nodejs.
+(Reading database ... 131003 files and directories currently installed.)
+Preparing to unpack .../nodejs_20.19.5-1nodesource1_amd64.deb ...
+Unpacking nodejs (20.19.5-1nodesource1) ...
+Setting up nodejs (20.19.5-1nodesource1) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+Scanning processes...
+Scanning candidates...
+Scanning linux images...
+
+Pending kernel upgrade!
+Running kernel version:
+  6.8.0-41-generic
+Diagnostics:
+  The currently running kernel version is not the expected kernel version 6.8.0-79-generic.
+
+Restarting the system to load the new kernel will not be handled automatically, so you should consider rebooting.
+
+Restarting services...
+ systemctl restart samureye-api.service
+
+Service restarts being deferred:
+ /etc/needrestart/restart.d/dbus.service
+ systemctl restart getty@tty1.service
+ systemctl restart systemd-logind.service
+ systemctl restart unattended-upgrades.service
+
+No containers need to be restarted.
+
+User sessions running outdated binaries:
+ suporte @ session #325: sshd[165377]
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+[INFO] Node.js v20.19.5 e npm 10.8.2 instalados com sucesso
+[INFO] Instalando PostgreSQL...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+postgresql is already the newest version (16+257build1.1).
+postgresql-contrib is already the newest version (16+257build1.1).
+postgresql-client is already the newest version (16+257build1.1).
+0 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+Synchronizing state of postgresql.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable postgresql
+[INFO] PostgreSQL instalado e iniciado com sucesso
+[INFO] 🔄 HARD RESET: Recriando banco de dados PostgreSQL...
+[INFO] ☢️ HARD RESET RADICAL: Removendo banco e usuário com método direto...
+ pg_terminate_backend
+----------------------
+(0 rows)
+
+DROP DATABASE
+DROP ROLE
+[INFO] ✅ Usuário samureye removido com sucesso
+[INFO] 👤 Criando novo usuário do banco de dados...
+CREATE ROLE
+[INFO] 🏗️ Criando novo banco de dados...
+CREATE DATABASE
+[INFO] 🔒 Removendo privilégio CREATEDB desnecessário...
+ALTER ROLE
+[INFO] 🔧 Instalando extensões necessárias...
+CREATE EXTENSION
+[INFO] 🔍 Verificando estrutura final do banco...
+[INFO] ✅ HARD RESET concluído com sucesso
+[INFO] ✅ Banco de dados: samureye_db criado
+[INFO] ✅ Usuário do banco: samureye criado
+[INFO] 🔑 Nova senha do banco gerada
+[INFO] 🔧 Extensão pgcrypto instalada
+[INFO] Instalando Nginx...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+nginx is already the newest version (1.24.0-2ubuntu7.5).
+0 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+Synchronizing state of nginx.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable nginx
+[INFO] Nginx instalado com sucesso
+[INFO] Instalando ferramentas de segurança...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+nmap is already the newest version (7.94+git20230807.3be01efb1+dfsg-3build2).
+0 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+smbclient is already the newest version (2:4.19.5+dfsg-4ubuntu9.3).
+ldap-utils is already the newest version (2.6.7+dfsg-1~exp1ubuntu8.2).
+0 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+[INFO] Ferramentas de segurança instaladas com sucesso
+[INFO] Configurando usuário do sistema...
+[INFO] Usuário samureye já existe
+[INFO] Configurando firewall UFW...
+[INFO] Porta SSH detectada: 22
+[INFO] Configurando firewall automaticamente (modo não-interativo):
+[INFO] - SSH permitido na porta 22
+[INFO] - HTTP (80) e HTTPS (443) permitidos
+[INFO] - Aplicação (5000) bloqueada externamente
+Backing up 'user.rules' to '/etc/ufw/user.rules.20250912_164329'
+Backing up 'before.rules' to '/etc/ufw/before.rules.20250912_164329'
+Backing up 'after.rules' to '/etc/ufw/after.rules.20250912_164329'
+Backing up 'user6.rules' to '/etc/ufw/user6.rules.20250912_164329'
+Backing up 'before6.rules' to '/etc/ufw/before6.rules.20250912_164329'
+Backing up 'after6.rules' to '/etc/ufw/after6.rules.20250912_164329'
+
+Default incoming policy changed to 'deny'
+(be sure to update your rules accordingly)
+Default outgoing policy changed to 'allow'
+(be sure to update your rules accordingly)
+Rules updated
+Rules updated (v6)
+Rules updated
+Rules updated (v6)
+Rules updated
+Rules updated (v6)
+Rules updated
+Rules updated (v6)
+Firewall is active and enabled on system startup
+[INFO] Firewall configurado com sucesso
+[INFO] Baixando e instalando aplicação SamurEye...
+[INFO] Parando serviços existentes...
+Removed "/etc/systemd/system/multi-user.target.wants/samureye-api.service".
+[INFO] Preservando backups existentes...
+[INFO] Removendo instalação anterior...
+[INFO] Clonando repositório...
+Cloning into '.'...
+remote: Enumerating objects: 613, done.
+remote: Counting objects: 100% (613/613), done.
+remote: Compressing objects: 100% (315/315), done.
+remote: Total 613 (delta 406), reused 495 (delta 288), pack-reused 0 (from 0)
+Receiving objects: 100% (613/613), 476.59 KiB | 4.45 MiB/s, done.
+Resolving deltas: 100% (406/406), done.
+[INFO] Restaurando backups preservados...
+[INFO] Instalando dependências da aplicação...
+npm warn config production Use `--omit=dev` instead.
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+
+added 514 packages, and audited 515 packages in 7s
+
+69 packages are looking for funding
+  run `npm fund` for details
+
+8 vulnerabilities (1 low, 7 moderate)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+[INFO] Aplicando correções do driver de banco de dados...
+
+up to date, audited 515 packages in 2s
+
+69 packages are looking for funding
+  run `npm fund` for details
+
+8 vulnerabilities (1 low, 7 moderate)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+up to date, audited 515 packages in 2s
+
+69 packages are looking for funding
+  run `npm fund` for details
+
+8 vulnerabilities (1 low, 7 moderate)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+changed 7 packages, and audited 515 packages in 5s
+
+69 packages are looking for funding
+  run `npm fund` for details
+
+8 vulnerabilities (1 low, 7 moderate)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+up to date, audited 515 packages in 2s
+
+69 packages are looking for funding
+  run `npm fund` for details
+
+8 vulnerabilities (1 low, 7 moderate)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+[INFO] ✅ Driver PostgreSQL (pg) instalado com sucesso
+[INFO] Compilando aplicação...
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+Browserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 1859 modules transformed.
+../dist/public/index.html                   2.20 kB │ gzip:   0.86 kB
+../dist/public/assets/index-gNam4I9B.css   63.14 kB │ gzip:  11.42 kB
+../dist/public/assets/index-W1xlwuj5.js   604.77 kB │ gzip: 172.48 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.70s
+✘ [ERROR] Expected ")" but found "private"
+
+    server/services/scanners/networkScanner.ts:228:2:
+      228 │   private async checkTcpPort(host: string, port: number, timeout: number): Promise<boolean> {
+          │   ~~~~~~~
+          ╵   )
+
+1 error
+root@vlxsam99:~#
