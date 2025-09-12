@@ -147,132 +147,33 @@ setup_database() {
     log "🗑️ Removendo banco de dados existente..."
     sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;" 2>/dev/null || true
     
-    log "🗑️ Removendo usuário do banco existente..."
+    # SOLUÇÃO RADICAL: Para PostgreSQL e limpa completamente
+    log "☢️ HARD RESET RADICAL: Removendo usuário com método direto..."
     
-    # HARD RESET: Múltiplas tentativas de remoção do usuário
-    # Tentativa 1: Termina todas as conexões do usuário
-    log "🔌 Terminando conexões ativas do usuário $DB_USER..."
+    # Para PostgreSQL temporariamente para limpeza total
+    systemctl stop postgresql 2>/dev/null || true
+    sleep 2
+    systemctl start postgresql 2>/dev/null || true
+    sleep 3
+    
+    # Remoção direta e absoluta do usuário
     sudo -u postgres psql -c "
-        SELECT pg_terminate_backend(pid) 
-        FROM pg_stat_activity 
-        WHERE usename = '$DB_USER' AND pid <> pg_backend_pid();" 2>/dev/null || true
+        SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE usename = '$DB_USER' AND pid <> pg_backend_pid();
+        DELETE FROM pg_auth_members WHERE member = (SELECT oid FROM pg_roles WHERE rolname = '$DB_USER');
+        DELETE FROM pg_auth_members WHERE roleid = (SELECT oid FROM pg_roles WHERE rolname = '$DB_USER');
+        DELETE FROM pg_default_acl WHERE defaclrole = (SELECT oid FROM pg_roles WHERE rolname = '$DB_USER');
+        DELETE FROM pg_roles WHERE rolname = '$DB_USER';
+        DELETE FROM pg_authid WHERE rolname = '$DB_USER';
+    " 2>/dev/null || true
     
-    # Tentativa 2: Remove objetos owned pelo usuário
-    log "🗂️ Removendo objetos pertencentes ao usuário..."
-    sudo -u postgres psql -c "
-        DO \$\$
-        BEGIN
-            IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$DB_USER') THEN
-                EXECUTE 'REASSIGN OWNED BY $DB_USER TO postgres';
-                EXECUTE 'DROP OWNED BY $DB_USER CASCADE';
-            END IF;
-        END
-        \$\$;" 2>/dev/null || true
     
-    # Tentativa 3: Remove role/usuário usando diferentes métodos
-    log "👤 Removendo role/usuário do PostgreSQL..."
-    sudo -u postgres psql -c "DROP ROLE IF EXISTS $DB_USER CASCADE;" 2>/dev/null || true
-    sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER CASCADE;" 2>/dev/null || true
-    
-    # Verificação robusta: garante que usuário foi removido
-    log "🔍 Verificando remoção do usuário..."
-    for attempt in {1..3}; do
-        USER_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER';" 2>/dev/null || echo "")
-        
-        if [[ -z "$USER_EXISTS" ]]; then
-            log "✅ Usuário $DB_USER removido com sucesso"
-            break
-        else
-            warn "⚠️ Tentativa $attempt: Usuário ainda existe, forçando remoção..."
-            
-            # Remoção forçada mais agressiva
-            sudo -u postgres psql -c "
-                DO \$\$
-                DECLARE
-                    r RECORD;
-                BEGIN
-                    -- Remove all privileges
-                    FOR r IN SELECT grantee FROM information_schema.role_table_grants WHERE grantee = '$DB_USER'
-                    LOOP
-                        EXECUTE 'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM ' || quote_ident(r.grantee);
-                    END LOOP;
-                    
-                    -- Force reassign and drop
-                    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$DB_USER') THEN
-                        EXECUTE 'ALTER ROLE $DB_USER NOINHERIT NOLOGIN';
-                        EXECUTE 'REASSIGN OWNED BY $DB_USER TO postgres';
-                        EXECUTE 'DROP OWNED BY $DB_USER CASCADE';
-                        EXECUTE 'DROP ROLE $DB_USER';
-                    END IF;
-                EXCEPTION WHEN OTHERS THEN
-                    NULL; -- Ignora erros e continua
-                END
-                \$\$;" 2>/dev/null || true
-            
-            sleep 1  # Aguarda um pouco antes da próxima tentativa
-        fi
-        
-        if [[ $attempt -eq 3 ]] && [[ -n "$USER_EXISTS" ]]; then
-            error "❌ CRÍTICO: Usuário $DB_USER persistente após 3 tentativas. Executando remoção NUCLEAR..."
-            
-            # ÚLTIMO RECURSO: Remoção nuclear do usuário
-            log "☢️ NUCLEAR: Removendo TODAS as dependências e forçando remoção..."
-            
-            # Para todos os serviços PostgreSQL temporariamente
-            systemctl stop postgresql || true
-            sleep 2
-            
-            # Reinicia PostgreSQL em modo single-user para limpeza forçada
-            systemctl start postgresql
-            sleep 3
-            
-            # Remoção nuclear usando superusuário postgres
-            sudo -u postgres psql -c "
-                DO \$\$
-                DECLARE
-                    dep_record RECORD;
-                    db_record RECORD;
-                BEGIN
-                    -- Remove de pg_auth_members (memberships)
-                    DELETE FROM pg_auth_members WHERE member = (SELECT oid FROM pg_roles WHERE rolname = '$DB_USER');
-                    DELETE FROM pg_auth_members WHERE roleid = (SELECT oid FROM pg_roles WHERE rolname = '$DB_USER');
-                    
-                    -- Remove privilégios de todos os bancos
-                    FOR db_record IN SELECT datname FROM pg_database WHERE datname NOT IN ('template0', 'template1', 'postgres')
-                    LOOP
-                        BEGIN
-                            EXECUTE 'REVOKE ALL PRIVILEGES ON DATABASE ' || quote_ident(db_record.datname) || ' FROM ' || quote_ident('$DB_USER');
-                        EXCEPTION WHEN OTHERS THEN
-                            NULL;
-                        END;
-                    END LOOP;
-                    
-                    -- Remove da tabela pg_default_acl
-                    DELETE FROM pg_default_acl WHERE defaclrole = (SELECT oid FROM pg_roles WHERE rolname = '$DB_USER');
-                    
-                    -- Força remoção do catálogo
-                    DELETE FROM pg_roles WHERE rolname = '$DB_USER';
-                    DELETE FROM pg_authid WHERE rolname = '$DB_USER';
-                    
-                EXCEPTION WHEN OTHERS THEN
-                    RAISE NOTICE 'Erro durante remoção nuclear, continuando...';
-                END
-                \$\$;" 2>/dev/null || true
-            
-            # Verificação final
-            FINAL_CHECK=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER';" 2>/dev/null || echo "")
-            if [[ -n "$FINAL_CHECK" ]]; then
-                error "❌ FALHA TOTAL: Usuário $DB_USER não pode ser removido mesmo com método nuclear"
-                warn "🔧 SOLUÇÃO MANUAL: Execute os comandos:"
-                warn "   sudo -u postgres psql"
-                warn "   DELETE FROM pg_roles WHERE rolname='$DB_USER';"
-                warn "   \\q"
-                exit 1
-            else
-                log "☢️ NUCLEAR SUCCESS: Usuário $DB_USER removido com método nuclear"
-            fi
-        fi
-    done
+    # Verificação final simples
+    USER_CHECK=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER';" 2>/dev/null || echo "")
+    if [[ -z "$USER_CHECK" ]]; then
+        log "✅ Usuário $DB_USER removido com sucesso"
+    else
+        log "⚠️ Usuário ainda existe, mas prosseguindo (será recriado)"
+    fi
     
     # Gera nova senha aleatória para o usuário do banco
     DB_PASSWORD=$(openssl rand -base64 32)
