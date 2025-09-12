@@ -335,16 +335,17 @@ export class VulnerabilityScanner {
             mixed_content_risk: true,
           },
         };
-      } catch (error) {
+      } catch (error: unknown) {
         // HTTP não disponível, o que é bom
       }
       
-    } catch (error) {
-      if (error.message.includes('certificate') || error.message.includes('SSL')) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('certificate') || errorMessage.includes('SSL')) {
         return {
           description: 'Problemas na configuração SSL/TLS detectados',
           evidence: {
-            ssl_error: error.message,
+            ssl_error: errorMessage,
           },
         };
       }
