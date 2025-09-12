@@ -119,62 +119,6 @@ class ThreatEngineService {
         }),
       },
 
-      // Web Vulnerability Rules
-      {
-        id: 'http-security-headers',
-        name: 'Headers de Segurança HTTP Ausentes',
-        description: 'Headers de segurança HTTP não configurados adequadamente',
-        severity: 'medium',
-        matcher: (finding) => 
-          finding.type === 'web_vulnerability' && 
-          finding.name === 'HTTP Security Headers',
-        createThreat: (finding, assetId, jobId) => ({
-          title: `Headers de segurança ausentes em ${finding.target}:${finding.port}`,
-          description: `Headers de segurança não configurados: ${finding.description}`,
-          severity: 'medium',
-          source: 'journey',
-          assetId,
-          jobId,
-          evidence: {
-            target: finding.target,
-            port: finding.port,
-            service: finding.service,
-            missingHeaders: finding.evidence?.missing_headers || [],
-            currentHeaders: finding.evidence?.current_headers || {},
-            severity: finding.severity,
-          },
-        }),
-      },
-
-      // Open Ports Information Rules
-      {
-        id: 'open-port-info',
-        name: 'Porta Aberta Detectada',
-        description: 'Porta aberta identificada durante varredura',
-        severity: 'low',
-        matcher: (finding) => 
-          finding.type === 'port' && 
-          finding.state === 'open' &&
-          // Exclude admin ports that are already handled by another rule
-          !['22', '3389', '5985', '5986'].includes(finding.port),
-        createThreat: (finding, assetId, jobId) => ({
-          title: `Porta ${finding.port} aberta em ${finding.target}`,
-          description: `Serviço ${finding.service || 'desconhecido'} executando na porta ${finding.port}`,
-          severity: 'low',
-          source: 'journey',
-          assetId,
-          jobId,
-          evidence: {
-            target: finding.target,
-            port: finding.port,
-            service: finding.service,
-            state: finding.state,
-            version: finding.version,
-            banner: finding.banner,
-          },
-        }),
-      },
-
       // EDR/AV Rules
       {
         id: 'edr-eicar-not-removed',

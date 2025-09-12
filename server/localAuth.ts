@@ -5,7 +5,7 @@ import type { Express, RequestHandler } from "express";
 import bcrypt from "bcryptjs";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
-import { loginUserSchema, changePasswordSchema, type LoginUser, type ChangePassword } from "@shared/schema";
+import { loginUserSchema, type LoginUser } from "@shared/schema";
 
 // Simple in-memory rate limiting for login attempts
 interface RateLimitEntry {
@@ -246,45 +246,11 @@ export async function setupAuth(app: Express) {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        lastLogin: user.lastLogin,
-        mustChangePassword: user.mustChangePassword
+        lastLogin: user.lastLogin
       });
     } catch (error) {
       console.error("Erro ao buscar usuário:", error);
       res.status(500).json({ message: "Falha ao buscar usuário" });
-    }
-  });
-
-  // Change password route
-  app.post('/api/auth/change-password', isAuthenticated, async (req: any, res) => {
-    try {
-      const validation = changePasswordSchema.safeParse(req.body);
-      if (!validation.success) {
-        return res.status(400).json({ 
-          message: 'Dados inválidos',
-          errors: validation.error.errors 
-        });
-      }
-
-      const { currentPassword, newPassword }: ChangePassword = validation.data;
-      const user = req.user;
-
-      // Verify current password
-      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
-      if (!isCurrentPasswordValid) {
-        return res.status(400).json({ message: 'Senha atual incorreta' });
-      }
-
-      // Hash new password
-      const newPasswordHash = await bcrypt.hash(newPassword, 12);
-
-      // Update password and clear mustChangePassword flag
-      await storage.updateUserPassword(user.id, newPasswordHash);
-
-      res.json({ message: 'Senha alterada com sucesso' });
-    } catch (error) {
-      console.error("Erro ao alterar senha:", error);
-      res.status(500).json({ message: 'Erro interno do servidor' });
     }
   });
 }

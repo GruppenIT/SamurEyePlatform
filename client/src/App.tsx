@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { ChangePasswordModal } from "@/components/change-password-modal";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
@@ -21,7 +20,7 @@ import Settings from "@/pages/settings";
 import Audit from "@/pages/audit";
 
 function Router() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -45,11 +44,6 @@ function Router() {
         </>
       ) : (
         <>
-          {/* Change Password Modal - appears for authenticated users who must change password */}
-          {(user as any)?.mustChangePassword && (
-            <ChangePasswordModal open={true} mustChange={true} />
-          )}
-          
           <Route path="/" component={Dashboard} />
           <Route path="/assets" component={Assets} />
           <Route path="/credentials" component={Credentials} />

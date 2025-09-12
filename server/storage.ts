@@ -40,7 +40,6 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   updateUserRole(id: string, role: string): Promise<User>;
   updateUserLastLogin(id: string): Promise<User>;
-  updateUserPassword(id: string, passwordHash: string): Promise<User>;
   getAllUsers(): Promise<User[]>;
 
   // Asset operations
@@ -162,19 +161,6 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .update(users)
       .set({ lastLogin: new Date(), updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
-  }
-
-  async updateUserPassword(id: string, passwordHash: string): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({ 
-        passwordHash, 
-        mustChangePassword: false, // Clear the flag when password is changed
-        updatedAt: new Date() 
-      })
       .where(eq(users.id, id))
       .returning();
     return user;
