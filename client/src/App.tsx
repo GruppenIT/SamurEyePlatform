@@ -53,6 +53,7 @@ function Router() {
         <>
           {/* Usuário autenticado e não precisa trocar senha - acesso total */}
           <Route path="/" component={Dashboard} />
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/assets" component={Assets} />
           <Route path="/credentials" component={Credentials} />
           <Route path="/journeys" component={Journeys} />
