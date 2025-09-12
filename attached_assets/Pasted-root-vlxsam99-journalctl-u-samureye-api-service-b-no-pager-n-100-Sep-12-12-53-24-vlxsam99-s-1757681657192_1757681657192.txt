@@ -1,0 +1,102 @@
+root@vlxsam99:~# journalctl -u samureye-api.service -b --no-pager -n 100
+Sep 12 12:53:24 vlxsam99 systemd[1]: Stopped samureye-api.service - SamurEye API Server.
+Sep 12 12:53:24 vlxsam99 systemd[1]: samureye-api.service: Consumed 1.277s CPU time, 71.1M memory peak, 0B memory swap peak.
+Sep 12 12:53:24 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 12 12:53:24 vlxsam99 npm[172785]: > rest-express@1.0.0 start
+Sep 12 12:53:24 vlxsam99 npm[172785]: > NODE_ENV=production node dist/index.js
+Sep 12 12:53:25 vlxsam99 npm[172822]: 12:53:25 PM [express] serving on port 5000
+Sep 12 12:53:55 vlxsam99 npm[172822]: 12:53:55 PM [express] Unhandled rejection: error: password authentication failed for user "samureye"
+Sep 12 12:53:55 vlxsam99 npm[172822]: 12:53:55 PM [express] unhandledRejection received. Shutting down gracefully...
+Sep 12 12:53:55 vlxsam99 npm[172822]: 12:53:55 PM [express] HTTP server stopped accepting new connections
+Sep 12 12:53:55 vlxsam99 npm[172822]: 12:53:55 PM [express] WebSocket server closed
+Sep 12 12:53:55 vlxsam99 npm[172822]: 12:53:55 PM [express] PostgreSQL pool closed
+Sep 12 12:53:55 vlxsam99 npm[172822]: 12:53:55 PM [express] Shutdown completed successfully
+Sep 12 12:53:55 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 12 12:53:55 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Sep 12 12:53:55 vlxsam99 systemd[1]: samureye-api.service: Consumed 1.266s CPU time, 73.6M memory peak, 0B memory swap peak.
+Sep 12 12:54:05 vlxsam99 systemd[1]: samureye-api.service: Scheduled restart job, restart counter is at 1.
+Sep 12 12:54:05 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 12 12:54:05 vlxsam99 npm[173456]: > rest-express@1.0.0 start
+Sep 12 12:54:05 vlxsam99 npm[173456]: > NODE_ENV=production node dist/index.js
+Sep 12 12:54:06 vlxsam99 npm[173468]: 12:54:06 PM [express] serving on port 5000
+Sep 12 12:54:28 vlxsam99 npm[173468]: Express error handler: error: password authentication failed for user "samureye"
+Sep 12 12:54:28 vlxsam99 npm[173468]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 12 12:54:28 vlxsam99 npm[173468]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 12 12:54:28 vlxsam99 npm[173468]:     at async PGStore._asyncQuery (/opt/samureye/node_modules/connect-pg-simple/index.js:322:21) {
+Sep 12 12:54:28 vlxsam99 npm[173468]:   length: 104,
+Sep 12 12:54:28 vlxsam99 npm[173468]:   severity: 'FATAL',
+Sep 12 12:54:28 vlxsam99 npm[173468]:   code: '28P01',
+Sep 12 12:54:28 vlxsam99 npm[173468]:   detail: undefined,
+Sep 12 12:54:28 vlxsam99 npm[173468]:   hint: undefined,
+Sep 12 12:54:28 vlxsam99 npm[173468]:   position: undefined,
+Sep 12 12:54:28 vlxsam99 npm[173468]:   internalPosition: undefined,
+Sep 12 12:54:28 vlxsam99 npm[173468]:   internalQuery: undefined,
+Sep 12 12:54:28 vlxsam99 npm[173468]:   where: undefined,
+Sep 12 12:54:28 vlxsam99 npm[173468]:   schema: undefined,
+Sep 12 12:54:28 vlxsam99 npm[173468]:   table: undefined,
+Sep 12 12:54:28 vlxsam99 npm[173468]:   column: undefined,
+Sep 12 12:54:28 vlxsam99 npm[173468]:   dataType: undefined,
+Sep 12 12:54:28 vlxsam99 npm[173468]:   constraint: undefined,
+Sep 12 12:54:28 vlxsam99 npm[173468]:   file: 'auth.c',
+Sep 12 12:54:28 vlxsam99 npm[173468]:   line: '331',
+Sep 12 12:54:28 vlxsam99 npm[173468]:   routine: 'auth_failed'
+Sep 12 12:54:28 vlxsam99 npm[173468]: }
+Sep 12 12:54:29 vlxsam99 npm[173468]: Express error handler: error: password authentication failed for user "samureye"
+Sep 12 12:54:29 vlxsam99 npm[173468]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 12 12:54:29 vlxsam99 npm[173468]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 12 12:54:29 vlxsam99 npm[173468]:     at async PGStore._asyncQuery (/opt/samureye/node_modules/connect-pg-simple/index.js:322:21) {
+Sep 12 12:54:29 vlxsam99 npm[173468]:   length: 104,
+Sep 12 12:54:29 vlxsam99 npm[173468]:   severity: 'FATAL',
+Sep 12 12:54:29 vlxsam99 npm[173468]:   code: '28P01',
+Sep 12 12:54:29 vlxsam99 npm[173468]:   detail: undefined,
+Sep 12 12:54:29 vlxsam99 npm[173468]:   hint: undefined,
+Sep 12 12:54:29 vlxsam99 npm[173468]:   position: undefined,
+Sep 12 12:54:29 vlxsam99 npm[173468]:   internalPosition: undefined,
+Sep 12 12:54:29 vlxsam99 npm[173468]:   internalQuery: undefined,
+Sep 12 12:54:29 vlxsam99 npm[173468]:   where: undefined,
+Sep 12 12:54:29 vlxsam99 npm[173468]:   schema: undefined,
+Sep 12 12:54:29 vlxsam99 npm[173468]:   table: undefined,
+Sep 12 12:54:29 vlxsam99 npm[173468]:   column: undefined,
+Sep 12 12:54:29 vlxsam99 npm[173468]:   dataType: undefined,
+Sep 12 12:54:29 vlxsam99 npm[173468]:   constraint: undefined,
+Sep 12 12:54:29 vlxsam99 npm[173468]:   file: 'auth.c',
+Sep 12 12:54:29 vlxsam99 npm[173468]:   line: '331',
+Sep 12 12:54:29 vlxsam99 npm[173468]:   routine: 'auth_failed'
+Sep 12 12:54:29 vlxsam99 npm[173468]: }
+Sep 12 12:54:30 vlxsam99 npm[173468]: Express error handler: error: password authentication failed for user "samureye"
+Sep 12 12:54:30 vlxsam99 npm[173468]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 12 12:54:30 vlxsam99 npm[173468]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 12 12:54:30 vlxsam99 npm[173468]:     at async PGStore._asyncQuery (/opt/samureye/node_modules/connect-pg-simple/index.js:322:21) {
+Sep 12 12:54:30 vlxsam99 npm[173468]:   length: 104,
+Sep 12 12:54:30 vlxsam99 npm[173468]:   severity: 'FATAL',
+Sep 12 12:54:30 vlxsam99 npm[173468]:   code: '28P01',
+Sep 12 12:54:30 vlxsam99 npm[173468]:   detail: undefined,
+Sep 12 12:54:30 vlxsam99 npm[173468]:   hint: undefined,
+Sep 12 12:54:30 vlxsam99 npm[173468]:   position: undefined,
+Sep 12 12:54:30 vlxsam99 npm[173468]:   internalPosition: undefined,
+Sep 12 12:54:30 vlxsam99 npm[173468]:   internalQuery: undefined,
+Sep 12 12:54:30 vlxsam99 npm[173468]:   where: undefined,
+Sep 12 12:54:30 vlxsam99 npm[173468]:   schema: undefined,
+Sep 12 12:54:30 vlxsam99 npm[173468]:   table: undefined,
+Sep 12 12:54:30 vlxsam99 npm[173468]:   column: undefined,
+Sep 12 12:54:30 vlxsam99 npm[173468]:   dataType: undefined,
+Sep 12 12:54:30 vlxsam99 npm[173468]:   constraint: undefined,
+Sep 12 12:54:30 vlxsam99 npm[173468]:   file: 'auth.c',
+Sep 12 12:54:30 vlxsam99 npm[173468]:   line: '331',
+Sep 12 12:54:30 vlxsam99 npm[173468]:   routine: 'auth_failed'
+Sep 12 12:54:30 vlxsam99 npm[173468]: }
+Sep 12 12:54:36 vlxsam99 npm[173468]: 12:54:36 PM [express] Unhandled rejection: error: password authentication failed for user "samureye"
+Sep 12 12:54:36 vlxsam99 npm[173468]: 12:54:36 PM [express] unhandledRejection received. Shutting down gracefully...
+Sep 12 12:54:36 vlxsam99 npm[173468]: 12:54:36 PM [express] HTTP server stopped accepting new connections
+Sep 12 12:54:36 vlxsam99 npm[173468]: 12:54:36 PM [express] WebSocket server closed
+Sep 12 12:54:36 vlxsam99 npm[173468]: 12:54:36 PM [express] PostgreSQL pool closed
+Sep 12 12:54:36 vlxsam99 npm[173468]: 12:54:36 PM [express] Shutdown completed successfully
+Sep 12 12:54:36 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Sep 12 12:54:36 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Sep 12 12:54:36 vlxsam99 systemd[1]: samureye-api.service: Consumed 1.297s CPU time.
+Sep 12 12:54:46 vlxsam99 systemd[1]: samureye-api.service: Scheduled restart job, restart counter is at 2.
+Sep 12 12:54:46 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Sep 12 12:54:46 vlxsam99 npm[173489]: > rest-express@1.0.0 start
+Sep 12 12:54:46 vlxsam99 npm[173489]: > NODE_ENV=production node dist/index.js
+Sep 12 12:54:47 vlxsam99 npm[173501]: 12:54:47 PM [express] serving on port 5000
+root@vlxsam99:~#
