@@ -150,8 +150,8 @@ setup_database() {
     log "🗑️ Removendo usuário do banco existente..."
     sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;" 2>/dev/null || true
     
-    # Gera nova senha aleatória para o usuário do banco
-    DB_PASSWORD=$(openssl rand -base64 32)
+    # Gera nova senha aleatória para o usuário do banco (apenas caracteres alfanuméricos)
+    DB_PASSWORD=$(openssl rand -hex 32)
     
     log "👤 Criando novo usuário do banco de dados..."
     # Cria usuário com privilégios mínimos necessários
@@ -431,7 +431,7 @@ setup_environment() {
     # Cria arquivo .env
     cat > $INSTALL_DIR/.env << EOF
 # Configuração do Banco de Dados
-DATABASE_URL=postgresql://$DB_USER:$(echo -n "$DB_PASSWORD" | python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip(), safe=''))")@localhost:5432/$DB_NAME
+DATABASE_URL=postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME
 PGHOST=localhost
 PGPORT=5432
 PGUSER=$DB_USER
@@ -474,7 +474,7 @@ run_migrations() {
     # Executa migrações usando o arquivo .env diretamente (sem source)
     # O systemd e npm lerão o arquivo automaticamente
     sudo -u $SERVICE_USER \
-        DATABASE_URL="postgresql://$DB_USER:$(echo -n "$DB_PASSWORD" | python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip(), safe=''))")@localhost:5432/$DB_NAME" \
+        DATABASE_URL="postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME" \
         npm run db:push
     
     log "Migrações executadas com sucesso"
