@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./localAuth";
+import { setupAuth, isAuthenticatedWithPasswordCheck } from "./localAuth";
 import { jobQueue } from "./services/jobQueue";
 import { threatEngine } from "./services/threatEngine";
 import { encryptionService } from "./services/encryption";
@@ -39,7 +39,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes are now handled in localAuth.ts
 
   // Dashboard routes
-  app.get('/api/dashboard/metrics', isAuthenticated, async (req, res) => {
+  app.get('/api/dashboard/metrics', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const metrics = await storage.getDashboardMetrics();
       res.json(metrics);
@@ -49,7 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/dashboard/running-jobs', isAuthenticated, async (req, res) => {
+  app.get('/api/dashboard/running-jobs', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const jobs = await storage.getRunningJobs();
       res.json(jobs);
@@ -59,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/dashboard/recent-threats', isAuthenticated, async (req, res) => {
+  app.get('/api/dashboard/recent-threats', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const threats = await storage.getThreats();
       const recentThreats = threats.slice(0, 10); // Last 10 threats
@@ -71,7 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Asset routes
-  app.get('/api/assets', isAuthenticated, async (req, res) => {
+  app.get('/api/assets', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const assets = await storage.getAssets();
       res.json(assets);
@@ -81,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/assets', isAuthenticated, async (req: any, res) => {
+  app.post('/api/assets', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const assetData = insertAssetSchema.parse(req.body);
@@ -104,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/assets/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/assets/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -129,7 +129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/assets/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/assets/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -154,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Credential routes
-  app.get('/api/credentials', isAuthenticated, async (req, res) => {
+  app.get('/api/credentials', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const credentials = await storage.getCredentials();
       res.json(credentials);
@@ -164,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/credentials', isAuthenticated, async (req: any, res) => {
+  app.post('/api/credentials', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const credentialData = insertCredentialSchema.parse(req.body);
@@ -202,7 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/credentials/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/credentials/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -226,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Journey routes
-  app.get('/api/journeys', isAuthenticated, async (req, res) => {
+  app.get('/api/journeys', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const journeys = await storage.getJourneys();
       res.json(journeys);
@@ -236,7 +236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/journeys', isAuthenticated, async (req: any, res) => {
+  app.post('/api/journeys', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const journeyData = insertJourneySchema.parse(req.body);
@@ -258,7 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/journeys/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/journeys/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -283,7 +283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/journeys/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/journeys/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -307,7 +307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Schedule routes
-  app.get('/api/schedules', isAuthenticated, async (req, res) => {
+  app.get('/api/schedules', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const schedules = await storage.getSchedules();
       res.json(schedules);
@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/schedules', isAuthenticated, async (req: any, res) => {
+  app.post('/api/schedules', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const scheduleData = insertScheduleSchema.parse(req.body);
@@ -339,7 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Job routes
-  app.get('/api/jobs', isAuthenticated, async (req, res) => {
+  app.get('/api/jobs', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
       const jobs = await storage.getJobs(limit);
@@ -350,7 +350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/jobs/execute', isAuthenticated, async (req: any, res) => {
+  app.post('/api/jobs/execute', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { journeyId } = req.body;
@@ -376,7 +376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/jobs/:id/result', isAuthenticated, async (req, res) => {
+  app.get('/api/jobs/:id/result', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const { id } = req.params;
       const result = await storage.getJobResult(id);
@@ -393,7 +393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Threat routes
-  app.get('/api/threats', isAuthenticated, async (req, res) => {
+  app.get('/api/threats', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const { severity, status, assetId } = req.query;
       const filters: any = {};
@@ -410,7 +410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/threats/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/threats/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -435,7 +435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/threats/stats', isAuthenticated, async (req, res) => {
+  app.get('/api/threats/stats', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const stats = await storage.getThreatStats();
       res.json(stats);
@@ -446,7 +446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User management routes (admin only)
-  app.get('/api/users', isAuthenticated, async (req: any, res) => {
+  app.get('/api/users', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userRole = req.user.role || 'read_only';
       if (userRole !== 'global_administrator') {
@@ -461,7 +461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/users', isAuthenticated, async (req: any, res) => {
+  app.post('/api/users', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const actorRole = req.user.role || 'read_only';
       if (actorRole !== 'global_administrator') {
@@ -524,7 +524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/users/:id/role', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/users/:id/role', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const actorRole = req.user.role || 'read_only';
       if (actorRole !== 'global_administrator') {
@@ -555,7 +555,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Audit log routes
-  app.get('/api/audit', isAuthenticated, async (req: any, res) => {
+  app.get('/api/audit', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userRole = req.user.role || 'read_only';
       if (userRole !== 'global_administrator') {

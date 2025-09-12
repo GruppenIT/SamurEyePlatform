@@ -5,7 +5,7 @@ import type { Express, RequestHandler } from "express";
 import bcrypt from "bcryptjs";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
-import { loginUserSchema, type LoginUser } from "@shared/schema";
+import { loginUserSchema, changePasswordSchema, type LoginUser, type ChangePassword } from "@shared/schema";
 
 // Simple in-memory rate limiting for login attempts
 interface RateLimitEntry {
@@ -200,7 +200,8 @@ export async function setupAuth(app: Express) {
               email: user.email,
               firstName: user.firstName,
               lastName: user.lastName,
-              role: user.role
+              role: user.role,
+              mustChangePassword: user.mustChangePassword
             }
           });
         });
@@ -246,11 +247,79 @@ export async function setupAuth(app: Express) {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        mustChangePassword: user.mustChangePassword,
         lastLogin: user.lastLogin
       });
     } catch (error) {
       console.error("Erro ao buscar usuário:", error);
       res.status(500).json({ message: "Falha ao buscar usuário" });
+    }
+  });
+
+  // Change password route (allowed even when mustChangePassword is true)
+  app.post('/api/auth/change-password', isAuthenticated, async (req: any, res) => {
+    try {
+      // Validate input
+      const validatedData = changePasswordSchema.parse(req.body);
+      const { currentPassword, newPassword } = validatedData;
+      
+      const user = req.user;
+      
+      // Verify current password
+      const isCurrentPasswordValid = await verifyPassword(currentPassword, user.passwordHash);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ message: 'Senha atual incorreta' });
+      }
+      
+      // Hash new password
+      const newPasswordHash = await hashPassword(newPassword);
+      
+      // Update password and clear must change flag
+      await storage.updateUserPassword(user.id, newPasswordHash);
+      await storage.setMustChangePassword(user.id, false);
+      
+      // Regenerate session to prevent session fixation
+      req.session.regenerate(async (err: any) => {
+        if (err) {
+          console.error("Erro ao regenerar sessão:", err);
+          return res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+        
+        // Re-login user with updated information
+        const updatedUser = await storage.getUser(user.id);
+        if (!updatedUser) {
+          return res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+        
+        req.logIn(updatedUser, (err: any) => {
+          if (err) {
+            console.error("Erro ao fazer login:", err);
+            return res.status(500).json({ message: 'Erro interno do servidor' });
+          }
+          
+          res.json({ 
+            message: 'Senha alterada com sucesso',
+            user: {
+              id: updatedUser.id,
+              email: updatedUser.email,
+              firstName: updatedUser.firstName,
+              lastName: updatedUser.lastName,
+              role: updatedUser.role,
+              mustChangePassword: updatedUser.mustChangePassword,
+              lastLogin: updatedUser.lastLogin
+            }
+          });
+        });
+      });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          message: 'Dados inválidos',
+          errors: error.errors 
+        });
+      }
+      console.error("Erro ao alterar senha:", error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
   });
 }
@@ -260,6 +329,45 @@ export const isAuthenticated: RequestHandler = (req, res, next) => {
     return next();
   }
   res.status(401).json({ message: "Não autorizado" });
+};
+
+// Middleware to enforce password change when required
+export const enforcePasswordChange: RequestHandler = (req, res, next) => {
+  const user = (req as any).user;
+  
+  // Skip check if user is not authenticated
+  if (!req.isAuthenticated() || !user) {
+    return next();
+  }
+  
+  // Allow certain routes even when password change is required
+  const allowedRoutes = [
+    '/api/auth/change-password',
+    '/api/auth/logout',
+    '/api/auth/user'
+  ];
+  
+  if (allowedRoutes.includes(req.path)) {
+    return next();
+  }
+  
+  // Check if user must change password
+  if (user.mustChangePassword) {
+    return res.status(403).json({ 
+      message: "Troca de senha obrigatória",
+      reason: "password_change_required"
+    });
+  }
+  
+  next();
+};
+
+// Combined middleware for authentication with password change enforcement
+export const isAuthenticatedWithPasswordCheck: RequestHandler = (req, res, next) => {
+  isAuthenticated(req, res, (err?: any) => {
+    if (err) return next(err);
+    enforcePasswordChange(req, res, next);
+  });
 };
 
 // Hash password utility function
