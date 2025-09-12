@@ -83,14 +83,42 @@ export class VulnerabilityScanner {
       return [];
     }
     
-    const args = ['-target', target, '-json', '-silent'];
+    const args = [
+      '-target', target, 
+      '-json', 
+      '-silent',
+      '-home', '/tmp/nuclei', // Usar diretório temporário para configuração
+      '-no-update-templates', // Evitar tentativa de download de templates
+      '-disable-update-check', // Desabilitar verificação de atualizações
+      '-no-interactsh', // Desabilitar interactsh (requer acesso à rede)
+      '-rate-limit', '10', // Limitar taxa de requisições
+      '-timeout', '5', // Timeout de 5 segundos por request
+      '-retries', '1', // Apenas 1 retry por falha
+    ];
     
     try {
+      // Criar diretório temporário para nuclei se não existir
+      const nucleiHome = '/tmp/nuclei';
+      await this.ensureDirectoryExists(nucleiHome);
+      
       const stdout = await this.spawnCommand('nuclei', args, 300000);
       return this.parseNucleiOutput(stdout, target);
     } catch (error) {
       console.log(`Nuclei não disponível ou falhou: ${error}`);
       return [];
+    }
+  }
+
+  /**
+   * Cria diretório se não existir (para nuclei config)
+   */
+  private async ensureDirectoryExists(dirPath: string): Promise<void> {
+    try {
+      const fs = require('fs').promises;
+      await fs.mkdir(dirPath, { recursive: true });
+    } catch (error: unknown) {
+      // Ignorar se já existir ou não conseguir criar
+      console.log(`Aviso: Não foi possível criar diretório ${dirPath}: ${error}`);
     }
   }
 
@@ -148,7 +176,7 @@ export class VulnerabilityScanner {
         }
       });
       
-      child.on('error', (error) => {
+      child.on('error', (error: Error) => {
         clearTimeout(timer);
         reject(error);
       });
