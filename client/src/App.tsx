@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
+import ChangePassword from "@/pages/change-password";
 import Dashboard from "@/pages/dashboard";
 import Assets from "@/pages/assets";
 import Credentials from "@/pages/credentials";
@@ -20,7 +21,7 @@ import Settings from "@/pages/settings";
 import Audit from "@/pages/audit";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, mustChangePassword, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -42,8 +43,15 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/login" component={Login} />
         </>
+      ) : mustChangePassword ? (
+        <>
+          {/* Usuário autenticado mas deve trocar senha - só pode acessar change-password */}
+          <Route path="/change-password" component={ChangePassword} />
+          <Route component={() => <ChangePassword />} />
+        </>
       ) : (
         <>
+          {/* Usuário autenticado e não precisa trocar senha - acesso total */}
           <Route path="/" component={Dashboard} />
           <Route path="/assets" component={Assets} />
           <Route path="/credentials" component={Credentials} />

@@ -548,13 +548,14 @@ create_admin_user() {
     log "🔍 Hash length: ${#ADMIN_PASSWORD_HASH}"
     
     INSERT_RESULT=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" -c "
-        INSERT INTO users (email, password_hash, first_name, last_name, role)
-        VALUES (\$\$${ADMIN_EMAIL}\$\$, \$\$${ADMIN_PASSWORD_HASH}\$\$, 'Administrador', 'SamurEye', 'global_administrator'::user_role)
+        INSERT INTO users (email, password_hash, first_name, last_name, role, must_change_password)
+        VALUES (\$\$${ADMIN_EMAIL}\$\$, \$\$${ADMIN_PASSWORD_HASH}\$\$, 'Administrador', 'SamurEye', 'global_administrator'::user_role, true)
         ON CONFLICT (email) DO UPDATE SET
             password_hash = EXCLUDED.password_hash,
             first_name = EXCLUDED.first_name,
             last_name = EXCLUDED.last_name,
-            role = 'global_administrator'::user_role;
+            role = 'global_administrator'::user_role,
+            must_change_password = true;
         " 2>&1)
     
     if [[ $? -ne 0 ]]; then

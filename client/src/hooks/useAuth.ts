@@ -6,9 +6,13 @@ export function useAuth() {
     retry: false,
   });
 
+  const isAuthenticated = !!user;
+  const mustChangePassword = user?.mustChangePassword === true;
+
   return {
     user,
     isLoading,
-    isAuthenticated: !!user,
+    isAuthenticated,
+    mustChangePassword,
   };
 }

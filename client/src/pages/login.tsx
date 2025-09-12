@@ -39,10 +39,16 @@ export default function Login() {
       const response = await apiRequest('POST', '/api/auth/login', data);
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Invalida cache de usuário e redireciona
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setLocation("/");
+      
+      // Verifica se precisa trocar senha
+      if (data?.user?.mustChangePassword) {
+        setLocation("/change-password");
+      } else {
+        setLocation("/");
+      }
     },
     onError: (error: any) => {
       setError(error.message || "Erro ao fazer login");
