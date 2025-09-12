@@ -84,29 +84,89 @@ export class VulnerabilityScanner {
       return [];
     }
     
-    const args = [
-      '-target', target, 
-      '-jsonl', // Usar formato JSONL correto
-      '-silent',
-      '-disable-update-check', // Desabilitar verificação de atualizações
-      '-no-interactsh', // Desabilitar interactsh (requer acesso à rede)
-      '-nc', // Desabilitar cores no output (sintaxe correta)
-      '-nm', // Não mostrar metadata (sintaxe correta)
-      '-rl', '10', // Limitar taxa de requisições (rate-limit correto)
-      '-timeout', '5', // Timeout de 5 segundos por request
-      '-retries', '1', // Apenas 1 retry por falha
-    ];
-    
     try {
-      // Criar diretório temporário para nuclei se não existir
-      const nucleiHome = '/tmp/nuclei';
-      await this.ensureDirectoryExists(nucleiHome);
+      // Bootstrap templates do nuclei se necessário
+      await this.ensureNucleiTemplates();
       
+      const args = [
+        '-u', target, // Flag correta para URL única
+        '-jsonl', // Usar formato JSONL correto
+        '-silent',
+        '-duc', // Desabilitar verificação de atualizações
+        '-ni', // Desabilitar interactsh
+        '-nc', // Desabilitar cores no output
+        '-nm', // Não mostrar metadata
+        '-s', 'medium,high,critical', // Apenas vulnerabilidades relevantes
+        '-timeout', '10', // Timeout de 10 segundos por request
+        '-retries', '1', // Apenas 1 retry por falha
+        '-c', '5', // Limitar concorrência
+        '-t', '/tmp/nuclei/nuclei-templates', // Caminho dos templates
+      ];
+      
+      console.log(`Executando nuclei para ${target} com templates em /tmp/nuclei/nuclei-templates`);
       const stdout = await this.spawnCommand('nuclei', args, 300000);
+      console.log(`Nuclei completado para ${target}, processando resultados...`);
+      
       return this.parseNucleiOutput(stdout, target);
     } catch (error) {
       console.log(`Nuclei não disponível ou falhou: ${error}`);
       return [];
+    }
+  }
+
+  /**
+   * Garante que os templates do nuclei estão disponíveis
+   */
+  private async ensureNucleiTemplates(): Promise<void> {
+    const templatesDir = '/tmp/nuclei/nuclei-templates';
+    const configDir = '/tmp/nuclei/.config';
+    
+    try {
+      // Criar diretórios necessários
+      await this.ensureDirectoryExists('/tmp/nuclei');
+      await this.ensureDirectoryExists(configDir);
+      await this.ensureDirectoryExists('/tmp/nuclei/.cache');
+      
+      // Verificar se templates existem
+      try {
+        const stats = await fs.stat(templatesDir);
+        if (stats.isDirectory()) {
+          // Verificar se tem conteúdo
+          const files = await fs.readdir(templatesDir);
+          if (files.length > 0) {
+            console.log(`Templates nuclei encontrados: ${files.length} arquivos/pastas`);
+            return; // Templates já existem
+          }
+        }
+      } catch {
+        // Diretório não existe, precisa baixar templates
+      }
+      
+      console.log('Baixando templates nuclei...');
+      
+      // Tentar baixar templates
+      const updateArgs = ['-update-templates', '-ud', templatesDir];
+      
+      try {
+        await this.spawnCommand('nuclei', updateArgs, 120000); // 2 minutos para download
+        console.log('Templates nuclei baixados com sucesso');
+      } catch (error) {
+        console.warn(`Falha ao baixar templates nuclei: ${error}`);
+        
+        // Fallback: tentar com flag alternativa
+        try {
+          const altArgs = ['-ut', '-ud', templatesDir];
+          await this.spawnCommand('nuclei', altArgs, 120000);
+          console.log('Templates nuclei baixados com sucesso (fallback)');
+        } catch (altError) {
+          console.warn(`Falha no fallback de templates: ${altError}`);
+          throw new Error('Não foi possível baixar templates do nuclei');
+        }
+      }
+      
+    } catch (error) {
+      console.error(`Erro ao configurar templates nuclei: ${error}`);
+      throw error;
     }
   }
 
@@ -152,9 +212,10 @@ export class VulnerabilityScanner {
         env: {
           ...process.env,
           HOME: '/tmp/nuclei', // Forçar nuclei a usar diretório temporário como HOME
-          NUCLEI_CONFIG_DIR: '/tmp/nuclei', // Diretório de configuração do nuclei
-          XDG_CONFIG_HOME: '/tmp/nuclei', // Padrão XDG para configuração
-          ROD_CACHE_PATH: '/tmp/nuclei/.cache', // Cache para headless browser (se necessário)
+          NUCLEI_CONFIG_DIR: '/tmp/nuclei/.config', // Diretório de configuração do nuclei
+          XDG_CONFIG_HOME: '/tmp/nuclei/.config', // Padrão XDG para configuração
+          XDG_CACHE_HOME: '/tmp/nuclei/.cache', // Cache
+          NUCLEI_TEMPLATES_DIR: '/tmp/nuclei/nuclei-templates', // Diretório específico dos templates
         },
       });
       

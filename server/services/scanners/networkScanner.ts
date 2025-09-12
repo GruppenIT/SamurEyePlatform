@@ -104,14 +104,16 @@ export class NetworkScanner {
     const args = [
       '-sT', // TCP connect scan (não requer root)
       '-sV', // Version detection
-      '--script=default',
+      '--script=vuln', // Scripts de vulnerabilidade para detecção real
+      '--script-args', 'vulns.showall', // Mostrar todas as vulnerabilidades encontradas
       '--max-hostgroup', '1', // Limita número de hosts simultâneos
-      '--max-parallelism', '10', // Limita paralelismo
-      '--min-rate', '100', // Taxa mínima de pacotes/segundo
-      '--max-rate', '1000', // Taxa máxima de pacotes/segundo
-      '--max-rtt-timeout', '2s', // Timeout RTT máximo
-      '--initial-rtt-timeout', '500ms', // Timeout RTT inicial
-      '-T4', // Timing template (aggressive)
+      '--max-parallelism', '5', // Reduz paralelismo para scripts vuln
+      '--min-rate', '50', // Taxa mínima reduzida para scripts
+      '--max-rate', '500', // Taxa máxima reduzida para estabilidade
+      '--max-rtt-timeout', '5s', // Timeout RTT maior para scripts vuln
+      '--initial-rtt-timeout', '1s', // Timeout RTT inicial maior
+      '-T3', // Timing template normal (mais seguro para scripts vuln)
+      '--version-intensity', '7', // Intensidade de detecção de versão
       '-p', portList,
       target
     ];
@@ -186,12 +188,37 @@ export class NetworkScanner {
   private parseNmapOutput(output: string, target: string): PortScanResult[] {
     const results: PortScanResult[] = [];
     const lines = output.split('\n');
+    let vulnerabilityBuffer = '';
+    let currentPort = '';
     
-    for (const line of lines) {
-      // Procurar por linhas de porta: "22/tcp open ssh OpenSSH 8.2"
-      const portMatch = line.match(/^(\d+)\/(tcp|udp)\s+(open|closed|filtered)\s+(\w+)(?:\s+(.+))?/);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Procurar por linhas de porta: "22/tcp open ssh OpenSSH 8.2" ou "3389/tcp open|filtered ms-wbt-server"
+      const portMatch = line.match(/^(\d+)\/(tcp|udp)\s+(open|closed|filtered|open\|filtered|closed\|filtered)\s+(\S+)(?:\s+(.+))?/);
       if (portMatch) {
         const [, port, protocol, state, service, version] = portMatch;
+        currentPort = port;
+        
+        // Coletar vulnerabilidades encontradas após a linha da porta
+        vulnerabilityBuffer = '';
+        for (let j = i + 1; j < lines.length && j < i + 20; j++) {
+          const nextLine = lines[j];
+          
+          // Parar se encontrar outra porta ou seção
+          if (nextLine.match(/^\d+\/(tcp|udp)/) || nextLine.startsWith('Nmap scan report')) {
+            break;
+          }
+          
+          // Coletar informações de vulnerabilidades dos scripts
+          if (nextLine.includes('CVE-') || 
+              nextLine.includes('VULNERABLE:') ||
+              nextLine.includes('POTENTIALLY VULNERABLE:') ||
+              nextLine.includes('| ') && nextLine.trim().length > 0) {
+            vulnerabilityBuffer += nextLine.trim() + ' ';
+          }
+        }
+        
         results.push({
           type: 'port',
           target,
@@ -199,8 +226,14 @@ export class NetworkScanner {
           state: state as 'open' | 'closed' | 'filtered',
           service,
           version: version?.trim(),
+          banner: vulnerabilityBuffer.trim() || undefined
         });
       }
+    }
+    
+    console.log(`Parse nmap encontrou ${results.length} portas para ${target}`);
+    if (results.length > 0) {
+      console.log('Primeiras portas encontradas:', results.slice(0, 3).map(r => `${r.port}/${r.state}`));
     }
     
     return results;
