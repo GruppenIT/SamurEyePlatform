@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import { promises as fs } from 'fs';
 import https from 'https';
 import http from 'http';
 import { URL } from 'url';
@@ -87,10 +88,13 @@ export class VulnerabilityScanner {
       '-target', target, 
       '-json', 
       '-silent',
-      '-home', '/tmp/nuclei', // Usar diretório temporário para configuração
+      '-config-directory', '/tmp/nuclei', // Diretório de configuração temporário
       '-no-update-templates', // Evitar tentativa de download de templates
       '-disable-update-check', // Desabilitar verificação de atualizações
       '-no-interactsh', // Desabilitar interactsh (requer acesso à rede)
+      '-no-color', // Desabilitar cores no output
+      '-no-meta', // Não mostrar metadata
+      '-headless', // Modo headless
       '-rate-limit', '10', // Limitar taxa de requisições
       '-timeout', '5', // Timeout de 5 segundos por request
       '-retries', '1', // Apenas 1 retry por falha
@@ -114,7 +118,6 @@ export class VulnerabilityScanner {
    */
   private async ensureDirectoryExists(dirPath: string): Promise<void> {
     try {
-      const fs = require('fs').promises;
       await fs.mkdir(dirPath, { recursive: true });
     } catch (error: unknown) {
       // Ignorar se já existir ou não conseguir criar
