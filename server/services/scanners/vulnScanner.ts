@@ -88,13 +88,11 @@ export class VulnerabilityScanner {
       '-target', target, 
       '-json', 
       '-silent',
-      '-config-directory', '/tmp/nuclei', // Diretório de configuração temporário
       '-no-update-templates', // Evitar tentativa de download de templates
       '-disable-update-check', // Desabilitar verificação de atualizações
       '-no-interactsh', // Desabilitar interactsh (requer acesso à rede)
       '-no-color', // Desabilitar cores no output
       '-no-meta', // Não mostrar metadata
-      '-headless', // Modo headless
       '-rate-limit', '10', // Limitar taxa de requisições
       '-timeout', '5', // Timeout de 5 segundos por request
       '-retries', '1', // Apenas 1 retry por falha
@@ -152,6 +150,13 @@ export class VulnerabilityScanner {
     return new Promise((resolve, reject) => {
       const child = spawn(command, args, {
         stdio: ['ignore', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          HOME: '/tmp/nuclei', // Forçar nuclei a usar diretório temporário como HOME
+          NUCLEI_CONFIG_DIR: '/tmp/nuclei', // Diretório de configuração do nuclei
+          XDG_CONFIG_HOME: '/tmp/nuclei', // Padrão XDG para configuração
+          ROD_CACHE_PATH: '/tmp/nuclei/.cache', // Cache para headless browser (se necessário)
+        },
       });
       
       let stdout = '';
