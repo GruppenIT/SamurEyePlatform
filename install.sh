@@ -144,11 +144,7 @@ setup_database() {
     log "🔄 HARD RESET: Recriando banco de dados PostgreSQL..."
     
     # ⚠️ HARD RESET: Remove completamente banco e usuário existentes
-    log "🗑️ Removendo banco de dados existente..."
-    sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;" 2>/dev/null || true
-    
-    # SOLUÇÃO RADICAL: Para PostgreSQL e limpa completamente
-    log "☢️ HARD RESET RADICAL: Removendo usuário com método direto..."
+    log "☢️ HARD RESET RADICAL: Removendo banco e usuário com método direto..."
     
     # Para PostgreSQL temporariamente para limpeza total
     systemctl stop postgresql 2>/dev/null || true
@@ -156,15 +152,12 @@ setup_database() {
     systemctl start postgresql 2>/dev/null || true
     sleep 3
     
-    # Remoção direta e absoluta do usuário
-    sudo -u postgres psql -c "
-        SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE usename = '$DB_USER' AND pid <> pg_backend_pid();
-        DELETE FROM pg_auth_members WHERE member = (SELECT oid FROM pg_roles WHERE rolname = '$DB_USER');
-        DELETE FROM pg_auth_members WHERE roleid = (SELECT oid FROM pg_roles WHERE rolname = '$DB_USER');
-        DELETE FROM pg_default_acl WHERE defaclrole = (SELECT oid FROM pg_roles WHERE rolname = '$DB_USER');
-        DELETE FROM pg_roles WHERE rolname = '$DB_USER';
-        DELETE FROM pg_authid WHERE rolname = '$DB_USER';
-    " 2>/dev/null || true
+    # Termina conexões ativas primeiro
+    sudo -u postgres psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE usename = '$DB_USER' AND pid <> pg_backend_pid();" 2>/dev/null || true
+    
+    # Remove banco e usuário (comandos separados - método correto)
+    sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;" 2>/dev/null || true
+    sudo -u postgres psql -c "DROP ROLE IF EXISTS $DB_USER;" 2>/dev/null || true
     
     
     # Verificação final simples
