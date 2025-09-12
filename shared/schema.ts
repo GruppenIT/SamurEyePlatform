@@ -58,6 +58,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name").notNull(),
   profileImageUrl: varchar("profile_image_url"),
   role: userRoleEnum("role").default('read_only').notNull(),
+  mustChangePassword: boolean("must_change_password").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastLogin: timestamp("last_login"),
@@ -266,6 +267,7 @@ export const auditLogRelations = relations(auditLog, ({ one }) => ({
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   passwordHash: true,
+  mustChangePassword: true, // Security: não expor via API pública
   createdAt: true,
   updatedAt: true,
   lastLogin: true,
@@ -284,6 +286,18 @@ export const registerUserSchema = z.object({
 export const loginUserSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(1, "Senha é obrigatória"),
+});
+
+// Schema para troca de senha
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Senha atual é obrigatória"),
+  newPassword: z.string().min(12, "Nova senha deve ter pelo menos 12 caracteres")
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/, 
+      "Nova senha deve conter ao menos: 1 minúscula, 1 maiúscula, 1 número e 1 símbolo especial"),
+  confirmPassword: z.string().min(1, "Confirmação de senha é obrigatória"),
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: "As senhas não conferem",
+  path: ["confirmPassword"], // Campo onde o erro será exibido
 });
 
 export const insertAssetSchema = createInsertSchema(assets).omit({
@@ -338,6 +352,7 @@ export const insertSettingSchema = createInsertSchema(settings).omit({
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type RegisterUser = z.infer<typeof registerUserSchema>;
 export type LoginUser = z.infer<typeof loginUserSchema>;
+export type ChangePassword = z.infer<typeof changePasswordSchema>;
 export type User = typeof users.$inferSelect;
 export type Asset = typeof assets.$inferSelect;
 export type InsertAsset = z.infer<typeof insertAssetSchema>;
