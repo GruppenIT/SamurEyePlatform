@@ -148,21 +148,76 @@ setup_database() {
     sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;" 2>/dev/null || true
     
     log "🗑️ Removendo usuário do banco existente..."
-    # Termina conexões ativas antes de remover o usuário
-    sudo -u postgres psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE usename = '$DB_USER';" 2>/dev/null || true
-    # Remove role/usuário (PostgreSQL usa roles)
-    sudo -u postgres psql -c "DROP ROLE IF EXISTS $DB_USER;" 2>/dev/null || true
-    # Força remoção se ainda existir
+    
+    # HARD RESET: Múltiplas tentativas de remoção do usuário
+    # Tentativa 1: Termina todas as conexões do usuário
+    log "🔌 Terminando conexões ativas do usuário $DB_USER..."
+    sudo -u postgres psql -c "
+        SELECT pg_terminate_backend(pid) 
+        FROM pg_stat_activity 
+        WHERE usename = '$DB_USER' AND pid <> pg_backend_pid();" 2>/dev/null || true
+    
+    # Tentativa 2: Remove objetos owned pelo usuário
+    log "🗂️ Removendo objetos pertencentes ao usuário..."
+    sudo -u postgres psql -c "
+        DO \$\$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$DB_USER') THEN
+                EXECUTE 'REASSIGN OWNED BY $DB_USER TO postgres';
+                EXECUTE 'DROP OWNED BY $DB_USER CASCADE';
+            END IF;
+        END
+        \$\$;" 2>/dev/null || true
+    
+    # Tentativa 3: Remove role/usuário usando diferentes métodos
+    log "👤 Removendo role/usuário do PostgreSQL..."
+    sudo -u postgres psql -c "DROP ROLE IF EXISTS $DB_USER CASCADE;" 2>/dev/null || true
     sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER CASCADE;" 2>/dev/null || true
     
-    # Verifica se usuário foi removido antes de prosseguir
+    # Verificação robusta: garante que usuário foi removido
     log "🔍 Verificando remoção do usuário..."
-    USER_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER';" 2>/dev/null || echo "")
-    if [[ -n "$USER_EXISTS" ]]; then
-        error "❌ Falha ao remover usuário $DB_USER. Tentando remoção forçada..."
-        # Tenta remoção forçada reassignando ownership
-        sudo -u postgres psql -c "REASSIGN OWNED BY $DB_USER TO postgres; DROP OWNED BY $DB_USER; DROP ROLE IF EXISTS $DB_USER;" 2>/dev/null || true
-    fi
+    for attempt in {1..3}; do
+        USER_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER';" 2>/dev/null || echo "")
+        
+        if [[ -z "$USER_EXISTS" ]]; then
+            log "✅ Usuário $DB_USER removido com sucesso"
+            break
+        else
+            warn "⚠️ Tentativa $attempt: Usuário ainda existe, forçando remoção..."
+            
+            # Remoção forçada mais agressiva
+            sudo -u postgres psql -c "
+                DO \$\$
+                DECLARE
+                    r RECORD;
+                BEGIN
+                    -- Remove all privileges
+                    FOR r IN SELECT grantee FROM information_schema.role_table_grants WHERE grantee = '$DB_USER'
+                    LOOP
+                        EXECUTE 'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM ' || quote_ident(r.grantee);
+                    END LOOP;
+                    
+                    -- Force reassign and drop
+                    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$DB_USER') THEN
+                        EXECUTE 'ALTER ROLE $DB_USER NOINHERIT NOLOGIN';
+                        EXECUTE 'REASSIGN OWNED BY $DB_USER TO postgres';
+                        EXECUTE 'DROP OWNED BY $DB_USER CASCADE';
+                        EXECUTE 'DROP ROLE $DB_USER';
+                    END IF;
+                EXCEPTION WHEN OTHERS THEN
+                    NULL; -- Ignora erros e continua
+                END
+                \$\$;" 2>/dev/null || true
+            
+            sleep 1  # Aguarda um pouco antes da próxima tentativa
+        fi
+        
+        if [[ $attempt -eq 3 ]] && [[ -n "$USER_EXISTS" ]]; then
+            error "❌ CRÍTICO: Não foi possível remover usuário $DB_USER após 3 tentativas"
+            error "❌ Verifique manualmente: sudo -u postgres psql -c \"\\du\""
+            exit 1
+        fi
+    done
     
     # Gera nova senha aleatória para o usuário do banco
     DB_PASSWORD=$(openssl rand -base64 32)
