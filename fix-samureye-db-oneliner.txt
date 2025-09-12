@@ -1,0 +1,41 @@
+# SamurEye - Comandos Diretos para Reset do Banco
+# Execute LINHA POR LINHA na máquina vlxsam99 como root
+
+# 1. Para o serviço completamente
+systemctl stop samureye-api && pkill -f samureye && sleep 3
+
+# 2. Mata todas conexões do banco
+sudo -u postgres psql -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'samureye_db' AND pid <> pg_backend_pid();"
+
+# 3. Remove banco e usuário existentes
+sudo -u postgres psql -c "DROP DATABASE IF EXISTS samureye_db;" && sudo -u postgres psql -c "DROP USER IF EXISTS samureye;"
+
+# 4. Gera nova senha (APENAS HEX - sem símbolos)
+NEW_DB_PASSWORD=$(openssl rand -hex 32) && echo "Nova senha: $NEW_DB_PASSWORD"
+
+# 5. Cria novo usuário e banco
+sudo -u postgres psql -c "CREATE USER samureye WITH LOGIN;" && sudo -u postgres psql -c "ALTER USER samureye WITH ENCRYPTED PASSWORD '$NEW_DB_PASSWORD';" && sudo -u postgres psql -c "CREATE DATABASE samureye_db OWNER samureye;"
+
+# 6. Instala extensão pgcrypto
+sudo -u postgres psql -d samureye_db -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+
+# 7. Testa conexão
+PGPASSWORD="$NEW_DB_PASSWORD" psql -h localhost -U samureye -d samureye_db -c "SELECT version();"
+
+# 8. Atualiza arquivo .env (preserva outras configurações)
+cd /opt/samureye && cp .env .env.backup.$(date +%Y%m%d_%H%M%S) && sed -i "s/^PGPASSWORD=.*/PGPASSWORD=$NEW_DB_PASSWORD/" .env && sed -i "s|^DATABASE_URL=.*|DATABASE_URL=postgresql://samureye:$NEW_DB_PASSWORD@localhost:5432/samureye_db|" .env
+
+# 9. Executa migrações
+sudo -u samureye DATABASE_URL="postgresql://samureye:$NEW_DB_PASSWORD@localhost:5432/samureye_db" npm run db:push
+
+# 10. Cria usuário admin
+ADMIN_PASS=$(openssl rand -base64 24 | tr -dc 'A-Za-z0-9' | head -c16) && ADMIN_HASH=$(cd /opt/samureye && node -e "console.log(require('bcryptjs').hashSync('$ADMIN_PASS', 12))") && PGPASSWORD="$NEW_DB_PASSWORD" psql -h localhost -U samureye -d samureye_db -c "INSERT INTO users (id, email, password_hash, role, must_change_password) VALUES (gen_random_uuid(), 'admin@samureye.com.br', '$ADMIN_HASH', 'global_administrator', true);"
+
+# 11. Salva credenciais
+echo "=========================================" > /opt/samureye/ADMIN_CREDENTIALS && echo "   SamurEye - Credenciais de Acesso" >> /opt/samureye/ADMIN_CREDENTIALS && echo "=========================================" >> /opt/samureye/ADMIN_CREDENTIALS && echo "" >> /opt/samureye/ADMIN_CREDENTIALS && echo "URL: http://$(hostname -I | awk '{print $1}'):5000" >> /opt/samureye/ADMIN_CREDENTIALS && echo "Email: admin@samureye.com.br" >> /opt/samureye/ADMIN_CREDENTIALS && echo "Senha: $ADMIN_PASS" >> /opt/samureye/ADMIN_CREDENTIALS && echo "" >> /opt/samureye/ADMIN_CREDENTIALS && echo "IMPORTANTE: Altere a senha no primeiro login!" >> /opt/samureye/ADMIN_CREDENTIALS && chmod 600 /opt/samureye/ADMIN_CREDENTIALS && chown samureye:samureye /opt/samureye/ADMIN_CREDENTIALS
+
+# 12. Reinicia serviço
+systemctl start samureye-api && sleep 5 && systemctl status samureye-api
+
+# 13. Verifica resultado
+echo "✅ Credenciais de acesso:" && cat /opt/samureye/ADMIN_CREDENTIALS && echo "" && echo "🔍 Para monitorar logs: journalctl -u samureye-api -f"
