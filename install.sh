@@ -148,33 +148,65 @@ setup_database() {
     sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;" 2>/dev/null || true
     
     log "🗑️ Removendo usuário do banco existente..."
-    sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;" 2>/dev/null || true
+    # Termina conexões ativas antes de remover o usuário
+    sudo -u postgres psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE usename = '$DB_USER';" 2>/dev/null || true
+    # Remove role/usuário (PostgreSQL usa roles)
+    sudo -u postgres psql -c "DROP ROLE IF EXISTS $DB_USER;" 2>/dev/null || true
+    # Força remoção se ainda existir
+    sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER CASCADE;" 2>/dev/null || true
+    
+    # Verifica se usuário foi removido antes de prosseguir
+    log "🔍 Verificando remoção do usuário..."
+    USER_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER';" 2>/dev/null || echo "")
+    if [[ -n "$USER_EXISTS" ]]; then
+        error "❌ Falha ao remover usuário $DB_USER. Tentando remoção forçada..."
+        # Tenta remoção forçada reassignando ownership
+        sudo -u postgres psql -c "REASSIGN OWNED BY $DB_USER TO postgres; DROP OWNED BY $DB_USER; DROP ROLE IF EXISTS $DB_USER;" 2>/dev/null || true
+    fi
     
     # Gera nova senha aleatória para o usuário do banco
     DB_PASSWORD=$(openssl rand -base64 32)
     
     log "👤 Criando novo usuário do banco de dados..."
-    # Cria usuário com privilégios mínimos necessários
-    sudo -u postgres psql -c "CREATE USER $DB_USER WITH LOGIN CREATEDB;"
-    sudo -u postgres psql -c "ALTER USER $DB_USER WITH ENCRYPTED PASSWORD '$DB_PASSWORD';"
+    # Cria role/usuário com privilégios mínimos necessários
+    sudo -u postgres psql -c "CREATE ROLE $DB_USER WITH LOGIN CREATEDB ENCRYPTED PASSWORD '$DB_PASSWORD';"
     
     log "🏗️ Criando novo banco de dados..."
     sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
     
-    # Remove privilégio CREATEDB após criação do banco (least privilege)
-    sudo -u postgres psql -c "ALTER USER $DB_USER NOCREATEDB;"
+    # Remove privilégio CREATEDB após criação do banco (least privilege) 
+    log "🔒 Removendo privilégio CREATEDB desnecessário..."
+    sudo -u postgres psql -c "ALTER ROLE $DB_USER NOCREATEDB;" 2>/dev/null || true
     
     # Instala extensão pgcrypto necessária para gen_random_uuid()
     log "🔧 Instalando extensões necessárias..."
     sudo -u postgres psql -d "$DB_NAME" -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;" || true
     
-    # Testa conexão
+    # Testa conexão e verifica estrutura final
+    log "🔍 Verificando estrutura final do banco..."
     if sudo -u postgres psql -d $DB_NAME -c "SELECT version();" > /dev/null 2>&1; then
-        log "✅ Banco de dados recriado com sucesso"
+        # Verifica se usuário foi criado corretamente
+        USER_FINAL_CHECK=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER' AND rolcanlogin=true;" 2>/dev/null || echo "")
+        if [[ -z "$USER_FINAL_CHECK" ]]; then
+            error "❌ Usuário $DB_USER não foi criado corretamente"
+            exit 1
+        fi
+        
+        # Verifica se banco foi criado corretamente  
+        DB_FINAL_CHECK=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME';" 2>/dev/null || echo "")
+        if [[ -z "$DB_FINAL_CHECK" ]]; then
+            error "❌ Banco $DB_NAME não foi criado corretamente"
+            exit 1
+        fi
+        
+        log "✅ HARD RESET concluído com sucesso"
+        log "✅ Banco de dados: $DB_NAME criado"
+        log "✅ Usuário do banco: $DB_USER criado"
         log "🔑 Nova senha do banco gerada"
         log "🔧 Extensão pgcrypto instalada"
     else
         error "❌ Falha ao recriar o banco de dados"
+        error "❌ Não foi possível conectar ao banco $DB_NAME"
         exit 1
     fi
 }
