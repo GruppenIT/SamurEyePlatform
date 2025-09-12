@@ -105,11 +105,18 @@ export class NetworkScanner {
       '-sT', // TCP connect scan (não requer root)
       '-sV', // Version detection
       '--script=default',
+      '--max-hostgroup', '1', // Limita número de hosts simultâneos
+      '--max-parallelism', '10', // Limita paralelismo
+      '--min-rate', '100', // Taxa mínima de pacotes/segundo
+      '--max-rate', '1000', // Taxa máxima de pacotes/segundo
+      '--max-rtt-timeout', '2s', // Timeout RTT máximo
+      '--initial-rtt-timeout', '500ms', // Timeout RTT inicial
+      '-T4', // Timing template (aggressive)
       '-p', portList,
       target
     ];
     
-    const stdout = await this.spawnCommand('nmap', args, 120000);
+    const stdout = await this.spawnCommand('nmap', args, 300000); // Aumenta timeout para 5 minutos
     return this.parseNmapOutput(stdout, target);
   }
 
@@ -204,39 +211,13 @@ export class NetworkScanner {
    */
   private async tcpPortScan(target: string, ports: number[]): Promise<PortScanResult[]> {
     const results: PortScanResult[] = [];
-    const timeout = 3000; // 3 segundos por porta
+    const timeout = 2000; // Reduz timeout para 2 segundos por porta
+    const maxConcurrent = 20; // Máximo de 20 conexões simultâneas
 
-    for (const port of ports) {
-      try {
-        const isOpen = await this.checkTcpPort(target, port, timeout);
-        const serviceInfo = this.getServiceInfo(port);
-        
-        if (isOpen) {
-          // Tentar obter banner se a porta estiver aberta
-          const banner = await this.getBanner(target, port);
-          
-          results.push({
-            type: 'port',
-            target,
-            port: port.toString(),
-            state: 'open',
-            service: serviceInfo.name,
-            version: serviceInfo.version,
-            banner,
-          });
-        }
-      } catch (error) {
-        // Porta fechada ou filtrada
-        const serviceInfo = this.getServiceInfo(port);
-        results.push({
-          type: 'port',
-          target,
-          port: port.toString(),
-          state: 'closed',
-          service: serviceInfo.name,
-        });
-      }
-    }
+    // Processa portas em lotes para melhor performance
+    for (let i = 0; i < ports.length; i += maxConcurrent) {
+      const batch = ports.slice(i, i + maxConcurrent);
+      const promises = batch.map(async (port) => {
 
     return results;
   }
