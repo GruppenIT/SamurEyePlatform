@@ -56,31 +56,39 @@ export class VulnerabilityScanner {
     
     const results: VulnerabilityFinding[] = [];
 
-    // Tentar usar nuclei se disponível
-    try {
-      const nucleiResults = await this.nucleiScan(target);
-      results.push(...nucleiResults);
-    } catch (error) {
-      console.log('nuclei não disponível, usando verificações básicas:', error);
-    }
+    // Nuclei será executado apenas para serviços web identificados
+    // (removido scan nuclei genérico pois necessita URLs válidas)
 
-    // Executar verificações básicas para serviços web
+    // Executar verificações básicas para serviços web E nuclei para URLs construídas
     const webPorts = ports.filter(port => ['80', '443', '8080', '8443'].includes(port));
     for (const port of webPorts) {
+      // Executar verificações básicas de web
       const webResults = await this.scanWebVulnerabilities(target, port);
       results.push(...webResults);
+      
+      // Executar nuclei com URL construída adequadamente
+      try {
+        const protocol = ['443', '8443'].includes(port) ? 'https' : 'http';
+        const targetUrl = `${protocol}://${target}:${port}`;
+        
+        console.log(`Executando nuclei para URL construída: ${targetUrl}`);
+        const nucleiResults = await this.nucleiScanUrl(targetUrl);
+        results.push(...nucleiResults);
+      } catch (error) {
+        console.log(`Nuclei falhou para ${target}:${port} - ${error}`);
+      }
     }
 
     return results;
   }
 
   /**
-   * Scan usando nuclei (quando disponível)
+   * Scan usando nuclei com URL construída adequadamente
    */
-  private async nucleiScan(target: string): Promise<VulnerabilityFinding[]> {
-    // Validar target para prevenir injeção de comando
-    if (!this.isValidTarget(target)) {
-      console.warn(`Target inválido para nuclei: ${target}`);
+  private async nucleiScanUrl(targetUrl: string): Promise<VulnerabilityFinding[]> {
+    // Validar URL para prevenir injeção de comando
+    if (!this.isValidUrl(targetUrl)) {
+      console.warn(`URL inválida para nuclei: ${targetUrl}`);
       return [];
     }
     
@@ -89,7 +97,7 @@ export class VulnerabilityScanner {
       await this.ensureNucleiTemplates();
       
       const args = [
-        '-u', target, // Flag correta para URL única
+        '-u', targetUrl, // Flag correta para URL única
         '-jsonl', // Usar formato JSONL correto
         '-silent',
         '-duc', // Desabilitar verificação de atualizações
@@ -103,11 +111,11 @@ export class VulnerabilityScanner {
         '-t', '/tmp/nuclei/nuclei-templates', // Caminho dos templates
       ];
       
-      console.log(`Executando nuclei para ${target} com templates em /tmp/nuclei/nuclei-templates`);
+      console.log(`Executando nuclei para ${targetUrl} com templates em /tmp/nuclei/nuclei-templates`);
       const stdout = await this.spawnCommand('nuclei', args, 300000);
-      console.log(`Nuclei completado para ${target}, processando resultados...`);
+      console.log(`Nuclei completado para ${targetUrl}, processando resultados...`);
       
-      return this.parseNucleiOutput(stdout, target);
+      return this.parseNucleiOutput(stdout, targetUrl);
     } catch (error) {
       console.log(`Nuclei não disponível ou falhou: ${error}`);
       return [];
@@ -183,23 +191,29 @@ export class VulnerabilityScanner {
   }
 
   /**
-   * Valida se o target é uma URL válida
+   * Valida se a URL é válida e segura
+   */
+  private isValidUrl(url: string): boolean {
+    try {
+      const parsed = new URL(url);
+      // Permitir apenas HTTP/HTTPS
+      return ['http:', 'https:'].includes(parsed.protocol);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Valida se o target é um IP ou hostname válido
    */
   private isValidTarget(target: string): boolean {
-    try {
-      // Para nuclei, esperamos URLs válidas
-      new URL(target);
+    const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    if (ipRegex.test(target)) {
       return true;
-    } catch {
-      // Se não for URL válida, verificar se é IP/hostname válido
-      const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-      if (ipRegex.test(target)) {
-        return true;
-      }
-      
-      const hostnameRegex = /^[a-zA-Z0-9.-]+$/;
-      return hostnameRegex.test(target) && target.length <= 255;
     }
+    
+    const hostnameRegex = /^[a-zA-Z0-9.-]+$/;
+    return hostnameRegex.test(target) && target.length <= 255;
   }
 
   /**

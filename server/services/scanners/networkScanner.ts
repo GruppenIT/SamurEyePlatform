@@ -200,6 +200,9 @@ export class NetworkScanner {
         const [, port, protocol, state, service, version] = portMatch;
         currentPort = port;
         
+        // Normalizar estados compostos (open|filtered -> filtered, etc.)
+        const normalizedState = this.normalizePortState(state);
+        
         // Coletar vulnerabilidades encontradas após a linha da porta
         vulnerabilityBuffer = '';
         for (let j = i + 1; j < lines.length && j < i + 20; j++) {
@@ -223,7 +226,7 @@ export class NetworkScanner {
           type: 'port',
           target,
           port,
-          state: state as 'open' | 'closed' | 'filtered',
+          state: normalizedState,
           service,
           version: version?.trim(),
           banner: vulnerabilityBuffer.trim() || undefined
@@ -237,6 +240,29 @@ export class NetworkScanner {
     }
     
     return results;
+  }
+
+  /**
+   * Normaliza estados compostos do nmap para tipos válidos
+   */
+  private normalizePortState(state: string): 'open' | 'closed' | 'filtered' {
+    switch (state) {
+      case 'open':
+        return 'open';
+      case 'closed':
+        return 'closed';
+      case 'filtered':
+        return 'filtered';
+      case 'open|filtered':
+        // Estado incerto - tratar como filtered para segurança
+        return 'filtered';
+      case 'closed|filtered':
+        // Estado incerto - tratar como filtered para segurança
+        return 'filtered';
+      default:
+        console.warn(`Estado de porta desconhecido: ${state}, assumindo 'filtered'`);
+        return 'filtered';
+    }
   }
 
   /**
