@@ -1018,6 +1018,112 @@ show_final_info() {
     echo
 }
 
+# Função CRÍTICA para validar e corrigir credenciais PostgreSQL
+validate_and_fix_credentials() {
+    log "🔍 CRÍTICO: Validando credenciais do PostgreSQL..."
+    
+    # Testa conexão atual usando credenciais do .env
+    if ! PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1;" > /dev/null 2>&1; then
+        error "❌ FALHA: Credenciais PostgreSQL inválidas - regenerando..."
+        
+        # Para o serviço se estiver rodando
+        systemctl stop ${SERVICE_NAME} 2>/dev/null || true
+        
+        # Regenera senha do usuário PostgreSQL
+        NEW_DB_PASSWORD=$(openssl rand -base64 32)
+        log "🔑 Regenerando senha do usuário PostgreSQL..."
+        
+        # Atualiza senha no PostgreSQL
+        sudo -u postgres psql -c "ALTER USER $DB_USER WITH ENCRYPTED PASSWORD '$NEW_DB_PASSWORD';" || {
+            error "Falha ao alterar senha do PostgreSQL"
+            exit 1
+        }
+        
+        # Atualiza variável local
+        DB_PASSWORD="$NEW_DB_PASSWORD"
+        
+        # Regenera chaves de criptografia
+        ENCRYPTION_KEK=$(openssl rand -hex 32)
+        SESSION_SECRET=$(openssl rand -base64 64 | tr -d '\n')
+        
+        # Recria arquivo .env com credenciais corretas
+        log "📝 Atualizando arquivo .env..."
+        cat > $INSTALL_DIR/.env << EOF
+# Configuração do Banco de Dados (CORRIGIDO)
+DATABASE_URL=postgresql://$DB_USER:$(echo -n "$DB_PASSWORD" | python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip(), safe=''))")@localhost:5432/$DB_NAME
+PGHOST=localhost
+PGPORT=5432
+PGUSER=$DB_USER
+PGPASSWORD=$DB_PASSWORD
+PGDATABASE=$DB_NAME
+
+# Configuração da Aplicação
+NODE_ENV=production
+PORT=5000
+
+# Chave de Criptografia (REGENERADA)
+ENCRYPTION_KEK=$ENCRYPTION_KEK
+
+# Configuração de Sessão (REGENERADA)  
+SESSION_SECRET="$SESSION_SECRET"
+
+# Configuração de Logs
+LOG_LEVEL=info
+EOF
+        
+        # Define permissões seguras
+        chown $SERVICE_USER:$SERVICE_GROUP $INSTALL_DIR/.env
+        chmod 600 $INSTALL_DIR/.env
+        
+        # Testa nova conexão
+        if ! PGPASSWORD="$DB_PASSWORD" psql -h localhost -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1;" > /dev/null 2>&1; then
+            error "❌ CRÍTICO: Credenciais ainda inválidas após correção!"
+            exit 1
+        fi
+        
+        log "✅ Credenciais PostgreSQL corrigidas com sucesso"
+        
+        # Força reload do systemd para ler novo .env
+        log "🔄 Forçando reload do systemd para novas credenciais..."
+        systemctl daemon-reload
+        
+    else
+        log "✅ Credenciais PostgreSQL válidas"
+    fi
+    
+    # Debug: mostra credenciais (sem senha) para verificação
+    log "🔍 Configuração PostgreSQL:"
+    log "   Host: localhost:5432"
+    log "   Banco: $DB_NAME"
+    log "   Usuário: $DB_USER"
+    log "   Senha: [OCULTA - ${#DB_PASSWORD} caracteres]"
+    
+    # Testa DATABASE_URL específicamente
+    TEST_URL="postgresql://$DB_USER:$(echo -n "$DB_PASSWORD" | python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip(), safe=''))")@localhost:5432/$DB_NAME"
+    
+    # Teste final com timeout
+    log "🧪 Teste final de conectividade..."
+    if timeout 10 node -e "
+        const { Pool } = require('pg');
+        const pool = new Pool({ connectionString: '$TEST_URL' });
+        pool.query('SELECT version()')
+            .then((result) => { 
+                console.log('✅ DATABASE_URL OK - PostgreSQL conectado');
+                process.exit(0); 
+            })
+            .catch(err => { 
+                console.error('❌ DATABASE_URL ERRO:', err.message); 
+                process.exit(1); 
+            });
+    "; then
+        log "✅ DATABASE_URL validado com sucesso"
+    else
+        error "❌ CRÍTICO: DATABASE_URL inválido mesmo após correção"
+        error "Verifique manualmente: PGPASSWORD='$DB_PASSWORD' psql -h localhost -U '$DB_USER' -d '$DB_NAME'"
+        exit 1
+    fi
+}
+
 # Função principal
 main() {
     echo
@@ -1047,6 +1153,10 @@ main() {
     setup_systemd_services
     setup_nginx_proxy
     setup_backup_scripts
+    
+    # ⚠️ CRÍTICO: Valida e corrige credenciais antes de iniciar serviços
+    validate_and_fix_credentials
+    
     start_services
     verify_websocket_fix
     
