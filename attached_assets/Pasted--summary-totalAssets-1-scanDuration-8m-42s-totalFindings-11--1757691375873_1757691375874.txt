@@ -1,0 +1,143 @@
+{
+  "summary": {
+    "totalAssets": 1,
+    "scanDuration": "8m 42s",
+    "totalFindings": 11
+  },
+  "findings": [
+    {
+      "port": "80",
+      "type": "port",
+      "state": "open",
+      "target": "192.168.100.3",
+      "service": "http"
+    },
+    {
+      "port": "135",
+      "type": "port",
+      "state": "open",
+      "target": "192.168.100.3",
+      "service": "msrpc"
+    },
+    {
+      "port": "139",
+      "type": "port",
+      "state": "open",
+      "target": "192.168.100.3",
+      "service": "netbios-ssn"
+    },
+    {
+      "port": "443",
+      "type": "port",
+      "state": "open",
+      "target": "192.168.100.3",
+      "service": "https"
+    },
+    {
+      "port": "445",
+      "type": "port",
+      "state": "open",
+      "target": "192.168.100.3",
+      "service": "microsoft-ds"
+    },
+    {
+      "port": "3389",
+      "type": "port",
+      "state": "open",
+      "target": "192.168.100.3",
+      "service": "rdp"
+    },
+    {
+      "port": "5985",
+      "type": "port",
+      "state": "open",
+      "target": "192.168.100.3",
+      "service": "winrm"
+    },
+    {
+      "port": "8443",
+      "type": "port",
+      "state": "open",
+      "target": "192.168.100.3",
+      "service": "https-alt"
+    },
+    {
+      "name": "HTTP Security Headers",
+      "port": "80",
+      "type": "web_vulnerability",
+      "target": "vmsho03.gruppen.com.br",
+      "service": "http",
+      "evidence": {
+        "current_headers": {
+          "date": "Fri, 12 Sep 2025 15:33:55 GMT",
+          "connection": "close",
+          "content-type": "text/html",
+          "x-robots-tag": "none",
+          "content-length": "627",
+          "referrer-policy": "strict-origin-when-cross-origin",
+          "x-content-type-options": "nosniff",
+          "x-permitted-cross-domain-policies": "none"
+        },
+        "missing_headers": [
+          "x-frame-options",
+          "x-xss-protection",
+          "strict-transport-security",
+          "content-security-policy"
+        ]
+      },
+      "severity": "medium",
+      "description": "Headers de segurança não configurados: x-frame-options, x-xss-protection, strict-transport-security, content-security-policy"
+    },
+    {
+      "name": "HTTP Security Headers",
+      "port": "443",
+      "type": "web_vulnerability",
+      "target": "vmsho03.gruppen.com.br",
+      "service": "http",
+      "evidence": {
+        "current_headers": {
+          "location": "/portal/webclient/index.html",
+          "set-cookie": [
+            "JSESSIONID=3A8086AB9BE5DE32B03FD69FBCDB780B; Path=/; Secure; HttpOnly; SameSite=Lax"
+          ],
+          "x-robots-tag": "none",
+          "content-length": "0",
+          "referrer-policy": "strict-origin-when-cross-origin",
+          "x-content-type-options": "nosniff",
+          "content-security-policy": "default-src 'none';connect-src 'self' wss:;font-src 'self';img-src 'self' data: blob:;media-src 'self' blob:;base-uri 'self';form-action 'none';frame-ancestors 'none';child-src 'self' blob:;script-src 'self' 'unsafe-eval';style-src 'self' 'unsafe-inline'",
+          "strict-transport-security": "max-age=31536000",
+          "x-permitted-cross-domain-policies": "none"
+        },
+        "missing_headers": [
+          "x-frame-options",
+          "x-xss-protection"
+        ]
+      },
+      "severity": "medium",
+      "description": "Headers de segurança não configurados: x-frame-options, x-xss-protection"
+    },
+    {
+      "name": "HTTP Security Headers",
+      "port": "8443",
+      "type": "web_vulnerability",
+      "target": "vmsho03.gruppen.com.br",
+      "service": "http",
+      "evidence": {
+        "current_headers": {
+          "date": "Fri, 12 Sep 2025 15:33:55 GMT",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "missing_headers": [
+          "x-frame-options",
+          "x-content-type-options",
+          "x-xss-protection",
+          "strict-transport-security",
+          "content-security-policy"
+        ]
+      },
+      "severity": "medium",
+      "description": "Headers de segurança não configurados: x-frame-options, x-content-type-options, x-xss-protection, strict-transport-security, content-security-policy"
+    }
+  ]
+}
