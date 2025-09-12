@@ -51,31 +51,31 @@ export class VulnerabilityScanner {
   /**
    * Executa scan de vulnerabilidades em um target
    */
-  async scanVulnerabilities(target: string, ports: string[]): Promise<VulnerabilityFinding[]> {
+  async scanVulnerabilities(target: string, ports: string[], portResults?: import('./networkScanner').PortScanResult[]): Promise<VulnerabilityFinding[]> {
     console.log(`Iniciando scan de vulnerabilidades para ${target}`);
     
     const results: VulnerabilityFinding[] = [];
 
-    // Nuclei será executado apenas para serviços web identificados
-    // (removido scan nuclei genérico pois necessita URLs válidas)
-
-    // Executar verificações básicas para serviços web E nuclei para URLs construídas
-    const webPorts = ports.filter(port => ['80', '443', '8080', '8443'].includes(port));
-    for (const port of webPorts) {
-      // Executar verificações básicas de web
-      const webResults = await this.scanWebVulnerabilities(target, port);
-      results.push(...webResults);
-      
-      // Executar nuclei com URL construída adequadamente
+    // Filtrar dinamicamente por serviços HTTP/HTTPS detectados pelo nmap
+    const webServices = this.identifyWebServices(ports, portResults);
+    console.log(`Encontrados ${webServices.length} serviços web para escanear:`, webServices.map(w => `${w.port}/${w.service}`));
+    
+    for (const webService of webServices) {
       try {
-        const protocol = ['443', '8443'].includes(port) ? 'https' : 'http';
-        const targetUrl = `${protocol}://${target}:${port}`;
+        const protocol = this.getProtocolForService(webService.service);
         
-        console.log(`Executando nuclei para URL construída: ${targetUrl}`);
+        // Executar verificações básicas de web com protocolo correto
+        const webResults = await this.scanWebVulnerabilities(target, webService.port, protocol);
+        results.push(...webResults);
+        
+        // Executar nuclei com URL construída adequadamente
+        const targetUrl = `${protocol}://${target}:${webService.port}`;
+        
+        console.log(`Executando nuclei para URL construída: ${targetUrl} (service: ${webService.service})`);
         const nucleiResults = await this.nucleiScanUrl(targetUrl);
         results.push(...nucleiResults);
       } catch (error) {
-        console.log(`Nuclei falhou para ${target}:${port} - ${error}`);
+        console.log(`Scan falhou para ${target}:${webService.port} (${webService.service}) - ${error}`);
       }
     }
 
@@ -188,6 +188,72 @@ export class VulnerabilityScanner {
       // Ignorar se já existir ou não conseguir criar
       console.log(`Aviso: Não foi possível criar diretório ${dirPath}: ${error}`);
     }
+  }
+
+  /**
+   * Identifica serviços web dinamicamente a partir dos resultados do nmap
+   */
+  private identifyWebServices(ports: string[], portResults?: import('./networkScanner').PortScanResult[]): Array<{port: string, service: string}> {
+    const webServices: Array<{port: string, service: string}> = [];
+    const seenPorts = new Set<string>(); // Deduplicação por porta
+    
+    if (portResults && portResults.length > 0) {
+      // Usar resultados reais do nmap quando disponíveis
+      for (const result of portResults) {
+        // Verificar se porta já foi processada e se service não é nulo
+        if (result.state === 'open' && 
+            result.service && 
+            !seenPorts.has(result.port) && 
+            this.isWebService(result.service)) {
+          
+          webServices.push({ port: result.port, service: result.service });
+          seenPorts.add(result.port);
+        }
+      }
+    }
+    
+    // Fallback para portas comuns se não houver resultados web válidos
+    if (webServices.length === 0) {
+      const commonWebPorts = ports.filter(port => ['80', '443', '8080', '8443'].includes(port));
+      for (const port of commonWebPorts) {
+        if (!seenPorts.has(port)) {
+          const service = ['443', '8443'].includes(port) ? 'https' : 'http';
+          webServices.push({ port, service });
+          seenPorts.add(port);
+        }
+      }
+    }
+    
+    return webServices;
+  }
+
+  /**
+   * Verifica se um serviço é relacionado a HTTP/HTTPS
+   */
+  private isWebService(service: string): boolean {
+    if (!service || typeof service !== 'string') {
+      return false;
+    }
+    
+    const webServices = [
+      'http', 'https', 'http-alt', 'https-alt',
+      'http-proxy', 'ssl/http', 'ssl/https',
+      // Removido 'tcpwrapped' pois pode ser qualquer serviço mascarado
+      'nginx', 'apache', 'lighttpd', 'httpd',
+      'tomcat', 'jetty', 'websphere',
+      'iis', 'nodejs', 'express'
+    ];
+    
+    const serviceLower = service.toLowerCase();
+    return webServices.some(webSvc => serviceLower.includes(webSvc));
+  }
+
+  /**
+   * Determina o protocolo (http/https) baseado no serviço
+   */
+  private getProtocolForService(service: string): string {
+    const httpsServices = ['https', 'ssl', 'https-alt'];
+    return httpsServices.some(s => service.toLowerCase().includes(s)) ? 'https' : 'http';
   }
 
   /**
@@ -313,10 +379,9 @@ export class VulnerabilityScanner {
   /**
    * Scan de vulnerabilidades web usando verificações básicas
    */
-  private async scanWebVulnerabilities(target: string, port: string): Promise<VulnerabilityFinding[]> {
+  private async scanWebVulnerabilities(target: string, port: string, protocol: string = 'http'): Promise<VulnerabilityFinding[]> {
     const results: VulnerabilityFinding[] = [];
-    const isHttps = port === '443' || port === '8443';
-    const baseUrl = `${isHttps ? 'https' : 'http'}://${target}:${port}`;
+    const baseUrl = `${protocol}://${target}:${port}`;
 
     for (const vulnCheck of this.webVulnChecks) {
       try {

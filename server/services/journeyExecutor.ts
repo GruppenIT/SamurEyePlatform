@@ -121,7 +121,8 @@ class JourneyExecutorService {
               });
               
               // Real vulnerability scan using vulnScanner for each host
-              const vulnResults = await vulnScanner.scanVulnerabilities(host, openPorts);
+              const hostPortResults = portResults.filter(r => r.target === host && r.state === 'open');
+              const vulnResults = await vulnScanner.scanVulnerabilities(host, openPorts, hostPortResults);
               findings.push(...vulnResults);
             }
           }
@@ -139,7 +140,8 @@ class JourneyExecutorService {
             });
             
             // Real vulnerability scan using vulnScanner
-            const vulnResults = await vulnScanner.scanVulnerabilities(asset.value, openPorts);
+            const openPortResults = portResults.filter(r => r.state === 'open');
+            const vulnResults = await vulnScanner.scanVulnerabilities(asset.value, openPorts, openPortResults);
             findings.push(...vulnResults);
           }
         }
