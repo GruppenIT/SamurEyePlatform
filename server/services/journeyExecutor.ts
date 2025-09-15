@@ -212,7 +212,8 @@ class JourneyExecutorService {
       const findings = await adScanner.scanADHygiene(
         domain,
         credential.username,
-        decryptedPassword
+        decryptedPassword,
+        credential.port || undefined
       );
 
       onProgress({ status: 'running', progress: 80, currentTask: 'Processando resultados' });
