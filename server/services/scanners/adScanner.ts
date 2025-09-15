@@ -705,6 +705,12 @@ export class ADScanner {
 
       console.log(`Total de workstations descobertas: ${workstations.length}`);
 
+      // Se não encontrou workstations, log detalhado para troubleshooting
+      if (workstations.length === 0) {
+        console.warn(`⚠️ Nenhuma workstation ativa encontrada no domínio ${domain}`);
+        console.warn('Verifique: 1) Conectividade LDAP, 2) Permissões da credencial, 3) Workstations ativas no domínio');
+      }
+
     } catch (error) {
       console.error('Erro ao descobrir workstations:', error);
     } finally {

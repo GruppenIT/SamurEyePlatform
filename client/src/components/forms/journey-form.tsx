@@ -53,7 +53,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
       name: initialData?.name || '',
       type: initialData?.type || 'attack_surface',
       description: initialData?.description || '',
-      params: initialData?.params || {},
+      params: {
+        ...initialData?.params,
+        edrAvType: initialData?.params?.edrAvType || 'network_based',
+        sampleRate: initialData?.params?.sampleRate || '15',
+      },
     },
   });
 
@@ -97,8 +101,20 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         params.enableDomainConfiguration = form.getValues('params.enableDomainConfiguration') ?? true;
         break;
       case 'edr_av':
+        params.edrAvType = form.getValues('params.edrAvType') || 'network_based';
         params.sampleRate = parseInt(form.getValues('params.sampleRate')) || 15;
         params.credentialId = form.getValues('params.credentialId');
+        
+        // Parâmetros específicos por tipo
+        if (params.edrAvType === 'ad_based') {
+          params.domainName = form.getValues('params.domainName');
+        } else if (params.edrAvType === 'network_based') {
+          params.assetIds = form.getValues('params.assetIds') || [];
+          // Fallback para targets se assetIds não estiver definido (compatibilidade)
+          if (params.assetIds.length === 0 && selectedAssets.length > 0) {
+            params.assetIds = selectedAssets;
+          }
+        }
         break;
     }
 
