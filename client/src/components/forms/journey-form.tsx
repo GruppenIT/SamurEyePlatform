@@ -385,6 +385,163 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
           <div className="space-y-4">
             <FormField
               control={form.control}
+              name="params.edrAvType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo de Jornada EDR/AV</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger data-testid="select-edr-type">
+                        <SelectValue placeholder="Selecione o tipo de jornada" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="ad_based">AD Based - Descoberta via LDAP</SelectItem>
+                      <SelectItem value="network_based">Network Based - Ativos específicos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Escolha entre descoberta automática via Active Directory ou alvos específicos
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {form.watch('params.edrAvType') === 'ad_based' && (
+              <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
+                <div className="text-sm font-medium text-foreground">Configuração AD Based</div>
+                
+                <FormField
+                  control={form.control}
+                  name="params.credentialId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Credencial LDAP/AD</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-ad-credential">
+                            <SelectValue placeholder="Selecione uma credencial AD" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {credentials
+                            .filter(cred => cred.type === 'ad')
+                            .map((credential) => (
+                              <SelectItem key={credential.id} value={credential.id}>
+                                {credential.name} ({credential.domain})
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Credencial com privilégios para consultar LDAP e acessar compartilhamentos administrativos
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="params.domainName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome do Domínio</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ex: contoso.com"
+                          {...field}
+                          data-testid="input-domain-name"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Domínio Active Directory para consultar contas de computador
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {form.watch('params.edrAvType') === 'network_based' && (
+              <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
+                <div className="text-sm font-medium text-foreground">Configuração Network Based</div>
+                
+                <FormField
+                  control={form.control}
+                  name="params.credentialId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Credencial Administrativa</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-network-credential">
+                            <SelectValue placeholder="Selecione uma credencial" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {credentials
+                            .filter(cred => cred.type === 'wmi' || cred.type === 'omi' || cred.type === 'ad')
+                            .map((credential) => (
+                              <SelectItem key={credential.id} value={credential.id}>
+                                {credential.name} ({credential.type})
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Credencial com privilégios administrativos para acessar compartilhamentos C$
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="params.assetIds"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ativos/Targets</FormLabel>
+                      <Select 
+                        onValueChange={(value) => {
+                          const currentValues = field.value || [];
+                          const newValues = currentValues.includes(value) 
+                            ? currentValues.filter((v: string) => v !== value)
+                            : [...currentValues, value];
+                          field.onChange(newValues);
+                        }}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-assets">
+                            <SelectValue placeholder="Selecione ativos para teste" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {assets.map((asset) => (
+                            <SelectItem key={asset.id} value={asset.id}>
+                              {asset.value} ({asset.type})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        Selecionados: {(field.value || []).length} ativos
+                      </div>
+                      <FormDescription>
+                        Selecione hosts ou ranges de rede para testar
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            <FormField
+              control={form.control}
               name="params.sampleRate"
               render={({ field }) => (
                 <FormItem>
@@ -401,36 +558,6 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                   </FormControl>
                   <FormDescription>
                     Porcentagem de workstations para testar (recomendado: 10-20%)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="params.credentialId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Credencial Administrativa</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger data-testid="select-edr-credential">
-                        <SelectValue placeholder="Selecione uma credencial" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {credentials
-                        .filter(cred => cred.type === 'wmi' || cred.type === 'omi' || cred.type === 'ad')
-                        .map((credential) => (
-                          <SelectItem key={credential.id} value={credential.id}>
-                            {credential.name} ({credential.type})
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Credencial com privilégios administrativos (AD/LDAP, WMI ou OMI)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

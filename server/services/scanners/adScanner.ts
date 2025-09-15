@@ -619,6 +619,110 @@ export class ADScanner {
   }
 
   /**
+   * Descobre workstations do domínio para teste EDR/AV
+   */
+  async discoverWorkstations(domain: string, username: string, password: string, port?: number): Promise<string[]> {
+    console.log(`Descobrindo workstations do domínio ${domain} para teste EDR/AV`);
+    
+    const workstations: string[] = [];
+
+    try {
+      // 1. Descobrir controladores de domínio
+      const domainControllers = await this.discoverDomainControllers(domain);
+      console.log(`Encontrados ${domainControllers.length} controladores de domínio`);
+
+      if (domainControllers.length === 0) {
+        console.error('Nenhum controlador de domínio encontrado');
+        return workstations;
+      }
+
+      // 2. Conectar ao Active Directory
+      const dcHost = domainControllers[0];
+      this.domain = domain;
+      this.baseDN = this.buildBaseDN(domain);
+      console.log(`📍 Usando base DN: ${this.baseDN}`);
+      await this.connectToAD(dcHost, username, password, domain, port);
+
+      if (!this.client) {
+        console.error('Falha ao conectar ao Active Directory');
+        return workstations;
+      }
+
+      // 3. Buscar contas de computador ativas
+      console.log('🔍 Buscando contas de computador no domínio...');
+      
+      // Filtro para buscar computadores ativos (não desabilitados)
+      // userAccountControl & 2 = 0 significa que a conta não está desabilitada
+      const filter = '(&(objectClass=computer)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))';
+      
+      const computers = await this.searchLDAP(filter, [
+        'cn',
+        'dNSHostName',
+        'operatingSystem',
+        'operatingSystemVersion',
+        'lastLogonTimestamp',
+        'userAccountControl'
+      ]);
+
+      console.log(`Encontrados ${computers.length} computadores no domínio`);
+
+      for (const computer of computers) {
+        const computerName = computer.cn?.[0];
+        const dnsHostName = computer.dNSHostName?.[0];
+        const operatingSystem = computer.operatingSystem?.[0] || '';
+        const lastLogonTimestamp = computer.lastLogonTimestamp?.[0];
+
+        // Filtrar apenas workstations (excluir servidores)
+        const isServer = operatingSystem.toLowerCase().includes('server');
+        if (isServer) {
+          console.log(`Pulando servidor: ${computerName} (${operatingSystem})`);
+          continue;
+        }
+
+        // Verificar se teve logon recente (últimos 30 dias)
+        let isActive = true;
+        if (lastLogonTimestamp) {
+          const lastLogon = this.parseFileTime(parseInt(lastLogonTimestamp));
+          if (lastLogon) {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            isActive = lastLogon > thirtyDaysAgo;
+          }
+        }
+
+        if (!isActive) {
+          console.log(`Pulando workstation inativa: ${computerName}`);
+          continue;
+        }
+
+        // Usar dNSHostName se disponível, senão usar cn
+        const hostName = dnsHostName || computerName;
+        if (hostName) {
+          workstations.push(hostName);
+          console.log(`✅ Workstation encontrada: ${hostName} (${operatingSystem})`);
+        }
+      }
+
+      console.log(`Total de workstations descobertas: ${workstations.length}`);
+
+    } catch (error) {
+      console.error('Erro ao descobrir workstations:', error);
+    } finally {
+      // Desconectar do LDAP
+      if (this.client) {
+        try {
+          await this.client.unbind();
+          this.client = null;
+        } catch (unbindError) {
+          console.error('Erro ao desconectar do LDAP:', unbindError);
+        }
+      }
+    }
+
+    return workstations;
+  }
+
+  /**
    * Analisa políticas do AD
    */
   private async analyzePolicies(): Promise<ADFinding[]> {
