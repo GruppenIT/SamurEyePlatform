@@ -239,6 +239,81 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                 </FormItem>
               )}
             />
+
+            <div>
+              <FormLabel>Verificações de Higiene AD</FormLabel>
+              <div className="mt-3 space-y-3 border rounded-md p-4 bg-muted/10">
+                <div className="text-sm font-medium text-foreground mb-2">
+                  Os seguintes testes serão executados:
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox checked disabled />
+                    <span>Análise de Usuários</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox checked disabled />
+                    <span>Análise de Grupos Privilegiados</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox checked disabled />
+                    <span>Análise de Computadores</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox checked disabled />
+                    <span>Análise de Políticas</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox checked disabled />
+                    <span>Configurações de Domínio</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t">
+                  <div className="text-sm font-medium text-foreground mb-2">
+                    Verificações de Segurança:
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 text-sm">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox checked disabled />
+                      <span className="text-red-600 dark:text-red-400">
+                        🚨 Domain Admins com senhas antigas (Severidade: CRÍTICA)
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox checked disabled />
+                      <span className="text-blue-600 dark:text-blue-400">
+                        ℹ️ Usuários inativos por período configurado (Severidade: BAIXA)
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox checked disabled />
+                      <span>Usuários com senhas que nunca expiram</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox checked disabled />
+                      <span>Grupos privilegiados com muitos membros</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox checked disabled />
+                      <span>Sistemas operacionais obsoletos</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox checked disabled />
+                      <span>Computadores inativos no domínio</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox checked disabled />
+                      <span>Políticas de senha fracas</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <FormDescription>
+                Todos os testes são executados automaticamente. Os limites são configuráveis nas configurações do sistema.
+              </FormDescription>
+            </div>
           </div>
         );
 
