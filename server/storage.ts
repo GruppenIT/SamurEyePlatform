@@ -30,6 +30,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, count, like, inArray } from "drizzle-orm";
+import * as os from "os";
 
 // Interface for storage operations
 export interface IStorage {
@@ -554,7 +555,6 @@ export class DatabaseStorage implements IStorage {
     }>;
   }> {
     // Get real CPU and memory usage
-    const os = require('os');
     
     // Calculate CPU usage (simple average)
     const cpus = os.cpus();
