@@ -1,0 +1,37 @@
+Sep 15 17:37:16 vlxsam99 npm[287784]: Iniciando análise de higiene AD para domínio gruppen.com.br
+Sep 15 17:37:16 vlxsam99 npm[287784]: Encontrados 2 controladores de domínio
+Sep 15 17:37:16 vlxsam99 npm[287784]: 📍 Usando base DN: DC=gruppen,DC=com,DC=br
+Sep 15 17:37:16 vlxsam99 npm[287784]: 🔧 Usando protocolo LDAP na porta 389 conforme especificado
+Sep 15 17:37:16 vlxsam99 npm[287784]: ⚠️  Usando protocolo LDAP não criptografado na porta 389 conforme especificado
+Sep 15 17:37:16 vlxsam99 npm[287784]: Tentando conectar via ldap://vmsdc53.gruppen.com.br:389
+Sep 15 17:37:16 vlxsam99 npm[287784]: Conectado com sucesso via ldap://vmsdc53.gruppen.com.br:389
+Sep 15 17:37:16 vlxsam99 npm[287784]: ⚠️  ATENÇÃO: Conexão LDAP não criptografada em uso - não recomendado para produção
+Sep 15 17:37:16 vlxsam99 npm[287784]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=user)
+Sep 15 17:37:17 vlxsam99 npm[287784]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Domain Admins)
+Sep 15 17:37:17 vlxsam99 npm[287784]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Enterprise Admins)
+Sep 15 17:37:17 vlxsam99 npm[287784]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Schema Admins)
+Sep 15 17:37:17 vlxsam99 npm[287784]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Administrators)
+Sep 15 17:37:17 vlxsam99 npm[287784]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=computer)
+Sep 15 17:37:17 vlxsam99 npm[287784]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=domain)
+Sep 15 17:37:17 vlxsam99 npm[287784]: 🔍 ThreatEngine analisando 10 achados para criação de ameaças...
+Sep 15 17:37:17 vlxsam99 npm[287784]: 📋 Analisando achado: tipo=ad_misconfiguration, porta=undefined, severidade=medium
+Sep 15 17:37:17 vlxsam99 npm[287784]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Usuários com Senhas que Nunca Expiram","type":"ad_misconfiguration","target":"Domain Users"...
+Sep 15 17:37:17 vlxsam99 npm[287784]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 17:37:17 vlxsam99 npm[287784]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Usuários Inativos Identificados","type":"ad_hygiene","target":"Domain Users","category":"us...
+Sep 15 17:37:17 vlxsam99 npm[287784]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 17:37:17 vlxsam99 npm[287784]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Usuários com Senhas Antigas","type":"ad_vulnerability","target":"Domain Users","category":"...
+Sep 15 17:37:17 vlxsam99 npm[287784]: 📋 Analisando achado: tipo=ad_misconfiguration, porta=undefined, severidade=high
+Sep 15 17:37:17 vlxsam99 npm[287784]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Grupo Privilegiado com Muitos Membros","type":"ad_misconfiguration","target":"Domain Admins...
+Sep 15 17:37:17 vlxsam99 npm[287784]: 📋 Analisando achado: tipo=ad_misconfiguration, porta=undefined, severidade=high
+Sep 15 17:37:17 vlxsam99 npm[287784]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Grupo Privilegiado com Muitos Membros","type":"ad_misconfiguration","target":"Enterprise Ad...
+Sep 15 17:37:17 vlxsam99 npm[287784]: 📋 Analisando achado: tipo=ad_misconfiguration, porta=undefined, severidade=high
+Sep 15 17:37:17 vlxsam99 npm[287784]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Grupo Privilegiado com Muitos Membros","type":"ad_misconfiguration","target":"Schema Admins...
+Sep 15 17:37:17 vlxsam99 npm[287784]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=high
+Sep 15 17:37:17 vlxsam99 npm[287784]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Sistemas Operacionais Obsoletos","type":"ad_vulnerability","target":"Domain Computers","cat...
+Sep 15 17:37:17 vlxsam99 npm[287784]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 17:37:17 vlxsam99 npm[287784]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Computadores Inativos","type":"ad_hygiene","target":"Domain Computers","category":"computer...
+Sep 15 17:37:17 vlxsam99 npm[287784]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 17:37:17 vlxsam99 npm[287784]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Análise de Políticas Limitada","type":"ad_hygiene","target":"Group Policies","category":"po...
+Sep 15 17:37:17 vlxsam99 npm[287784]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 17:37:17 vlxsam99 npm[287784]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Política de Senha Fraca","type":"ad_vulnerability","target":"Domain Configuration","categor...
+Sep 15 17:37:17 vlxsam99 npm[287784]: 🎯 ThreatEngine criou 0 ameaças de 10 achados analisados

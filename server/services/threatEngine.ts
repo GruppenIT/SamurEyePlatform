@@ -208,7 +208,168 @@ class ThreatEngineService {
         }),
       },
 
-      // AD Hygiene Rules
+      // AD Hygiene Rules - Regras para achados específicos do AD
+      {
+        id: 'ad-users-password-never-expires',
+        name: 'Usuários com Senhas que Nunca Expiram',
+        description: 'Usuários configurados com senhas que nunca expiram',
+        severity: 'medium',
+        matcher: (finding) => 
+          finding.type === 'ad_misconfiguration' &&
+          finding.name === 'Usuários com Senhas que Nunca Expiram',
+        createThreat: (finding, assetId, jobId) => ({
+          title: finding.name,
+          description: finding.description,
+          severity: finding.severity,
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            target: finding.target,
+            category: finding.category,
+            count: finding.evidence?.count,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'ad-inactive-users',
+        name: 'Usuários Inativos Identificados',
+        description: 'Usuários sem login há mais de 6 meses',
+        severity: 'low',
+        matcher: (finding) => 
+          finding.type === 'ad_hygiene' &&
+          finding.name === 'Usuários Inativos Identificados',
+        createThreat: (finding, assetId, jobId) => ({
+          title: finding.name,
+          description: finding.description,
+          severity: finding.severity,
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            target: finding.target,
+            category: finding.category,
+            count: finding.evidence?.count,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'ad-users-old-passwords',
+        name: 'Usuários com Senhas Antigas',
+        description: 'Usuários com senhas não alteradas há mais de 90 dias',
+        severity: 'medium',
+        matcher: (finding) => 
+          finding.type === 'ad_vulnerability' &&
+          finding.name === 'Usuários com Senhas Antigas',
+        createThreat: (finding, assetId, jobId) => ({
+          title: finding.name,
+          description: finding.description,
+          severity: finding.severity,
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            target: finding.target,
+            category: finding.category,
+            count: finding.evidence?.count,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'ad-privileged-group-members',
+        name: 'Grupo Privilegiado com Muitos Membros',
+        description: 'Grupo administrativo com membros em excesso',
+        severity: 'high',
+        matcher: (finding) => 
+          finding.type === 'ad_misconfiguration' &&
+          finding.name === 'Grupo Privilegiado com Muitos Membros',
+        createThreat: (finding, assetId, jobId) => ({
+          title: `${finding.name}: ${finding.target}`,
+          description: finding.description,
+          severity: finding.severity,
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            target: finding.target,
+            category: finding.category,
+            count: finding.evidence?.count,
+            memberCount: finding.evidence?.memberCount,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'ad-obsolete-os',
+        name: 'Sistemas Operacionais Obsoletos',
+        description: 'Computadores com sistemas operacionais desatualizados',
+        severity: 'high',
+        matcher: (finding) => 
+          finding.type === 'ad_vulnerability' &&
+          finding.name === 'Sistemas Operacionais Obsoletos',
+        createThreat: (finding, assetId, jobId) => ({
+          title: finding.name,
+          description: finding.description,
+          severity: finding.severity,
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            target: finding.target,
+            category: finding.category,
+            count: finding.evidence?.count,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'ad-inactive-computers',
+        name: 'Computadores Inativos',
+        description: 'Computadores sem comunicação com o domínio há muito tempo',
+        severity: 'low',
+        matcher: (finding) => 
+          finding.type === 'ad_hygiene' &&
+          finding.name === 'Computadores Inativos',
+        createThreat: (finding, assetId, jobId) => ({
+          title: finding.name,
+          description: finding.description,
+          severity: finding.severity,
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            target: finding.target,
+            category: finding.category,
+            count: finding.evidence?.count,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'ad-weak-password-policy',
+        name: 'Política de Senha Fraca',
+        description: 'Política de senhas do domínio não atende padrões de segurança',
+        severity: 'medium',
+        matcher: (finding) => 
+          finding.type === 'ad_vulnerability' &&
+          finding.name === 'Política de Senha Fraca',
+        createThreat: (finding, assetId, jobId) => ({
+          title: finding.name,
+          description: finding.description,
+          severity: finding.severity,
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            target: finding.target,
+            category: finding.category,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
       {
         id: 'domain-admin-old-password',
         name: 'Domain Admin com Senha Antiga',
