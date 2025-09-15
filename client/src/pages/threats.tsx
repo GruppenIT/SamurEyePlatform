@@ -465,12 +465,140 @@ export default function Threats() {
 
               {selectedThreat.evidence && Object.keys(selectedThreat.evidence).length > 0 && (
                 <div>
-                  <h4 className="font-medium text-foreground mb-2">Evidências</h4>
-                  <div className="p-4 bg-muted/50 border rounded-md">
-                    <pre className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {JSON.stringify(selectedThreat.evidence, null, 2)}
-                    </pre>
+                  <h4 className="font-medium text-foreground mb-4">Evidências</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Informações de Host/IP */}
+                    {(selectedThreat.evidence.host || selectedThreat.evidence.ip) && (
+                      <div className="p-4 bg-muted/50 border rounded-md">
+                        <h5 className="font-medium text-sm text-foreground mb-2">Localização</h5>
+                        <div className="space-y-1 text-sm">
+                          {selectedThreat.evidence.host && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Host:</span>
+                              <span className="font-mono">{selectedThreat.evidence.host}</span>
+                            </div>
+                          )}
+                          {selectedThreat.evidence.ip && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">IP:</span>
+                              <span className="font-mono">{selectedThreat.evidence.ip}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Informações de Porta/Serviço */}
+                    {(selectedThreat.evidence.port || selectedThreat.evidence.service) && (
+                      <div className="p-4 bg-muted/50 border rounded-md">
+                        <h5 className="font-medium text-sm text-foreground mb-2">Serviço</h5>
+                        <div className="space-y-1 text-sm">
+                          {selectedThreat.evidence.port && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Porta:</span>
+                              <span className="font-mono">{selectedThreat.evidence.port}</span>
+                            </div>
+                          )}
+                          {selectedThreat.evidence.service && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Serviço:</span>
+                              <span className="font-mono">{selectedThreat.evidence.service}</span>
+                            </div>
+                          )}
+                          {selectedThreat.evidence.version && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Versão:</span>
+                              <span className="font-mono text-xs">{selectedThreat.evidence.version}</span>
+                            </div>
+                          )}
+                          {selectedThreat.evidence.state && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Estado:</span>
+                              <Badge variant={selectedThreat.evidence.state === 'open' ? 'destructive' : 'secondary'} className="text-xs">
+                                {selectedThreat.evidence.state === 'open' ? 'ABERTA' : selectedThreat.evidence.state.toUpperCase()}
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Informações do Sistema Operacional */}
+                    {selectedThreat.evidence.osInfo && (
+                      <div className="p-4 bg-muted/50 border rounded-md md:col-span-2">
+                        <h5 className="font-medium text-sm text-foreground mb-2">Sistema Operacional</h5>
+                        <p className="text-sm text-muted-foreground">{selectedThreat.evidence.osInfo}</p>
+                      </div>
+                    )}
+
+                    {/* Banner/Detalhes Técnicos */}
+                    {selectedThreat.evidence.banner && (
+                      <div className="p-4 bg-muted/50 border rounded-md md:col-span-2">
+                        <h5 className="font-medium text-sm text-foreground mb-2">Banner do Serviço</h5>
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap bg-background p-2 rounded border">
+                          {selectedThreat.evidence.banner}
+                        </pre>
+                      </div>
+                    )}
+
+                    {/* Vulnerabilidades Web */}
+                    {selectedThreat.evidence.vulnerabilityType && (
+                      <div className="p-4 bg-muted/50 border rounded-md md:col-span-2">
+                        <h5 className="font-medium text-sm text-foreground mb-2">Detalhes da Vulnerabilidade</h5>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Tipo:</span>
+                            <span>{selectedThreat.evidence.vulnerabilityType}</span>
+                          </div>
+                          {selectedThreat.evidence.template && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Template:</span>
+                              <span className="font-mono text-xs">{selectedThreat.evidence.template}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Informações Nuclei */}
+                    {(selectedThreat.evidence.templateId || selectedThreat.evidence.url) && (
+                      <div className="p-4 bg-muted/50 border rounded-md md:col-span-2">
+                        <h5 className="font-medium text-sm text-foreground mb-2">Detalhes Nuclei</h5>
+                        <div className="space-y-1 text-sm">
+                          {selectedThreat.evidence.templateId && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Template ID:</span>
+                              <span className="font-mono text-xs">{selectedThreat.evidence.templateId}</span>
+                            </div>
+                          )}
+                          {selectedThreat.evidence.url && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">URL:</span>
+                              <span className="font-mono text-xs break-all">{selectedThreat.evidence.url}</span>
+                            </div>
+                          )}
+                          {selectedThreat.evidence.matcher && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Matcher:</span>
+                              <span className="font-mono text-xs">{selectedThreat.evidence.matcher}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* JSON Raw para debug (colapsável) */}
+                  <details className="mt-4">
+                    <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
+                      Ver dados brutos (JSON)
+                    </summary>
+                    <div className="mt-2 p-4 bg-muted/50 border rounded-md">
+                      <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
+                        {JSON.stringify(selectedThreat.evidence, null, 2)}
+                      </pre>
+                    </div>
+                  </details>
                 </div>
               )}
             </div>
