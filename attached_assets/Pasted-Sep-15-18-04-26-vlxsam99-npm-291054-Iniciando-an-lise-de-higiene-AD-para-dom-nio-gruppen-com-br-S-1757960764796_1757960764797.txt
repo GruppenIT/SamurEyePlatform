@@ -1,0 +1,121 @@
+Sep 15 18:04:26 vlxsam99 npm[291054]: Iniciando análise de higiene AD para domínio gruppen.com.br
+Sep 15 18:04:26 vlxsam99 npm[291054]: Encontrados 2 controladores de domínio
+Sep 15 18:04:26 vlxsam99 npm[291054]: 📍 Usando base DN: DC=gruppen,DC=com,DC=br
+Sep 15 18:04:26 vlxsam99 npm[291054]: 🔧 Usando protocolo LDAP na porta 389 conforme especificado
+Sep 15 18:04:26 vlxsam99 npm[291054]: ⚠️  Usando protocolo LDAP não criptografado na porta 389 conforme especificado
+Sep 15 18:04:26 vlxsam99 npm[291054]: Tentando conectar via ldap://vmsdc43.gruppen.com.br:389
+Sep 15 18:04:26 vlxsam99 npm[291054]: Conectado com sucesso via ldap://vmsdc43.gruppen.com.br:389
+Sep 15 18:04:26 vlxsam99 npm[291054]: ⚠️  ATENÇÃO: Conexão LDAP não criptografada em uso - não recomendado para produção
+Sep 15 18:04:26 vlxsam99 npm[291054]: 📊 Iniciando análises de higiene AD...
+Sep 15 18:04:26 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=user)
+Sep 15 18:04:26 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Domain Admins)
+Sep 15 18:04:26 vlxsam99 npm[291054]: ✅ Análise de usuários concluída: 16 achados
+Sep 15 18:04:26 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Domain Admins)
+Sep 15 18:04:26 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Enterprise Admins)
+Sep 15 18:04:26 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Schema Admins)
+Sep 15 18:04:26 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Administrators)
+Sep 15 18:04:26 vlxsam99 npm[291054]: ✅ Análise de grupos concluída: 3 achados
+Sep 15 18:04:26 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=computer)
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Análise de computadores concluída: 19 achados
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Análise de políticas concluída: 1 achados
+Sep 15 18:04:27 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=domain)
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Análise de configuração concluída: 1 achados
+Sep 15 18:04:27 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Domain Admins)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Enterprise Admins)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Schema Admins)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Administrators)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=domain)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=trustedDomain)
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Análise de configuração de domínio concluída: 5 achados
+Sep 15 18:04:27 vlxsam99 npm[291054]: 🔍 ThreatEngine analisando 45 achados para criação de ameaças...
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=critical
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'domain-admin-critical-password-expired': Domain Admin com Senha Crítica Expirada (critical)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=critical
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'domain-admin-critical-password-expired': Domain Admin com Senha Crítica Expirada (critical)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=critical
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'domain-admin-critical-password-expired': Domain Admin com Senha Crítica Expirada (critical)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'specific-inactive-user': Usuário inativo: VMSVDIS01$ (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'specific-inactive-user': Usuário inativo: svc.prtg (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'specific-inactive-user': Usuário inativo: VMSHO12$ (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'specific-inactive-user': Usuário inativo: bpm (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'specific-inactive-user': Usuário inativo: sup_ellevo (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'specific-inactive-user': Usuário inativo: planper02 (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'specific-inactive-user': Usuário inativo: VMSEAD133$ (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'specific-inactive-user': Usuário inativo: VMSVDISSO02$ (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'specific-inactive-user': Usuário inativo: TESTE-CARLOS$ (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'specific-inactive-user': Usuário inativo: svc_feed_fortigate (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_misconfiguration, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'ad-users-password-never-expires': Usuários com Senhas que Nunca Expiram (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'ad-inactive-users': Usuários Inativos Identificados (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'ad-users-old-passwords': Usuários com Senhas Antigas (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_misconfiguration, porta=undefined, severidade=high
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'ad-privileged-group-members': Grupo Privilegiado com Muitos Membros: Domain Admins (high)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_misconfiguration, porta=undefined, severidade=high
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'ad-privileged-group-members': Grupo Privilegiado com Muitos Membros: Enterprise Admins (high)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_misconfiguration, porta=undefined, severidade=high
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'ad-privileged-group-members': Grupo Privilegiado com Muitos Membros: Schema Admins (high)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'inactive-computer-detected': Computador inativo: VMSVDIS01 (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'inactive-computer-detected': Computador inativo: VMSHO12 (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'inactive-computer-detected': Computador inativo: VMSEAD133 (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'inactive-computer-detected': Computador inativo: VMSVDISSO02 (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'inactive-computer-detected': Computador inativo: TESTE-CARLOS (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'obsolete-operating-system': SO obsoleto: VMSVDI45 (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'obsolete-operating-system': SO obsoleto: VMSTS45 (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'obsolete-operating-system': SO obsoleto: VMSSIS160 (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'obsolete-operating-system': SO obsoleto: VMSMX46 (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'obsolete-operating-system': SO obsoleto: CMSSITE01 (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'obsolete-operating-system': SO obsoleto: KAMILA (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'obsolete-operating-system': SO obsoleto: VMSXD40 (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'obsolete-operating-system': SO obsoleto: VMSXD41 (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'obsolete-operating-system': SO obsoleto: VMSFS15 (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'obsolete-operating-system': SO obsoleto: VMSWW13OLD (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'obsolete-operating-system': SO obsoleto: VMSEAD133OLD (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'obsolete-operating-system': SO obsoleto: VMSSY05 (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=high
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'ad-obsolete-os': Sistemas Operacionais Obsoletos (high)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'ad-inactive-computers': Computadores Inativos (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Análise de Políticas Limitada","type":"ad_hygiene","target":"Group Policies","category":"po...
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'ad-weak-password-policy': Política de Senha Fraca (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'privileged-group-too-many-members': Grupo privilegiado: Domain Admins (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'privileged-group-too-many-members': Grupo privilegiado: Enterprise Admins (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=medium
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'privileged-group-too-many-members': Grupo privilegiado: Schema Admins (medium)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'password-history-insufficient': Histórico de Senhas Insuficiente (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 18:04:27 vlxsam99 npm[291054]: ✅ Ameaça criada pela regra 'bidirectional-trust-detected': Trust bidirecional: gruppenhomologa.local (low)
+Sep 15 18:04:27 vlxsam99 npm[291054]: 🎯 ThreatEngine criou 44 ameaças de 45 achados analisados

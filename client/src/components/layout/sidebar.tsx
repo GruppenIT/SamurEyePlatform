@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { 
   Shield, 
@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
   { href: "/credentials", label: "Credenciais", icon: Key },
   { href: "/journeys", label: "Jornadas", icon: Route },
   { href: "/schedules", label: "Agendamentos", icon: Clock },
-  { href: "/threats", label: "Ameaças", icon: AlertTriangle, badge: 7 },
+  { href: "/threats", label: "Ameaças", icon: AlertTriangle },
   { href: "/jobs", label: "Jobs", icon: List },
 ];
 
@@ -47,6 +47,16 @@ export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // Buscar ameaças críticas abertas para o contador do menu
+  const { data: criticalThreats = [] } = useQuery({
+    queryKey: ['/api/threats', { severity: 'critical', status: 'open' }],
+    select: (data: any[]) => data?.filter((threat: any) => 
+      threat.severity === 'critical' && threat.status === 'open'
+    ) || []
+  });
+
+  const criticalThreatCount = criticalThreats.length;
 
   const isAdmin = user?.role === 'global_administrator';
   const canViewAdminItems = isAdmin;
@@ -92,11 +102,15 @@ export default function Sidebar() {
         <div className="px-3 space-y-1">
           {navItems.map((item) => {
             const isActive = location === item.href;
+            // Mostrar contador de ameaças críticas para o item "Ameaças"
+            const showBadge = item.label === "Ameaças" && criticalThreatCount > 0;
+            const badgeCount = item.label === "Ameaças" ? criticalThreatCount : item.badge;
+            
             return (
               <Link key={item.href} href={item.href}>
-                <a
+                <div
                   className={cn(
-                    "sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                    "sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                     isActive
                       ? "active text-sidebar-foreground"
                       : "text-muted-foreground hover:text-sidebar-foreground"
@@ -105,12 +119,12 @@ export default function Sidebar() {
                 >
                   <item.icon className="mr-3 h-4 w-4" />
                   {item.label}
-                  {item.badge && (
-                    <span className="ml-auto bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded-full">
-                      {item.badge}
+                  {(showBadge || item.badge) && (
+                    <span className="ml-auto bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded-full" data-testid={`badge-${item.label.toLowerCase()}`}>
+                      {badgeCount}
                     </span>
                   )}
-                </a>
+                </div>
               </Link>
             );
           })}
@@ -126,9 +140,9 @@ export default function Sidebar() {
                 const isActive = location === item.href;
                 return (
                   <Link key={item.href} href={item.href}>
-                    <a
+                    <div
                       className={cn(
-                        "sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                        "sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                         isActive
                           ? "active text-sidebar-foreground"
                           : "text-muted-foreground hover:text-sidebar-foreground"
@@ -137,7 +151,7 @@ export default function Sidebar() {
                     >
                       <item.icon className="mr-3 h-4 w-4" />
                       {item.label}
-                    </a>
+                    </div>
                   </Link>
                 );
               })}
