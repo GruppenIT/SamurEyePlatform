@@ -438,8 +438,9 @@ export class NetworkScanner {
     // Aplicar perfil de escaneamento
     switch (nmapProfile) {
       case 'fast':
-        // Top 1000 portas (comportamento padrão do nmap)
-        return this.commonPorts.map(p => p.port);
+        // Top 1000 portas (usar --top-ports 1000 do nmap)
+        console.log('🚀 Perfil rápido selecionado: escaneando top 1000 portas');
+        return [];
       
       case 'comprehensive':
         // Todas as portas (1-65535) - pode ser muito lento
@@ -448,6 +449,7 @@ export class NetworkScanner {
       
       case 'stealth':
         // Portas comuns com varredura SYN stealth
+        console.log('🥷 Perfil stealth selecionado: escaneando portas comuns discretamente');
         return this.commonPorts.map(p => p.port);
       
       default:
