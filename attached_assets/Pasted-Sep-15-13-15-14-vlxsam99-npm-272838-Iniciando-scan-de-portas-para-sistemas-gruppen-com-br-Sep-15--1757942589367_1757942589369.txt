@@ -1,0 +1,56 @@
+Sep 15 13:15:14 vlxsam99 npm[272838]: Iniciando scan de portas para sistemas.gruppen.com.br
+Sep 15 13:15:14 vlxsam99 npm[272838]: 1:15:14 PM [express] POST /api/jobs/execute 201 in 25ms :: {"id":"bd2d8a5e-6c27-4c28-b694-eedfe92c83…
+Sep 15 13:15:14 vlxsam99 npm[272838]: 🚀 Perfil rápido selecionado: escaneando top 1000 portas
+Sep 15 13:15:14 vlxsam99 npm[272838]: 🔍 Executando nmap com top 1000 portas
+Sep 15 13:18:01 vlxsam99 npm[272838]: Parse nmap encontrou 6 portas para 192.168.100.19
+Sep 15 13:18:01 vlxsam99 npm[272838]: Primeiras portas encontradas: [ '80/open', '135/open', '139/open' ]
+Sep 15 13:18:01 vlxsam99 npm[272838]: 📊 Nmap concluído para 192.168.100.19 - 6 portas processadas:
+Sep 15 13:18:01 vlxsam99 npm[272838]:   🔍 Porta 80: open | Serviço: http | Versão: Microsoft IIS httpd 10.0
+Sep 15 13:18:01 vlxsam99 npm[272838]:   🔍 Porta 135: open | Serviço: msrpc | Versão: Microsoft Windows RPC
+Sep 15 13:18:01 vlxsam99 npm[272838]:   🔍 Porta 139: open | Serviço: netbios-ssn | Versão: Microsoft Windows netbios-ssn
+Sep 15 13:18:01 vlxsam99 npm[272838]:   🔍 Porta 443: open | Serviço: ssl/http | Versão: Microsoft IIS httpd 10.0
+Sep 15 13:18:01 vlxsam99 npm[272838]:   🔍 Porta 445: open | Serviço: microsoft-ds | Versão: Microsoft Windows Server 2008 R2 - 2012 microsoft-ds
+Sep 15 13:18:01 vlxsam99 npm[272838]:   🔍 Porta 3389: open | Serviço: ms-wbt-server | Versão: Microsoft Terminal Services
+Sep 15 13:18:01 vlxsam99 npm[272838]: Iniciando scan de vulnerabilidades para sistemas.gruppen.com.br
+Sep 15 13:18:01 vlxsam99 npm[272838]: Encontrados 2 serviços web para escanear: [ '80/http', '443/ssl/http' ]
+Sep 15 13:18:01 vlxsam99 npm[272838]: Executando nuclei para URL construída: http://sistemas.gruppen.com.br:80 (service: http)
+Sep 15 13:18:01 vlxsam99 npm[272838]: Baixando templates nuclei...
+Sep 15 13:18:10 vlxsam99 npm[272838]: Templates nuclei baixados com sucesso
+Sep 15 13:18:10 vlxsam99 npm[272838]: Executando nuclei para http://sistemas.gruppen.com.br:80 com templates em /tmp/nuclei/nuclei-templates
+Sep 15 13:19:32 vlxsam99 npm[272838]: Nuclei completado para http://sistemas.gruppen.com.br:80, processando resultados...
+Sep 15 13:19:32 vlxsam99 npm[272838]: 🔍 Parseando 0 linhas de saída do nuclei para http://sistemas.gruppen.com.br:80...
+Sep 15 13:19:32 vlxsam99 npm[272838]: 📊 Nuclei parsing concluído: 0 vulnerabilidades extraídas de 0 linhas
+Sep 15 13:19:32 vlxsam99 npm[272838]: ✅ Nuclei não encontrou vulnerabilidades em http://sistemas.gruppen.com.br:80
+Sep 15 13:19:43 vlxsam99 npm[272838]: Executando nuclei para URL construída: https://sistemas.gruppen.com.br:443 (service: ssl/http)
+Sep 15 13:19:43 vlxsam99 npm[272838]: Templates nuclei encontrados: 35 arquivos/pastas
+Sep 15 13:19:43 vlxsam99 npm[272838]: Executando nuclei para https://sistemas.gruppen.com.br:443 com templates em /tmp/nuclei/nuclei-templates
+Sep 15 13:21:23 vlxsam99 npm[272838]: Nuclei completado para https://sistemas.gruppen.com.br:443, processando resultados...
+Sep 15 13:21:23 vlxsam99 npm[272838]: 🔍 Parseando 0 linhas de saída do nuclei para https://sistemas.gruppen.com.br:443...
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📊 Nuclei parsing concluído: 0 vulnerabilidades extraídas de 0 linhas
+Sep 15 13:21:23 vlxsam99 npm[272838]: ✅ Nuclei não encontrou vulnerabilidades em https://sistemas.gruppen.com.br:443
+Sep 15 13:21:23 vlxsam99 npm[272838]: 🔍 ThreatEngine analisando 12 achados para criação de ameaças...
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📋 Analisando achado: tipo=port, porta=80, severidade=undefined
+Sep 15 13:21:23 vlxsam99 npm[272838]: ✅ Ameaça criada pela regra 'web-ports-exposed': Porta web 80 exposta (medium)
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📋 Analisando achado: tipo=port, porta=135, severidade=undefined
+Sep 15 13:21:23 vlxsam99 npm[272838]: ⚪ Nenhuma regra correspondeu ao achado: {"port":"135","type":"port","state":"open","banner":"| rsa-vuln-roca: |   NOT VULNERABLE: |   ROCA: ...
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📋 Analisando achado: tipo=port, porta=139, severidade=undefined
+Sep 15 13:21:23 vlxsam99 npm[272838]: ✅ Ameaça criada pela regra 'smb-ports-exposed': Porta SMB 139 exposta (high)
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📋 Analisando achado: tipo=port, porta=443, severidade=undefined
+Sep 15 13:21:23 vlxsam99 npm[272838]: ✅ Ameaça criada pela regra 'web-ports-exposed': Porta web 443 exposta (medium)
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📋 Analisando achado: tipo=port, porta=445, severidade=undefined
+Sep 15 13:21:23 vlxsam99 npm[272838]: ✅ Ameaça criada pela regra 'smb-ports-exposed': Porta SMB 445 exposta (high)
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📋 Analisando achado: tipo=port, porta=3389, severidade=undefined
+Sep 15 13:21:23 vlxsam99 npm[272838]: ✅ Ameaça criada pela regra 'open-admin-ports': Porta administrativa 3389 exposta (high)
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📋 Analisando achado: tipo=web_vulnerability, porta=80, severidade=low
+Sep 15 13:21:23 vlxsam99 npm[272838]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Server Information Disclosure","port":"80","type":"web_vulnerability","target":"sistemas.gr...
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📋 Analisando achado: tipo=web_vulnerability, porta=80, severidade=medium
+Sep 15 13:21:23 vlxsam99 npm[272838]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"HTTP Security Headers","port":"80","type":"web_vulnerability","target":"sistemas.gruppen.co...
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📋 Analisando achado: tipo=web_vulnerability, porta=80, severidade=high
+Sep 15 13:21:23 vlxsam99 npm[272838]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Default Credentials","port":"80","type":"web_vulnerability","target":"sistemas.gruppen.com....
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📋 Analisando achado: tipo=web_vulnerability, porta=443, severidade=low
+Sep 15 13:21:23 vlxsam99 npm[272838]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Server Information Disclosure","port":"443","type":"web_vulnerability","target":"sistemas.g...
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📋 Analisando achado: tipo=web_vulnerability, porta=443, severidade=medium
+Sep 15 13:21:23 vlxsam99 npm[272838]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"HTTP Security Headers","port":"443","type":"web_vulnerability","target":"sistemas.gruppen.c...
+Sep 15 13:21:23 vlxsam99 npm[272838]: 📋 Analisando achado: tipo=web_vulnerability, porta=443, severidade=high
+Sep 15 13:21:23 vlxsam99 npm[272838]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Default Credentials","port":"443","type":"web_vulnerability","target":"sistemas.gruppen.com...
+Sep 15 13:21:23 vlxsam99 npm[272838]: 🎯 ThreatEngine criou 5 ameaças de 12 achados analisados

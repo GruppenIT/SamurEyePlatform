@@ -8,11 +8,14 @@ const dnsLookup = promisify(dns.lookup);
 export interface PortScanResult {
   type: 'port';
   target: string;
+  ip?: string;
   port: string;
   state: 'open' | 'closed' | 'filtered';
   service: string;
   version?: string;
   banner?: string;
+  osInfo?: string;
+  hostInfo?: string;
 }
 
 export interface ServiceInfo {
@@ -65,7 +68,7 @@ export class NetworkScanner {
 
     // Tentar usar nmap se disponível, senão usar scan TCP nativo
     try {
-      const nmapResults = await this.nmapScan(resolvedTarget, portsToScan, nmapProfile);
+      const nmapResults = await this.nmapScan(target, resolvedTarget, portsToScan, nmapProfile);
       return nmapResults;
     } catch (error) {
       console.log('nmap não disponível, usando scan TCP nativo:', error);
@@ -95,21 +98,27 @@ export class NetworkScanner {
   /**
    * Scan usando nmap (quando disponível)
    */
-  private async nmapScan(target: string, ports: number[], nmapProfile?: string): Promise<PortScanResult[]> {
+  private async nmapScan(originalTarget: string, resolvedTarget: string, ports: number[], nmapProfile?: string): Promise<PortScanResult[]> {
     // Validar e sanitizar target para prevenir injeção de comando
-    if (!this.isValidTarget(target)) {
-      throw new Error(`Target inválido: ${target}`);
+    if (!this.isValidTarget(resolvedTarget)) {
+      throw new Error(`Target inválido: ${resolvedTarget}`);
     }
     
-    const args = this.buildNmapArgs(target, ports, nmapProfile);
+    const args = this.buildNmapArgs(resolvedTarget, ports, nmapProfile);
     
     const stdout = await this.spawnCommand('nmap', args, 300000); // Aumenta timeout para 5 minutos
-    const results = this.parseNmapOutput(stdout, target);
+    const results = this.parseNmapOutput(stdout, originalTarget, resolvedTarget);
     
     // Log verboso das portas detectadas
-    console.log(`📊 Nmap concluído para ${target} - ${results.length} portas processadas:`);
+    console.log(`📊 Nmap concluído para ${originalTarget} - ${results.length} portas processadas:`);
     for (const result of results) {
       console.log(`  🔍 Porta ${result.port}: ${result.state} | Serviço: ${result.service || 'desconhecido'} | Versão: ${result.version || 'N/A'}`);
+      if (result.ip && result.ip !== originalTarget) {
+        console.log(`    🔗 IP resolvido: ${result.ip}`);
+      }
+      if (result.osInfo) {
+        console.log(`    💻 OS detectado: ${result.osInfo}`);
+      }
     }
     
     return results;
@@ -178,11 +187,55 @@ export class NetworkScanner {
   /**
    * Parse da saída do nmap
    */
-  private parseNmapOutput(output: string, target: string): PortScanResult[] {
+  private parseNmapOutput(output: string, originalTarget: string, resolvedTarget: string): PortScanResult[] {
     const results: PortScanResult[] = [];
     const lines = output.split('\n');
     let vulnerabilityBuffer = '';
     let currentPort = '';
+    let osInfo = '';
+    let hostInfo = '';
+    
+    // Contexto do host para informações globais
+    const hostContext = {
+      host: originalTarget,
+      ip: resolvedTarget,
+      osInfo: '',
+    };
+    
+    // Parse de informações globais do host
+    for (const line of lines) {
+      const trimmed = line.trim();
+      
+      // Extrair informações do host do cabeçalho
+      const hostMatch = trimmed.match(/^Nmap scan report for (.+?)(?: \((\d{1,3}(?:\.\d{1,3}){3})\))?$/);
+      if (hostMatch) {
+        const [, hostPart, ipPart] = hostMatch;
+        if (ipPart) {
+          // Formato: "hostname (IP)"
+          hostContext.host = hostPart;
+          hostContext.ip = ipPart;
+        } else if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostPart)) {
+          // Formato: "IP"
+          hostContext.ip = hostPart;
+          hostContext.host = originalTarget;
+        } else {
+          // Formato: "hostname"
+          hostContext.host = hostPart;
+        }
+      }
+      
+      // Extrair informações do SO
+      if (trimmed.startsWith('OS details:')) {
+        hostContext.osInfo = trimmed.replace('OS details:', '').trim();
+      } else if (trimmed.startsWith('Running:')) {
+        hostContext.osInfo = trimmed.replace('Running:', '').trim();
+      } else if (trimmed.startsWith('Service Info:')) {
+        const osMatch = trimmed.match(/OS:\s*([^;,]+)/i);
+        if (osMatch) {
+          hostContext.osInfo = osMatch[1].trim();
+        }
+      }
+    }
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -217,19 +270,27 @@ export class NetworkScanner {
         
         results.push({
           type: 'port',
-          target,
+          target: hostContext.host,
+          ip: hostContext.ip,
           port,
           state: normalizedState,
           service,
           version: version?.trim(),
-          banner: vulnerabilityBuffer.trim() || undefined
+          banner: vulnerabilityBuffer.trim() || undefined,
+          osInfo: hostContext.osInfo || undefined,
         });
       }
     }
     
-    console.log(`Parse nmap encontrou ${results.length} portas para ${target}`);
+    console.log(`Parse nmap encontrou ${results.length} portas para ${originalTarget}`);
     if (results.length > 0) {
       console.log('Primeiras portas encontradas:', results.slice(0, 3).map(r => `${r.port}/${r.state}`));
+      if (hostContext.ip && hostContext.ip !== originalTarget) {
+        console.log(`🔗 Host ${originalTarget} resolvido para IP: ${hostContext.ip}`);
+      }
+      if (hostContext.osInfo) {
+        console.log(`💻 Sistema operacional detectado: ${hostContext.osInfo}`);
+      }
     }
     
     return results;
