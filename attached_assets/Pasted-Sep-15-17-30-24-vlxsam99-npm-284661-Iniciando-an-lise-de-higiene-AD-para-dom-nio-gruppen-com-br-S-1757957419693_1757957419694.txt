@@ -1,0 +1,116 @@
+Sep 15 17:30:24 vlxsam99 npm[284661]: Iniciando análise de higiene AD para domínio gruppen.com.br
+Sep 15 17:30:24 vlxsam99 npm[284661]: Encontrados 2 controladores de domínio
+Sep 15 17:30:24 vlxsam99 npm[284661]: 🔧 Usando protocolo LDAP na porta 389 conforme especificado
+Sep 15 17:30:24 vlxsam99 npm[284661]: ⚠️  Usando protocolo LDAP não criptografado na porta 389 conforme especificado
+Sep 15 17:30:24 vlxsam99 npm[284661]: Tentando conectar via ldap://vmsdc53.gruppen.com.br:389
+Sep 15 17:30:24 vlxsam99 npm[284661]: Conectado com sucesso via ldap://vmsdc53.gruppen.com.br:389
+Sep 15 17:30:24 vlxsam99 npm[284661]: ⚠️  ATENÇÃO: Conexão LDAP não criptografada em uso - não recomendado para produção
+Sep 15 17:30:24 vlxsam99 npm[284661]: Erro na busca LDAP: NoSuchObjectError: 0000208D: NameErr: DSID-03100221, problem 2001 (NO_OBJECT), data 0, best match of:
+Sep 15 17:30:24 vlxsam99 npm[284661]:         ''
+Sep 15 17:30:24 vlxsam99 npm[284661]:  Code: 0x20
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at StatusCodeParser.parse (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:2614:16)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at Client._sendSearch (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3167:30)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async Client.search (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3068:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.searchLDAP (file:///opt/samureye/dist/index.js:2803:33)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.analyzeUsers (file:///opt/samureye/dist/index.js:2572:29)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.scanADHygiene (file:///opt/samureye/dist/index.js:2445:28)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeADHygiene (file:///opt/samureye/dist/index.js:3289:24)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:3165:9)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:3639:7) {
+Sep 15 17:30:24 vlxsam99 npm[284661]:   code: 32
+Sep 15 17:30:24 vlxsam99 npm[284661]: }
+Sep 15 17:30:24 vlxsam99 npm[284661]: Erro na busca LDAP: NoSuchObjectError: 0000208D: NameErr: DSID-03100221, problem 2001 (NO_OBJECT), data 0, best match of:
+Sep 15 17:30:24 vlxsam99 npm[284661]:         ''
+Sep 15 17:30:24 vlxsam99 npm[284661]:  Code: 0x20
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at StatusCodeParser.parse (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:2614:16)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at Client._sendSearch (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3167:30)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async Client.search (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3068:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.searchLDAP (file:///opt/samureye/dist/index.js:2803:33)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.getGroupMembers (file:///opt/samureye/dist/index.js:2827:23)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.analyzeGroups (file:///opt/samureye/dist/index.js:2659:25)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.scanADHygiene (file:///opt/samureye/dist/index.js:2446:29)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeADHygiene (file:///opt/samureye/dist/index.js:3289:24)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:3165:9) {
+Sep 15 17:30:24 vlxsam99 npm[284661]:   code: 32
+Sep 15 17:30:24 vlxsam99 npm[284661]: }
+Sep 15 17:30:24 vlxsam99 npm[284661]: Erro na busca LDAP: NoSuchObjectError: 0000208D: NameErr: DSID-03100221, problem 2001 (NO_OBJECT), data 0, best match of:
+Sep 15 17:30:24 vlxsam99 npm[284661]:         ''
+Sep 15 17:30:24 vlxsam99 npm[284661]:  Code: 0x20
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at StatusCodeParser.parse (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:2614:16)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at Client._sendSearch (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3167:30)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async Client.search (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3068:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.searchLDAP (file:///opt/samureye/dist/index.js:2803:33)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.getGroupMembers (file:///opt/samureye/dist/index.js:2827:23)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.analyzeGroups (file:///opt/samureye/dist/index.js:2659:25)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.scanADHygiene (file:///opt/samureye/dist/index.js:2446:29)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeADHygiene (file:///opt/samureye/dist/index.js:3289:24)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:3165:9) {
+Sep 15 17:30:24 vlxsam99 npm[284661]:   code: 32
+Sep 15 17:30:24 vlxsam99 npm[284661]: }
+Sep 15 17:30:24 vlxsam99 npm[284661]: Erro na busca LDAP: NoSuchObjectError: 0000208D: NameErr: DSID-03100221, problem 2001 (NO_OBJECT), data 0, best match of:
+Sep 15 17:30:24 vlxsam99 npm[284661]:         ''
+Sep 15 17:30:24 vlxsam99 npm[284661]:  Code: 0x20
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at StatusCodeParser.parse (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:2614:16)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at Client._sendSearch (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3167:30)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async Client.search (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3068:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.searchLDAP (file:///opt/samureye/dist/index.js:2803:33)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.getGroupMembers (file:///opt/samureye/dist/index.js:2827:23)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.analyzeGroups (file:///opt/samureye/dist/index.js:2659:25)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.scanADHygiene (file:///opt/samureye/dist/index.js:2446:29)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeADHygiene (file:///opt/samureye/dist/index.js:3289:24)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:3165:9) {
+Sep 15 17:30:24 vlxsam99 npm[284661]:   code: 32
+Sep 15 17:30:24 vlxsam99 npm[284661]: }
+Sep 15 17:30:24 vlxsam99 npm[284661]: Erro na busca LDAP: NoSuchObjectError: 0000208D: NameErr: DSID-03100221, problem 2001 (NO_OBJECT), data 0, best match of:
+Sep 15 17:30:24 vlxsam99 npm[284661]:         ''
+Sep 15 17:30:24 vlxsam99 npm[284661]:  Code: 0x20
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at StatusCodeParser.parse (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:2614:16)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at Client._sendSearch (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3167:30)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async Client.search (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3068:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.searchLDAP (file:///opt/samureye/dist/index.js:2803:33)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.getGroupMembers (file:///opt/samureye/dist/index.js:2827:23)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.analyzeGroups (file:///opt/samureye/dist/index.js:2659:25)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.scanADHygiene (file:///opt/samureye/dist/index.js:2446:29)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeADHygiene (file:///opt/samureye/dist/index.js:3289:24)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:3165:9) {
+Sep 15 17:30:24 vlxsam99 npm[284661]:   code: 32
+Sep 15 17:30:24 vlxsam99 npm[284661]: }
+Sep 15 17:30:24 vlxsam99 npm[284661]: Erro na busca LDAP: NoSuchObjectError: 0000208D: NameErr: DSID-03100221, problem 2001 (NO_OBJECT), data 0, best match of:
+Sep 15 17:30:24 vlxsam99 npm[284661]:         ''
+Sep 15 17:30:24 vlxsam99 npm[284661]:  Code: 0x20
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at StatusCodeParser.parse (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:2614:16)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at Client._sendSearch (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3167:30)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async Client.search (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3068:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.searchLDAP (file:///opt/samureye/dist/index.js:2803:33)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.analyzeComputers (file:///opt/samureye/dist/index.js:2685:29)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.scanADHygiene (file:///opt/samureye/dist/index.js:2447:32)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeADHygiene (file:///opt/samureye/dist/index.js:3289:24)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:3165:9)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:3639:7) {
+Sep 15 17:30:24 vlxsam99 npm[284661]:   code: 32
+Sep 15 17:30:24 vlxsam99 npm[284661]: }
+Sep 15 17:30:24 vlxsam99 npm[284661]: Erro na busca LDAP: NoSuchObjectError: 0000208D: NameErr: DSID-03100221, problem 2001 (NO_OBJECT), data 0, best match of:
+Sep 15 17:30:24 vlxsam99 npm[284661]:         ''
+Sep 15 17:30:24 vlxsam99 npm[284661]:  Code: 0x20
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at StatusCodeParser.parse (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:2614:16)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at Client._sendSearch (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3167:30)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async Client.search (file:///opt/samureye/node_modules/ldapts/dist/index.mjs:3068:5)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.searchLDAP (file:///opt/samureye/dist/index.js:2803:33)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.analyzeConfiguration (file:///opt/samureye/dist/index.js:2757:28)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async ADScanner.scanADHygiene (file:///opt/samureye/dist/index.js:2449:30)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeADHygiene (file:///opt/samureye/dist/index.js:3289:24)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:3165:9)
+Sep 15 17:30:24 vlxsam99 npm[284661]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:3639:7) {
+Sep 15 17:30:24 vlxsam99 npm[284661]:   code: 32
+Sep 15 17:30:24 vlxsam99 npm[284661]: }
+Sep 15 17:30:24 vlxsam99 npm[284661]: 🔍 ThreatEngine analisando 1 achados para criação de ameaças...
+Sep 15 17:30:24 vlxsam99 npm[284661]: 📋 Analisando achado: tipo=ad_hygiene, porta=undefined, severidade=low
+Sep 15 17:30:24 vlxsam99 npm[284661]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Análise de Políticas Limitada","type":"ad_hygiene","target":"Group Policies","category":"po...
+Sep 15 17:30:24 vlxsam99 npm[284661]: 🎯 ThreatEngine criou 0 ameaças de 1 achados analisados

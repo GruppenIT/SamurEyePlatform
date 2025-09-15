@@ -19,6 +19,8 @@ export interface ADFinding {
 export class ADScanner {
   private client: Client | null = null;
   private readonly commonDCPorts = [389, 636, 3268, 3269]; // LDAP, LDAPS, Global Catalog
+  private baseDN: string = '';
+  private domain: string = '';
 
   /**
    * Escaneia higiene do Active Directory
@@ -53,6 +55,9 @@ export class ADScanner {
 
       // 2. Conectar ao Active Directory
       const dcHost = domainControllers[0];
+      this.domain = domain;
+      this.baseDN = this.buildBaseDN(domain);
+      console.log(`📍 Usando base DN: ${this.baseDN}`);
       await this.connectToAD(dcHost, username, password, domain, port);
 
       // 3. Análises de higiene
@@ -502,13 +507,24 @@ export class ADScanner {
   }
 
   /**
+   * Constrói o DN base a partir do domínio
+   */
+  private buildBaseDN(domain: string): string {
+    // Converter "gruppen.com.br" para "DC=gruppen,DC=com,DC=br"
+    return domain.split('.').map(part => `DC=${part}`).join(',');
+  }
+
+  /**
    * Executa busca LDAP
    */
-  private async searchLDAP(filter: string, attributes: string[]): Promise<any[]> {
+  private async searchLDAP(filter: string, attributes: string[], customBaseDN?: string): Promise<any[]> {
     if (!this.client) return [];
 
+    const searchBase = customBaseDN || this.baseDN;
+    console.log(`🔍 Buscando em: ${searchBase} com filtro: ${filter}`);
+
     try {
-      const { searchEntries } = await this.client.search('', {
+      const { searchEntries } = await this.client.search(searchBase, {
         filter,
         scope: 'sub',
         attributes
