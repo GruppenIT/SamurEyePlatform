@@ -1,18 +1,40 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { useQuery } from "@tanstack/react-query";
+
+interface SystemMetrics {
+  cpu: number;
+  memory: number;
+  services: Array<{
+    name: string;
+    status: string;
+    color: string;
+  }>;
+}
 
 export default function SystemHealth() {
-  // In a real implementation, this would come from an API
-  const systemMetrics = {
-    cpu: 23,
-    memory: 67,
-    services: [
-      { name: "API Backend", status: "online", color: "status-success" },
-      { name: "PostgreSQL", status: "conectado", color: "status-success" },
-      { name: "Redis Cache", status: "disponível", color: "status-success" },
-      { name: "Worker Queue", status: "2/4 Workers", color: "status-warning" },
-    ],
-  };
+  const { data: systemMetrics, isLoading } = useQuery<SystemMetrics>({
+    queryKey: ['/api/system/metrics'],
+    refetchInterval: 5000, // Refresh every 5 seconds
+  });
+
+  if (isLoading || !systemMetrics) {
+    return (
+      <Card className="bg-card border-border">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-lg font-semibold text-foreground">
+            Saúde do Sistema
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">Status dos componentes</p>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="animate-pulse">
+            <div className="h-20 bg-muted rounded"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="bg-card border-border">

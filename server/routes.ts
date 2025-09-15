@@ -70,6 +70,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // System metrics endpoint
+  app.get('/api/system/metrics', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const metrics = await storage.getSystemMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error("Erro ao buscar métricas do sistema:", error);
+      res.status(500).json({ message: "Falha ao buscar métricas do sistema" });
+    }
+  });
+
   // Asset routes
   app.get('/api/assets', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {

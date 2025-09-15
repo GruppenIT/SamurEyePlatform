@@ -107,6 +107,17 @@ export interface IStorage {
     jobsExecuted: number;
     successRate: number;
   }>;
+
+  // System metrics operations
+  getSystemMetrics(): Promise<{
+    cpu: number;
+    memory: number;
+    services: Array<{
+      name: string;
+      status: string;
+      color: string;
+    }>;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -530,6 +541,66 @@ export class DatabaseStorage implements IStorage {
       criticalThreats: Number(criticalThreatsCount.count),
       jobsExecuted: Number(jobsCount.count),
       successRate: Math.round(successRate * 10) / 10, // Round to 1 decimal place
+    };
+  }
+
+  async getSystemMetrics(): Promise<{
+    cpu: number;
+    memory: number;
+    services: Array<{
+      name: string;
+      status: string;
+      color: string;
+    }>;
+  }> {
+    // Get real CPU and memory usage
+    const os = require('os');
+    
+    // Calculate CPU usage (simple average)
+    const cpus = os.cpus();
+    let totalIdle = 0;
+    let totalTick = 0;
+    
+    cpus.forEach((cpu: any) => {
+      for (let type in cpu.times) {
+        totalTick += cpu.times[type];
+      }
+      totalIdle += cpu.times.idle;
+    });
+    
+    const idle = totalIdle / cpus.length;
+    const total = totalTick / cpus.length;
+    const cpuUsage = Math.round(100 - (100 * idle / total));
+    
+    // Calculate memory usage
+    const totalMemory = os.totalmem();
+    const freeMemory = os.freemem();
+    const memoryUsage = Math.round(((totalMemory - freeMemory) / totalMemory) * 100);
+    
+    // Check database connection
+    let dbStatus = "conectado";
+    let dbColor = "status-success";
+    try {
+      await db.execute(sql`SELECT 1`);
+    } catch (error) {
+      dbStatus = "desconectado";
+      dbColor = "status-error";
+    }
+    
+    // Check running jobs for worker queue status
+    const runningJobs = await this.getRunningJobs();
+    const workerStatus = runningJobs.length > 0 ? `${runningJobs.length}/4 Workers` : "0/4 Workers";
+    const workerColor = runningJobs.length > 0 ? "status-success" : "status-warning";
+    
+    return {
+      cpu: cpuUsage,
+      memory: memoryUsage,
+      services: [
+        { name: "API Backend", status: "online", color: "status-success" },
+        { name: "PostgreSQL", status: dbStatus, color: dbColor },
+        { name: "Redis Cache", status: "não configurado", color: "status-warning" },
+        { name: "Worker Queue", status: workerStatus, color: workerColor },
+      ],
     };
   }
 }
