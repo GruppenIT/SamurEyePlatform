@@ -2,6 +2,7 @@ import { Client } from 'ldapts';
 import { spawn } from 'child_process';
 import dns from 'dns';
 import { promisify } from 'util';
+import { settingsService } from '../settingsService';
 
 const dnsResolve = promisify(dns.resolve);
 
@@ -237,6 +238,9 @@ export class ADScanner {
     if (!this.client) return findings;
 
     try {
+      // Obter configurações do sistema
+      const settings = await settingsService.getADHygieneSettings();
+      
       // Buscar usuários com problemas de segurança
       const searchResults = await this.searchLDAP('(objectClass=user)', [
         'cn', 'sAMAccountName', 'userAccountControl', 'pwdLastSet',
@@ -247,23 +251,43 @@ export class ADScanner {
       let inactiveUsers = 0;
       let adminUsers = 0;
       let usersWithOldPasswords = 0;
+      const domainAdminsWithOldPasswords: any[] = [];
+      const specificInactiveUsers: any[] = [];
 
       const now = Date.now();
-      const sixMonthsAgo = now - (6 * 30 * 24 * 60 * 60 * 1000);
+      const inactiveLimitMs = now - (settings.adInactiveUserLimitDays * 24 * 60 * 60 * 1000);
+      const passwordAgeLimitMs = settings.adPasswordAgeLimitDays * 24 * 60 * 60 * 1000;
+
+      // Primeiro, obter membros do grupo Domain Admins
+      const domainAdminMembers = await this.getGroupMembers('Domain Admins');
 
       for (const user of searchResults) {
         const userAccountControl = parseInt(user.userAccountControl?.[0] || '0');
         const pwdLastSet = this.convertFileTimeToDate(user.pwdLastSet?.[0]);
         const lastLogon = this.convertFileTimeToDate(user.lastLogon?.[0]);
+        const username = user.sAMAccountName?.[0] || user.cn?.[0] || 'Unknown';
         
+        // Verificar se usuário está habilitado (bit 2 = ACCOUNTDISABLE)
+        const isEnabled = !(userAccountControl & 0x0002);
+        
+        // Verificar se é Domain Admin
+        const isDomainAdmin = domainAdminMembers.some(dn => 
+          dn.toLowerCase().includes(`cn=${username.toLowerCase()}`)
+        );
+
         // Senha nunca expira
         if (userAccountControl & 0x10000) {
           usersWithPasswordNeverExpires++;
         }
 
-        // Usuários inativos (sem login há 6 meses)
-        if (lastLogon && lastLogon.getTime() < sixMonthsAgo) {
+        // Usuários inativos - usando configuração do sistema
+        if (lastLogon && lastLogon.getTime() < inactiveLimitMs && isEnabled) {
           inactiveUsers++;
+          specificInactiveUsers.push({
+            username,
+            lastLogon: lastLogon.toISOString(),
+            daysSinceLastLogon: Math.floor((now - lastLogon.getTime()) / (24 * 60 * 60 * 1000))
+          });
         }
 
         // Usuários administrativos
@@ -271,10 +295,61 @@ export class ADScanner {
           adminUsers++;
         }
 
-        // Senhas antigas (mais de 90 dias)
-        if (pwdLastSet && (now - pwdLastSet.getTime()) > (90 * 24 * 60 * 60 * 1000)) {
+        // Senhas antigas - usando configuração do sistema
+        if (pwdLastSet && (now - pwdLastSet.getTime()) > passwordAgeLimitMs) {
           usersWithOldPasswords++;
+          
+          // Verificação específica para Domain Admins - AMEAÇA CRÍTICA
+          if (isDomainAdmin && isEnabled) {
+            const daysSincePasswordChange = Math.floor((now - pwdLastSet.getTime()) / (24 * 60 * 60 * 1000));
+            domainAdminsWithOldPasswords.push({
+              username,
+              daysSincePasswordChange,
+              lastPasswordSet: pwdLastSet.toISOString(),
+              lastLogon: lastLogon?.toISOString() || 'Never'
+            });
+          }
         }
+      }
+
+      // Gerar ameaças específicas para Domain Admins com senhas antigas
+      for (const admin of domainAdminsWithOldPasswords) {
+        findings.push({
+          type: 'ad_vulnerability',
+          target: admin.username,
+          name: 'Domain Admin com Senha Crítica Expirada',
+          severity: 'critical',
+          category: 'users',
+          description: `Domain Admin "${admin.username}" não troca a senha há ${admin.daysSincePasswordChange} dias (limite: ${settings.adPasswordAgeLimitDays} dias)`,
+          evidence: {
+            username: admin.username,
+            daysSincePasswordChange: admin.daysSincePasswordChange,
+            lastPasswordSet: admin.lastPasswordSet,
+            lastLogon: admin.lastLogon,
+            passwordAgeLimit: settings.adPasswordAgeLimitDays,
+            groupMembership: 'Domain Admins'
+          },
+          recommendation: 'Forçar troca imediata de senha para conta Domain Admin'
+        });
+      }
+
+      // Gerar ameaças específicas para usuários inativos
+      for (const inactiveUser of specificInactiveUsers) {
+        findings.push({
+          type: 'ad_hygiene',
+          target: inactiveUser.username,
+          name: 'Usuário Inativo Detectado',
+          severity: 'low',
+          category: 'users',
+          description: `Usuário "${inactiveUser.username}" inativo há ${inactiveUser.daysSinceLastLogon} dias (limite: ${settings.adInactiveUserLimitDays} dias)`,
+          evidence: {
+            username: inactiveUser.username,
+            daysSinceLastLogon: inactiveUser.daysSinceLastLogon,
+            lastLogon: inactiveUser.lastLogon,
+            inactiveUserLimit: settings.adInactiveUserLimitDays
+          },
+          recommendation: 'Revisar e considerar desabilitar conta inativa'
+        });
       }
 
       // Gerar findings baseados na análise

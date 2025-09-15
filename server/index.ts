@@ -3,6 +3,7 @@ import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
+import { settingsService } from "./services/settingsService";
 
 const app = express();
 
@@ -66,6 +67,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Inicializar configurações padrão do sistema
+  await settingsService.initializeDefaultSettings();
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

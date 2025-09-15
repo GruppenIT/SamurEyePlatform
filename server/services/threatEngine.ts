@@ -370,6 +370,59 @@ class ThreatEngineService {
           },
         }),
       },
+      // Regras específicas para ameaças individuais
+      {
+        id: 'domain-admin-critical-password-expired',
+        name: 'Domain Admin com Senha Crítica Expirada',
+        description: 'Conta Domain Admin com senha expirada há muito tempo',
+        severity: 'critical',
+        matcher: (finding) => 
+          finding.type === 'ad_vulnerability' &&
+          finding.name === 'Domain Admin com Senha Crítica Expirada',
+        createThreat: (finding, assetId, jobId) => ({
+          title: finding.name,
+          description: finding.description,
+          severity: 'critical',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            username: finding.evidence?.username,
+            target: finding.target,
+            daysSincePasswordChange: finding.evidence?.daysSincePasswordChange,
+            lastPasswordSet: finding.evidence?.lastPasswordSet,
+            lastLogon: finding.evidence?.lastLogon,
+            passwordAgeLimit: finding.evidence?.passwordAgeLimit,
+            groupMembership: finding.evidence?.groupMembership,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'specific-inactive-user',
+        name: 'Usuário Inativo Detectado',
+        description: 'Usuário específico inativo há muito tempo',
+        severity: 'low',
+        matcher: (finding) => 
+          finding.type === 'ad_hygiene' &&
+          finding.name === 'Usuário Inativo Detectado',
+        createThreat: (finding, assetId, jobId) => ({
+          title: `Usuário inativo: ${finding.target}`,
+          description: finding.description,
+          severity: 'low',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            username: finding.evidence?.username,
+            target: finding.target,
+            daysSinceLastLogon: finding.evidence?.daysSinceLastLogon,
+            lastLogon: finding.evidence?.lastLogon,
+            inactiveUserLimit: finding.evidence?.inactiveUserLimit,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
       {
         id: 'domain-admin-old-password',
         name: 'Domain Admin com Senha Antiga',
