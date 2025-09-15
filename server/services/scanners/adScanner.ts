@@ -30,7 +30,15 @@ export class ADScanner {
     domain: string,
     username: string,
     password: string,
-    port?: number
+    port?: number,
+    enabledAnalyses?: {
+      enableUsers?: boolean;
+      enableGroups?: boolean;
+      enableComputers?: boolean;
+      enablePolicies?: boolean;
+      enableConfiguration?: boolean;
+      enableDomainConfiguration?: boolean;
+    }
   ): Promise<ADFinding[]> {
     console.log(`Iniciando análise de higiene AD para domínio ${domain}`);
     
@@ -61,18 +69,67 @@ export class ADScanner {
       console.log(`📍 Usando base DN: ${this.baseDN}`);
       await this.connectToAD(dcHost, username, password, domain, port);
 
-      // 3. Análises de higiene
-      const userAnalysis = await this.analyzeUsers();
-      const groupAnalysis = await this.analyzeGroups();
-      const computerAnalysis = await this.analyzeComputers();
-      const policyAnalysis = await this.analyzePolicies();
-      const configAnalysis = await this.analyzeConfiguration();
-
-      findings.push(...userAnalysis);
-      findings.push(...groupAnalysis);
-      findings.push(...computerAnalysis);
-      findings.push(...policyAnalysis);
-      findings.push(...configAnalysis);
+      // 3. Análises de higiene (execução sequencial para evitar problemas de concorrência LDAP)
+      console.log('📊 Iniciando análises de higiene AD...');
+      
+      // Valores padrão se não especificado - habilitar todas as análises
+      const analyses = {
+        enableUsers: true,
+        enableGroups: true,
+        enableComputers: true,
+        enablePolicies: true,
+        enableConfiguration: true,
+        enableDomainConfiguration: true,
+        ...enabledAnalyses
+      };
+      
+      if (analyses.enableUsers) {
+        const userAnalysis = await this.analyzeUsers();
+        console.log(`✅ Análise de usuários concluída: ${userAnalysis.length} achados`);
+        findings.push(...userAnalysis);
+      } else {
+        console.log('⏭️ Análise de usuários pulada (desabilitada)');
+      }
+      
+      if (analyses.enableGroups) {
+        const groupAnalysis = await this.analyzeGroups();
+        console.log(`✅ Análise de grupos concluída: ${groupAnalysis.length} achados`);
+        findings.push(...groupAnalysis);
+      } else {
+        console.log('⏭️ Análise de grupos pulada (desabilitada)');
+      }
+      
+      if (analyses.enableComputers) {
+        const computerAnalysis = await this.analyzeComputers();
+        console.log(`✅ Análise de computadores concluída: ${computerAnalysis.length} achados`);
+        findings.push(...computerAnalysis);
+      } else {
+        console.log('⏭️ Análise de computadores pulada (desabilitada)');
+      }
+      
+      if (analyses.enablePolicies) {
+        const policyAnalysis = await this.analyzePolicies();
+        console.log(`✅ Análise de políticas concluída: ${policyAnalysis.length} achados`);
+        findings.push(...policyAnalysis);
+      } else {
+        console.log('⏭️ Análise de políticas pulada (desabilitada)');
+      }
+      
+      if (analyses.enableConfiguration) {
+        const configAnalysis = await this.analyzeConfiguration();
+        console.log(`✅ Análise de configuração concluída: ${configAnalysis.length} achados`);
+        findings.push(...configAnalysis);
+      } else {
+        console.log('⏭️ Análise de configuração pulada (desabilitada)');
+      }
+      
+      if (analyses.enableDomainConfiguration) {
+        const domainConfigAnalysis = await this.analyzeDomainConfiguration();
+        console.log(`✅ Análise de configuração de domínio concluída: ${domainConfigAnalysis.length} achados`);
+        findings.push(...domainConfigAnalysis);
+      } else {
+        console.log('⏭️ Análise de configuração de domínio pulada (desabilitada)');
+      }
 
     } catch (error) {
       console.error('Erro durante análise AD:', error);
@@ -449,28 +506,83 @@ export class ADScanner {
     if (!this.client) return findings;
 
     try {
+      // Obter configurações do sistema
+      const settings = await settingsService.getADHygieneSettings();
+      
       const searchResults = await this.searchLDAP('(objectClass=computer)', [
-        'cn', 'operatingSystem', 'operatingSystemVersion', 'lastLogon'
+        'cn', 'operatingSystem', 'operatingSystemVersion', 'lastLogon', 'dNSHostName'
       ]);
 
       let oldSystems = 0;
       let inactiveComputers = 0;
+      const specificInactiveComputers: any[] = [];
+      const specificObsoleteComputers: any[] = [];
+      
       const now = Date.now();
-      const threeMonthsAgo = now - (3 * 30 * 24 * 60 * 60 * 1000);
+      const inactiveLimitMs = now - (settings.adComputerInactiveDays * 24 * 60 * 60 * 1000);
 
       for (const computer of searchResults) {
         const os = computer.operatingSystem?.[0] || '';
         const lastLogon = this.convertFileTimeToDate(computer.lastLogon?.[0]);
+        const computerName = computer.cn?.[0] || computer.dNSHostName?.[0] || 'Unknown';
 
         // Sistemas operacionais antigos
-        if (os.includes('Windows 7') || os.includes('Windows XP') || os.includes('Server 2008')) {
+        if (os.includes('Windows 7') || os.includes('Windows XP') || os.includes('Server 2008') || os.includes('Server 2003')) {
           oldSystems++;
+          specificObsoleteComputers.push({
+            computerName,
+            operatingSystem: os,
+            osVersion: computer.operatingSystemVersion?.[0] || 'Unknown'
+          });
         }
 
-        // Computadores inativos
-        if (lastLogon && lastLogon.getTime() < threeMonthsAgo) {
+        // Computadores inativos - usando configuração do sistema
+        if (lastLogon && lastLogon.getTime() < inactiveLimitMs) {
           inactiveComputers++;
+          const daysSinceLastLogon = Math.floor((now - lastLogon.getTime()) / (24 * 60 * 60 * 1000));
+          specificInactiveComputers.push({
+            computerName,
+            lastLogon: lastLogon.toISOString(),
+            daysSinceLastLogon
+          });
         }
+      }
+
+      // Gerar ameaças específicas para computadores inativos
+      for (const inactiveComp of specificInactiveComputers) {
+        findings.push({
+          type: 'ad_hygiene',
+          target: inactiveComp.computerName,
+          name: 'Computador Inativo no Domínio',
+          severity: 'low',
+          category: 'computers',
+          description: `Computador "${inactiveComp.computerName}" inativo há ${inactiveComp.daysSinceLastLogon} dias (limite: ${settings.adComputerInactiveDays} dias)`,
+          evidence: {
+            computerName: inactiveComp.computerName,
+            daysSinceLastLogon: inactiveComp.daysSinceLastLogon,
+            lastLogon: inactiveComp.lastLogon,
+            inactiveComputerLimit: settings.adComputerInactiveDays
+          },
+          recommendation: 'Revisar e considerar remover computador inativo do domínio'
+        });
+      }
+
+      // Gerar ameaças específicas para sistemas obsoletos
+      for (const obsoleteComp of specificObsoleteComputers) {
+        findings.push({
+          type: 'ad_vulnerability',
+          target: obsoleteComp.computerName,
+          name: 'Sistema Operacional Obsoleto',
+          severity: 'medium',
+          category: 'computers',
+          description: `Computador "${obsoleteComp.computerName}" executa SO obsoleto: ${obsoleteComp.operatingSystem}`,
+          evidence: {
+            computerName: obsoleteComp.computerName,
+            operatingSystem: obsoleteComp.operatingSystem,
+            osVersion: obsoleteComp.osVersion
+          },
+          recommendation: 'Atualizar sistema operacional para versão suportada'
+        });
       }
 
       if (oldSystems > 0) {
@@ -576,6 +688,145 @@ export class ADScanner {
 
     } catch (error) {
       console.error('Erro ao analisar configuração:', error);
+    }
+
+    return findings;
+  }
+
+  /**
+   * Analisa configuração específica do domínio
+   */
+  private async analyzeDomainConfiguration(): Promise<ADFinding[]> {
+    const findings: ADFinding[] = [];
+
+    if (!this.client) return findings;
+
+    try {
+      // Obter configurações do sistema
+      const settings = await settingsService.getADHygieneSettings();
+      
+      // Análise de grupos privilegiados com muitos membros
+      const privilegedGroups = ['Domain Admins', 'Enterprise Admins', 'Schema Admins', 'Administrators'];
+      
+      for (const groupName of privilegedGroups) {
+        try {
+          const members = await this.getGroupMembers(groupName);
+          
+          if (members.length > settings.adMaxPrivilegedGroupMembers) {
+            findings.push({
+              type: 'ad_vulnerability',
+              target: groupName,
+              name: 'Grupo Privilegiado com Muitos Membros',
+              severity: 'medium',
+              category: 'groups',
+              description: `Grupo "${groupName}" possui ${members.length} membros (limite recomendado: ${settings.adMaxPrivilegedGroupMembers})`,
+              evidence: {
+                groupName,
+                memberCount: members.length,
+                maxRecommendedMembers: settings.adMaxPrivilegedGroupMembers,
+                members: members.slice(0, 10) // Primeiros 10 membros para evidência
+              },
+              recommendation: 'Revisar necessidade de todos os membros em grupos privilegiados'
+            });
+          }
+        } catch (error) {
+          console.error(`Erro ao analisar grupo ${groupName}:`, error);
+        }
+      }
+
+      // Verificar configurações de domínio avançadas
+      const domainRoot = await this.searchLDAP('(objectClass=domain)', [
+        'distinguishedName', 'lockoutDuration', 'lockoutThreshold', 'maxPwdAge', 
+        'minPwdAge', 'minPwdLength', 'pwdHistoryLength', 'pwdProperties'
+      ]);
+
+      if (domainRoot.length > 0) {
+        const config = domainRoot[0];
+
+        // Verificar histórico de senhas
+        const pwdHistoryLength = parseInt(config.pwdHistoryLength?.[0] || '0');
+        if (pwdHistoryLength < 12) {
+          findings.push({
+            type: 'ad_vulnerability',
+            target: 'Domain Password Policy',
+            name: 'Histórico de Senhas Insuficiente',
+            severity: 'low',
+            category: 'configuration',
+            description: `Histórico de senhas configurado para ${pwdHistoryLength} senhas (recomendado: 12+)`,
+            evidence: { currentHistoryLength: pwdHistoryLength },
+            recommendation: 'Configurar histórico de senhas para pelo menos 12 senhas anteriores'
+          });
+        }
+
+        // Verificar complexidade de senhas
+        const pwdProperties = parseInt(config.pwdProperties?.[0] || '0');
+        const complexityEnabled = (pwdProperties & 0x1) !== 0;
+        
+        if (!complexityEnabled) {
+          findings.push({
+            type: 'ad_vulnerability',
+            target: 'Domain Password Policy',
+            name: 'Complexidade de Senha Desabilitada',
+            severity: 'high',
+            category: 'configuration',
+            description: 'Política de complexidade de senhas não está habilitada',
+            evidence: { pwdProperties, complexityEnabled },
+            recommendation: 'Habilitar política de complexidade de senhas no domínio'
+          });
+        }
+
+        // Verificar idade máxima das senhas
+        const maxPwdAge = parseInt(config.maxPwdAge?.[0] || '0');
+        if (maxPwdAge === 0) {
+          findings.push({
+            type: 'ad_vulnerability',
+            target: 'Domain Password Policy',
+            name: 'Senhas Sem Expiração',
+            severity: 'medium',
+            category: 'configuration',
+            description: 'Senhas do domínio configuradas para nunca expirar',
+            evidence: { maxPwdAge },
+            recommendation: 'Configurar idade máxima para senhas (recomendado: 90 dias)'
+          });
+        }
+      }
+
+      // Verificar Trusts de domínio (se aplicável)
+      try {
+        const trusts = await this.searchLDAP('(objectClass=trustedDomain)', [
+          'cn', 'trustDirection', 'trustType', 'trustAttributes'
+        ]);
+
+        for (const trust of trusts) {
+          const trustName = trust.cn?.[0] || 'Unknown Trust';
+          const trustDirection = parseInt(trust.trustDirection?.[0] || '0');
+          
+          // Trust bidirecional pode representar maior risco
+          if (trustDirection === 3) { // Bidirectional trust
+            findings.push({
+              type: 'ad_hygiene',
+              target: trustName,
+              name: 'Trust Bidirecional Detectado',
+              severity: 'low',
+              category: 'configuration',
+              description: `Trust bidirecional configurado com domínio "${trustName}"`,
+              evidence: {
+                trustName,
+                trustDirection,
+                trustType: trust.trustType?.[0],
+                trustAttributes: trust.trustAttributes?.[0]
+              },
+              recommendation: 'Revisar necessidade de trusts bidirecionais e considerar torná-los unidirecionais'
+            });
+          }
+        }
+      } catch (error) {
+        // Trusts podem não estar acessíveis dependendo dos privilégios
+        console.log('Informações de trust não disponíveis com as credenciais atuais');
+      }
+
+    } catch (error) {
+      console.error('Erro na análise de configuração do domínio:', error);
     }
 
     return findings;

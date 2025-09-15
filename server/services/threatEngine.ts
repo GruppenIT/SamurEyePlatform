@@ -423,6 +423,166 @@ class ThreatEngineService {
           },
         }),
       },
+      // Novas regras para configuração de domínio
+      {
+        id: 'privileged-group-too-many-members',
+        name: 'Grupo Privilegiado com Muitos Membros',
+        description: 'Grupo administrativo com número excessivo de membros',
+        severity: 'medium',
+        matcher: (finding) => 
+          finding.type === 'ad_vulnerability' &&
+          finding.name === 'Grupo Privilegiado com Muitos Membros',
+        createThreat: (finding, assetId, jobId) => ({
+          title: `Grupo privilegiado: ${finding.target}`,
+          description: finding.description,
+          severity: 'medium',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            groupName: finding.evidence?.groupName,
+            memberCount: finding.evidence?.memberCount,
+            maxRecommendedMembers: finding.evidence?.maxRecommendedMembers,
+            members: finding.evidence?.members,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'password-complexity-disabled',
+        name: 'Complexidade de Senha Desabilitada',
+        description: 'Política de complexidade de senhas não habilitada',
+        severity: 'high',
+        matcher: (finding) => 
+          finding.type === 'ad_vulnerability' &&
+          finding.name === 'Complexidade de Senha Desabilitada',
+        createThreat: (finding, assetId, jobId) => ({
+          title: finding.name,
+          description: finding.description,
+          severity: 'high',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            pwdProperties: finding.evidence?.pwdProperties,
+            complexityEnabled: finding.evidence?.complexityEnabled,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'password-history-insufficient',
+        name: 'Histórico de Senhas Insuficiente',
+        description: 'Histórico de senhas configurado inadequadamente',
+        severity: 'low',
+        matcher: (finding) => 
+          finding.type === 'ad_vulnerability' &&
+          finding.name === 'Histórico de Senhas Insuficiente',
+        createThreat: (finding, assetId, jobId) => ({
+          title: finding.name,
+          description: finding.description,
+          severity: 'low',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            currentHistoryLength: finding.evidence?.currentHistoryLength,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'passwords-never-expire',
+        name: 'Senhas Sem Expiração',
+        description: 'Senhas configuradas para nunca expirar',
+        severity: 'medium',
+        matcher: (finding) => 
+          finding.type === 'ad_vulnerability' &&
+          finding.name === 'Senhas Sem Expiração',
+        createThreat: (finding, assetId, jobId) => ({
+          title: finding.name,
+          description: finding.description,
+          severity: 'medium',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            maxPwdAge: finding.evidence?.maxPwdAge,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'inactive-computer-detected',
+        name: 'Computador Inativo no Domínio',
+        description: 'Computador específico inativo há muito tempo',
+        severity: 'low',
+        matcher: (finding) => 
+          finding.type === 'ad_hygiene' &&
+          finding.name === 'Computador Inativo no Domínio',
+        createThreat: (finding, assetId, jobId) => ({
+          title: `Computador inativo: ${finding.target}`,
+          description: finding.description,
+          severity: 'low',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            computerName: finding.evidence?.computerName,
+            daysSinceLastLogon: finding.evidence?.daysSinceLastLogon,
+            lastLogon: finding.evidence?.lastLogon,
+            inactiveComputerLimit: finding.evidence?.inactiveComputerLimit,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'obsolete-operating-system',
+        name: 'Sistema Operacional Obsoleto',
+        description: 'Sistema operacional não suportado detectado',
+        severity: 'medium',
+        matcher: (finding) => 
+          finding.type === 'ad_vulnerability' &&
+          finding.name === 'Sistema Operacional Obsoleto',
+        createThreat: (finding, assetId, jobId) => ({
+          title: `SO obsoleto: ${finding.target}`,
+          description: finding.description,
+          severity: 'medium',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            computerName: finding.evidence?.computerName,
+            operatingSystem: finding.evidence?.operatingSystem,
+            osVersion: finding.evidence?.osVersion,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      {
+        id: 'bidirectional-trust-detected',
+        name: 'Trust Bidirecional Detectado',
+        description: 'Trust de domínio bidirecional configurado',
+        severity: 'low',
+        matcher: (finding) => 
+          finding.type === 'ad_hygiene' &&
+          finding.name === 'Trust Bidirecional Detectado',
+        createThreat: (finding, assetId, jobId) => ({
+          title: `Trust bidirecional: ${finding.target}`,
+          description: finding.description,
+          severity: 'low',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            trustName: finding.evidence?.trustName,
+            trustDirection: finding.evidence?.trustDirection,
+            trustType: finding.evidence?.trustType,
+            trustAttributes: finding.evidence?.trustAttributes,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
       {
         id: 'domain-admin-old-password',
         name: 'Domain Admin com Senha Antiga',

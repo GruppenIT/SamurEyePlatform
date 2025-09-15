@@ -25,14 +25,22 @@ export class SettingsService {
     console.log('🔧 Inicializando configurações padrão do sistema...');
     
     try {
-      // Criar usuário admin padrão se não existir (para configurações)
-      let adminUserId = 'system';
+      // Verificar se há usuários no sistema
+      const users = await storage.getAllUsers();
+      
+      if (users.length === 0) {
+        console.log('⚠️ Nenhum usuário encontrado. Configurações serão criadas após primeiro usuário.');
+        return;
+      }
+      
+      // Usar o primeiro usuário admin encontrado, ou o primeiro usuário se não houver admin
+      const adminUser = users.find(u => u.role === 'global_administrator') || users[0];
       
       for (const [key, value] of Object.entries(this.DEFAULT_SETTINGS)) {
         const existingSetting = await storage.getSetting(key);
         
         if (!existingSetting) {
-          await storage.setSetting(key, value, adminUserId);
+          await storage.setSetting(key, value, adminUser.id);
           console.log(`✅ Configuração criada: ${key} = ${value}`);
         }
       }

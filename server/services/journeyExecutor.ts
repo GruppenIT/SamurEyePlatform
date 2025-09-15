@@ -208,12 +208,23 @@ class JourneyExecutorService {
     onProgress({ status: 'running', progress: 30, currentTask: 'Conectando ao Active Directory' });
 
     try {
+      // Extract enabled analyses from journey params
+      const enabledAnalyses = {
+        enableUsers: params.enableUsers !== false,          // default true
+        enableGroups: params.enableGroups !== false,        // default true
+        enableComputers: params.enableComputers !== false,  // default true
+        enablePolicies: params.enablePolicies !== false,    // default true
+        enableConfiguration: params.enableConfiguration !== false, // default true
+        enableDomainConfiguration: params.enableDomainConfiguration !== false // default true
+      };
+
       // Real AD hygiene scan using adScanner
       const findings = await adScanner.scanADHygiene(
         domain,
         credential.username,
         decryptedPassword,
-        credential.port || undefined
+        credential.port || undefined,
+        enabledAnalyses
       );
 
       onProgress({ status: 'running', progress: 80, currentTask: 'Processando resultados' });

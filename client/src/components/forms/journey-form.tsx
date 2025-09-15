@@ -244,74 +244,130 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
               <FormLabel>Verificações de Higiene AD</FormLabel>
               <div className="mt-3 space-y-3 border rounded-md p-4 bg-muted/10">
                 <div className="text-sm font-medium text-foreground mb-2">
-                  Os seguintes testes serão executados:
+                  Selecione os testes para executar:
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox checked disabled />
-                    <span>Análise de Usuários</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox checked disabled />
-                    <span>Análise de Grupos Privilegiados</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox checked disabled />
-                    <span>Análise de Computadores</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox checked disabled />
-                    <span>Análise de Políticas</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox checked disabled />
-                    <span>Configurações de Domínio</span>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="params.enableUsers"
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-ad-users"
+                        />
+                        <label className="text-sm font-medium">
+                          Análise de Usuários
+                        </label>
+                      </div>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="params.enableGroups"
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-ad-groups"
+                        />
+                        <label className="text-sm font-medium">
+                          Análise de Grupos Privilegiados
+                        </label>
+                      </div>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="params.enableComputers"
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-ad-computers"
+                        />
+                        <label className="text-sm font-medium">
+                          Análise de Computadores
+                        </label>
+                      </div>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="params.enablePolicies"
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-ad-policies"
+                        />
+                        <label className="text-sm font-medium">
+                          Análise de Políticas
+                        </label>
+                      </div>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="params.enableConfiguration"
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-ad-configuration"
+                        />
+                        <label className="text-sm font-medium">
+                          Configurações de Domínio
+                        </label>
+                      </div>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="params.enableDomainConfiguration"
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-ad-domain-config"
+                        />
+                        <label className="text-sm font-medium">
+                          Análise Avançada de Domínio
+                        </label>
+                      </div>
+                    )}
+                  />
                 </div>
 
                 <div className="mt-4 pt-3 border-t">
                   <div className="text-sm font-medium text-foreground mb-2">
-                    Verificações de Segurança:
+                    Verificações incluídas quando habilitadas:
                   </div>
-                  <div className="grid grid-cols-1 gap-2 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox checked disabled />
-                      <span className="text-red-600 dark:text-red-400">
-                        🚨 Domain Admins com senhas antigas (Severidade: CRÍTICA)
-                      </span>
+                  <div className="grid grid-cols-1 gap-1 text-xs">
+                    <div className="text-red-600 dark:text-red-400">
+                      🚨 Domain Admins com senhas antigas (Severidade: CRÍTICA)
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox checked disabled />
-                      <span className="text-blue-600 dark:text-blue-400">
-                        ℹ️ Usuários inativos por período configurado (Severidade: BAIXA)
-                      </span>
+                    <div className="text-blue-600 dark:text-blue-400">
+                      ℹ️ Usuários inativos por período configurado (Severidade: BAIXA)
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox checked disabled />
-                      <span>Usuários com senhas que nunca expiram</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox checked disabled />
-                      <span>Grupos privilegiados com muitos membros</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox checked disabled />
-                      <span>Sistemas operacionais obsoletos</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox checked disabled />
-                      <span>Computadores inativos no domínio</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox checked disabled />
-                      <span>Políticas de senha fracas</span>
-                    </div>
+                    <div>• Usuários com senhas que nunca expiram</div>
+                    <div>• Grupos privilegiados com muitos membros</div>
+                    <div>• Sistemas operacionais obsoletos</div>
+                    <div>• Computadores inativos no domínio</div>
+                    <div>• Políticas de senha fracas</div>
+                    <div>• Trusts bidirecionais de domínio</div>
                   </div>
                 </div>
               </div>
               <FormDescription>
-                Todos os testes são executados automaticamente. Os limites são configuráveis nas configurações do sistema.
+                Selecione os módulos de análise para executar. Os limites são configuráveis nas configurações do sistema.
               </FormDescription>
             </div>
           </div>
