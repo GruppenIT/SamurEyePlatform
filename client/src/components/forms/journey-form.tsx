@@ -88,6 +88,13 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
       case 'ad_hygiene':
         params.domain = form.getValues('params.domain');
         params.credentialId = form.getValues('params.credentialId');
+        // Incluir configurações de análises habilitadas
+        params.enableUsers = form.getValues('params.enableUsers') ?? true;
+        params.enableGroups = form.getValues('params.enableGroups') ?? true;
+        params.enableComputers = form.getValues('params.enableComputers') ?? true;
+        params.enablePolicies = form.getValues('params.enablePolicies') ?? true;
+        params.enableConfiguration = form.getValues('params.enableConfiguration') ?? true;
+        params.enableDomainConfiguration = form.getValues('params.enableDomainConfiguration') ?? true;
         break;
       case 'edr_av':
         params.sampleRate = parseInt(form.getValues('params.sampleRate')) || 15;
