@@ -69,6 +69,103 @@ class ThreatEngineService {
           },
         }),
       },
+      {
+        id: 'web-ports-exposed',
+        name: 'Portas Web Expostas',
+        description: 'Portas de serviços web abertas na internet',
+        severity: 'medium',
+        matcher: (finding) => 
+          finding.type === 'port' && 
+          ['80', '443', '8080', '8443'].includes(finding.port) &&
+          finding.state === 'open',
+        createThreat: (finding, assetId, jobId) => ({
+          title: `Porta web ${finding.port} exposta`,
+          description: `Serviço web na porta ${finding.port} (${finding.service}) está acessível`,
+          severity: 'medium',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            port: finding.port,
+            service: finding.service,
+            state: finding.state,
+            version: finding.version,
+          },
+        }),
+      },
+      {
+        id: 'smb-ports-exposed',
+        name: 'Portas SMB/NetBIOS Expostas',
+        description: 'Portas de compartilhamento SMB abertas na internet',
+        severity: 'high',
+        matcher: (finding) => 
+          finding.type === 'port' && 
+          ['139', '445'].includes(finding.port) &&
+          finding.state === 'open',
+        createThreat: (finding, assetId, jobId) => ({
+          title: `Porta SMB ${finding.port} exposta`,
+          description: `Serviço de compartilhamento na porta ${finding.port} (${finding.service}) está acessível`,
+          severity: 'high',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            port: finding.port,
+            service: finding.service,
+            state: finding.state,
+            version: finding.version,
+          },
+        }),
+      },
+      {
+        id: 'database-ports-exposed',
+        name: 'Portas de Banco de Dados Expostas',
+        description: 'Portas de bancos de dados abertas na internet',
+        severity: 'high',
+        matcher: (finding) => 
+          finding.type === 'port' && 
+          ['1433', '3306', '5432', '1521', '27017'].includes(finding.port) &&
+          finding.state === 'open',
+        createThreat: (finding, assetId, jobId) => ({
+          title: `Porta de banco ${finding.port} exposta`,
+          description: `Banco de dados na porta ${finding.port} (${finding.service}) está acessível`,
+          severity: 'high',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            port: finding.port,
+            service: finding.service,
+            state: finding.state,
+            version: finding.version,
+          },
+        }),
+      },
+      {
+        id: 'nuclei-vulnerability',
+        name: 'Vulnerabilidade Detectada pelo Nuclei',
+        description: 'Vulnerabilidade identificada por nuclei',
+        severity: 'high',
+        matcher: (finding) => 
+          finding.type === 'vulnerability' && 
+          finding.evidence?.source === 'nuclei',
+        createThreat: (finding, assetId, jobId) => ({
+          title: `${finding.name || finding.template} detectado`,
+          description: `Vulnerabilidade: ${finding.description || finding.name}`,
+          severity: finding.severity || 'medium',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            templateId: finding.template,
+            url: finding.evidence?.url,
+            matcher: finding.evidence?.matcher,
+            extractedResults: finding.evidence?.extractedResults,
+            curl: finding.evidence?.curl,
+            nucleiInfo: finding.evidence?.info,
+          },
+        }),
+      },
 
       // AD Hygiene Rules
       {
@@ -151,22 +248,33 @@ class ThreatEngineService {
   async analyzeFindings(findings: any[], assetId?: string, jobId?: string): Promise<Threat[]> {
     const threats: Threat[] = [];
 
+    console.log(`🔍 ThreatEngine analisando ${findings.length} achados para criação de ameaças...`);
+    
     for (const finding of findings) {
+      console.log(`📋 Analisando achado: tipo=${finding.type}, porta=${finding.port}, severidade=${finding.severity}`);
+      
+      let matchedRules = 0;
       for (const rule of this.rules) {
         if (rule.matcher(finding)) {
+          matchedRules++;
           try {
             const threatData = rule.createThreat(finding, assetId, jobId);
             const threat = await storage.createThreat(threatData);
             threats.push(threat);
             
-            console.log(`Ameaça criada: ${threat.title} (${threat.severity})`);
+            console.log(`✅ Ameaça criada pela regra '${rule.id}': ${threat.title} (${threat.severity})`);
           } catch (error) {
-            console.error(`Erro ao criar ameaça para regra ${rule.id}:`, error);
+            console.error(`❌ Erro ao criar ameaça para regra ${rule.id}:`, error);
           }
         }
       }
+      
+      if (matchedRules === 0) {
+        console.log(`⚪ Nenhuma regra correspondeu ao achado: ${JSON.stringify(finding).substring(0, 100)}...`);
+      }
     }
 
+    console.log(`🎯 ThreatEngine criou ${threats.length} ameaças de ${findings.length} achados analisados`);
     return threats;
   }
 

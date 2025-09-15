@@ -73,6 +73,17 @@ export class VulnerabilityScanner {
         
         console.log(`Executando nuclei para URL construída: ${targetUrl} (service: ${webService.service})`);
         const nucleiResults = await this.nucleiScanUrl(targetUrl);
+        
+        // Log verboso dos resultados do nuclei
+        if (nucleiResults.length > 0) {
+          console.log(`🎯 Nuclei encontrou ${nucleiResults.length} vulnerabilidades em ${targetUrl}:`);
+          for (const vuln of nucleiResults) {
+            console.log(`  ⚠️  ${vuln.title || vuln.templateId} | Severidade: ${vuln.severity || 'medium'} | URL: ${vuln.url}`);
+          }
+        } else {
+          console.log(`✅ Nuclei não encontrou vulnerabilidades em ${targetUrl}`);
+        }
+        
         results.push(...nucleiResults);
       } catch (error) {
         console.log(`Scan falhou para ${target}:${webService.port} (${webService.service}) - ${error}`);
@@ -338,27 +349,45 @@ export class VulnerabilityScanner {
     const results: VulnerabilityFinding[] = [];
     const lines = output.split('\n').filter(line => line.trim());
     
+    console.log(`🔍 Parseando ${lines.length} linhas de saída do nuclei para ${target}...`);
+    
     for (const line of lines) {
       try {
         const finding = JSON.parse(line);
-        results.push({
-          type: 'web_vulnerability',
+        
+        // Log detalhado do achado parseado - mostra linha raw para debug
+        console.log(`📝 Nuclei linha raw: ${line.substring(0, 200)}...`);
+        console.log(`📝 Nuclei achado parseado: template=${finding.templateID || finding.template}, severity=${finding.info?.severity}, matched=${finding['matched-at'] || finding.matched_at}`);
+        
+        const vulnerability = {
+          type: 'vulnerability',  // Tipo para corresponder ao matcher do threatEngine
           target,
-          name: finding.info?.name || finding.template,
+          name: finding.info?.name || finding.templateID || finding.template,
           severity: this.mapNucleiSeverity(finding.info?.severity),
-          template: finding.template,
+          template: finding.templateID || finding.template,
           description: finding.info?.description || '',
           evidence: {
-            matched_at: finding.matched_at,
-            extracted_results: finding.extracted_results,
-            curl_command: finding.curl_command,
+            source: 'nuclei',     // Identifica origem dentro do evidence
+            templateId: finding.templateID || finding.template,
+            url: finding['matched-at'] || finding.matched_at,
+            matcher: finding['matcher-name'] || finding.matcher_name,
+            extractedResults: finding['extracted-results'] || finding.extracted_results,
+            curl: finding['curl-command'] || finding.curl_command,
+            info: finding.info,
+            host: finding.host,
+            port: finding.port,
           },
-        });
+        };
+        
+        results.push(vulnerability);
+        console.log(`✅ Vulnerabilidade adicionada: ${vulnerability.name} (${vulnerability.severity})`);
+        
       } catch (error) {
-        console.warn('Erro ao parsear linha do nuclei:', line);
+        console.warn('❌ Erro ao parsear linha do nuclei:', line, 'Erro:', error);
       }
     }
     
+    console.log(`📊 Nuclei parsing concluído: ${results.length} vulnerabilidades extraídas de ${lines.length} linhas`);
     return results;
   }
 

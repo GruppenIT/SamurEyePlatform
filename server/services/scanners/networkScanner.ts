@@ -104,7 +104,15 @@ export class NetworkScanner {
     const args = this.buildNmapArgs(target, ports, nmapProfile);
     
     const stdout = await this.spawnCommand('nmap', args, 300000); // Aumenta timeout para 5 minutos
-    return this.parseNmapOutput(stdout, target);
+    const results = this.parseNmapOutput(stdout, target);
+    
+    // Log verboso das portas detectadas
+    console.log(`📊 Nmap concluído para ${target} - ${results.length} portas processadas:`);
+    for (const result of results) {
+      console.log(`  🔍 Porta ${result.port}: ${result.state} | Serviço: ${result.service || 'desconhecido'} | Versão: ${result.version || 'N/A'}`);
+    }
+    
+    return results;
   }
 
   /**
