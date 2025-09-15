@@ -91,10 +91,10 @@ class JourneyExecutorService {
         
         if (asset.type === 'range') {
           // For CIDR ranges, scan each host in the range
-          portResults = await networkScanner.scanCidrRange(asset.value);
+          portResults = await networkScanner.scanCidrRange(asset.value, params.nmapProfile);
         } else {
-          // For individual hosts, scan common ports
-          portResults = await networkScanner.scanPorts(asset.value);
+          // For individual hosts, scan with specified nmap profile
+          portResults = await networkScanner.scanPorts(asset.value, undefined, params.nmapProfile);
         }
         
         findings.push(...portResults);

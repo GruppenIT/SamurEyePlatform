@@ -50,7 +50,7 @@ export class NetworkScanner {
   /**
    * Realiza scan de portas em um host
    */
-  async scanPorts(target: string, ports?: number[]): Promise<PortScanResult[]> {
+  async scanPorts(target: string, ports?: number[], nmapProfile?: string): Promise<PortScanResult[]> {
     console.log(`Iniciando scan de portas para ${target}`);
     
     // Verificar se é um IP válido ou hostname
@@ -59,12 +59,13 @@ export class NetworkScanner {
       throw new Error(`Não foi possível resolver o target: ${target}`);
     }
 
-    const portsToScan = ports || this.commonPorts.map(p => p.port);
+    // Determinar portas baseado no perfil nmap
+    const portsToScan = this.getPortsForProfile(nmapProfile, ports);
     const results: PortScanResult[] = [];
 
     // Tentar usar nmap se disponível, senão usar scan TCP nativo
     try {
-      const nmapResults = await this.nmapScan(resolvedTarget, portsToScan);
+      const nmapResults = await this.nmapScan(resolvedTarget, portsToScan, nmapProfile);
       return nmapResults;
     } catch (error) {
       console.log('nmap não disponível, usando scan TCP nativo:', error);
@@ -94,29 +95,13 @@ export class NetworkScanner {
   /**
    * Scan usando nmap (quando disponível)
    */
-  private async nmapScan(target: string, ports: number[]): Promise<PortScanResult[]> {
+  private async nmapScan(target: string, ports: number[], nmapProfile?: string): Promise<PortScanResult[]> {
     // Validar e sanitizar target para prevenir injeção de comando
     if (!this.isValidTarget(target)) {
       throw new Error(`Target inválido: ${target}`);
     }
     
-    const portList = ports.join(',');
-    const args = [
-      '-sT', // TCP connect scan (não requer root)
-      '-sV', // Version detection
-      '--script=vuln', // Scripts de vulnerabilidade para detecção real
-      '--script-args', 'vulns.showall', // Mostrar todas as vulnerabilidades encontradas
-      '--max-hostgroup', '1', // Limita número de hosts simultâneos
-      '--max-parallelism', '5', // Reduz paralelismo para scripts vuln
-      '--min-rate', '50', // Taxa mínima reduzida para scripts
-      '--max-rate', '500', // Taxa máxima reduzida para estabilidade
-      '--max-rtt-timeout', '5s', // Timeout RTT maior para scripts vuln
-      '--initial-rtt-timeout', '1s', // Timeout RTT inicial maior
-      '-T3', // Timing template normal (mais seguro para scripts vuln)
-      '--version-intensity', '7', // Intensidade de detecção de versão
-      '-p', portList,
-      target
-    ];
+    const args = this.buildNmapArgs(target, ports, nmapProfile);
     
     const stdout = await this.spawnCommand('nmap', args, 300000); // Aumenta timeout para 5 minutos
     return this.parseNmapOutput(stdout, target);
@@ -396,7 +381,7 @@ export class NetworkScanner {
   /**
    * Scan de range CIDR
    */
-  async scanCidrRange(cidr: string): Promise<PortScanResult[]> {
+  async scanCidrRange(cidr: string, nmapProfile?: string): Promise<PortScanResult[]> {
     const hosts = this.expandCidrRange(cidr);
     const results: PortScanResult[] = [];
 
@@ -405,7 +390,7 @@ export class NetworkScanner {
     
     for (const host of hostsToScan) {
       try {
-        const hostResults = await this.scanPorts(host);
+        const hostResults = await this.scanPorts(host, undefined, nmapProfile);
         results.push(...hostResults);
       } catch (error) {
         console.error(`Erro ao escanear ${host}:`, error);
@@ -439,6 +424,99 @@ export class NetworkScanner {
     }
 
     return hosts;
+  }
+
+  /**
+   * Determina quais portas escanear baseado no perfil nmap
+   */
+  private getPortsForProfile(nmapProfile?: string, customPorts?: number[]): number[] {
+    // Se portas customizadas foram especificadas, usar elas
+    if (customPorts && customPorts.length > 0) {
+      return customPorts;
+    }
+
+    // Aplicar perfil de escaneamento
+    switch (nmapProfile) {
+      case 'fast':
+        // Top 1000 portas (comportamento padrão do nmap)
+        return this.commonPorts.map(p => p.port);
+      
+      case 'comprehensive':
+        // Todas as portas (1-65535) - pode ser muito lento
+        console.log('⚠️  Perfil completo selecionado: escaneando TODAS as portas (1-65535)');
+        return [];
+      
+      case 'stealth':
+        // Portas comuns com varredura SYN stealth
+        return this.commonPorts.map(p => p.port);
+      
+      default:
+        // Padrão: portas comuns
+        return this.commonPorts.map(p => p.port);
+    }
+  }
+
+  /**
+   * Constrói argumentos do nmap baseado no perfil
+   */
+  private buildNmapArgs(target: string, ports: number[], nmapProfile?: string): string[] {
+    const args = [];
+
+    // Determinar tipo de scan baseado no perfil
+    switch (nmapProfile) {
+      case 'stealth':
+        args.push('-sS'); // SYN stealth scan
+        break;
+      default:
+        args.push('-sT'); // TCP connect scan (não requer root)
+        break;
+    }
+
+    // Argumentos comuns
+    args.push(
+      '-sV', // Version detection
+      '--script=vuln', // Scripts de vulnerabilidade
+      '--script-args', 'vulns.showall',
+      '--max-hostgroup', '1',
+      '--max-parallelism', '5',
+      '--min-rate', '50',
+      '--max-rate', '500',
+      '--max-rtt-timeout', '5s',
+      '--initial-rtt-timeout', '1s',
+      '--version-intensity', '7'
+    );
+
+    // Timing template baseado no perfil
+    switch (nmapProfile) {
+      case 'fast':
+        args.push('-T4'); // Timing agressivo
+        break;
+      case 'stealth':
+        args.push('-T2'); // Timing mais lento e discreto
+        break;
+      default:
+        args.push('-T3'); // Timing normal
+        break;
+    }
+
+    // Configurar portas
+    if (nmapProfile === 'comprehensive') {
+      // Scan completo: todas as portas
+      args.push('-p', '1-65535');
+      console.log('🔍 Executando nmap com scan completo: portas 1-65535');
+    } else if (ports.length > 0) {
+      // Portas específicas
+      const portList = ports.join(',');
+      args.push('-p', portList);
+      console.log(`🔍 Executando nmap com portas: ${portList}`);
+    } else {
+      // Top 1000 portas (padrão do nmap)
+      args.push('--top-ports', '1000');
+      console.log('🔍 Executando nmap com top 1000 portas');
+    }
+
+    args.push(target);
+    return args;
   }
 }
 
