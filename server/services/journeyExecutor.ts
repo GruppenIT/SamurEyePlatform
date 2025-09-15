@@ -112,7 +112,7 @@ class JourneyExecutorService {
           }
           
           // Scan vulnerabilities for each host with its open ports
-          for (const [host, openPorts] of hostPortMap.entries()) {
+          for (const [host, openPorts] of Array.from(hostPortMap.entries())) {
             if (openPorts.length > 0) {
               onProgress({ 
                 status: 'running', 
@@ -149,11 +149,13 @@ class JourneyExecutorService {
       } catch (error) {
         console.error(`Erro ao escanear ${asset.value}:`, error);
         
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        
         // Add error finding
         findings.push({
           type: 'error',
           target: asset.value,
-          message: `Erro durante escaneamento: ${error.message}`,
+          message: `Erro durante escaneamento: ${errorMessage}`,
           timestamp: new Date().toISOString(),
         });
       }
@@ -249,16 +251,18 @@ class JourneyExecutorService {
     } catch (error) {
       console.error('Erro durante análise AD:', error);
       
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
       // Store error result
       await storage.createJobResult({
         jobId,
         stdout: '',
-        stderr: `Erro durante análise AD: ${error.message}`,
+        stderr: `Erro durante análise AD: ${errorMessage}`,
         artifacts: {
           findings: [],
           summary: {
             domain,
-            error: error.message,
+            error: errorMessage,
             scanDuration: new Date().toISOString(),
           },
         },
@@ -297,23 +301,70 @@ class JourneyExecutorService {
 
       onProgress({ status: 'running', progress: 30, currentTask: 'Descobrindo workstations do domínio' });
 
-      // Para teste EDR/AV, precisamos primeiro descobrir workstations via AD
+      // Para teste EDR/AV, descobrir workstations baseado no tipo configurado
       let workstationTargets: string[] = [];
+      const edrAvType = params.edrAvType || 'network_based'; // Default para compatibilidade
       
-      if (credential.type === 'ad') {
-        // Usar scanner AD para descobrir workstations
-        const adTargets = await adScanner.discoverDomainControllers(credential.domain || '');
-        if (adTargets.length > 0) {
-          // Simular descoberta de workstations (em implementação real, consultaria AD)
-          workstationTargets = this.generateWorkstationList(credential.domain || '');
+      if (edrAvType === 'ad_based') {
+        // Modo AD Based: Descobrir workstations via LDAP
+        console.log('🔍 Modo AD Based: Descobrindo workstations via LDAP...');
+        
+        if (credential.type !== 'ad') {
+          throw new Error('Para jornada AD Based é necessário usar credencial do tipo AD/LDAP');
         }
-      } else {
-        // Se não for credencial AD, usar targets do parâmetro da jornada
-        workstationTargets = params.targets || [];
+
+        const domainName = params.domainName || credential.domain;
+        if (!domainName) {
+          throw new Error('Nome do domínio não especificado para jornada AD Based');
+        }
+
+        // Usar novo método de descoberta de workstations
+        workstationTargets = await adScanner.discoverWorkstations(
+          domainName,
+          credential.username,
+          decryptedPassword,
+          credential.port || undefined
+        );
+
+        console.log(`Descobertas ${workstationTargets.length} workstations via LDAP`);
+
+      } else if (edrAvType === 'network_based') {
+        // Modo Network Based: Usar ativos específicos
+        console.log('🎯 Modo Network Based: Usando ativos específicos...');
+        
+        if (params.assetIds && params.assetIds.length > 0) {
+          // Buscar ativos pelos IDs fornecidos
+          const selectedAssets = await Promise.all(
+            params.assetIds.map(async (assetId: string) => {
+              const asset = await storage.getAsset(assetId);
+              return asset;
+            })
+          );
+
+          // Extrair valores dos ativos (IPs, ranges, etc)
+          for (const asset of selectedAssets) {
+            if (asset) {
+              if (asset.type === 'host') {
+                workstationTargets.push(asset.value);
+              } else if (asset.type === 'range') {
+                // Para ranges, por enquanto adicionar como está
+                // Em implementação completa, expandiria o range CIDR
+                workstationTargets.push(asset.value);
+              }
+            }
+          }
+        } else if (params.targets && params.targets.length > 0) {
+          // Fallback para compatibilidade com jornadas antigas
+          workstationTargets = params.targets;
+        } else {
+          throw new Error('Nenhum ativo selecionado para jornada Network Based');
+        }
+
+        console.log(`Usando ${workstationTargets.length} targets específicos`);
       }
 
       if (workstationTargets.length === 0) {
-        throw new Error('Nenhuma workstation encontrada para teste');
+        throw new Error(`Nenhuma workstation encontrada para teste (modo: ${edrAvType})`);
       }
 
       onProgress({ 
@@ -328,7 +379,7 @@ class JourneyExecutorService {
         {
           username: credential.username,
           password: decryptedPassword,
-          domain: credential.domain,
+          domain: credential.domain || undefined,
         },
         workstationTargets,
         sampleRate
@@ -362,15 +413,17 @@ class JourneyExecutorService {
     } catch (error) {
       console.error('Erro durante teste EDR/AV:', error);
       
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
       // Store error result
       await storage.createJobResult({
         jobId,
         stdout: '',
-        stderr: `Erro durante teste EDR/AV: ${error.message}`,
+        stderr: `Erro durante teste EDR/AV: ${errorMessage}`,
         artifacts: {
           findings: [],
           summary: {
-            error: error.message,
+            error: errorMessage,
             testDuration: new Date().toISOString(),
           },
         },

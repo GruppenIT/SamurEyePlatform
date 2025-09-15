@@ -682,7 +682,7 @@ export class ADScanner {
         // Verificar se teve logon recente (últimos 30 dias)
         let isActive = true;
         if (lastLogonTimestamp) {
-          const lastLogon = this.parseFileTime(parseInt(lastLogonTimestamp));
+          const lastLogon = this.convertFileTimeToDate(lastLogonTimestamp);
           if (lastLogon) {
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
