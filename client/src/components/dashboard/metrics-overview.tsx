@@ -49,24 +49,14 @@ export default function MetricsOverview() {
       icon: CheckCircle,
       iconBg: "bg-accent/20",
       iconColor: "text-accent",
-      change: "98.2%",
+      change: `${metrics?.successRate || 0}%`,
       changeText: "taxa de sucesso",
-      changeColor: "text-chart-4",
-    },
-    {
-      title: "Cobertura",
-      value: `${metrics?.coverage || 0}%`,
-      icon: Shield,
-      iconBg: "bg-chart-4/20",
-      iconColor: "text-chart-4",
-      change: "+2.1%",
-      changeText: "dos ativos monitorados",
       changeColor: "text-chart-4",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {metricCards.map((metric, index) => (
         <Card key={index} className="metric-card">
           <CardContent className="p-6">

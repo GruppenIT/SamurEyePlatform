@@ -2,7 +2,7 @@ export interface DashboardMetrics {
   activeAssets: number;
   criticalThreats: number;
   jobsExecuted: number;
-  coverage: number;
+  successRate: number;
 }
 
 export interface JobUpdate {

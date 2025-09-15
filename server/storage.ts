@@ -105,7 +105,7 @@ export interface IStorage {
     activeAssets: number;
     criticalThreats: number;
     jobsExecuted: number;
-    coverage: number;
+    successRate: number;
   }>;
 }
 
@@ -501,7 +501,7 @@ export class DatabaseStorage implements IStorage {
     activeAssets: number;
     criticalThreats: number;
     jobsExecuted: number;
-    coverage: number;
+    successRate: number;
   }> {
     const [assetCount] = await db.select({ count: count() }).from(assets);
     const [criticalThreatsCount] = await db
@@ -510,11 +510,26 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(threats.severity, 'critical'), eq(threats.status, 'open')));
     const [jobsCount] = await db.select({ count: count() }).from(jobs);
     
+    // Calculate success rate
+    const [completedJobs] = await db
+      .select({ count: count() })
+      .from(jobs)
+      .where(eq(jobs.status, 'completed'));
+    
+    const [finishedJobs] = await db
+      .select({ count: count() })
+      .from(jobs)
+      .where(or(eq(jobs.status, 'completed'), eq(jobs.status, 'failed'), eq(jobs.status, 'timeout')));
+    
+    const successRate = Number(finishedJobs.count) > 0 
+      ? (Number(completedJobs.count) / Number(finishedJobs.count)) * 100 
+      : 100;
+    
     return {
       activeAssets: Number(assetCount.count),
       criticalThreats: Number(criticalThreatsCount.count),
       jobsExecuted: Number(jobsCount.count),
-      coverage: 94.8, // This would be calculated based on actual coverage logic
+      successRate: Math.round(successRate * 10) / 10, // Round to 1 decimal place
     };
   }
 }
