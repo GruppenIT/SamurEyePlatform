@@ -1,0 +1,17 @@
+Sep 15 17:05:22 vlxsam99 npm[276575]: Iniciando análise de higiene AD para domínio gruppen.com.br
+Sep 15 17:05:22 vlxsam99 npm[276575]: 5:05:22 PM [express] POST /api/jobs/execute 201 in 22ms :: {"id":"22260180-6fd6-4027-8986-f838442413…
+Sep 15 17:05:22 vlxsam99 npm[276575]: Encontrados 2 controladores de domínio
+Sep 15 17:05:22 vlxsam99 npm[276575]: Tentando conectar via ldaps://vmsdc43.gruppen.com.br:636
+Sep 15 17:05:23 vlxsam99 npm[276575]: Bind falhou em ldaps://vmsdc43.gruppen.com.br:636: unable to verify the first certificate
+Sep 15 17:05:23 vlxsam99 npm[276575]: Conexão LDAP não criptografada bloqueada em ambiente de produção
+Sep 15 17:05:23 vlxsam99 npm[276575]: Erro durante análise AD: Error: Falha ao conectar em todas as URLs LDAP. Apenas LDAPS é permitido em produção. Último erro: unable to verify the first certificate
+Sep 15 17:05:23 vlxsam99 npm[276575]:     at ADScanner.connectToAD (file:///opt/samureye/dist/index.js:2547:11)
+Sep 15 17:05:23 vlxsam99 npm[276575]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 15 17:05:23 vlxsam99 npm[276575]:     at async ADScanner.scanADHygiene (file:///opt/samureye/dist/index.js:2444:7)
+Sep 15 17:05:23 vlxsam99 npm[276575]:     at async JourneyExecutorService.executeADHygiene (file:///opt/samureye/dist/index.js:3273:24)
+Sep 15 17:05:23 vlxsam99 npm[276575]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:3149:9)
+Sep 15 17:05:23 vlxsam99 npm[276575]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:3622:7)
+Sep 15 17:05:23 vlxsam99 npm[276575]: 🔍 ThreatEngine analisando 1 achados para criação de ameaças...
+Sep 15 17:05:23 vlxsam99 npm[276575]: 📋 Analisando achado: tipo=ad_vulnerability, porta=undefined, severidade=high
+Sep 15 17:05:23 vlxsam99 npm[276575]: ⚪ Nenhuma regra correspondeu ao achado: {"name":"Falha na Conexão AD","type":"ad_vulnerability","target":"gruppen.com.br","category":"config...
+Sep 15 17:05:23 vlxsam99 npm[276575]: 🎯 ThreatEngine criou 0 ameaças de 1 achados analisados

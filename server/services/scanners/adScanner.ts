@@ -26,7 +26,8 @@ export class ADScanner {
   async scanADHygiene(
     domain: string,
     username: string,
-    password: string
+    password: string,
+    port?: number
   ): Promise<ADFinding[]> {
     console.log(`Iniciando análise de higiene AD para domínio ${domain}`);
     
@@ -52,7 +53,7 @@ export class ADScanner {
 
       // 2. Conectar ao Active Directory
       const dcHost = domainControllers[0];
-      await this.connectToAD(dcHost, username, password, domain);
+      await this.connectToAD(dcHost, username, password, domain, port);
 
       // 3. Análises de higiene
       const userAnalysis = await this.analyzeUsers();
@@ -131,22 +132,48 @@ export class ADScanner {
     dcHost: string,
     username: string,
     password: string,
-    domain: string
+    domain: string,
+    port?: number
   ): Promise<void> {
-    // Priorizar LDAPS por segurança - LDAP apenas como último recurso
-    const urls = [
-      `ldaps://${dcHost}:636`,
-      `ldap://${dcHost}:389`
-    ];
+    let urls: string[];
+    
+    // Se uma porta específica foi fornecida, usar apenas ela
+    if (port) {
+      if (port === 389) {
+        // Porta 389 = LDAP simples conforme solicitado pelo usuário
+        urls = [`ldap://${dcHost}:389`];
+        console.log('🔧 Usando protocolo LDAP na porta 389 conforme especificado');
+      } else if (port === 636) {
+        // Porta 636 = LDAPS
+        urls = [`ldaps://${dcHost}:636`];
+      } else {
+        // Porta customizada - tentar LDAP simples
+        urls = [`ldap://${dcHost}:${port}`];
+      }
+    } else {
+      // Comportamento padrão: priorizar LDAPS por segurança
+      urls = [
+        `ldaps://${dcHost}:636`,
+        `ldap://${dcHost}:389`
+      ];
+    }
 
     let lastError: Error | null = null;
     const allowInsecure = process.env.NODE_ENV === 'development';
 
     for (const url of urls) {
-      // Em produção, não permitir LDAP não criptografado
-      if (!allowInsecure && url.startsWith('ldap://')) {
+      // Permitir LDAP na porta 389 quando especificamente solicitado
+      const isLdap389 = url === `ldap://${dcHost}:389` && port === 389;
+      
+      // Em produção, bloquear LDAP não criptografado EXCETO quando porta 389 for especificada
+      if (!allowInsecure && url.startsWith('ldap://') && !isLdap389) {
         console.warn('Conexão LDAP não criptografada bloqueada em ambiente de produção');
         continue;
+      }
+      
+      // Avisar sobre uso da porta 389
+      if (isLdap389) {
+        console.log('⚠️  Usando protocolo LDAP não criptografado na porta 389 conforme especificado');
       }
 
       try {
