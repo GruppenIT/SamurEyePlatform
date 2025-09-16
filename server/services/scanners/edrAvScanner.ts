@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { storage } from '../../storage';
 
 /**
  * Scanner para testes EDR/AV reais
@@ -54,13 +55,20 @@ export class EDRAVScanner {
     const startTime = Date.now();
     console.log(`Testando EDR/AV em ${hostname}`);
 
+    // Buscar timeout configurado uma única vez
+    const edrTestTimeoutSetting = await storage.getSetting('edrTestTimeout');
+    const edrTestTimeout = Number(edrTestTimeoutSetting?.value) || 30; // Default 30 segundos
+    const timeoutMs = Math.max(5, Math.min(3600, edrTestTimeout)) * 1000; // Limitar entre 5s e 1h
+    console.log(`⏱️ Timeout configurado: ${Math.floor(timeoutMs / 1000)}s para teste EICAR`);
+
     try {
       // 1. Primeiro, tentar deployment via SMB
       const smbResult = await this.deployEicarViaSMB(hostname, credential);
       
       if (smbResult.success) {
-        // 2. Aguardar um tempo para o EDR/AV agir
-        await this.delay(30000); // 30 segundos
+        // 2. Aguardar tempo configurado para o EDR/AV agir
+        console.log(`⏱️ Aguardando ${Math.floor(timeoutMs / 1000)}s para EDR/AV processar o arquivo EICAR...`);
+        await this.delay(timeoutMs);
         
         // 3. Verificar se o arquivo ainda existe
         const fileExists = await this.checkEicarFileExists(hostname, credential, smbResult.filePath!);
@@ -86,7 +94,9 @@ export class EDRAVScanner {
         const wmiResult = await this.deployEicarViaWMI(hostname, credential);
         
         if (wmiResult.success) {
-          await this.delay(30000);
+          // Aguardar mesmo tempo configurado para WMI
+          console.log(`⏱️ Aguardando ${Math.floor(timeoutMs / 1000)}s após deploy via WMI...`);
+          await this.delay(timeoutMs);
           const fileExists = await this.checkEicarFileExists(hostname, credential, wmiResult.filePath!);
           
           if (fileExists) {

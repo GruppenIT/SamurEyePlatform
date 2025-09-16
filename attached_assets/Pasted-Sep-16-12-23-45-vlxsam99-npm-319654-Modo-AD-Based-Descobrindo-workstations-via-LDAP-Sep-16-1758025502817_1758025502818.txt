@@ -1,0 +1,487 @@
+Sep 16 12:23:45 vlxsam99 npm[319654]: 🔍 Modo AD Based: Descobrindo workstations via LDAP...
+Sep 16 12:23:45 vlxsam99 npm[319654]: Descobrindo workstations do domínio gruppen.com.br para teste EDR/AV
+Sep 16 12:23:45 vlxsam99 npm[319654]: Encontrados 2 controladores de domínio
+Sep 16 12:23:45 vlxsam99 npm[319654]: 📍 Usando base DN: DC=gruppen,DC=com,DC=br
+Sep 16 12:23:45 vlxsam99 npm[319654]: 🔧 Usando protocolo LDAP na porta 389 conforme especificado
+Sep 16 12:23:45 vlxsam99 npm[319654]: ⚠️  Usando protocolo LDAP não criptografado na porta 389 conforme especificado
+Sep 16 12:23:45 vlxsam99 npm[319654]: Tentando conectar via ldap://vmsdc53.gruppen.com.br:389
+Sep 16 12:23:45 vlxsam99 npm[319654]: Conectado com sucesso via ldap://vmsdc53.gruppen.com.br:389
+Sep 16 12:23:45 vlxsam99 npm[319654]: ⚠️  ATENÇÃO: Conexão LDAP não criptografada em uso - não recomendado para produção
+Sep 16 12:23:45 vlxsam99 npm[319654]: 🔍 Buscando contas de computador no domínio...
+Sep 16 12:23:45 vlxsam99 npm[319654]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (&(objectClass=computer)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+Sep 16 12:23:45 vlxsam99 npm[319654]: Encontrados 149 computadores no domínio
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSDC53OLD (Windows Server 2016 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSDC53OLD
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSDC53 (Windows Server 2022 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSTS45 (Windows Server 2008 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSTS45
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVDI45 (Windows Server 2008 R2 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVDI45
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSSIS20 (Windows Server 2019 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVDIS01 (Windows Server 2022 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVDIS01
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN10
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: GRUPPEN081VM (Windows 2000 Server)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN081VM
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSSC13 (Windows Server® 2008 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSSC13
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: vlxrl09
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Workstation encontrada: VMLAB02.gruppen.com.br ()
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: vlxns14
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSMX46 (Windows Server 2008 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSMX46
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: vlxns10
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: vlxmo27
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSWWW01 (Windows Server 2012 R2 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSWWW01
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVW99 (Windows Server 2012 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVW99
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: CMSSITE01 (Windows Server 2008 R2 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: CMSSITE01
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSSEG31 (Windows Server 2012 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSSEG31
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: KAMILA
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSXD40
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN45
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSAPP30 (Windows Server 2012 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSAPP30
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN34
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: Gruppen40
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: ROCHA
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSXD41
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSFS15 (Windows Server 2008 R2 Enterprise)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSFS15
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSXD58
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSPR77 (Windows Server 2016 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSPR77
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSOME99 (Windows Server 2016 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSOME99
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSGMS62 (Windows Server 2012 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSGMS62
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSGMS61 (Windows Server 2012 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSGMS61
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSDB04OLD2 (Windows Server 2012 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSDB04OLD2
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN-WEB
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPENVE
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN-SR01
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSHO12 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSHO12
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSWW13OLD (Windows Server 2008 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSWW13OLD
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSOME98T (Windows Server 2012 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSOME98T
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSEAD133OLD (Windows Server 2008 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSEAD133OLD
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSRDS48T (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSRDS48T
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN36
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVO49 (Windows Server 2016 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVO49
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: NOTE002
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN32
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN18
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: NBK-SUPORTE
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: DESKTOP-CDHU4E0
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN35
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN27
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN23
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN17
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN120
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN50
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN20
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: NB-MARKETING
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: QNAP-BKPVMS
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSWW50 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSWW50
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSPRTG73 (Windows Server 2016 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSPRTG73
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSINT99 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSINT99
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSHO08 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSHO08
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VLXVIDM20
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VLXVC100
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: FMSHS18 (Windows Server 2012 R2 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: FMSHS18
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN004
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: SUPORTE-4
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSMDM111 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSMDM111
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN00
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN70
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVEEAM21 (Windows Server 2019 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVEEAM21
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: ID
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: COMERCIAL05
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN15
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN22
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSMAIL46 (Windows Server 2016 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSMAIL46
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSNS09 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSNS09
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSSY05 (Windows Server 2003)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSSY05
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSXA52 (Windows Server 2012 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSXA52
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSERP72
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSERP70 (Windows Server 2012 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSERP70
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN26
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: SUPORTE-3
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN21
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSERP71 (Windows Server 2012 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSERP71
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSFS11 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSFS11
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: NB-MKT2
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: NB-COMERCIAL-1
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSDLP22 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSDLP22
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: NBK-MARCELO
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: NB-MKT
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN71
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN80
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: NBK-CLAUDIO
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVEEAMCC44 (Windows Server 2019 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVEEAMCC44
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSGMS64 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSGMS64
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN08
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: NBK-FELIPE
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GNB-FELIPE
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GNB-ANDREA
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSDLPXX (Windows Server 2016 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSDLPXX
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSDSM10 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSDSM10
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: MONITORAMENTO
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: NBG-FRAUPP
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GNB-JONES
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSPAM40 (Windows Server 2019 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSPAM40
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSSSO16 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSSSO16
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN72
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: DESKTOP-0PD3KOH
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN29
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: NB-NELMAC
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN42
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: SUPORTE-05
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: FALAVIGNA
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN09
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN11
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSGMS65 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSGMS65
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: NB-SUPORTE1
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSWW13 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSWW13
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSMON182
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSSS76 (Windows Server 2012 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSSS76
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VLX2FA02
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVACGW45 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVACGW45
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSTSXXT (Windows Server 2019 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSTSXXT
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSBPM77 (Windows Server 2019 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVCE66
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVAC55 (Windows Server 2019 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVAC55
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVEEAMMGR19 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVEEAMMGR19
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVEEAM54 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVEEAM54
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVDA05 (Windows Server 2019 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVDA05
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSEAD133 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSEAD133
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSINT57 (Windows Server 2012 R2 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: GRUPPEN2FA
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSXA99 (Windows Server 2016 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSXA99
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSMAIL47 (Windows Server 2022 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSMAIL47
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVDISSO02 (Windows Server 2022 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSVDISSO02
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSDB18 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSSIS19 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSPT41 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSSUP50 (Windows Server 2022 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSDB04 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSADC21 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: VMSADC21
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSAAD67 (Windows Server 2016 Standard)
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSDC43 (Windows Server 2022 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSVDIS02 (Windows Server 2022 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Pulando workstation inativa: TESTE-CARLOS
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSHO03 (Windows Server 2022 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ Servidor encontrado: VMSAPPPRX68 (Windows Server 2025 Datacenter)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Total de computadores descobertos: 15 (workstations + servidores)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Descobertas 15 workstations via LDAP
+Sep 16 12:23:45 vlxsam99 npm[319654]: Iniciando teste EDR/AV em 15 hosts (amostra: 80%)
+Sep 16 12:23:45 vlxsam99 npm[319654]: Testando EDR/AV em VMSDC43.gruppen.com.br
+Sep 16 12:23:45 vlxsam99 npm[319654]: Executando: which smbclient
+Sep 16 12:23:45 vlxsam99 npm[319654]: Executando: smbclient //VMSDC43.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 12:23:45 vlxsam99 npm[319654]: [DEBUG] Comando completo: smbclient //VMSDC43.gruppen.com.br/C$ -A /tmp/smbauth_1758025425850 -c put "/tmp/eicar_1758025425850.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:23:45 vlxsam99 npm[319654]: [DEBUG] Target path: C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:23:45 vlxsam99 npm[319654]: [DEBUG] User: rodrigo
+Sep 16 12:23:45 vlxsam99 npm[319654]: Executando: smbclient //VMSDC43.gruppen.com.br/C$ -A /tmp/smbauth_1758025425850 -c put "/tmp/eicar_1758025425850.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:23:45 vlxsam99 npm[319654]: [DEBUG] SMB Result - Exit Code: 0
+Sep 16 12:23:45 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDOUT:
+Sep 16 12:23:45 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:23:45 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:23:45 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:23:45 vlxsam99 npm[319654]: putting file /tmp/eicar_1758025425850.txt as \Windows\Temp\samureye_eicar.txt (6.0 kb/s) (average 6.0 kb/s)
+Sep 16 12:23:45 vlxsam99 npm[319654]: ✅ SMB Deploy bem-sucedido para VMSDC43.gruppen.com.br
+Sep 16 12:24:15 vlxsam99 npm[319654]: [DEBUG] Verificando existência do arquivo: \\VMSDC43.gruppen.com.br\C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:15 vlxsam99 npm[319654]: [DEBUG] Comando verificação: smbclient //VMSDC43.gruppen.com.br/C$ -A /tmp/smbauth_check_1758025455919 -c ls "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:15 vlxsam99 npm[319654]: Executando: smbclient //VMSDC43.gruppen.com.br/C$ -A /tmp/smbauth_check_1758025455919 -c ls "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:15 vlxsam99 npm[319654]: [DEBUG] Verificação - Exit Code: 1
+Sep 16 12:24:15 vlxsam99 npm[319654]: [DEBUG] Verificação - STDOUT: NT_STATUS_NO_SUCH_FILE listing \Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:15 vlxsam99 npm[319654]: [DEBUG] Verificação - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:15 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:15 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:15 vlxsam99 npm[319654]: [DEBUG] Arquivo samureye_eicar.txt existe: ❌ NÃO
+Sep 16 12:24:15 vlxsam99 npm[319654]: Testando EDR/AV em VMSDB18.gruppen.com.br
+Sep 16 12:24:15 vlxsam99 npm[319654]: Executando: which smbclient
+Sep 16 12:24:15 vlxsam99 npm[319654]: Executando: smbclient //VMSDB18.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 12:24:15 vlxsam99 npm[319654]: [DEBUG] Comando completo: smbclient //VMSDB18.gruppen.com.br/C$ -A /tmp/smbauth_1758025455980 -c put "/tmp/eicar_1758025455980.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:15 vlxsam99 npm[319654]: [DEBUG] Target path: C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:15 vlxsam99 npm[319654]: [DEBUG] User: rodrigo
+Sep 16 12:24:15 vlxsam99 npm[319654]: Executando: smbclient //VMSDB18.gruppen.com.br/C$ -A /tmp/smbauth_1758025455980 -c put "/tmp/eicar_1758025455980.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - Exit Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: ❌ SMB Deploy falhou para VMSDB18.gruppen.com.br:
+Sep 16 12:24:16 vlxsam99 npm[319654]:    Error Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: Deploy via WMI desabilitado por questões de segurança - usando apenas SMB
+Sep 16 12:24:16 vlxsam99 npm[319654]: Testando EDR/AV em VMSSIS20.gruppen.com.br
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: which smbclient
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSSIS20.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Comando completo: smbclient //VMSSIS20.gruppen.com.br/C$ -A /tmp/smbauth_1758025456032 -c put "/tmp/eicar_1758025456032.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Target path: C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] User: rodrigo
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSSIS20.gruppen.com.br/C$ -A /tmp/smbauth_1758025456032 -c put "/tmp/eicar_1758025456032.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - Exit Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: ❌ SMB Deploy falhou para VMSSIS20.gruppen.com.br:
+Sep 16 12:24:16 vlxsam99 npm[319654]:    Error Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: Deploy via WMI desabilitado por questões de segurança - usando apenas SMB
+Sep 16 12:24:16 vlxsam99 npm[319654]: Testando EDR/AV em VMSSIS19.gruppen.com.br
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: which smbclient
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSSIS19.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Comando completo: smbclient //VMSSIS19.gruppen.com.br/C$ -A /tmp/smbauth_1758025456087 -c put "/tmp/eicar_1758025456087.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Target path: C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] User: rodrigo
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSSIS19.gruppen.com.br/C$ -A /tmp/smbauth_1758025456087 -c put "/tmp/eicar_1758025456087.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - Exit Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: ❌ SMB Deploy falhou para VMSSIS19.gruppen.com.br:
+Sep 16 12:24:16 vlxsam99 npm[319654]:    Error Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: Deploy via WMI desabilitado por questões de segurança - usando apenas SMB
+Sep 16 12:24:16 vlxsam99 npm[319654]: Testando EDR/AV em VMSPT41.gruppen.com.br
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: which smbclient
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSPT41.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Comando completo: smbclient //VMSPT41.gruppen.com.br/C$ -A /tmp/smbauth_1758025456134 -c put "/tmp/eicar_1758025456134.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Target path: C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] User: rodrigo
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSPT41.gruppen.com.br/C$ -A /tmp/smbauth_1758025456134 -c put "/tmp/eicar_1758025456134.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - Exit Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: ❌ SMB Deploy falhou para VMSPT41.gruppen.com.br:
+Sep 16 12:24:16 vlxsam99 npm[319654]:    Error Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: Deploy via WMI desabilitado por questões de segurança - usando apenas SMB
+Sep 16 12:24:16 vlxsam99 npm[319654]: Testando EDR/AV em VMSBPM77.gruppen.com.br
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: which smbclient
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSBPM77.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Comando completo: smbclient //VMSBPM77.gruppen.com.br/C$ -A /tmp/smbauth_1758025456181 -c put "/tmp/eicar_1758025456181.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Target path: C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] User: rodrigo
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSBPM77.gruppen.com.br/C$ -A /tmp/smbauth_1758025456181 -c put "/tmp/eicar_1758025456181.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - Exit Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: ❌ SMB Deploy falhou para VMSBPM77.gruppen.com.br:
+Sep 16 12:24:16 vlxsam99 npm[319654]:    Error Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: Deploy via WMI desabilitado por questões de segurança - usando apenas SMB
+Sep 16 12:24:16 vlxsam99 npm[319654]: Testando EDR/AV em VMSINT57.gruppen.com.br
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: which smbclient
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSINT57.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Comando completo: smbclient //VMSINT57.gruppen.com.br/C$ -A /tmp/smbauth_1758025456241 -c put "/tmp/eicar_1758025456241.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Target path: C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] User: rodrigo
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSINT57.gruppen.com.br/C$ -A /tmp/smbauth_1758025456241 -c put "/tmp/eicar_1758025456241.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - Exit Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: ❌ SMB Deploy falhou para VMSINT57.gruppen.com.br:
+Sep 16 12:24:16 vlxsam99 npm[319654]:    Error Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: Deploy via WMI desabilitado por questões de segurança - usando apenas SMB
+Sep 16 12:24:16 vlxsam99 npm[319654]: Testando EDR/AV em VMSDB04.gruppen.com.br
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: which smbclient
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSDB04.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Comando completo: smbclient //VMSDB04.gruppen.com.br/C$ -A /tmp/smbauth_1758025456290 -c put "/tmp/eicar_1758025456290.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Target path: C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] User: rodrigo
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSDB04.gruppen.com.br/C$ -A /tmp/smbauth_1758025456290 -c put "/tmp/eicar_1758025456290.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - Exit Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: ❌ SMB Deploy falhou para VMSDB04.gruppen.com.br:
+Sep 16 12:24:16 vlxsam99 npm[319654]:    Error Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:16 vlxsam99 npm[319654]: Deploy via WMI desabilitado por questões de segurança - usando apenas SMB
+Sep 16 12:24:16 vlxsam99 npm[319654]: Testando EDR/AV em VMLAB02.gruppen.com.br
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: which smbclient
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMLAB02.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Comando completo: smbclient //VMLAB02.gruppen.com.br/C$ -A /tmp/smbauth_1758025456335 -c put "/tmp/eicar_1758025456335.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Target path: C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] User: rodrigo
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMLAB02.gruppen.com.br/C$ -A /tmp/smbauth_1758025456335 -c put "/tmp/eicar_1758025456335.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - Exit Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDOUT:
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: do_connect: Connection to VMLAB02.gruppen.com.br failed (Error NT_STATUS_UNSUCCESSFUL)
+Sep 16 12:24:16 vlxsam99 npm[319654]: ❌ SMB Deploy falhou para VMLAB02.gruppen.com.br:
+Sep 16 12:24:16 vlxsam99 npm[319654]:    Error Code: 1
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: do_connect: Connection to VMLAB02.gruppen.com.br failed (Error NT_STATUS_UNSUCCESSFUL)
+Sep 16 12:24:16 vlxsam99 npm[319654]:    STDOUT:
+Sep 16 12:24:16 vlxsam99 npm[319654]: Deploy via WMI desabilitado por questões de segurança - usando apenas SMB
+Sep 16 12:24:16 vlxsam99 npm[319654]: Testando EDR/AV em VMSDC53.gruppen.com.br
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: which smbclient
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSDC53.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Comando completo: smbclient //VMSDC53.gruppen.com.br/C$ -A /tmp/smbauth_1758025456376 -c put "/tmp/eicar_1758025456376.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] Target path: C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] User: rodrigo
+Sep 16 12:24:16 vlxsam99 npm[319654]: Executando: smbclient //VMSDC53.gruppen.com.br/C$ -A /tmp/smbauth_1758025456376 -c put "/tmp/eicar_1758025456376.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - Exit Code: 0
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDOUT:
+Sep 16 12:24:16 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:16 vlxsam99 npm[319654]: putting file /tmp/eicar_1758025456376.txt as \Windows\Temp\samureye_eicar.txt (16.6 kb/s) (average 16.6 kb/s)
+Sep 16 12:24:16 vlxsam99 npm[319654]: ✅ SMB Deploy bem-sucedido para VMSDC53.gruppen.com.br
+Sep 16 12:24:46 vlxsam99 npm[319654]: [DEBUG] Verificando existência do arquivo: \\VMSDC53.gruppen.com.br\C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:46 vlxsam99 npm[319654]: [DEBUG] Comando verificação: smbclient //VMSDC53.gruppen.com.br/C$ -A /tmp/smbauth_check_1758025486463 -c ls "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:46 vlxsam99 npm[319654]: Executando: smbclient //VMSDC53.gruppen.com.br/C$ -A /tmp/smbauth_check_1758025486463 -c ls "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:46 vlxsam99 npm[319654]: [DEBUG] Verificação - Exit Code: 1
+Sep 16 12:24:46 vlxsam99 npm[319654]: [DEBUG] Verificação - STDOUT: NT_STATUS_NO_SUCH_FILE listing \Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:46 vlxsam99 npm[319654]: [DEBUG] Verificação - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:46 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:46 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:46 vlxsam99 npm[319654]: [DEBUG] Arquivo samureye_eicar.txt existe: ❌ NÃO
+Sep 16 12:24:46 vlxsam99 npm[319654]: Testando EDR/AV em VMSAPPPRX68.gruppen.com.br
+Sep 16 12:24:46 vlxsam99 npm[319654]: Executando: which smbclient
+Sep 16 12:24:46 vlxsam99 npm[319654]: Executando: smbclient //VMSAPPPRX68.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 12:24:46 vlxsam99 npm[319654]: [DEBUG] Comando completo: smbclient //VMSAPPPRX68.gruppen.com.br/C$ -A /tmp/smbauth_1758025486545 -c put "/tmp/eicar_1758025486545.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:46 vlxsam99 npm[319654]: [DEBUG] Target path: C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:46 vlxsam99 npm[319654]: [DEBUG] User: rodrigo
+Sep 16 12:24:46 vlxsam99 npm[319654]: Executando: smbclient //VMSAPPPRX68.gruppen.com.br/C$ -A /tmp/smbauth_1758025486545 -c put "/tmp/eicar_1758025486545.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:51 vlxsam99 npm[319654]: [DEBUG] SMB Result - Exit Code: 1
+Sep 16 12:24:51 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDOUT:
+Sep 16 12:24:51 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:51 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:51 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:51 vlxsam99 npm[319654]: do_connect: Connection to VMSAPPPRX68.gruppen.com.br failed (Error NT_STATUS_IO_TIMEOUT)
+Sep 16 12:24:51 vlxsam99 npm[319654]: ❌ SMB Deploy falhou para VMSAPPPRX68.gruppen.com.br:
+Sep 16 12:24:51 vlxsam99 npm[319654]:    Error Code: 1
+Sep 16 12:24:51 vlxsam99 npm[319654]:    STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:51 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:51 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:51 vlxsam99 npm[319654]: do_connect: Connection to VMSAPPPRX68.gruppen.com.br failed (Error NT_STATUS_IO_TIMEOUT)
+Sep 16 12:24:51 vlxsam99 npm[319654]:    STDOUT:
+Sep 16 12:24:51 vlxsam99 npm[319654]: Deploy via WMI desabilitado por questões de segurança - usando apenas SMB
+Sep 16 12:24:51 vlxsam99 npm[319654]: Testando EDR/AV em VMSSUP50.gruppen.com.br
+Sep 16 12:24:51 vlxsam99 npm[319654]: Executando: which smbclient
+Sep 16 12:24:51 vlxsam99 npm[319654]: Executando: smbclient //VMSSUP50.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 12:24:51 vlxsam99 npm[319654]: [DEBUG] Comando completo: smbclient //VMSSUP50.gruppen.com.br/C$ -A /tmp/smbauth_1758025491595 -c put "/tmp/eicar_1758025491595.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:51 vlxsam99 npm[319654]: [DEBUG] Target path: C$\Windows\Temp\samureye_eicar.txt
+Sep 16 12:24:51 vlxsam99 npm[319654]: [DEBUG] User: rodrigo
+Sep 16 12:24:51 vlxsam99 npm[319654]: Executando: smbclient //VMSSUP50.gruppen.com.br/C$ -A /tmp/smbauth_1758025491595 -c put "/tmp/eicar_1758025491595.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 12:24:51 vlxsam99 npm[319654]: [DEBUG] SMB Result - Exit Code: 1
+Sep 16 12:24:51 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:51 vlxsam99 npm[319654]: [DEBUG] SMB Result - STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:51 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:51 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:51 vlxsam99 npm[319654]: ❌ SMB Deploy falhou para VMSSUP50.gruppen.com.br:
+Sep 16 12:24:51 vlxsam99 npm[319654]:    Error Code: 1
+Sep 16 12:24:51 vlxsam99 npm[319654]:    STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:51 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:51 vlxsam99 npm[319654]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 12:24:51 vlxsam99 npm[319654]:    STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 12:24:51 vlxsam99 npm[319654]: Deploy via WMI desabilitado por questões de segurança - usando apenas SMB
+Sep 16 12:24:51 vlxsam99 npm[319654]: 🔍 ThreatEngine analisando 12 achados para criação de ameaças...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 📋 Analisando achado: tipo=edr_test, porta=undefined, severidade=undefined
+Sep 16 12:24:51 vlxsam99 npm[319654]: ⚪ Nenhuma regra correspondeu ao achado: {"type":"edr_test","filePath":"\\\\VMSDC43.gruppen.com.br\\C$\\Windows\\Temp\\samureye_eicar.txt","h...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 📋 Analisando achado: tipo=edr_test, porta=undefined, severidade=undefined
+Sep 16 12:24:51 vlxsam99 npm[319654]: ⚪ Nenhuma regra correspondeu ao achado: {"type":"edr_test","error":"Falha em todos os métodos de deployment: SMB (gencache_init: Failed to c...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 📋 Analisando achado: tipo=edr_test, porta=undefined, severidade=undefined
+Sep 16 12:24:51 vlxsam99 npm[319654]: ⚪ Nenhuma regra correspondeu ao achado: {"type":"edr_test","error":"Falha em todos os métodos de deployment: SMB (gencache_init: Failed to c...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 📋 Analisando achado: tipo=edr_test, porta=undefined, severidade=undefined
+Sep 16 12:24:51 vlxsam99 npm[319654]: ⚪ Nenhuma regra correspondeu ao achado: {"type":"edr_test","error":"Falha em todos os métodos de deployment: SMB (gencache_init: Failed to c...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 📋 Analisando achado: tipo=edr_test, porta=undefined, severidade=undefined
+Sep 16 12:24:51 vlxsam99 npm[319654]: ⚪ Nenhuma regra correspondeu ao achado: {"type":"edr_test","error":"Falha em todos os métodos de deployment: SMB (gencache_init: Failed to c...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 📋 Analisando achado: tipo=edr_test, porta=undefined, severidade=undefined
+Sep 16 12:24:51 vlxsam99 npm[319654]: ⚪ Nenhuma regra correspondeu ao achado: {"type":"edr_test","error":"Falha em todos os métodos de deployment: SMB (gencache_init: Failed to c...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 📋 Analisando achado: tipo=edr_test, porta=undefined, severidade=undefined
+Sep 16 12:24:51 vlxsam99 npm[319654]: ⚪ Nenhuma regra correspondeu ao achado: {"type":"edr_test","error":"Falha em todos os métodos de deployment: SMB (gencache_init: Failed to c...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 📋 Analisando achado: tipo=edr_test, porta=undefined, severidade=undefined
+Sep 16 12:24:51 vlxsam99 npm[319654]: ⚪ Nenhuma regra correspondeu ao achado: {"type":"edr_test","error":"Falha em todos os métodos de deployment: SMB (gencache_init: Failed to c...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 📋 Analisando achado: tipo=edr_test, porta=undefined, severidade=undefined
+Sep 16 12:24:51 vlxsam99 npm[319654]: ⚪ Nenhuma regra correspondeu ao achado: {"type":"edr_test","error":"Falha em todos os métodos de deployment: SMB (gencache_init: Failed to c...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 📋 Analisando achado: tipo=edr_test, porta=undefined, severidade=undefined
+Sep 16 12:24:51 vlxsam99 npm[319654]: ⚪ Nenhuma regra correspondeu ao achado: {"type":"edr_test","filePath":"\\\\VMSDC53.gruppen.com.br\\C$\\Windows\\Temp\\samureye_eicar.txt","h...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 📋 Analisando achado: tipo=edr_test, porta=undefined, severidade=undefined
+Sep 16 12:24:51 vlxsam99 npm[319654]: ⚪ Nenhuma regra correspondeu ao achado: {"type":"edr_test","error":"Falha em todos os métodos de deployment: SMB (gencache_init: Failed to c...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 📋 Analisando achado: tipo=edr_test, porta=undefined, severidade=undefined
+Sep 16 12:24:51 vlxsam99 npm[319654]: ⚪ Nenhuma regra correspondeu ao achado: {"type":"edr_test","error":"Falha em todos os métodos de deployment: SMB (gencache_init: Failed to c...
+Sep 16 12:24:51 vlxsam99 npm[319654]: 🎯 ThreatEngine criou 0 ameaças de 12 achados analisados
