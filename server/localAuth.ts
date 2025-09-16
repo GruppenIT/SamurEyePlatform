@@ -7,6 +7,51 @@ import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 import { loginUserSchema, changePasswordSchema, type LoginUser, type ChangePassword } from "@shared/schema";
 
+// Hash password utility function
+async function hashPassword(password: string): Promise<string> {
+  return await bcrypt.hash(password, 12);
+}
+
+/**
+ * Bootstrap admin user for development testing
+ */
+async function bootstrapDevAdmin() {
+  try {
+    // Check if admin user exists
+    const existingAdmin = await storage.getUserByEmail('admin@example.com');
+    if (existingAdmin && existingAdmin.passwordHash) {
+      return; // Admin already exists with password
+    }
+
+    console.log('🔧 Criando usuário admin para desenvolvimento...');
+    
+    // Create or update admin user
+    const adminPassword = 'admin';
+    const hashedPassword = await hashPassword(adminPassword);
+    
+    if (existingAdmin) {
+      // Update existing user with password and role
+      await storage.updateUserPassword(existingAdmin.id, hashedPassword);
+      await storage.updateUserRole(existingAdmin.id, 'global_administrator');
+      await storage.setMustChangePassword(existingAdmin.id, false);
+      console.log('✅ Usuário admin atualizado: admin@example.com / admin');
+    } else {
+      // Create new admin user
+      const newUser = await storage.createUser({
+        email: 'admin@example.com',
+        passwordHash: hashedPassword,
+        firstName: 'Admin',
+        lastName: 'User',
+        role: 'global_administrator'
+      });
+      await storage.setMustChangePassword(newUser.id, false);
+      console.log('✅ Usuário admin criado: admin@example.com / admin');
+    }
+  } catch (error) {
+    console.error('❌ Erro ao criar usuário admin:', error);
+  }
+}
+
 // Simple in-memory rate limiting for login attempts
 interface RateLimitEntry {
   attempts: number;
@@ -102,6 +147,11 @@ export async function setupAuth(app: Express) {
   app.use(getSession());
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Bootstrap admin user for development testing
+  if (process.env.NODE_ENV === 'development') {
+    await bootstrapDevAdmin();
+  }
 
   // Local strategy for email/password authentication
   passport.use(new LocalStrategy(
@@ -370,12 +420,10 @@ export const isAuthenticatedWithPasswordCheck: RequestHandler = (req, res, next)
   });
 };
 
-// Hash password utility function
-export async function hashPassword(password: string): Promise<string> {
-  return await bcrypt.hash(password, 12);
-}
-
 // Verify password utility function
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return await bcrypt.compare(password, hash);
 }
+
+// Export hash password utility function
+export { hashPassword };
