@@ -43,7 +43,7 @@ export default function Jobs() {
   });
 
   const { data: result, isLoading: isLoadingResult } = useQuery<JobResult>({
-    queryKey: ["/api/jobs", selectedJob?.id, "result"],
+    queryKey: [`/api/jobs/${selectedJob?.id}/result`],
     enabled: !!selectedJob,
     retry: false,
   });
