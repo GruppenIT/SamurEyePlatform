@@ -1,0 +1,46 @@
+Sep 16 19:01:46 vlxsam99 npm[338789]: 🔍 Testando VMSVDIS02.gruppen.com.br (tentativa 15)
+Sep 16 19:01:46 vlxsam99 npm[338789]: Testando EDR/AV em VMSVDIS02.gruppen.com.br
+Sep 16 19:01:46 vlxsam99 npm[338789]: ⏱️ Timeout da jornada: 10s para teste EICAR
+Sep 16 19:01:46 vlxsam99 npm[338789]: Executando: which smbclient
+Sep 16 19:01:46 vlxsam99 npm[338789]: 🔑 Arquivo de autenticação criado:
+Sep 16 19:01:46 vlxsam99 npm[338789]:    Tamanho: 41 bytes
+Sep 16 19:01:46 vlxsam99 npm[338789]:    Username: rodrigo
+Sep 16 19:01:46 vlxsam99 npm[338789]:    Domain: N/A
+Sep 16 19:01:46 vlxsam99 npm[338789]:    Password: [15 caracteres]
+Sep 16 19:01:46 vlxsam99 npm[338789]: 📋 Executando SMB Deploy para VMSVDIS02.gruppen.com.br:
+Sep 16 19:01:46 vlxsam99 npm[338789]:    Comando: smbclient //VMSVDIS02.gruppen.com.br/C$ -A [AUTH_FILE] -c [PUT_COMMAND]
+Sep 16 19:01:46 vlxsam99 npm[338789]:    Arquivo local: /tmp/eicar_1758049306365.txt
+Sep 16 19:01:46 vlxsam99 npm[338789]:    Destino remoto: Windows\Temp\samureye_eicar.txt
+Sep 16 19:01:46 vlxsam99 npm[338789]:    Usuário: rodrigo
+Sep 16 19:01:46 vlxsam99 npm[338789]:    Arquivo de auth: /tmp/smbauth_1758049306365
+Sep 16 19:01:46 vlxsam99 npm[338789]: 🔍 Testando conectividade SMB para VMSVDIS02.gruppen.com.br...
+Sep 16 19:01:46 vlxsam99 npm[338789]: Executando: smbclient //VMSVDIS02.gruppen.com.br/C$ -A /tmp/smbauth_1758049306365 -c ls
+Sep 16 19:01:46 vlxsam99 npm[338789]:    Teste de conectividade - Exit Code: 1
+Sep 16 19:01:46 vlxsam99 npm[338789]: ❌ Falha no teste de conectividade:
+Sep 16 19:01:46 vlxsam99 npm[338789]:    STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 19:01:46 vlxsam99 npm[338789]:    STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 19:01:46 vlxsam99 npm[338789]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 19:01:46 vlxsam99 npm[338789]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 19:01:46 vlxsam99 npm[338789]: Executando: smbclient //VMSVDIS02.gruppen.com.br/C$ -A /tmp/smbauth_1758049306365 -c put "/tmp/eicar_1758049306365.txt" "Windows\Temp\samureye_eicar.txt"
+Sep 16 19:01:46 vlxsam99 npm[338789]: 📊 Resultado SMB Deploy - Exit Code: 1
+Sep 16 19:01:46 vlxsam99 npm[338789]: 📊 STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 19:01:46 vlxsam99 npm[338789]: 📊 STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 19:01:46 vlxsam99 npm[338789]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 19:01:46 vlxsam99 npm[338789]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 19:01:46 vlxsam99 npm[338789]: ❌ SMB Deploy falhou para VMSVDIS02.gruppen.com.br:
+Sep 16 19:01:46 vlxsam99 npm[338789]:    Error Code: 1
+Sep 16 19:01:46 vlxsam99 npm[338789]:    STDERR: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 19:01:46 vlxsam99 npm[338789]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 19:01:46 vlxsam99 npm[338789]: gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system
+Sep 16 19:01:46 vlxsam99 npm[338789]:    STDOUT: session setup failed: NT_STATUS_LOGON_FAILURE
+Sep 16 19:01:46 vlxsam99 npm[338789]: 🔍 DIAGNÓSTICO NT_STATUS_LOGON_FAILURE para VMSVDIS02.gruppen.com.br:
+Sep 16 19:01:46 vlxsam99 npm[338789]:    ⚠️  PROBLEMA COMUM EM SERVIDORES MEMBROS - Domain Controllers funcionam, mas servidores membros falham
+Sep 16 19:01:46 vlxsam99 npm[338789]:    🔧 SOLUÇÕES RECOMENDADAS:
+Sep 16 19:01:46 vlxsam99 npm[338789]:    1. Verificar se conta tem privilégios administrativos LOCAIS no servidor de destino
+Sep 16 19:01:46 vlxsam99 npm[338789]:    2. Adicionar conta ao grupo "Administradores" local do servidor
+Sep 16 19:01:46 vlxsam99 npm[338789]:    3. Habilitar LocalAccountTokenFilterPolicy para contas de domínio:
+Sep 16 19:01:46 vlxsam99 npm[338789]:       reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1
+Sep 16 19:01:46 vlxsam99 npm[338789]:    4. Verificar se UAC não está bloqueando acesso remoto
+Sep 16 19:01:46 vlxsam99 npm[338789]:    5. Confirmar que não há GPO bloqueando acesso SMB administrativo
+Sep 16 19:01:46 vlxsam99 npm[338789]: Deploy via WMI desabilitado por questões de segurança - usando apenas SMB
+Sep 16 19:01:46 vlxsam99 npm[338789]: ❌ Falha no deploy EICAR em VMSVDIS02.gruppen.com.br: Falha em todos os métodos de deployment: SMB (FALHA DE AUTENTICAÇÃO SMB: VMSVDIS02.gruppen.com.br negou acesso à conta 'rodrigo'. Servidores membros requerem privilégios administrativos locais específicos.), WMI (WMI deployment desabilitado por questões de segurança. Use SMB.)

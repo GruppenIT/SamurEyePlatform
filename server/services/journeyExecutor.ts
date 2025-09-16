@@ -378,11 +378,31 @@ class JourneyExecutorService {
 
       // Executar teste EDR/AV real
       const edrScanner = new EDRAVScanner();
+      
+      // Usar domínio da credencial, ou da jornada, ou deduzir do FQDN das workstations
+      let effectiveDomain = credential.domain;
+      if (!effectiveDomain && params.domainName) {
+        effectiveDomain = params.domainName;
+      }
+      // Se ainda não tiver domínio, tentar deduzir o NetBIOS domain do primeiro workstation FQDN
+      if (!effectiveDomain && workstationTargets.length > 0) {
+        const firstTarget = workstationTargets[0];
+        if (firstTarget.includes('.')) {
+          const parts = firstTarget.split('.');
+          if (parts.length >= 3) {
+            // Para smbclient, usar o segundo nível como NetBIOS domain (GRUPPEN não gruppen.com.br)
+            effectiveDomain = parts[1].toUpperCase(); // Exemplo: server.gruppen.com.br -> GRUPPEN
+          }
+        }
+      }
+      
+      console.log(`🔑 Usando credenciais: ${credential.username}@${effectiveDomain || 'LOCAL'}`);
+      
       const result = await edrScanner.runEDRAVTest(
         {
           username: credential.username,
           password: decryptedPassword,
-          domain: credential.domain || undefined,
+          domain: effectiveDomain || undefined,
         },
         workstationTargets,
         sampleRate,

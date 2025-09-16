@@ -549,7 +549,14 @@ export class EDRAVScanner {
     stderr: string;
     exitCode: number;
   }> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      // Criar diretório para cache do Samba se não existir
+      try {
+        await fs.mkdir('/tmp/samba', { recursive: true });
+      } catch {
+        // Ignorar se já existe
+      }
+      
       console.log(`Executando: ${command} ${args.join(' ')}`);
       
       const child = spawn(command, args, {
@@ -560,7 +567,10 @@ export class EDRAVScanner {
           HOME: '/tmp',
           TMPDIR: '/tmp',
           TMP: '/tmp',
-          TEMP: '/tmp'
+          TEMP: '/tmp',
+          // Configurações específicas do Samba para evitar erros de gencache
+          SAMBA_CACHEDIR: '/tmp/samba',
+          GENCACHE_PATH: '/tmp/samba/gencache.tdb'
         },
       });
 
