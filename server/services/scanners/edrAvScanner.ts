@@ -273,8 +273,8 @@ export class EDRAVScanner {
       console.log(`   Domain: ${credential.domain || 'N/A'}`);
       console.log(`   Password: [${credential.password.length} caracteres]`);
 
-      // SMB client espera barras normais, não backslashes para caminhos internos
-      const targetSmbPath = 'Windows/Temp/samureye_eicar.txt';
+      // Usar backslashes como no script de teste que funciona
+      const targetSmbPath = 'Windows\\Temp\\samureye_eicar.txt';
       
       const args = [
         `//${hostname}/C$`,
@@ -455,7 +455,7 @@ export class EDRAVScanner {
       const args = [
         `//${hostname}/C$`,
         '-A', authFile,
-        '-c', 'ls "Windows/Temp/samureye_eicar.txt"'
+        '-c', 'ls "Windows\\Temp\\samureye_eicar.txt"'
       ];
 
       console.log(`[DEBUG] Verificando existência do arquivo: ${filePath}`);
@@ -511,7 +511,7 @@ export class EDRAVScanner {
       const args = [
         `//${hostname}/C$`,
         '-A', authFile,
-        '-c', 'del "Windows/Temp/samureye_eicar.txt"'
+        '-c', 'del "Windows\\Temp\\samureye_eicar.txt"'
       ];
 
       await this.executeCommand('smbclient', args, 10000);
