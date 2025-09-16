@@ -389,6 +389,11 @@ export class DatabaseStorage implements IStorage {
       .set(updates)
       .where(eq(jobs.id, id))
       .returning();
+    
+    if (!updatedJob) {
+      throw new Error(`Job with ID ${id} not found - cannot update non-existent job`);
+    }
+    
     return updatedJob;
   }
 

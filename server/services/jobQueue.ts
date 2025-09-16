@@ -57,6 +57,13 @@ class JobQueueService extends EventEmitter {
    */
   private async processJob(job: Job): Promise<void> {
     try {
+      // Verify job exists in database before processing
+      const existingJob = await storage.getJob(job.id);
+      if (!existingJob) {
+        console.error(`Cannot process non-existent job: ${job.id}`);
+        return;
+      }
+
       this.runningJobs.set(job.id, job);
       
       // Update job status to running
@@ -70,7 +77,14 @@ class JobQueueService extends EventEmitter {
 
       // Execute the journey
       await journeyExecutor.executeJourney(journey, job.id, (update) => {
-        this.updateJobStatus(job.id, update.status, update.progress, update.currentTask);
+        // Handle updateJobStatus asynchronously to avoid unhandled promise rejections
+        this.updateJobStatus(job.id, update.status, update.progress, update.currentTask).catch((error) => {
+          if (error.message?.includes('not found')) {
+            console.log(`Job ${job.id} no longer exists, ignoring progress update`);
+          } else {
+            console.error(`Failed to update job status for ${job.id}:`, error);
+          }
+        });
       });
 
       // Mark as completed
@@ -78,7 +92,14 @@ class JobQueueService extends EventEmitter {
       
     } catch (error) {
       console.error(`Erro na execução do job ${job.id}:`, error);
-      await this.updateJobStatus(job.id, 'failed', undefined, error instanceof Error ? error.message : 'Erro desconhecido');
+      try {
+        await this.updateJobStatus(job.id, 'failed', undefined, error instanceof Error ? error.message : 'Erro desconhecido');
+      } catch (updateError) {
+        // Ignore "not found" errors when marking as failed - job may have been deleted
+        if (!updateError.message?.includes('not found')) {
+          console.error(`Failed to mark job ${job.id} as failed:`, updateError);
+        }
+      }
     } finally {
       this.runningJobs.delete(job.id);
       // Process next job in queue if any
@@ -110,18 +131,28 @@ class JobQueueService extends EventEmitter {
       updates.finishedAt = new Date();
     }
 
-    await storage.updateJob(jobId, updates);
-    
-    // Emit update for real-time monitoring
-    const update: JobUpdate = {
-      jobId,
-      status,
-      progress,
-      currentTask,
-      error,
-    };
-    
-    this.emit('jobUpdate', update);
+    try {
+      await storage.updateJob(jobId, updates);
+      
+      // Emit update ONLY after successful DB update
+      const update: JobUpdate = {
+        jobId,
+        status,
+        progress,
+        currentTask,
+        error,
+      };
+      
+      this.emit('jobUpdate', update);
+    } catch (dbError) {
+      console.error(`Failed to update job ${jobId}: ${dbError}`);
+      // Don't emit update for non-existent jobs to prevent ghost jobs in UI
+      if (dbError instanceof Error && dbError.message.includes('not found')) {
+        console.error(`Ghost job detected: ${jobId} - removing from running jobs`);
+        this.runningJobs.delete(jobId);
+      }
+      throw dbError;
+    }
   }
 
   /**
