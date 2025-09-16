@@ -16,7 +16,6 @@ export class SettingsService {
     'systemName': 'SamurEye',
     'sessionTimeout': 3600,
     'enableNotifications': true,
-    'edrTestTimeout': 30, // Timeout do teste EICAR em segundos (30 segundos default)
   };
 
   /**
