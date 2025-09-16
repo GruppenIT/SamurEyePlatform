@@ -282,6 +282,7 @@ class JourneyExecutorService {
   ): Promise<void> {
     const params = journey.params;
     const sampleRate = params.sampleRate || 15; // percentage
+    const timeout = params.timeout || 30; // timeout EICAR em segundos
     const credentialId = params.credentialId;
 
     if (!credentialId) {
@@ -384,7 +385,8 @@ class JourneyExecutorService {
           domain: credential.domain || undefined,
         },
         workstationTargets,
-        sampleRate
+        sampleRate,
+        timeout
       );
 
       onProgress({ status: 'running', progress: 90, currentTask: 'Processando resultados' });

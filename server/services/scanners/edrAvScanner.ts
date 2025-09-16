@@ -16,7 +16,8 @@ export class EDRAVScanner {
   async runEDRAVTest(
     credential: { username: string; password: string; domain?: string },
     targets: string[],
-    sampleRate: number = 15
+    sampleRate: number = 15,
+    timeout: number = 30
   ): Promise<any[]> {
     console.log(`Iniciando teste EDR/AV em ${targets.length} hosts (amostra: ${sampleRate}%)`);
     
@@ -26,7 +27,7 @@ export class EDRAVScanner {
 
     for (const target of sampledTargets) {
       try {
-        const finding = await this.testSingleHost(target, credential);
+        const finding = await this.testSingleHost(target, credential, timeout);
         findings.push(finding);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -50,16 +51,15 @@ export class EDRAVScanner {
    */
   private async testSingleHost(
     hostname: string,
-    credential: { username: string; password: string; domain?: string }
+    credential: { username: string; password: string; domain?: string },
+    timeout: number = 30
   ): Promise<any> {
     const startTime = Date.now();
     console.log(`Testando EDR/AV em ${hostname}`);
 
-    // Buscar timeout configurado uma única vez
-    const edrTestTimeoutSetting = await storage.getSetting('edrTestTimeout');
-    const edrTestTimeout = Number(edrTestTimeoutSetting?.value) || 30; // Default 30 segundos
-    const timeoutMs = Math.max(5, Math.min(3600, edrTestTimeout)) * 1000; // Limitar entre 5s e 1h
-    console.log(`⏱️ Timeout configurado: ${Math.floor(timeoutMs / 1000)}s para teste EICAR`);
+    // Usar timeout da jornada (parâmetro recebido)
+    const timeoutMs = Math.max(5, Math.min(3600, timeout)) * 1000; // Limitar entre 5s e 1h
+    console.log(`⏱️ Timeout da jornada: ${Math.floor(timeoutMs / 1000)}s para teste EICAR`);
 
     try {
       // 1. Primeiro, tentar deployment via SMB
