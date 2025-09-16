@@ -149,10 +149,17 @@ export const threats = pgTable("threats", {
   assetId: varchar("asset_id").references(() => assets.id),
   evidence: jsonb("evidence").$type<Record<string, any>>().default({}).notNull(),
   jobId: varchar("job_id").references(() => jobs.id),
+  // Lifecycle management fields
+  correlationKey: text("correlation_key"), // Unique identifier for threat correlation
+  category: text("category"), // Journey type semantics (attack_surface, ad_hygiene, edr_av)
+  lastSeenAt: timestamp("last_seen_at"), // Last time threat was observed
+  closureReason: text("closure_reason"), // Reason for closure ('system', 'manual', etc.)
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   assignedTo: varchar("assigned_to").references(() => users.id),
-});
+}, (table) => [
+  index("IDX_threats_correlation_key").on(table.correlationKey),
+]);
 
 // Settings table
 export const settings = pgTable("settings", {
