@@ -167,15 +167,37 @@ export class EDRAVScanner {
       ];
 
       console.log(`Executando: smbclient //${hostname}/C$ -A [AUTH_FILE] -c [PUT_COMMAND]`);
+      console.log(`[DEBUG] Comando completo: smbclient ${args.join(' ')}`);
+      console.log(`[DEBUG] Target path: ${targetPath}`);
+      console.log(`[DEBUG] User: ${credential.domain ? `${credential.domain}\\${credential.username}` : credential.username}`);
 
       const result = await this.executeCommand('smbclient', args, 30000);
 
+      console.log(`[DEBUG] SMB Result - Exit Code: ${result.exitCode}`);
+      console.log(`[DEBUG] SMB Result - STDOUT:`, result.stdout);
+      console.log(`[DEBUG] SMB Result - STDERR:`, result.stderr);
+
       if (result.exitCode === 0) {
+        console.log(`✅ SMB Deploy bem-sucedido para ${hostname}`);
         return {
           success: true,
           filePath: `\\\\${hostname}\\${targetPath}`,
         };
       } else {
+        console.log(`❌ SMB Deploy falhou para ${hostname}:`);
+        console.log(`   Error Code: ${result.exitCode}`);
+        console.log(`   STDERR: ${result.stderr}`);
+        console.log(`   STDOUT: ${result.stdout}`);
+        
+        // Análise específica de erros comuns
+        if (result.stderr.includes('NT_STATUS_ACCESS_DENIED')) {
+          console.log(`🔍 DIAGNÓSTICO NT_STATUS_ACCESS_DENIED para ${hostname}:`);
+          console.log('   - Verificar se usuário tem permissões administrativas');
+          console.log('   - Verificar se share C$ está habilitado');
+          console.log('   - Verificar políticas de UAC/segurança');
+          console.log('   - Verificar firewall local');
+        }
+        
         return {
           success: false,
           error: result.stderr || result.stdout || 'Erro desconhecido no smbclient',
@@ -244,10 +266,20 @@ export class EDRAVScanner {
         '-c', 'ls "Windows\\Temp\\samureye_eicar.txt"'
       ];
 
+      console.log(`[DEBUG] Verificando existência do arquivo: ${filePath}`);
+      console.log(`[DEBUG] Comando verificação: smbclient ${args.join(' ')}`);
+      
       const result = await this.executeCommand('smbclient', args, 10000);
       
+      console.log(`[DEBUG] Verificação - Exit Code: ${result.exitCode}`);
+      console.log(`[DEBUG] Verificação - STDOUT: ${result.stdout}`);
+      console.log(`[DEBUG] Verificação - STDERR: ${result.stderr}`);
+      
       // Se o arquivo existir, smbclient retornará informações sobre ele
-      return result.exitCode === 0 && !result.stderr.includes('NT_STATUS_OBJECT_NAME_NOT_FOUND');
+      const fileExists = result.exitCode === 0 && !result.stderr.includes('NT_STATUS_OBJECT_NAME_NOT_FOUND');
+      console.log(`[DEBUG] Arquivo ${filePath.split('\\').pop()} existe: ${fileExists ? '✅ SIM' : '❌ NÃO'}`);
+      
+      return fileExists;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.log(`Erro verificando arquivo em ${hostname}:`, errorMessage);
