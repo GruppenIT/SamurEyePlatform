@@ -54,7 +54,7 @@ export default function Settings() {
     jobTimeout: 1800,
     adPasswordAgeThreshold: 90,
     adInactiveUserThreshold: 180,
-    edrTestTimeout: 300,
+    edrTestTimeout: 30, // Usar valor padrão consistente com o servidor
     edrSampleRateDefault: 15,
     enableEmailAlerts: false,
     alertEmail: '',
@@ -109,15 +109,17 @@ export default function Settings() {
   // Load settings into form when data is available
   useEffect(() => {
     if (settings.length > 0) {
-      const newFormData = { ...formData };
-      settings.forEach(setting => {
-        if (setting.key in newFormData) {
-          (newFormData as any)[setting.key] = setting.value;
-        }
+      setFormData(prev => {
+        const newFormData = { ...prev };
+        settings.forEach(setting => {
+          if (setting.key in newFormData) {
+            (newFormData as any)[setting.key] = setting.value;
+          }
+        });
+        return newFormData;
       });
-      setFormData(newFormData);
     }
-  }, [settings]);
+  }, [settings]); // Remover formData das dependências para evitar loops
 
   const handleSave = async () => {
     const updates = Object.entries(formData).map(([key, value]) => ({ key, value }));

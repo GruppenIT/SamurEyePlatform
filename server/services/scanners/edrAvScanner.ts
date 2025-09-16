@@ -371,7 +371,14 @@ export class EDRAVScanner {
       
       const child = spawn(command, args, {
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env },
+        env: { 
+          ...process.env,
+          // Configurar diretórios temporários para Samba evitar erro read-only
+          HOME: '/tmp',
+          TMPDIR: '/tmp',
+          TMP: '/tmp',
+          TEMP: '/tmp'
+        },
       });
 
       let stdout = '';
