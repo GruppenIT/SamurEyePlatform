@@ -660,29 +660,6 @@ class ThreatEngineService {
         }),
       },
 
-      // EDR/AV Rules
-      {
-        id: 'edr-eicar-not-removed',
-        name: 'EDR/AV Falhou em Detectar EICAR',
-        description: 'Arquivo EICAR não foi removido pelo EDR/AV',
-        severity: 'medium',
-        matcher: (finding) => 
-          finding.type === 'edr_test' && finding.eicarRemoved === false,
-        createThreat: (finding, assetId, jobId) => ({
-          title: `EDR/AV falhou em detectar arquivo EICAR`,
-          description: `Workstation ${finding.hostname} não removeu arquivo de teste EICAR`,
-          severity: 'medium',
-          source: 'journey',
-          assetId,
-          jobId,
-          evidence: {
-            hostname: finding.hostname,
-            filePath: finding.filePath,
-            testDuration: finding.testDuration,
-            timestamp: finding.timestamp,
-          },
-        }),
-      },
     ];
   }
 
