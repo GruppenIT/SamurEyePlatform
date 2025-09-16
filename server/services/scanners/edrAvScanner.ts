@@ -94,13 +94,31 @@ export class EDRAVScanner {
     console.log(`   • EICAR copiado para ${successfulDeployments} computadores após tentativas`);
     console.log(`   • Falhas no deployment: ${failedDeployments}`);
     
+    // Analisar tipos de falhas para diagnóstico mais preciso
+    const authFailures = findings.filter(f => f.error && f.error.includes('NT_STATUS_LOGON_FAILURE')).length;
+    const accessDenied = findings.filter(f => f.error && f.error.includes('NT_STATUS_ACCESS_DENIED')).length;
+    const networkErrors = findings.filter(f => f.error && f.error.includes('NT_STATUS_BAD_NETWORK_NAME')).length;
+    const otherErrors = failedDeployments - authFailures - accessDenied - networkErrors;
+
     if (attemptsExhausted) {
       console.log(`⚠️ NÃO FOI POSSÍVEL ALCANÇAR A AMOSTRAGEM SOLICITADA`);
-      console.log(`   Isso pode ser causado por:`);
-      console.log(`   - Contas inativas no Active Directory`);
-      console.log(`   - Computadores desligados no horário de execução`);
-      console.log(`   - Problemas de conectividade de rede`);
-      console.log(`   - Políticas de segurança bloqueando acesso SMB/WMI`);
+      console.log(`   📊 ANÁLISE DAS FALHAS (${failedDeployments} total):`);
+      if (authFailures > 0) {
+        console.log(`   🔑 ${authFailures} falhas de autenticação (NT_STATUS_LOGON_FAILURE)`);
+        console.log(`      → SOLUÇÃO: Adicionar conta aos administradores locais dos servidores membros`);
+      }
+      if (accessDenied > 0) {
+        console.log(`   🚫 ${accessDenied} acessos negados (NT_STATUS_ACCESS_DENIED)`);
+        console.log(`      → SOLUÇÃO: Verificar privilégios e compartilhamento C$`);
+      }
+      if (networkErrors > 0) {
+        console.log(`   🌐 ${networkErrors} erros de rede/conectividade`);
+        console.log(`      → SOLUÇÃO: Verificar se servidores estão online`);
+      }
+      if (otherErrors > 0) {
+        console.log(`   ❓ ${otherErrors} outros erros diversos`);
+      }
+      console.log(`   💡 DICA: Domain Controllers geralmente funcionam, servidores membros precisam configuração adicional`);
     } else {
       console.log(`✅ Amostragem alcançada com sucesso`);
     }
@@ -276,18 +294,47 @@ export class EDRAVScanner {
         console.log(`   STDERR: ${result.stderr}`);
         console.log(`   STDOUT: ${result.stdout}`);
         
-        // Análise específica de erros comuns
-        if (result.stderr.includes('NT_STATUS_ACCESS_DENIED')) {
+        // Diagnóstico detalhado baseado no tipo de erro
+        let diagnosticMessage = result.stderr || result.stdout || 'Erro desconhecido no smbclient';
+        
+        if (result.stdout?.includes('NT_STATUS_LOGON_FAILURE')) {
+          console.log(`🔍 DIAGNÓSTICO NT_STATUS_LOGON_FAILURE para ${hostname}:`);
+          console.log('   ⚠️  PROBLEMA COMUM EM SERVIDORES MEMBROS - Domain Controllers funcionam, mas servidores membros falham');
+          console.log('   🔧 SOLUÇÕES RECOMENDADAS:');
+          console.log('   1. Verificar se conta tem privilégios administrativos LOCAIS no servidor de destino');
+          console.log('   2. Adicionar conta ao grupo "Administradores" local do servidor');
+          console.log('   3. Habilitar LocalAccountTokenFilterPolicy para contas de domínio:');
+          console.log('      reg add HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1');
+          console.log('   4. Verificar se UAC não está bloqueando acesso remoto');
+          console.log('   5. Confirmar que não há GPO bloqueando acesso SMB administrativo');
+          
+          diagnosticMessage = `FALHA DE AUTENTICAÇÃO SMB: ${hostname} negou acesso à conta '${credential.username}'. Servidores membros requerem privilégios administrativos locais específicos.`;
+          
+        } else if (result.stdout?.includes('NT_STATUS_ACCESS_DENIED') || result.stderr.includes('NT_STATUS_ACCESS_DENIED')) {
           console.log(`🔍 DIAGNÓSTICO NT_STATUS_ACCESS_DENIED para ${hostname}:`);
-          console.log('   - Verificar se usuário tem permissões administrativas');
+          console.log('   - Conta autenticada, mas sem privilégios suficientes');
           console.log('   - Verificar se share C$ está habilitado');
           console.log('   - Verificar políticas de UAC/segurança');
           console.log('   - Verificar firewall local');
+          
+          diagnosticMessage = `ACESSO NEGADO: Conta autenticada mas sem privilégios para acessar C$ em ${hostname}`;
+          
+        } else if (result.stdout?.includes('NT_STATUS_BAD_NETWORK_NAME')) {
+          console.log(`🔍 DIAGNÓSTICO NT_STATUS_BAD_NETWORK_NAME para ${hostname}:`);
+          console.log('   - Servidor pode estar offline ou inacessível');
+          console.log('   - Compartilhamento C$ pode estar desabilitado');
+          console.log('   - Verificar conectividade de rede');
+          
+          diagnosticMessage = `SERVIDOR INACESSÍVEL: ${hostname} não responde ou share C$ indisponível`;
+          
+        } else if (result.stderr?.includes('gencache_init')) {
+          console.log(`ℹ️  Warnings de gencache ignorados (não impedem funcionamento)`);
+          // Não alterar diagnosticMessage se só tem warning de gencache
         }
         
         return {
           success: false,
-          error: result.stderr || result.stdout || 'Erro desconhecido no smbclient',
+          error: diagnosticMessage,
         };
       }
     } catch (error) {
