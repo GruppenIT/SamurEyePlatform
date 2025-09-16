@@ -224,7 +224,7 @@ export class DatabaseStorage implements IStorage {
       .values({
         type: asset.type,
         value: asset.value,
-        tags: asset.tags,
+        tags: asset.tags || [],
         createdBy: userId,
       })
       .returning();
@@ -232,9 +232,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateAsset(id: string, asset: Partial<InsertAsset>): Promise<Asset> {
+    const updates: any = {};
+    if (asset.type !== undefined) updates.type = asset.type;
+    if (asset.value !== undefined) updates.value = asset.value;
+    if (asset.tags !== undefined) updates.tags = asset.tags;
+    
     const [updatedAsset] = await db
       .update(assets)
-      .set(asset)
+      .set(updates)
       .where(eq(assets.id, id))
       .returning();
     return updatedAsset;
@@ -253,6 +258,7 @@ export class DatabaseStorage implements IStorage {
         type: credentials.type,
         hostOverride: credentials.hostOverride,
         port: credentials.port,
+        domain: credentials.domain,
         username: credentials.username,
         createdAt: credentials.createdAt,
         createdBy: credentials.createdBy,
@@ -415,8 +421,6 @@ export class DatabaseStorage implements IStorage {
 
   // Threat operations
   async getThreats(filters?: { severity?: string; status?: string; assetId?: string }): Promise<Threat[]> {
-    let query = db.select().from(threats);
-    
     if (filters) {
       const conditions = [];
       if (filters.severity) conditions.push(eq(threats.severity, filters.severity as any));
@@ -424,11 +428,15 @@ export class DatabaseStorage implements IStorage {
       if (filters.assetId) conditions.push(eq(threats.assetId, filters.assetId));
       
       if (conditions.length > 0) {
-        query = query.where(and(...conditions));
+        return await db
+          .select()
+          .from(threats)
+          .where(and(...conditions))
+          .orderBy(desc(threats.createdAt));
       }
     }
     
-    return await query.orderBy(desc(threats.createdAt));
+    return await db.select().from(threats).orderBy(desc(threats.createdAt));
   }
 
   async getThreat(id: string): Promise<Threat | undefined> {
@@ -484,25 +492,41 @@ export class DatabaseStorage implements IStorage {
   }
 
   async listOpenThreatsByJourney(journeyId: string, category?: string): Promise<Threat[]> {
-    let query = db
-      .select()
+    const conditions = [
+      inArray(threats.status, ['open', 'investigating', 'mitigated'])
+    ];
+
+    if (category) {
+      conditions.push(eq(threats.category, category));
+    }
+
+    const results = await db
+      .select({
+        id: threats.id,
+        title: threats.title,
+        description: threats.description,
+        severity: threats.severity,
+        status: threats.status,
+        source: threats.source,
+        assetId: threats.assetId,
+        evidence: threats.evidence,
+        jobId: threats.jobId,
+        correlationKey: threats.correlationKey,
+        category: threats.category,
+        lastSeenAt: threats.lastSeenAt,
+        closureReason: threats.closureReason,
+        createdAt: threats.createdAt,
+        updatedAt: threats.updatedAt,
+        assignedTo: threats.assignedTo,
+      })
       .from(threats)
       .innerJoin(jobs, eq(threats.jobId, jobs.id))
       .where(and(
         eq(jobs.journeyId, journeyId),
-        inArray(threats.status, ['open', 'investigating', 'mitigated'])
+        ...conditions
       ));
 
-    if (category) {
-      query = query.where(and(
-        eq(jobs.journeyId, journeyId),
-        eq(threats.category, category),
-        inArray(threats.status, ['open', 'investigating', 'mitigated'])
-      ));
-    }
-
-    const results = await query;
-    return results.map(result => result.threats);
+    return results;
   }
 
   async closeThreatSystem(id: string, reason = 'system'): Promise<Threat> {

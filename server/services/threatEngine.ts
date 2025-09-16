@@ -700,7 +700,7 @@ class ThreatEngineService {
   }
 
   /**
-   * Processes job results and generates threats
+   * Processes job results and generates threats using lifecycle management
    */
   async processJobResults(jobId: string): Promise<Threat[]> {
     const jobResult = await storage.getJobResult(jobId);
@@ -710,8 +710,245 @@ class ThreatEngineService {
 
     const findings = jobResult.artifacts.findings || [];
     const job = await storage.getJob(jobId);
+    if (!job) {
+      return [];
+    }
+
+    const journey = await storage.getJourney(job.journeyId);
+    if (!journey) {
+      return [];
+    }
+
+    // Use new lifecycle-aware analysis
+    const threats = await this.analyzeWithLifecycle(findings, journey.type, job.journeyId, jobId);
     
-    return this.analyzeFindings(findings, undefined, jobId);
+    // Run post-processing for journey-specific auto-closure logic
+    await this.runJourneyPostProcessing(journey.type, job.journeyId, jobId, findings);
+    
+    return threats;
+  }
+
+  /**
+   * Computes a unique correlation key for a finding based on journey type
+   */
+  private computeCorrelationKey(finding: any, journeyType: string): string {
+    const normalizeHost = (host: string): string => {
+      return host?.toLowerCase().trim() || '';
+    };
+
+    switch (journeyType) {
+      case 'attack_surface':
+        if (finding.type === 'port') {
+          return `as:port:${normalizeHost(finding.target)}:${finding.port}`;
+        }
+        if (finding.type === 'vulnerability' || finding.type === 'web_vulnerability') {
+          const templateId = finding.template || finding.cve || finding.name;
+          let path = '';
+          try {
+            if (finding.evidence?.url) {
+              path = new URL(finding.evidence.url).pathname;
+            }
+          } catch {
+            // If URL is invalid, use empty path
+            path = '';
+          }
+          return `as:vuln:${normalizeHost(finding.target)}:${templateId}:${path}`;
+        }
+        break;
+      
+      case 'ad_hygiene':
+        // For AD findings: ad:{ruleId}:{domainNetBIOS}:{objectId|distinguishedName|samAccountName}
+        const domain = finding.evidence?.domain || finding.target?.split('.')[1]?.toUpperCase() || 'DOMAIN';
+        const objectId = finding.evidence?.username || finding.evidence?.computerName || finding.evidence?.groupName || finding.target;
+        return `ad:${finding.name?.replace(/\s+/g, '_')}:${domain}:${objectId}`;
+      
+      case 'edr_av':
+        // For EDR/AV: edr:{hostname}:{testType}
+        const hostname = finding.hostname || finding.target;
+        const testType = finding.deploymentMethod || 'eicar_test';
+        return `edr:${normalizeHost(hostname)}:${testType}`;
+      
+      default:
+        // Fallback for unknown journey types
+        return `generic:${finding.type}:${normalizeHost(finding.target || finding.hostname)}:${finding.name}`;
+    }
+
+    return `fallback:${Date.now()}:${Math.random()}`;
+  }
+
+  /**
+   * Analyzes findings using lifecycle-aware approach with upsert logic
+   */
+  async analyzeWithLifecycle(findings: any[], journeyType: string, journeyId: string, jobId?: string): Promise<Threat[]> {
+    const threats: Threat[] = [];
+    const observedKeys = new Set<string>();
+
+    for (const finding of findings) {
+      for (const rule of this.rules) {
+        if (rule.matcher(finding)) {
+          const correlationKey = this.computeCorrelationKey(finding, journeyType);
+          observedKeys.add(correlationKey);
+
+          const threatData = rule.createThreat(finding, undefined, jobId);
+          
+          // Use upsert logic with lifecycle fields
+          const threat = await storage.upsertThreat({
+            ...threatData,
+            correlationKey,
+            category: journeyType,
+            lastSeenAt: new Date(),
+          });
+
+          threats.push(threat);
+          console.log(`🔄 Threat upserted: ${threat.title} (Key: ${correlationKey})`);
+          break; // Stop after first matching rule
+        }
+      }
+    }
+
+    return threats;
+  }
+
+  /**
+   * Runs journey-specific post-processing for auto-closure logic
+   */
+  async runJourneyPostProcessing(journeyType: string, journeyId: string, jobId: string, findings: any[]): Promise<void> {
+    switch (journeyType) {
+      case 'attack_surface':
+        await this.processAttackSurfaceClosures(journeyId, jobId, findings);
+        break;
+      
+      case 'ad_hygiene':
+        await this.processAdHygieneClosures(journeyId, jobId, findings);
+        break;
+      
+      case 'edr_av':
+        await this.processEdrAvClosures(journeyId, jobId, findings);
+        break;
+    }
+  }
+
+  /**
+   * Process Attack Surface auto-closures
+   */
+  private async processAttackSurfaceClosures(journeyId: string, jobId: string, findings: any[]): Promise<void> {
+    // Get hosts that were scanned in this job
+    const scannedHosts = new Set<string>();
+    findings.forEach(finding => {
+      if (finding.target) {
+        scannedHosts.add(finding.target.toLowerCase().trim());
+      }
+    });
+
+    // Get observed correlation keys from this job
+    const observedKeys = new Set<string>();
+    findings.forEach(finding => {
+      const key = this.computeCorrelationKey(finding, 'attack_surface');
+      observedKeys.add(key);
+    });
+
+    // Find open threats from previous jobs of this journey
+    const openThreats = await storage.listOpenThreatsByJourney(journeyId, 'attack_surface');
+    
+    for (const threat of openThreats) {
+      if (!threat.correlationKey) continue;
+      
+      // Check if threat's host was in scope but threat wasn't observed
+      const threatHost = this.extractHostFromCorrelationKey(threat.correlationKey);
+      if (threatHost && scannedHosts.has(threatHost) && !observedKeys.has(threat.correlationKey)) {
+        await storage.closeThreatSystem(threat.id, 'system');
+        console.log(`🔒 Attack Surface threat auto-closed: ${threat.title} (not found in new scan)`);
+      }
+    }
+  }
+
+  /**
+   * Process AD Hygiene auto-closures
+   */
+  private async processAdHygieneClosures(journeyId: string, jobId: string, findings: any[]): Promise<void> {
+    // Get observed correlation keys from this job
+    const observedKeys = new Set<string>();
+    findings.forEach(finding => {
+      const key = this.computeCorrelationKey(finding, 'ad_hygiene');
+      observedKeys.add(key);
+    });
+
+    // Find all open AD threats from previous jobs of this journey
+    const openThreats = await storage.listOpenThreatsByJourney(journeyId, 'ad_hygiene');
+    
+    for (const threat of openThreats) {
+      if (!threat.correlationKey) continue;
+      
+      // If threat wasn't observed in this run, condition is fixed - close it
+      if (!observedKeys.has(threat.correlationKey)) {
+        await storage.closeThreatSystem(threat.id, 'system');
+        console.log(`🔒 AD Hygiene threat auto-closed: ${threat.title} (condition resolved)`);
+      }
+    }
+  }
+
+  /**
+   * Process EDR/AV auto-closures
+   */
+  private async processEdrAvClosures(journeyId: string, jobId: string, findings: any[]): Promise<void> {
+    // Get tested endpoints from this job
+    const testedEndpoints = new Map<string, any>();
+    findings.forEach(finding => {
+      if (finding.hostname) {
+        testedEndpoints.set(finding.hostname.toLowerCase(), finding);
+      }
+    });
+
+    // Get observed correlation keys from failures
+    const observedFailureKeys = new Set<string>();
+    findings.forEach(finding => {
+      if (finding.type === 'edr_test' && finding.eicarRemoved === false && !finding.error) {
+        const key = this.computeCorrelationKey(finding, 'edr_av');
+        observedFailureKeys.add(key);
+      }
+    });
+
+    // Find open EDR/AV threats from previous jobs
+    const openThreats = await storage.listOpenThreatsByJourney(journeyId, 'edr_av');
+    
+    for (const threat of openThreats) {
+      if (!threat.correlationKey) continue;
+      
+      const hostname = this.extractHostnameFromEdrKey(threat.correlationKey);
+      if (hostname && testedEndpoints.has(hostname)) {
+        // This endpoint was tested again
+        if (!observedFailureKeys.has(threat.correlationKey)) {
+          // Failure did not manifest - close threat
+          await storage.closeThreatSystem(threat.id, 'system');
+          console.log(`🔒 EDR/AV threat auto-closed: ${threat.title} (failure no longer manifests)`);
+        }
+        // If failure persists, it's already updated by upsert logic
+      }
+      // If endpoint wasn't tested, leave threat open (manual closure only)
+    }
+  }
+
+  /**
+   * Extract hostname from correlation key for different journey types
+   */
+  private extractHostFromCorrelationKey(correlationKey: string): string | null {
+    const parts = correlationKey.split(':');
+    if (parts.length >= 3) {
+      return parts[2]; // host is usually the 3rd part
+    }
+    return null;
+  }
+
+  /**
+   * Extract hostname from EDR correlation key
+   */
+  private extractHostnameFromEdrKey(correlationKey: string): string | null {
+    // edr:{hostname}:{testType}
+    const parts = correlationKey.split(':');
+    if (parts.length >= 2 && parts[0] === 'edr') {
+      return parts[1];
+    }
+    return null;
   }
 
   /**
