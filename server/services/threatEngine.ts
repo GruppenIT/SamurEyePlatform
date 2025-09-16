@@ -208,6 +208,35 @@ class ThreatEngineService {
         }),
       },
 
+      // EDR/AV Testing Rules - Regras para testes de EDR/AV
+      {
+        id: 'edr-av-failure',
+        name: 'Falha no EDR/AV Detectada',
+        description: 'Sistema EDR/AV falhou em detectar/remover arquivo EICAR malicioso',
+        severity: 'critical',
+        matcher: (finding) => 
+          finding.type === 'edr_test' && 
+          finding.eicarRemoved === false &&
+          !finding.error, // Só criar ameaça se a cópia foi bem-sucedida mas não foi removida
+        createThreat: (finding, assetId, jobId) => ({
+          title: `EDR/AV Falhou - ${finding.hostname}`,
+          description: `Sistema de proteção EDR/AV no computador ${finding.hostname} falhou em detectar e remover arquivo EICAR malicioso. Isso indica uma falha crítica na proteção de endpoint.`,
+          severity: 'critical',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            hostname: finding.hostname,
+            filePath: finding.filePath,
+            deploymentMethod: finding.deploymentMethod,
+            testDuration: finding.testDuration,
+            timestamp: finding.timestamp,
+            eicarPersisted: true,
+            recommendation: 'Verificar configuração e funcionamento do EDR/AV no endpoint. Considerar atualização de assinaturas e revisão de políticas de segurança.',
+          } as Record<string, any>,
+        }),
+      },
+
       // AD Hygiene Rules - Regras para achados específicos do AD
       {
         id: 'ad-users-password-never-expires',

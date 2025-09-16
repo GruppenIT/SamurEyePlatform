@@ -11,30 +11,70 @@ export class EDRAVScanner {
   private readonly eicarContent = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
 
   /**
-   * Executa teste EDR/AV com credenciais
+   * Executa teste EDR/AV com credenciais e sistema de retry para garantir amostragem
    */
   async runEDRAVTest(
     credential: { username: string; password: string; domain?: string },
     targets: string[],
     sampleRate: number = 15,
     timeout: number = 30
-  ): Promise<any[]> {
-    console.log(`Iniciando teste EDR/AV em ${targets.length} hosts (amostra: ${sampleRate}%)`);
+  ): Promise<{
+    findings: any[];
+    statistics: {
+      totalDiscovered: number;
+      requestedSampleRate: number;
+      requestedSampleSize: number;
+      successfulDeployments: number;
+      failedDeployments: number;
+      attemptsExhausted: boolean;
+      eicarRemovedCount: number;
+      eicarPersistedCount: number;
+    };
+  }> {
+    const totalDiscovered = targets.length;
+    const requestedSampleSize = Math.max(1, Math.floor(totalDiscovered * sampleRate / 100));
+    
+    console.log(`🎯 Iniciando teste EDR/AV: ${totalDiscovered} computadores descobertos`);
+    console.log(`📊 Amostragem solicitada: ${sampleRate}%/${requestedSampleSize} computadores`);
     
     const findings: any[] = [];
-    const sampleSize = Math.max(1, Math.floor(targets.length * sampleRate / 100));
-    const sampledTargets = this.sampleHosts(targets, sampleSize);
-
-    for (const target of sampledTargets) {
+    const usedTargets = new Set<string>();
+    const availableTargets = [...targets]; // Cópia para manipular
+    let successfulDeployments = 0;
+    let failedDeployments = 0;
+    
+    // Shuffle initial targets para randomização
+    this.shuffleArray(availableTargets);
+    
+    while (successfulDeployments < requestedSampleSize && availableTargets.length > 0) {
+      // Selecionar próximo target disponível
+      const currentTarget = availableTargets.shift()!;
+      usedTargets.add(currentTarget);
+      
+      console.log(`🔍 Testando ${currentTarget} (tentativa ${successfulDeployments + failedDeployments + 1})`);
+      
       try {
-        const finding = await this.testSingleHost(target, credential, timeout);
-        findings.push(finding);
+        const finding = await this.testSingleHost(currentTarget, credential, timeout);
+        
+        // Verificar se conseguiu fazer deploy do EICAR (sucesso na cópia)
+        if (finding.error) {
+          failedDeployments++;
+          console.log(`❌ Falha no deploy EICAR em ${currentTarget}: ${finding.error}`);
+          findings.push(finding);
+        } else {
+          successfulDeployments++;
+          findings.push(finding);
+          console.log(`✅ EICAR copiado com sucesso em ${currentTarget} (${finding.eicarRemoved ? 'REMOVIDO pelo EDR/AV' : 'PERSISTIU - FALHA NO EDR/AV'})`);
+        }
+        
       } catch (error) {
+        failedDeployments++;
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`Erro testando ${target}:`, errorMessage);
+        console.error(`❌ Erro crítico testando ${currentTarget}:`, errorMessage);
+        
         findings.push({
           type: 'edr_test',
-          hostname: target,
+          hostname: currentTarget,
           error: errorMessage,
           eicarRemoved: null,
           testDuration: 0,
@@ -42,8 +82,45 @@ export class EDRAVScanner {
         });
       }
     }
-
-    return findings;
+    
+    const attemptsExhausted = successfulDeployments < requestedSampleSize;
+    const eicarRemovedCount = findings.filter(f => f.eicarRemoved === true).length;
+    const eicarPersistedCount = findings.filter(f => f.eicarRemoved === false).length;
+    
+    // Log de resultados finais
+    console.log(`📈 ESTATÍSTICAS FINAIS:`);
+    console.log(`   • ${totalDiscovered} computadores descobertos`);
+    console.log(`   • Amostragem solicitada: ${sampleRate}%/${requestedSampleSize} computadores`);
+    console.log(`   • EICAR copiado para ${successfulDeployments} computadores após tentativas`);
+    console.log(`   • Falhas no deployment: ${failedDeployments}`);
+    
+    if (attemptsExhausted) {
+      console.log(`⚠️ NÃO FOI POSSÍVEL ALCANÇAR A AMOSTRAGEM SOLICITADA`);
+      console.log(`   Isso pode ser causado por:`);
+      console.log(`   - Contas inativas no Active Directory`);
+      console.log(`   - Computadores desligados no horário de execução`);
+      console.log(`   - Problemas de conectividade de rede`);
+      console.log(`   - Políticas de segurança bloqueando acesso SMB/WMI`);
+    } else {
+      console.log(`✅ Amostragem alcançada com sucesso`);
+    }
+    
+    console.log(`   • EDR/AV funcionando: ${eicarRemovedCount} computadores`);
+    console.log(`   • EDR/AV com falhas: ${eicarPersistedCount} computadores`);
+    
+    return {
+      findings,
+      statistics: {
+        totalDiscovered,
+        requestedSampleRate: sampleRate,
+        requestedSampleSize,
+        successfulDeployments,
+        failedDeployments,
+        attemptsExhausted,
+        eicarRemovedCount,
+        eicarPersistedCount,
+      }
+    };
   }
 
   /**
@@ -422,12 +499,18 @@ export class EDRAVScanner {
     }
 
     const shuffled = [...hosts];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-
+    this.shuffleArray(shuffled);
     return shuffled.slice(0, sampleSize);
+  }
+
+  /**
+   * Embaralha array in-place usando algoritmo Fisher-Yates
+   */
+  private shuffleArray<T>(array: T[]): void {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
   }
 
   private delay(ms: number): Promise<void> {

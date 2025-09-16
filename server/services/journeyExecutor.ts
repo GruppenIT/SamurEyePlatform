@@ -378,7 +378,7 @@ class JourneyExecutorService {
 
       // Executar teste EDR/AV real
       const edrScanner = new EDRAVScanner();
-      const findings = await edrScanner.runEDRAVTest(
+      const result = await edrScanner.runEDRAVTest(
         {
           username: credential.username,
           password: decryptedPassword,
@@ -389,25 +389,37 @@ class JourneyExecutorService {
         timeout
       );
 
+      const { findings, statistics } = result;
+
       onProgress({ status: 'running', progress: 90, currentTask: 'Processando resultados' });
 
-      const eicarRemoved = findings.filter(f => f.eicarRemoved === true).length;
-      const eicarPersisted = findings.filter(f => f.eicarRemoved === false).length;
+      const eicarRemoved = statistics.eicarRemovedCount;
+      const eicarPersisted = statistics.eicarPersistedCount;
       const errors = findings.filter(f => f.error).length;
+
+      // Criar log detalhado para exibição
+      const detailedLog = [
+        `📈 ESTATÍSTICAS DO TESTE EDR/AV:`,
+        `• ${statistics.totalDiscovered} computadores descobertos`,
+        `• Amostragem solicitada: ${statistics.requestedSampleRate}%/${statistics.requestedSampleSize} computadores`,
+        `• EICAR copiado para ${statistics.successfulDeployments} computadores após tentativas`,
+        `• Falhas no deployment: ${statistics.failedDeployments}`,
+        statistics.attemptsExhausted 
+          ? `⚠️ NÃO FOI POSSÍVEL ALCANÇAR A AMOSTRAGEM SOLICITADA. Isso pode ser causado por contas inativas no AD ou computadores desligados no horário de execução.`
+          : `✅ Amostragem alcançada com sucesso`,
+        `• EDR/AV funcionando: ${eicarRemoved} computadores`,
+        `• EDR/AV com falhas: ${eicarPersisted} computadores`,
+      ].join('\n');
 
       await storage.createJobResult({
         jobId,
-        stdout: `Teste EDR/AV concluído. ${findings.length} workstations testadas. ${eicarRemoved} com EDR/AV funcionando, ${eicarPersisted} com falhas.`,
+        stdout: detailedLog,
         stderr: errors > 0 ? `${errors} hosts com erros durante o teste` : '',
         artifacts: {
           findings,
+          statistics,
           summary: {
-            totalWorkstations: workstationTargets.length,
-            sampleSize: findings.length,
-            sampleRate,
-            eicarRemoved,
-            eicarPersisted,
-            errors,
+            ...statistics,
             domain: credential.domain,
             testDuration: new Date().toISOString(),
           },
