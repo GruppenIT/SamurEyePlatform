@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Settings as SettingsIcon, Save, Shield, Clock, AlertTriangle } from "lucide-react";
+import { Settings as SettingsIcon, Save, Shield, Clock } from "lucide-react";
 import { Setting } from "@shared/schema";
 
 interface SettingsForm {
@@ -29,10 +29,6 @@ interface SettingsForm {
   // AD Hygiene Thresholds
   adPasswordAgeThreshold: number;
   adInactiveUserThreshold: number;
-  
-  // EDR/AV Settings
-  edrTestTimeout: number;
-  edrSampleRateDefault: number;
   
   // Notification Settings
   enableEmailAlerts: boolean;
@@ -54,8 +50,6 @@ export default function Settings() {
     jobTimeout: 1800,
     adPasswordAgeThreshold: 90,
     adInactiveUserThreshold: 180,
-    edrTestTimeout: 30, // Usar valor padrão consistente com o servidor
-    edrSampleRateDefault: 15,
     enableEmailAlerts: false,
     alertEmail: '',
     criticalThreatAlert: true,
@@ -295,47 +289,6 @@ export default function Settings() {
                     />
                     <p className="text-sm text-muted-foreground mt-1">
                       Alertar sobre usuários sem login há X dias
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* EDR/AV Settings */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <AlertTriangle className="h-5 w-5" />
-                    <span>Configurações EDR/AV</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="edrTestTimeout">Timeout Teste EICAR (segundos)</Label>
-                    <Input
-                      id="edrTestTimeout"
-                      type="number"
-                      value={formData.edrTestTimeout}
-                      onChange={(e) => handleInputChange('edrTestTimeout', parseInt(e.target.value))}
-                      data-testid="input-edr-test-timeout"
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Tempo para aguardar remoção do arquivo EICAR
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="edrSampleRateDefault">Taxa Amostragem Padrão (%)</Label>
-                    <Input
-                      id="edrSampleRateDefault"
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={formData.edrSampleRateDefault}
-                      onChange={(e) => handleInputChange('edrSampleRateDefault', parseInt(e.target.value))}
-                      data-testid="input-edr-sample-rate"
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Percentual padrão de workstations para testar
                     </p>
                   </div>
                 </CardContent>
