@@ -261,26 +261,58 @@ export class EDRAVScanner {
         `username=${credential.username}`,
         `password=${credential.password}`,
         credential.domain ? `domain=${credential.domain}` : '',
+        credential.domain ? `workgroup=${credential.domain}` : '', // Compatibilidade adicional
       ].filter(Boolean).join('\n');
       
       await fs.writeFile(authFile, authContent, { mode: 0o600 }); // Apenas proprietário pode ler
 
+      // Debug: Verificar conteúdo do arquivo de auth (sem mostrar password)
+      console.log(`🔑 Arquivo de autenticação criado:`);
+      console.log(`   Tamanho: ${authContent.length} bytes`);
+      console.log(`   Username: ${credential.username}`);
+      console.log(`   Domain: ${credential.domain || 'N/A'}`);
+      console.log(`   Password: [${credential.password.length} caracteres]`);
+
+      // SMB client espera barras normais, não backslashes para caminhos internos
+      const targetSmbPath = 'Windows/Temp/samureye_eicar.txt';
+      
       const args = [
         `//${hostname}/C$`,
         '-A', authFile, // Usar arquivo de autenticação em vez de linha de comando
-        '-c', `put "${tempFile}" "Windows\\Temp\\samureye_eicar.txt"`
+        '-c', `put "${tempFile}" "${targetSmbPath}"`
       ];
 
-      console.log(`Executando: smbclient //${hostname}/C$ -A [AUTH_FILE] -c [PUT_COMMAND]`);
-      console.log(`[DEBUG] Comando completo: smbclient ${args.join(' ')}`);
-      console.log(`[DEBUG] Target path: ${targetPath}`);
-      console.log(`[DEBUG] User: ${credential.domain ? `${credential.domain}\\${credential.username}` : credential.username}`);
+      console.log(`📋 Executando SMB Deploy para ${hostname}:`);
+      console.log(`   Comando: smbclient //${hostname}/C$ -A [AUTH_FILE] -c [PUT_COMMAND]`);
+      console.log(`   Arquivo local: ${tempFile}`);
+      console.log(`   Destino remoto: ${targetSmbPath}`);
+      console.log(`   Usuário: ${credential.domain ? `${credential.domain}\\${credential.username}` : credential.username}`);
+      console.log(`   Arquivo de auth: ${authFile}`);
+
+      // Primeiro, testar conectividade básica antes de tentar copiar
+      console.log(`🔍 Testando conectividade SMB para ${hostname}...`);
+      const testArgs = [
+        `//${hostname}/C$`,
+        '-A', authFile,
+        '-c', 'ls'
+      ];
+      
+      const testResult = await this.executeCommand('smbclient', testArgs, 15000);
+      console.log(`   Teste de conectividade - Exit Code: ${testResult.exitCode}`);
+      
+      if (testResult.exitCode !== 0) {
+        console.log(`❌ Falha no teste de conectividade:`);
+        console.log(`   STDOUT: ${testResult.stdout}`);
+        console.log(`   STDERR: ${testResult.stderr}`);
+      } else {
+        console.log(`✅ Conectividade SMB funcionando, prosseguindo com cópia...`);
+      }
 
       const result = await this.executeCommand('smbclient', args, 30000);
 
-      console.log(`[DEBUG] SMB Result - Exit Code: ${result.exitCode}`);
-      console.log(`[DEBUG] SMB Result - STDOUT:`, result.stdout);
-      console.log(`[DEBUG] SMB Result - STDERR:`, result.stderr);
+      console.log(`📊 Resultado SMB Deploy - Exit Code: ${result.exitCode}`);
+      console.log(`📊 STDOUT:`, result.stdout);
+      console.log(`📊 STDERR:`, result.stderr);
 
       if (result.exitCode === 0) {
         console.log(`✅ SMB Deploy bem-sucedido para ${hostname}`);
@@ -297,7 +329,32 @@ export class EDRAVScanner {
         // Diagnóstico detalhado baseado no tipo de erro
         let diagnosticMessage = result.stderr || result.stdout || 'Erro desconhecido no smbclient';
         
-        if (result.stdout?.includes('NT_STATUS_LOGON_FAILURE')) {
+        // Verificar se o problema pode ser com o arquivo de autenticação
+        if (result.stderr?.includes('Unable to open credentials file') || result.stderr?.includes('Error reading credentials')) {
+          console.log(`🔧 PROBLEMA COM ARQUIVO DE AUTENTICAÇÃO - tentando método alternativo...`);
+          
+          // Tentar comando direto (menos seguro, mas pode funcionar)
+          const directArgs = [
+            `//${hostname}/C$`,
+            '-U', `${credential.domain ? credential.domain + '\\' : ''}${credential.username}%${credential.password}`,
+            '-c', `put "${tempFile}" "${targetSmbPath}"`
+          ];
+          
+          console.log(`🔄 Tentativa com autenticação direta na linha de comando...`);
+          const directResult = await this.executeCommand('smbclient', directArgs, 30000);
+          
+          if (directResult.exitCode === 0) {
+            console.log(`✅ SMB Deploy bem-sucedido com método direto para ${hostname}`);
+            return {
+              success: true,
+              filePath: `\\\\${hostname}\\C$\\Windows\\Temp\\samureye_eicar.txt`,
+            };
+          } else {
+            diagnosticMessage = `Falha com ambos os métodos de autenticação. Último erro: ${directResult.stderr || directResult.stdout}`;
+          }
+        }
+        
+        if (result.stdout?.includes('NT_STATUS_LOGON_FAILURE') || diagnosticMessage.includes('NT_STATUS_LOGON_FAILURE')) {
           console.log(`🔍 DIAGNÓSTICO NT_STATUS_LOGON_FAILURE para ${hostname}:`);
           console.log('   ⚠️  PROBLEMA COMUM EM SERVIDORES MEMBROS - Domain Controllers funcionam, mas servidores membros falham');
           console.log('   🔧 SOLUÇÕES RECOMENDADAS:');
@@ -390,6 +447,7 @@ export class EDRAVScanner {
         `username=${credential.username}`,
         `password=${credential.password}`,
         credential.domain ? `domain=${credential.domain}` : '',
+        credential.domain ? `workgroup=${credential.domain}` : '', // Compatibilidade adicional
       ].filter(Boolean).join('\n');
       
       await fs.writeFile(authFile, authContent, { mode: 0o600 });
@@ -397,7 +455,7 @@ export class EDRAVScanner {
       const args = [
         `//${hostname}/C$`,
         '-A', authFile,
-        '-c', 'ls "Windows\\Temp\\samureye_eicar.txt"'
+        '-c', 'ls "Windows/Temp/samureye_eicar.txt"'
       ];
 
       console.log(`[DEBUG] Verificando existência do arquivo: ${filePath}`);
@@ -445,6 +503,7 @@ export class EDRAVScanner {
         `username=${credential.username}`,
         `password=${credential.password}`,
         credential.domain ? `domain=${credential.domain}` : '',
+        credential.domain ? `workgroup=${credential.domain}` : '', // Compatibilidade adicional
       ].filter(Boolean).join('\n');
       
       await fs.writeFile(authFile, authContent, { mode: 0o600 });
@@ -452,7 +511,7 @@ export class EDRAVScanner {
       const args = [
         `//${hostname}/C$`,
         '-A', authFile,
-        '-c', 'rm "Windows\\Temp\\samureye_eicar.txt"'
+        '-c', 'del "Windows/Temp/samureye_eicar.txt"'
       ];
 
       await this.executeCommand('smbclient', args, 10000);
