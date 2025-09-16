@@ -91,6 +91,12 @@ export interface IStorage {
   updateThreat(id: string, threat: Partial<Threat>): Promise<Threat>;
   deleteThreat(id: string): Promise<void>;
   getThreatStats(): Promise<{ total: number; critical: number; high: number; medium: number; low: number }>;
+  
+  // Threat lifecycle operations
+  findThreatByCorrelationKey(correlationKey: string): Promise<Threat | undefined>;
+  listOpenThreatsByJourney(journeyId: string, category?: string): Promise<Threat[]>;
+  closeThreatSystem(id: string, reason?: string): Promise<Threat>;
+  upsertThreat(threat: InsertThreat & { correlationKey: string; category: string; lastSeenAt?: Date }): Promise<Threat>;
 
   // Settings operations
   getSetting(key: string): Promise<Setting | undefined>;
@@ -466,6 +472,79 @@ export class DatabaseStorage implements IStorage {
     }
     
     return stats;
+  }
+
+  // Threat lifecycle operations
+  async findThreatByCorrelationKey(correlationKey: string): Promise<Threat | undefined> {
+    const [threat] = await db
+      .select()
+      .from(threats)
+      .where(eq(threats.correlationKey, correlationKey));
+    return threat;
+  }
+
+  async listOpenThreatsByJourney(journeyId: string, category?: string): Promise<Threat[]> {
+    let query = db
+      .select()
+      .from(threats)
+      .innerJoin(jobs, eq(threats.jobId, jobs.id))
+      .where(and(
+        eq(jobs.journeyId, journeyId),
+        inArray(threats.status, ['open', 'investigating', 'mitigated'])
+      ));
+
+    if (category) {
+      query = query.where(and(
+        eq(jobs.journeyId, journeyId),
+        eq(threats.category, category),
+        inArray(threats.status, ['open', 'investigating', 'mitigated'])
+      ));
+    }
+
+    const results = await query;
+    return results.map(result => result.threats);
+  }
+
+  async closeThreatSystem(id: string, reason = 'system'): Promise<Threat> {
+    const [updatedThreat] = await db
+      .update(threats)
+      .set({ 
+        status: 'closed', 
+        closureReason: reason,
+        updatedAt: new Date()
+      })
+      .where(eq(threats.id, id))
+      .returning();
+    return updatedThreat;
+  }
+
+  async upsertThreat(threat: InsertThreat & { correlationKey: string; category: string; lastSeenAt?: Date }): Promise<Threat> {
+    // Try to find existing threat by correlation key
+    const existingThreat = await this.findThreatByCorrelationKey(threat.correlationKey);
+    
+    if (existingThreat && existingThreat.status !== 'closed') {
+      // Update existing threat
+      const [updatedThreat] = await db
+        .update(threats)
+        .set({
+          evidence: threat.evidence,
+          lastSeenAt: threat.lastSeenAt || new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(threats.id, existingThreat.id))
+        .returning();
+      return updatedThreat;
+    } else {
+      // Create new threat
+      const [newThreat] = await db
+        .insert(threats)
+        .values({
+          ...threat,
+          lastSeenAt: threat.lastSeenAt || new Date(),
+        })
+        .returning();
+      return newThreat;
+    }
   }
 
   // Settings operations
