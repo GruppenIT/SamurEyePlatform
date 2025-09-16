@@ -57,6 +57,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         ...initialData?.params,
         edrAvType: initialData?.params?.edrAvType || 'network_based',
         sampleRate: initialData?.params?.sampleRate || '15',
+        timeout: initialData?.params?.timeout || 30,
       },
     },
   });
@@ -103,6 +104,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
       case 'edr_av':
         params.edrAvType = form.getValues('params.edrAvType') || 'network_based';
         params.sampleRate = parseInt(form.getValues('params.sampleRate')) || 15;
+        params.timeout = parseInt(form.getValues('params.timeout')) || 30;
         params.credentialId = form.getValues('params.credentialId');
         
         // Parâmetros específicos por tipo
@@ -574,6 +576,30 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                   </FormControl>
                   <FormDescription>
                     Porcentagem de workstations para testar (recomendado: 10-20%)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="params.timeout"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Timeout Teste EICAR (segundos)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="10"
+                      max="300"
+                      placeholder="30"
+                      {...field}
+                      data-testid="input-edr-timeout"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Tempo para aguardar detecção/remoção do arquivo EICAR pelo EDR/AV
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
