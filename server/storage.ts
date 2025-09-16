@@ -222,7 +222,9 @@ export class DatabaseStorage implements IStorage {
     const [newAsset] = await db
       .insert(assets)
       .values({
-        ...asset,
+        type: asset.type,
+        value: asset.value,
+        tags: asset.tags || [],
         createdBy: userId,
       })
       .returning();
