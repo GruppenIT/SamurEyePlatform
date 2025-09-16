@@ -672,11 +672,10 @@ export class ADScanner {
         const operatingSystem = computer.operatingSystem?.[0] || '';
         const lastLogonTimestamp = computer.lastLogonTimestamp?.[0];
 
-        // Filtrar apenas workstations (excluir servidores)
+        // Incluir tanto workstations quanto servidores para teste EDR/AV
         const isServer = operatingSystem.toLowerCase().includes('server');
         if (isServer) {
-          console.log(`Pulando servidor: ${computerName} (${operatingSystem})`);
-          continue;
+          console.log(`✅ Servidor encontrado: ${computerName} (${operatingSystem})`);
         }
 
         // Verificar se teve logon recente (últimos 30 dias)
@@ -699,16 +698,18 @@ export class ADScanner {
         const hostName = dnsHostName || computerName;
         if (hostName) {
           workstations.push(hostName);
-          console.log(`✅ Workstation encontrada: ${hostName} (${operatingSystem})`);
+          if (!isServer) {
+            console.log(`✅ Workstation encontrada: ${hostName} (${operatingSystem})`);
+          }
         }
       }
 
-      console.log(`Total de workstations descobertas: ${workstations.length}`);
+      console.log(`Total de computadores descobertos: ${workstations.length} (workstations + servidores)`);
 
-      // Se não encontrou workstations, log detalhado para troubleshooting
+      // Se não encontrou computadores, log detalhado para troubleshooting
       if (workstations.length === 0) {
-        console.warn(`⚠️ Nenhuma workstation ativa encontrada no domínio ${domain}`);
-        console.warn('Verifique: 1) Conectividade LDAP, 2) Permissões da credencial, 3) Workstations ativas no domínio');
+        console.warn(`⚠️ Nenhum computador ativo encontrado no domínio ${domain}`);
+        console.warn('Verifique: 1) Conectividade LDAP, 2) Permissões da credencial, 3) Computadores ativos no domínio');
       }
 
     } catch (error) {

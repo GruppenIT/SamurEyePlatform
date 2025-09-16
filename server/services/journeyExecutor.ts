@@ -347,9 +347,11 @@ class JourneyExecutorService {
               if (asset.type === 'host') {
                 workstationTargets.push(asset.value);
               } else if (asset.type === 'range') {
-                // Para ranges, por enquanto adicionar como está
-                // Em implementação completa, expandiria o range CIDR
-                workstationTargets.push(asset.value);
+                // Expandir range CIDR em IPs individuais
+                console.log(`🌐 Expandindo range CIDR: ${asset.value}`);
+                const expandedIPs = this.expandCIDR(asset.value);
+                console.log(`📊 Range expandido para ${expandedIPs.length} IPs`);
+                workstationTargets.push(...expandedIPs);
               }
             }
           }
@@ -645,6 +647,69 @@ class JourneyExecutorService {
     }
     
     return severityCount;
+  }
+
+  /**
+   * Expande um range CIDR em IPs individuais
+   * Ex: 192.168.100.0/24 -> [192.168.100.1, 192.168.100.2, ...]
+   */
+  private expandCIDR(cidr: string): string[] {
+    const ips: string[] = [];
+    
+    try {
+      // Separar IP base e máscara
+      const [baseIP, mask] = cidr.split('/');
+      const maskBits = parseInt(mask);
+      
+      if (!baseIP || isNaN(maskBits) || maskBits < 0 || maskBits > 32) {
+        console.warn(`CIDR inválido: ${cidr}, usando como IP único`);
+        return [cidr];
+      }
+      
+      // Converter IP para número
+      const ipParts = baseIP.split('.').map(Number);
+      if (ipParts.length !== 4 || ipParts.some(p => isNaN(p) || p < 0 || p > 255)) {
+        console.warn(`IP base inválido: ${baseIP}, usando como IP único`);
+        return [cidr];
+      }
+      
+      const baseIPNum = (ipParts[0] << 24) + (ipParts[1] << 16) + (ipParts[2] << 8) + ipParts[3];
+      
+      // Calcular quantidade de IPs no range
+      const hostBits = 32 - maskBits;
+      const totalHosts = Math.pow(2, hostBits);
+      
+      // Para /32, retornar apenas o IP
+      if (maskBits === 32) {
+        return [baseIP];
+      }
+      
+      // Para redes grandes, limitar para evitar consumo excessivo de memória
+      const maxIPs = 10000; // Limite máximo de IPs por range
+      const actualHosts = Math.min(totalHosts - 2, maxIPs); // -2 para excluir network e broadcast
+      
+      if (totalHosts > maxIPs + 2) {
+        console.warn(`Range ${cidr} muito grande (${totalHosts - 2} IPs), limitando para ${maxIPs} IPs`);
+      }
+      
+      // Gerar IPs (excluindo network address e broadcast address)
+      const networkAddress = baseIPNum & ((0xFFFFFFFF << hostBits) >>> 0);
+      
+      for (let i = 1; i <= actualHosts; i++) {
+        const ip = networkAddress + i;
+        const a = (ip >>> 24) & 0xFF;
+        const b = (ip >>> 16) & 0xFF;
+        const c = (ip >>> 8) & 0xFF;
+        const d = ip & 0xFF;
+        ips.push(`${a}.${b}.${c}.${d}`);
+      }
+      
+    } catch (error) {
+      console.error(`Erro ao expandir CIDR ${cidr}:`, error);
+      return [cidr]; // Usar como IP único em caso de erro
+    }
+    
+    return ips;
   }
 }
 
