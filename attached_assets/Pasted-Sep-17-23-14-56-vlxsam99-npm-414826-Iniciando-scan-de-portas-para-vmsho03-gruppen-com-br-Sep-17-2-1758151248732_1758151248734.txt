@@ -1,0 +1,114 @@
+Sep 17 23:14:56 vlxsam99 npm[414826]: Iniciando scan de portas para vmsho03.gruppen.com.br
+Sep 17 23:14:56 vlxsam99 npm[414826]: 🔍 Resolvendo DNS para vmsho03.gruppen.com.br...
+Sep 17 23:14:56 vlxsam99 npm[414826]: ✅ vmsho03.gruppen.com.br resolvido para 192.168.100.3
+Sep 17 23:14:56 vlxsam99 npm[414826]: ✅ DNS resolvido: vmsho03.gruppen.com.br → 192.168.100.3
+Sep 17 23:14:56 vlxsam99 npm[414826]: 🚀 Perfil rápido selecionado: escaneando top 1000 portas
+Sep 17 23:14:56 vlxsam99 npm[414826]: 🔍 Executando nmap com top 1000 portas
+Sep 17 23:14:56 vlxsam99 npm[414826]: 🎯 Escaneando portas de vmsho03.gruppen.com.br... nmap (perfil: fast)
+Sep 17 23:14:56 vlxsam99 npm[414826]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 10 --min-rate 100 --max-rate 1000 --max-rtt-timeout 3s --initial-rtt-timeout 500ms --version-intensity 5 -T4 --top-ports 1000 192.168.100.3
+Sep 17 23:14:56 vlxsam99 npm[414826]: 📍 Job: 927326dc-16fb-430a-9b9e-40a102fded43 | Processo: nmap | Stage: Escaneando portas de vmsho03.gruppen.com.br... nmap
+Sep 17 23:14:56 vlxsam99 npm[414826]: 📍 Processo registrado: nmap pid 414919 para job 927326dc-16fb-430a-9b9e-40a102fded43 - Escaneando portas de vmsho03.gruppen.com.br... nmap
+Sep 17 23:14:56 vlxsam99 npm[414826]: 11:14:56 PM [express] POST /api/jobs/execute 201 in 30ms :: {"id":"927326dc-16fb-430a-9b9e-40a102fded…
+Sep 17 23:14:56 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:14:58 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:00 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:02 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:04 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:06 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:08 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:10 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:12 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:14 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:16 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:18 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:20 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:22 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:24 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:26 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:28 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:30 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:32 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:34 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:36 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:38 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:40 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:42 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:44 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:46 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:48 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:50 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:52 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:54 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:56 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:58 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: true, status: running)
+Sep 17 23:15:59 vlxsam99 npm[414826]: 🗑️ Processo removido: nmap pid 414919 para job 927326dc-16fb-430a-9b9e-40a102fded43
+Sep 17 23:15:59 vlxsam99 npm[414826]: 📋 Comando concluído com código 0
+Sep 17 23:15:59 vlxsam99 npm[414826]: Parse nmap encontrou 11 portas para vmsho03.gruppen.com.br
+Sep 17 23:15:59 vlxsam99 npm[414826]: Primeiras portas encontradas: [ '80/open', '135/open', '139/open' ]
+Sep 17 23:15:59 vlxsam99 npm[414826]: 🔗 Host vmsho03.gruppen.com.br resolvido para IP: 192.168.100.3
+Sep 17 23:15:59 vlxsam99 npm[414826]: 💻 Sistema operacional detectado: Windows
+Sep 17 23:15:59 vlxsam99 npm[414826]: 📊 Nmap concluído para vmsho03.gruppen.com.br - 11 portas processadas:
+Sep 17 23:15:59 vlxsam99 npm[414826]:   🔍 Porta 80: open | Serviço: http? | Versão: N/A
+Sep 17 23:15:59 vlxsam99 npm[414826]:     🔗 IP resolvido: 192.168.100.3
+Sep 17 23:15:59 vlxsam99 npm[414826]:     💻 OS detectado: Windows
+Sep 17 23:15:59 vlxsam99 npm[414826]:   🔍 Porta 135: open | Serviço: msrpc | Versão: Microsoft Windows RPC
+Sep 17 23:15:59 vlxsam99 npm[414826]:     🔗 IP resolvido: 192.168.100.3
+Sep 17 23:15:59 vlxsam99 npm[414826]:     💻 OS detectado: Windows
+Sep 17 23:15:59 vlxsam99 npm[414826]:   🔍 Porta 139: open | Serviço: netbios-ssn | Versão: Microsoft Windows netbios-ssn
+Sep 17 23:15:59 vlxsam99 npm[414826]:     🔗 IP resolvido: 192.168.100.3
+Sep 17 23:15:59 vlxsam99 npm[414826]:     💻 OS detectado: Windows
+Sep 17 23:15:59 vlxsam99 npm[414826]:   🔍 Porta 389: open | Serviço: ldap | Versão: N/A
+Sep 17 23:15:59 vlxsam99 npm[414826]:     🔗 IP resolvido: 192.168.100.3
+Sep 17 23:15:59 vlxsam99 npm[414826]:     💻 OS detectado: Windows
+Sep 17 23:15:59 vlxsam99 npm[414826]:   🔍 Porta 443: open | Serviço: ssl/https? | Versão: N/A
+Sep 17 23:15:59 vlxsam99 npm[414826]:     🔗 IP resolvido: 192.168.100.3
+Sep 17 23:15:59 vlxsam99 npm[414826]:     💻 OS detectado: Windows
+Sep 17 23:15:59 vlxsam99 npm[414826]:   🔍 Porta 445: open | Serviço: microsoft-ds? | Versão: N/A
+Sep 17 23:15:59 vlxsam99 npm[414826]:     🔗 IP resolvido: 192.168.100.3
+Sep 17 23:15:59 vlxsam99 npm[414826]:     💻 OS detectado: Windows
+Sep 17 23:15:59 vlxsam99 npm[414826]:   🔍 Porta 636: open | Serviço: tcpwrapped | Versão: N/A
+Sep 17 23:15:59 vlxsam99 npm[414826]:     🔗 IP resolvido: 192.168.100.3
+Sep 17 23:15:59 vlxsam99 npm[414826]:     💻 OS detectado: Windows
+Sep 17 23:15:59 vlxsam99 npm[414826]:   🔍 Porta 3389: open | Serviço: ms-wbt-server | Versão: Microsoft Terminal Services
+Sep 17 23:15:59 vlxsam99 npm[414826]:     🔗 IP resolvido: 192.168.100.3
+Sep 17 23:15:59 vlxsam99 npm[414826]:     💻 OS detectado: Windows
+Sep 17 23:15:59 vlxsam99 npm[414826]:   🔍 Porta 4001: open | Serviço: newoak? | Versão: N/A
+Sep 17 23:15:59 vlxsam99 npm[414826]:     🔗 IP resolvido: 192.168.100.3
+Sep 17 23:15:59 vlxsam99 npm[414826]:     💻 OS detectado: Windows
+Sep 17 23:15:59 vlxsam99 npm[414826]:   🔍 Porta 4002: open | Serviço: mlchat-proxy? | Versão: N/A
+Sep 17 23:15:59 vlxsam99 npm[414826]:     🔗 IP resolvido: 192.168.100.3
+Sep 17 23:15:59 vlxsam99 npm[414826]:     💻 OS detectado: Windows
+Sep 17 23:15:59 vlxsam99 npm[414826]:   🔍 Porta 8443: open | Serviço: ssl/https-alt? | Versão: N/A
+Sep 17 23:15:59 vlxsam99 npm[414826]:     🔗 IP resolvido: 192.168.100.3
+Sep 17 23:15:59 vlxsam99 npm[414826]:     💻 OS detectado: Windows
+Sep 17 23:15:59 vlxsam99 npm[414826]: Iniciando scan de vulnerabilidades para vmsho03.gruppen.com.br
+Sep 17 23:15:59 vlxsam99 npm[414826]: Encontrados 3 serviços web para escanear: [ '80/http?', '443/ssl/https?', '8443/ssl/https-alt?' ]
+Sep 17 23:15:59 vlxsam99 npm[414826]: 📡 JobUpdate emitido para 927326dc-16fb-430a-9b9e-40a102fded43: Escaneando portas de vmsho03.gruppen.com.br... nmap (nmap pid 414919) (alive: false, status: running)
+Sep 17 23:15:59 vlxsam99 npm[414826]: Executando nuclei para URL construída: http://vmsho03.gruppen.com.br:80 (service: http?)
+Sep 17 23:15:59 vlxsam99 npm[414826]: Baixando templates nuclei...
+Sep 17 23:15:59 vlxsam99 npm[414826]: ❌ Falha ao baixar templates nuclei: Error: Dynamic require of "child_process" is not supported
+Sep 17 23:15:59 vlxsam99 npm[414826]: Erro ao configurar templates nuclei: Error: Não foi possível baixar templates do nuclei
+Sep 17 23:15:59 vlxsam99 npm[414826]: Nuclei não disponível ou falhou: Error: Não foi possível baixar templates do nuclei
+Sep 17 23:15:59 vlxsam99 npm[414826]: ✅ Nuclei não encontrou vulnerabilidades em http://vmsho03.gruppen.com.br:80
+Sep 17 23:15:59 vlxsam99 npm[414826]: Executando nuclei para URL construída: https://vmsho03.gruppen.com.br:443 (service: ssl/https?)
+Sep 17 23:15:59 vlxsam99 npm[414826]: Baixando templates nuclei...
+Sep 17 23:15:59 vlxsam99 npm[414826]: ❌ Falha ao baixar templates nuclei: Error: Dynamic require of "child_process" is not supported
+Sep 17 23:15:59 vlxsam99 npm[414826]: Erro ao configurar templates nuclei: Error: Não foi possível baixar templates do nuclei
+Sep 17 23:15:59 vlxsam99 npm[414826]: Nuclei não disponível ou falhou: Error: Não foi possível baixar templates do nuclei
+Sep 17 23:15:59 vlxsam99 npm[414826]: ✅ Nuclei não encontrou vulnerabilidades em https://vmsho03.gruppen.com.br:443
+Sep 17 23:15:59 vlxsam99 npm[414826]: Executando nuclei para URL construída: https://vmsho03.gruppen.com.br:8443 (service: ssl/https-alt?)
+Sep 17 23:15:59 vlxsam99 npm[414826]: Baixando templates nuclei...
+Sep 17 23:15:59 vlxsam99 npm[414826]: ❌ Falha ao baixar templates nuclei: Error: Dynamic require of "child_process" is not supported
+Sep 17 23:15:59 vlxsam99 npm[414826]: Erro ao configurar templates nuclei: Error: Não foi possível baixar templates do nuclei
+Sep 17 23:15:59 vlxsam99 npm[414826]: Nuclei não disponível ou falhou: Error: Não foi possível baixar templates do nuclei
+Sep 17 23:15:59 vlxsam99 npm[414826]: ✅ Nuclei não encontrou vulnerabilidades em https://vmsho03.gruppen.com.br:8443
+Sep 17 23:15:59 vlxsam99 npm[414826]: 🔄 Threat upserted: Porta web 80 exposta (Key: as:port:vmsho03.gruppen.com.br:80)
+Sep 17 23:15:59 vlxsam99 npm[414826]: 🔄 Threat upserted: Porta SMB 139 exposta (Key: as:port:vmsho03.gruppen.com.br:139)
+Sep 17 23:15:59 vlxsam99 npm[414826]: 🔄 Threat upserted: Porta web 443 exposta (Key: as:port:vmsho03.gruppen.com.br:443)
+Sep 17 23:15:59 vlxsam99 npm[414826]: 🔄 Threat upserted: Porta SMB 445 exposta (Key: as:port:vmsho03.gruppen.com.br:445)
+Sep 17 23:15:59 vlxsam99 npm[414826]: 🔄 Threat upserted: Porta administrativa 3389 exposta (Key: as:port:vmsho03.gruppen.com.br:3389)
+Sep 17 23:15:59 vlxsam99 npm[414826]: 🔄 Threat upserted: Porta web 8443 exposta (Key: as:port:vmsho03.gruppen.com.br:8443)
+Sep 17 23:15:59 vlxsam99 npm[414826]: 🔄 Threat upserted: HTTP Security Headers detectado (Key: as:vuln:vmsho03.gruppen.com.br:HTTP Security Headers:)
+Sep 17 23:15:59 vlxsam99 npm[414826]: 🔄 Threat upserted: HTTP Security Headers detectado (Key: as:vuln:vmsho03.gruppen.com.br:HTTP Security Headers:)
+Sep 17 23:16:00 vlxsam99 npm[414826]: 🔄 Threat upserted: HTTP Security Headers detectado (Key: as:vuln:vmsho03.gruppen.com.br:HTTP Security Headers:)
+Sep 17 23:16:00 vlxsam99 npm[414826]: 🗑️  Job 927326dc-16fb-430a-9b9e-40a102fded43 removido dos jobs em execução

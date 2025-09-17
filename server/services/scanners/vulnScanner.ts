@@ -187,9 +187,6 @@ export class VulnerabilityScanner {
       const updateArgs = ['-update-templates', '-ud', templatesDir];
       
       try {
-        // Usar spawn diretamente para garantir que as env vars estão corretas
-        const { spawn } = require('child_process');
-        
         console.log(`🔽 Baixando templates: nuclei ${updateArgs.join(' ')}`);
         
         const updatePromise = new Promise<void>((resolve, reject) => {
