@@ -59,8 +59,10 @@ export class NetworkScanner {
     // Verificar se é um IP válido ou hostname
     const resolvedTarget = await this.resolveTarget(target);
     if (!resolvedTarget) {
-      throw new Error(`Não foi possível resolver o target: ${target}`);
+      throw new Error(`❌ Erro de DNS: Não foi possível resolver o hostname '${target}'. Verifique se o domínio existe e é acessível.`);
     }
+
+    console.log(`✅ DNS resolvido: ${target} → ${resolvedTarget}`);
 
     // Determinar portas baseado no perfil nmap
     const portsToScan = this.getPortsForProfile(nmapProfile, ports);
@@ -71,7 +73,13 @@ export class NetworkScanner {
       const nmapResults = await this.nmapScan(target, resolvedTarget, portsToScan, nmapProfile);
       return nmapResults;
     } catch (error) {
-      console.log('nmap não disponível, usando scan TCP nativo:', error);
+      console.log(`⚠️ nmap falhou, usando scan TCP nativo:`, error);
+      
+      // Se foi erro de DNS no nmap, não tentar TCP scan
+      if (error instanceof Error && error.message.includes('Failed to resolve')) {
+        throw new Error(`❌ Erro de DNS: O hostname '${target}' não pode ser resolvido. Verifique a conectividade de rede.`);
+      }
+      
       return this.tcpPortScan(resolvedTarget, portsToScan);
     }
   }
@@ -83,14 +91,31 @@ export class NetworkScanner {
     try {
       // Se já é um IP, retorna direto
       if (/^\d+\.\d+\.\d+\.\d+$/.test(target)) {
+        console.log(`📍 Target ${target} já é um IP válido`);
         return target;
       }
 
-      // Resolve hostname
-      const result = await dnsLookup(target);
+      console.log(`🔍 Resolvendo DNS para ${target}...`);
+      
+      // Resolve hostname com timeout reduzido
+      const result = await Promise.race([
+        dnsLookup(target),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('DNS lookup timeout after 10s')), 10000)
+        )
+      ]);
+      
+      console.log(`✅ ${target} resolvido para ${result.address}`);
       return result.address;
     } catch (error) {
-      console.error(`Erro ao resolver ${target}:`, error);
+      console.error(`❌ Erro ao resolver DNS para ${target}:`, error);
+      
+      if (error instanceof Error && error.message.includes('timeout')) {
+        console.error(`⏱️ Timeout de DNS - possível problema de conectividade`);
+      } else if (error instanceof Error && (error.message.includes('ENOTFOUND') || error.message.includes('ENOENT'))) {
+        console.error(`🚫 Hostname não encontrado - domínio pode não existir`);
+      }
+      
       return null;
     }
   }
@@ -106,7 +131,7 @@ export class NetworkScanner {
     
     const args = this.buildNmapArgs(resolvedTarget, ports, nmapProfile);
     
-    const stdout = await this.spawnCommand('nmap', args, 300000); // Aumenta timeout para 5 minutos
+    const stdout = await this.spawnCommand('nmap', args, 120000); // Reduz timeout para 2 minutos
     const results = this.parseNmapOutput(stdout, originalTarget, resolvedTarget);
     
     // Log verboso das portas detectadas
@@ -148,6 +173,8 @@ export class NetworkScanner {
    */
   private async spawnCommand(command: string, args: string[], timeout: number): Promise<string> {
     return new Promise((resolve, reject) => {
+      console.log(`🔧 Executando: ${command} ${args.join(' ')}`);
+      
       const child = spawn(command, args, {
         stdio: ['ignore', 'pipe', 'pipe'],
       });
@@ -164,21 +191,33 @@ export class NetworkScanner {
       });
       
       const timer = setTimeout(() => {
-        child.kill();
-        reject(new Error('Command timeout'));
+        console.log(`⏱️ Timeout após ${timeout/1000}s - matando processo`);
+        child.kill('SIGTERM');
+        
+        // Force kill após 5s se não responder
+        setTimeout(() => {
+          child.kill('SIGKILL');
+        }, 5000);
+        
+        reject(new Error(`Command timeout after ${timeout/1000}s`));
       }, timeout);
       
       child.on('close', (code) => {
         clearTimeout(timer);
+        console.log(`📋 Comando concluído com código ${code}`);
+        
         if (code === 0) {
           resolve(stdout);
         } else {
-          reject(new Error(`Command failed with code ${code}: ${stderr}`));
+          const errorMsg = `Command failed with code ${code}: ${stderr}`;
+          console.error(`❌ ${errorMsg}`);
+          reject(new Error(errorMsg));
         }
       });
       
       child.on('error', (error) => {
         clearTimeout(timer);
+        console.error(`💥 Erro no comando:`, error);
         reject(error);
       });
     });
@@ -323,19 +362,23 @@ export class NetworkScanner {
    * Scan TCP nativo (fallback quando nmap não está disponível)
    */
   private async tcpPortScan(target: string, ports: number[]): Promise<PortScanResult[]> {
+    console.log(`🔄 Iniciando TCP scan nativo para ${target} em ${ports.length} portas`);
     const results: PortScanResult[] = [];
-    const timeout = 2000; // Reduz timeout para 2 segundos por porta
-    const maxConcurrent = 20; // Máximo de 20 conexões simultâneas
+    const timeout = 3000; // Aumenta timeout para 3 segundos por porta
+    const maxConcurrent = 10; // Reduz concorrência para ser mais estável
 
     // Processa portas em lotes para melhor performance
     for (let i = 0; i < ports.length; i += maxConcurrent) {
       const batch = ports.slice(i, i + maxConcurrent);
+      console.log(`📦 Processando lote ${Math.floor(i/maxConcurrent) + 1}: portas ${batch.join(', ')}`);
+      
       const promises = batch.map(async (port) => {
         try {
           const isOpen = await this.checkTcpPort(target, port, timeout);
           const serviceInfo = this.getServiceInfo(port);
           
           if (isOpen) {
+            console.log(`✅ Porta ${port} aberta em ${target}`);
             // Tentar obter banner se a porta estiver aberta
             const banner = await this.getBanner(target, port);
             
@@ -348,18 +391,24 @@ export class NetworkScanner {
               version: serviceInfo.version,
               banner,
             };
+          } else {
+            console.log(`❌ Porta ${port} fechada/filtrada em ${target}`);
           }
           return null;
         } catch (error) {
-          // Porta fechada ou filtrada - não incluir no resultado
+          console.log(`⚠️ Erro na porta ${port}: ${error}`);
           return null;
         }
       });
 
       const batchResults = await Promise.all(promises);
-      results.push(...batchResults.filter(result => result !== null));
+      const openPorts = batchResults.filter(result => result !== null);
+      results.push(...openPorts);
+      
+      console.log(`📊 Lote concluído: ${openPorts.length}/${batch.length} portas abertas`);
     }
 
+    console.log(`🎯 TCP scan concluído: ${results.length} portas abertas encontradas de ${ports.length} testadas`);
     return results;
   }
 
