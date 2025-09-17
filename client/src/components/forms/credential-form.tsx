@@ -226,15 +226,29 @@ export default function CredentialForm({ onSubmit, onCancel, isLoading = false }
             <FormItem>
               <FormLabel>{getSecretLabel()}</FormLabel>
               <FormControl>
-                <textarea
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder={getSecretPlaceholder()}
-                  {...field}
-                  data-testid="textarea-secret"
-                />
+                {watchedType === 'ssh' && field.value && field.value.includes('-----BEGIN') ? (
+                  // SSH Private Key detected - use textarea for multi-line
+                  <textarea
+                    className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
+                    placeholder={getSecretPlaceholder()}
+                    {...field}
+                    data-testid="textarea-ssh-key"
+                  />
+                ) : (
+                  // Password field for all other cases
+                  <Input
+                    type="password"
+                    placeholder={getSecretPlaceholder()}
+                    {...field}
+                    data-testid="input-secret"
+                  />
+                )}
               </FormControl>
               <FormDescription>
-                Esta informação será criptografada e armazenada com segurança
+                {watchedType === 'ssh' 
+                  ? 'Digite uma senha ou cole uma chave privada SSH (detectado automaticamente)'
+                  : 'Esta informação será criptografada e armazenada com segurança'
+                }
               </FormDescription>
               <FormMessage />
             </FormItem>
