@@ -445,12 +445,6 @@ export default function Jobs() {
                                 </div>
                               </div>
                             )}
-                            
-                            <div className="p-3 bg-muted/50 border rounded-md">
-                              <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
-                                {JSON.stringify(jobResult.artifacts, null, 2)}
-                              </pre>
-                            </div>
                           </div>
                         )}
                       </div>
