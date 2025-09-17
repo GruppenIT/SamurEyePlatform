@@ -70,3 +70,11 @@ Role-based access control (RBAC) supports three user roles: global_administrator
 - **memoizee**: Function memoization for performance optimization
 - **zod**: Runtime type validation and schema definition
 - **date-fns**: Date manipulation and formatting utilities
+
+## Recent Changes
+
+### September 17, 2025
+- **Authentication System Hardened**: Replaced OIDC with local authentication using secure password hashing (bcrypt 12 rounds), session fixation protection, and rate limiting (5 attempts/minute)
+- **Credentials UI Enhanced**: Fixed empty domain labels in credential selection for EDR/AV journeys; password fields now use type="password" with auto-detection for SSH private keys (displays as multi-line textarea when -----BEGIN detected)
+- **Attack Surface Scanning Improved**: Enhanced DNS error handling with 10s timeouts, reduced nmap timeout from 5min to 2min, improved TCP fallback stability (3s per port, max 10 concurrent), and added detailed logging with clear error messages for DNS resolution failures
+- **Bug Fixes**: Resolved job creation/execution issues, corrected URL construction in job results fetching, and fixed 5-minute timeout issues in attack surface scanning caused by DNS resolution failures
