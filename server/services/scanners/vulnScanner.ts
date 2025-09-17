@@ -183,26 +183,71 @@ export class VulnerabilityScanner {
       
       console.log('Baixando templates nuclei...');
       
-      // Tentar baixar templates
+      // Tentar baixar templates com ambiente configurado corretamente
       const updateArgs = ['-update-templates', '-ud', templatesDir];
       
       try {
-        const context: ProcessContext = { maxWaitTime: 120000 }; // 2 minutos para download
-        await this.spawnCommand('nuclei', updateArgs, context);
-        console.log('Templates nuclei baixados com sucesso');
-      } catch (error) {
-        console.warn(`Falha ao baixar templates nuclei: ${error}`);
+        // Usar spawn diretamente para garantir que as env vars estão corretas
+        const { spawn } = require('child_process');
         
-        // Fallback: tentar com flag alternativa
-        try {
-          const altArgs = ['-ut', '-ud', templatesDir];
-          const altContext: ProcessContext = { maxWaitTime: 120000 };
-          await this.spawnCommand('nuclei', altArgs, altContext);
-          console.log('Templates nuclei baixados com sucesso (fallback)');
-        } catch (altError) {
-          console.warn(`Falha no fallback de templates: ${altError}`);
-          throw new Error('Não foi possível baixar templates do nuclei');
-        }
+        console.log(`🔽 Baixando templates: nuclei ${updateArgs.join(' ')}`);
+        
+        const updatePromise = new Promise<void>((resolve, reject) => {
+          const child = spawn('nuclei', updateArgs, {
+            stdio: ['ignore', 'pipe', 'pipe'],
+            env: {
+              ...process.env,
+              HOME: '/tmp/nuclei',
+              NUCLEI_CONFIG_DIR: '/tmp/nuclei/.config',
+              XDG_CONFIG_HOME: '/tmp/nuclei/.config',
+              XDG_CACHE_HOME: '/tmp/nuclei/.cache',
+              NUCLEI_TEMPLATES_DIR: '/tmp/nuclei/nuclei-templates',
+            },
+          });
+          
+          let stdout = '';
+          let stderr = '';
+          
+          child.stdout?.on('data', (data: Buffer) => {
+            const output = data.toString();
+            stdout += output;
+            console.log(`[nuclei download] ${output.trim()}`);
+          });
+          
+          child.stderr?.on('data', (data: Buffer) => {
+            const output = data.toString();
+            stderr += output;
+            console.warn(`[nuclei download stderr] ${output.trim()}`);
+          });
+          
+          const timeoutId = setTimeout(() => {
+            child.kill('SIGTERM');
+            reject(new Error('Template download timeout after 2 minutes'));
+          }, 120000);
+          
+          child.on('close', (code: number | null) => {
+            clearTimeout(timeoutId);
+            console.log(`📋 Download de templates concluído com código ${code}`);
+            
+            if (code === 0) {
+              resolve();
+            } else {
+              reject(new Error(`Template download failed with code ${code}: ${stderr}`));
+            }
+          });
+          
+          child.on('error', (error: Error) => {
+            clearTimeout(timeoutId);
+            reject(error);
+          });
+        });
+        
+        await updatePromise;
+        console.log('✅ Templates nuclei baixados com sucesso');
+        
+      } catch (error) {
+        console.warn(`❌ Falha ao baixar templates nuclei: ${error}`);
+        throw new Error('Não foi possível baixar templates do nuclei');
       }
       
     } catch (error) {
@@ -382,6 +427,17 @@ export class VulnerabilityScanner {
         clearTimeout(fallbackTimer);
         console.log(`📋 Comando concluído com código ${code}`);
         
+        // Debug detalhado: mostrar conteúdo capturado
+        console.log(`📊 DEBUG stdout length: ${stdout.length} characters`);
+        console.log(`📊 DEBUG stderr length: ${stderr.length} characters`);
+        
+        if (stdout.length > 0) {
+          console.log(`📊 DEBUG stdout preview (first 500 chars): ${stdout.substring(0, 500)}`);
+        }
+        if (stderr.length > 0) {
+          console.log(`📊 DEBUG stderr preview (first 500 chars): ${stderr.substring(0, 500)}`);
+        }
+        
         if (code === 0) {
           resolve(stdout);
         } else {
@@ -404,9 +460,26 @@ export class VulnerabilityScanner {
    */
   private parseNucleiOutput(output: string, target: string): VulnerabilityFinding[] {
     const results: VulnerabilityFinding[] = [];
-    const lines = output.split('\n').filter(line => line.trim());
     
-    console.log(`🔍 Parseando ${lines.length} linhas de saída do nuclei para ${target}...`);
+    // Debug: mostrar conteúdo exato recebido
+    console.log(`🔍 DEBUG parseNucleiOutput recebeu: ${output.length} characters`);
+    if (output.length > 0) {
+      console.log(`🔍 DEBUG output preview (first 500 chars): ${output.substring(0, 500)}`);
+    }
+    
+    const lines = output.split('\n');
+    const filteredLines = lines.filter(line => line.trim());
+    
+    console.log(`🔍 Total lines: ${lines.length}, after filter: ${filteredLines.length}`);
+    
+    // Debug: mostrar algumas linhas raw para análise
+    if (lines.length > 0) {
+      console.log(`🔍 DEBUG primeira linha raw: "${lines[0]}"`);
+      if (lines.length > 1) console.log(`🔍 DEBUG segunda linha raw: "${lines[1]}"`);
+      if (lines.length > 2) console.log(`🔍 DEBUG terceira linha raw: "${lines[2]}"`);
+    }
+    
+    console.log(`🔍 Parseando ${filteredLines.length} linhas de saída do nuclei para ${target}...`);
     
     for (const line of lines) {
       try {
