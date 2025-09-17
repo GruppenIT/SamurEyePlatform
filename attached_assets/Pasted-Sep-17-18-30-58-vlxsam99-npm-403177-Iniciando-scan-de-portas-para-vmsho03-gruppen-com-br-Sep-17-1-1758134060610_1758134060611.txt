@@ -1,0 +1,53 @@
+Sep 17 18:30:58 vlxsam99 npm[403177]: Iniciando scan de portas para vmsho03.gruppen.com.br
+Sep 17 18:30:58 vlxsam99 npm[403177]: 🔍 Resolvendo DNS para vmsho03.gruppen.com.br...
+Sep 17 18:30:58 vlxsam99 npm[403177]: 6:30:58 PM [express] POST /api/jobs/execute 201 in 29ms :: {"id":"98dc84f9-5b8d-4eea-99d5-658044536b…
+Sep 17 18:30:58 vlxsam99 npm[403177]: ✅ vmsho03.gruppen.com.br resolvido para 192.168.100.3
+Sep 17 18:30:58 vlxsam99 npm[403177]: ✅ DNS resolvido: vmsho03.gruppen.com.br → 192.168.100.3
+Sep 17 18:30:58 vlxsam99 npm[403177]: 🚀 Perfil rápido selecionado: escaneando top 1000 portas
+Sep 17 18:30:58 vlxsam99 npm[403177]: 🔍 Executando nmap com top 1000 portas
+Sep 17 18:30:58 vlxsam99 npm[403177]: ⏱️ Timeout nmap: 60s para perfil 'fast'
+Sep 17 18:30:58 vlxsam99 npm[403177]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 10 --min-rate 100 --max-rate 1000 --max-rtt-timeout 3s --initial-rtt-timeout 500ms --version-intensity 5 -T4 --top-ports 1000 192.168.100.3
+Sep 17 18:31:58 vlxsam99 npm[403177]: ⏱️ Timeout após 60s - matando processo
+Sep 17 18:31:58 vlxsam99 npm[403177]: ⚠️ nmap falhou, usando scan TCP nativo: Error: Command timeout after 60s
+Sep 17 18:31:58 vlxsam99 npm[403177]:     at Timeout._onTimeout (file:///opt/samureye/dist/index.js:2213:16)
+Sep 17 18:31:58 vlxsam99 npm[403177]:     at listOnTimeout (node:internal/timers:581:17)
+Sep 17 18:31:58 vlxsam99 npm[403177]:     at process.processTimers (node:internal/timers:519:7)
+Sep 17 18:31:58 vlxsam99 npm[403177]: 🔄 TCP fallback usará 22 portas comuns
+Sep 17 18:31:58 vlxsam99 npm[403177]: 🔄 Iniciando TCP scan nativo para 192.168.100.3 em 22 portas
+Sep 17 18:31:58 vlxsam99 npm[403177]: 📦 Processando lote 1: portas 21, 22, 23, 25, 53, 80, 110, 135, 139, 143
+Sep 17 18:31:58 vlxsam99 npm[403177]: ❌ Porta 21 fechada/filtrada em 192.168.100.3
+Sep 17 18:31:58 vlxsam99 npm[403177]: ❌ Porta 23 fechada/filtrada em 192.168.100.3
+Sep 17 18:31:58 vlxsam99 npm[403177]: ❌ Porta 22 fechada/filtrada em 192.168.100.3
+Sep 17 18:31:58 vlxsam99 npm[403177]: ❌ Porta 25 fechada/filtrada em 192.168.100.3
+Sep 17 18:31:58 vlxsam99 npm[403177]: ❌ Porta 53 fechada/filtrada em 192.168.100.3
+Sep 17 18:31:58 vlxsam99 npm[403177]: ❌ Porta 110 fechada/filtrada em 192.168.100.3
+Sep 17 18:31:58 vlxsam99 npm[403177]: ✅ Porta 80 aberta em 192.168.100.3
+Sep 17 18:31:58 vlxsam99 npm[403177]: ✅ Porta 135 aberta em 192.168.100.3
+Sep 17 18:31:58 vlxsam99 npm[403177]: ✅ Porta 139 aberta em 192.168.100.3
+Sep 17 18:31:58 vlxsam99 npm[403177]: ❌ Porta 143 fechada/filtrada em 192.168.100.3
+Sep 17 18:31:58 vlxsam99 npm[403177]: 📋 Comando concluído com código null
+Sep 17 18:31:58 vlxsam99 npm[403177]: ❌ Command failed with code null:
+Sep 17 18:32:03 vlxsam99 npm[403177]: 📊 Lote concluído: 3/10 portas abertas
+Sep 17 18:32:03 vlxsam99 npm[403177]: 📦 Processando lote 2: portas 443, 445, 993, 995, 1433, 3306, 3389, 5432, 5985, 5986
+Sep 17 18:32:03 vlxsam99 npm[403177]: ✅ Porta 443 aberta em 192.168.100.3
+Sep 17 18:32:03 vlxsam99 npm[403177]: ❌ Porta 993 fechada/filtrada em 192.168.100.3
+Sep 17 18:32:03 vlxsam99 npm[403177]: ❌ Porta 3306 fechada/filtrada em 192.168.100.3
+Sep 17 18:32:03 vlxsam99 npm[403177]: ❌ Porta 995 fechada/filtrada em 192.168.100.3
+Sep 17 18:32:03 vlxsam99 npm[403177]: ✅ Porta 445 aberta em 192.168.100.3
+Sep 17 18:32:03 vlxsam99 npm[403177]: ✅ Porta 3389 aberta em 192.168.100.3
+Sep 17 18:32:03 vlxsam99 npm[403177]: ❌ Porta 1433 fechada/filtrada em 192.168.100.3
+Sep 17 18:32:03 vlxsam99 npm[403177]: ❌ Porta 5432 fechada/filtrada em 192.168.100.3
+Sep 17 18:32:03 vlxsam99 npm[403177]: ✅ Porta 5985 aberta em 192.168.100.3
+Sep 17 18:32:03 vlxsam99 npm[403177]: ❌ Porta 5986 fechada/filtrada em 192.168.100.3
+Sep 17 18:32:08 vlxsam99 npm[403177]: 📊 Lote concluído: 4/10 portas abertas
+Sep 17 18:32:08 vlxsam99 npm[403177]: 📦 Processando lote 3: portas 8080, 8443
+Sep 17 18:32:08 vlxsam99 npm[403177]: ❌ Porta 8080 fechada/filtrada em 192.168.100.3
+Sep 17 18:32:08 vlxsam99 npm[403177]: ✅ Porta 8443 aberta em 192.168.100.3
+Sep 17 18:32:13 vlxsam99 npm[403177]: 📊 Lote concluído: 1/2 portas abertas
+Sep 17 18:32:13 vlxsam99 npm[403177]: 🎯 TCP scan concluído: 8 portas abertas encontradas de 22 testadas
+Sep 17 18:32:13 vlxsam99 npm[403177]: Iniciando scan de vulnerabilidades para vmsho03.gruppen.com.br
+Sep 17 18:32:13 vlxsam99 npm[403177]: Encontrados 3 serviços web para escanear: [ '80/http', '443/https', '8443/https-alt' ]
+Sep 17 18:32:13 vlxsam99 npm[403177]: Executando nuclei para URL construída: http://vmsho03.gruppen.com.br:80 (service: http)
+Sep 17 18:32:13 vlxsam99 npm[403177]: Baixando templates nuclei...
+Sep 17 18:32:23 vlxsam99 npm[403177]: Templates nuclei baixados com sucesso
+Sep 17 18:32:23 vlxsam99 npm[403177]: Executando nuclei para http://vmsho03.gruppen.com.br:80 com templates em /tmp/nuclei/nuclei-templates
