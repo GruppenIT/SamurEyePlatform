@@ -367,84 +367,80 @@ export default function Jobs() {
                           </div>
                         )}
 
-                        {jobResult.artifacts && Object.keys(jobResult.artifacts).length > 0 && (
+                        {jobResult.artifacts?.statistics && jobResult.artifacts?.findings && (
                           <div>
                             <h4 className="font-medium text-foreground mb-2">Artefatos</h4>
-                            
-                            {/* Special display for EDR/AV scan statistics */}
-                            {jobResult.artifacts?.statistics && jobResult.artifacts?.findings && (
-                              <div className="space-y-4 mb-4">
-                                <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md">
-                                  <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-3">📊 Estatísticas de Amostragem EDR/AV</h5>
-                                  <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                      <span className="text-blue-700 dark:text-blue-300 font-medium">Computadores descobertos:</span>
-                                      <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
-                                        {jobResult.artifacts.statistics.totalDiscovered || 0}
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <span className="text-blue-700 dark:text-blue-300 font-medium">Amostragem solicitada:</span>
-                                      <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
-                                        {jobResult.artifacts.statistics.requestedSampleRate || 0}% ({jobResult.artifacts.statistics.requestedSampleSize || 0} computadores)
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <span className="text-blue-700 dark:text-blue-300 font-medium">Computadores testados:</span>
-                                      <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
-                                        {jobResult.artifacts.statistics.successfulDeployments || 0}
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <span className="text-blue-700 dark:text-blue-300 font-medium">Cobertura de amostra:</span>
-                                      <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
-                                        {jobResult.artifacts.statistics.successfulDeployments && jobResult.artifacts.statistics.requestedSampleSize 
-                                          ? Math.round((jobResult.artifacts.statistics.successfulDeployments / Math.max(1, jobResult.artifacts.statistics.requestedSampleSize)) * 100) 
-                                          : 0}%
-                                      </div>
+                            <div className="space-y-4 mb-4">
+                              <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                                <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-3">📊 Estatísticas de Amostragem EDR/AV</h5>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                  <div>
+                                    <span className="text-blue-700 dark:text-blue-300 font-medium">Computadores descobertos:</span>
+                                    <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                                      {jobResult.artifacts.statistics.totalDiscovered || 0}
                                     </div>
                                   </div>
-                                  
-                                  {jobResult.artifacts.statistics.failedDeployments > 0 && (
-                                    <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
-                                      <div className="flex items-center justify-between text-sm">
-                                        <span className="text-orange-700 dark:text-orange-300">🔄 Falhas no deploy:</span>
-                                        <span className="font-medium text-orange-900 dark:text-orange-100">
-                                          {jobResult.artifacts.statistics.failedDeployments}
+                                  <div>
+                                    <span className="text-blue-700 dark:text-blue-300 font-medium">Amostragem solicitada:</span>
+                                    <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                                      {jobResult.artifacts.statistics.requestedSampleRate || 0}% ({jobResult.artifacts.statistics.requestedSampleSize || 0} computadores)
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <span className="text-blue-700 dark:text-blue-300 font-medium">Computadores testados:</span>
+                                    <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                                      {jobResult.artifacts.statistics.successfulDeployments || 0}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <span className="text-blue-700 dark:text-blue-300 font-medium">Cobertura de amostra:</span>
+                                    <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                                      {jobResult.artifacts.statistics.successfulDeployments && jobResult.artifacts.statistics.requestedSampleSize 
+                                        ? Math.round((jobResult.artifacts.statistics.successfulDeployments / Math.max(1, jobResult.artifacts.statistics.requestedSampleSize)) * 100) 
+                                        : 0}%
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {jobResult.artifacts.statistics.failedDeployments > 0 && (
+                                  <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="text-orange-700 dark:text-orange-300">🔄 Falhas no deploy:</span>
+                                      <span className="font-medium text-orange-900 dark:text-orange-100">
+                                        {jobResult.artifacts.statistics.failedDeployments}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {jobResult.artifacts.statistics.successfulDeployments > 0 && (
+                                  <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
+                                    <div className="mb-3">
+                                      <div className="flex items-center justify-between text-sm mb-1">
+                                        <span className="text-blue-700 dark:text-blue-300 font-medium">Efetividade EDR/AV:</span>
+                                        <span className="font-bold text-blue-900 dark:text-blue-100">
+                                          {Math.round(((jobResult.artifacts.statistics.eicarRemovedCount || 0) / jobResult.artifacts.statistics.successfulDeployments) * 100)}%
                                         </span>
                                       </div>
                                     </div>
-                                  )}
-                                  
-                                  {jobResult.artifacts.statistics.successfulDeployments > 0 && (
-                                    <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
-                                      <div className="mb-3">
-                                        <div className="flex items-center justify-between text-sm mb-1">
-                                          <span className="text-blue-700 dark:text-blue-300 font-medium">Efetividade EDR/AV:</span>
-                                          <span className="font-bold text-blue-900 dark:text-blue-100">
-                                            {Math.round(((jobResult.artifacts.statistics.eicarRemovedCount || 0) / jobResult.artifacts.statistics.successfulDeployments) * 100)}%
-                                          </span>
-                                        </div>
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-green-700 dark:text-green-300 font-medium">✅ EDR/AV funcionou:</span>
+                                        <span className="font-bold text-green-900 dark:text-green-100">
+                                          {jobResult.artifacts.statistics.eicarRemovedCount || 0}
+                                        </span>
                                       </div>
-                                      <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-green-700 dark:text-green-300 font-medium">✅ EDR/AV funcionou:</span>
-                                          <span className="font-bold text-green-900 dark:text-green-100">
-                                            {jobResult.artifacts.statistics.eicarRemovedCount || 0}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-red-700 dark:text-red-300 font-medium">⚠️ Falhas EDR/AV:</span>
-                                          <span className="font-bold text-red-900 dark:text-red-100">
-                                            {jobResult.artifacts.statistics.eicarPersistedCount || 0}
-                                          </span>
-                                        </div>
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-red-700 dark:text-red-300 font-medium">⚠️ Falhas EDR/AV:</span>
+                                        <span className="font-bold text-red-900 dark:text-red-100">
+                                          {jobResult.artifacts.statistics.eicarPersistedCount || 0}
+                                        </span>
                                       </div>
                                     </div>
-                                  )}
-                                </div>
+                                  </div>
+                                )}
                               </div>
-                            )}
+                            </div>
                           </div>
                         )}
                       </div>
