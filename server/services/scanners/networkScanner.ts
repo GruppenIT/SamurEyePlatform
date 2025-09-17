@@ -80,7 +80,11 @@ export class NetworkScanner {
         throw new Error(`❌ Erro de DNS: O hostname '${target}' não pode ser resolvido. Verifique a conectividade de rede.`);
       }
       
-      return this.tcpPortScan(resolvedTarget, portsToScan);
+      // Para TCP fallback, usar portas comuns se array vazio (profiles fast/comprehensive)
+      const fallbackPorts = portsToScan.length > 0 ? portsToScan : this.commonPorts.map(p => p.port);
+      console.log(`🔄 TCP fallback usará ${fallbackPorts.length} portas comuns`);
+      
+      return this.tcpPortScan(resolvedTarget, fallbackPorts);
     }
   }
 
@@ -131,7 +135,22 @@ export class NetworkScanner {
     
     const args = this.buildNmapArgs(resolvedTarget, ports, nmapProfile);
     
-    const stdout = await this.spawnCommand('nmap', args, 120000); // Reduz timeout para 2 minutos
+    // Timeout diferenciado por perfil para reduzir fallbacks prematuros
+    let timeout = 120000; // 2 minutos padrão
+    switch (nmapProfile) {
+      case 'fast':
+        timeout = 60000; // 1 minuto - scan rápido
+        break;
+      case 'comprehensive':
+        timeout = 300000; // 5 minutos - scan completo precisa mais tempo
+        break;
+      case 'stealth':
+        timeout = 180000; // 3 minutos - scan discreto pode ser mais lento
+        break;
+    }
+    
+    console.log(`⏱️ Timeout nmap: ${timeout/1000}s para perfil '${nmapProfile}'`);
+    const stdout = await this.spawnCommand('nmap', args, timeout);
     const results = this.parseNmapOutput(stdout, originalTarget, resolvedTarget);
     
     // Log verboso das portas detectadas
@@ -582,6 +601,9 @@ export class NetworkScanner {
   private buildNmapArgs(target: string, ports: number[], nmapProfile?: string): string[] {
     const args = [];
 
+    // Sempre adicionar flag para pular ping discovery
+    args.push('-Pn'); // Muitos hosts bloqueiam ping mas têm portas abertas
+
     // Determinar tipo de scan baseado no perfil
     switch (nmapProfile) {
       case 'stealth':
@@ -592,19 +614,34 @@ export class NetworkScanner {
         break;
     }
 
-    // Argumentos comuns
-    args.push(
-      '-sV', // Version detection
-      '--script=vuln', // Scripts de vulnerabilidade
-      '--script-args', 'vulns.showall',
-      '--max-hostgroup', '1',
-      '--max-parallelism', '5',
-      '--min-rate', '50',
-      '--max-rate', '500',
-      '--max-rtt-timeout', '5s',
-      '--initial-rtt-timeout', '1s',
-      '--version-intensity', '7'
-    );
+    // Configurar agressividade baseada no perfil
+    if (nmapProfile === 'fast') {
+      // Perfil rápido: apenas detecção de portas, sem scripts pesados
+      args.push(
+        '-sV', // Version detection básica
+        '--max-hostgroup', '1',
+        '--max-parallelism', '10', // Mais paralelo para velocidade
+        '--min-rate', '100',        // Rate mais alto
+        '--max-rate', '1000',       // Rate máximo maior
+        '--max-rtt-timeout', '3s',  // Timeout reduzido
+        '--initial-rtt-timeout', '500ms',
+        '--version-intensity', '5'  // Intensidade reduzida
+      );
+    } else {
+      // Perfis normais/stealth: scan completo
+      args.push(
+        '-sV', // Version detection
+        '--script=vuln', // Scripts de vulnerabilidade
+        '--script-args', 'vulns.showall',
+        '--max-hostgroup', '1',
+        '--max-parallelism', '5',
+        '--min-rate', '50',
+        '--max-rate', '500',
+        '--max-rtt-timeout', '5s',
+        '--initial-rtt-timeout', '1s',
+        '--version-intensity', '7'
+      );
+    }
 
     // Timing template baseado no perfil
     switch (nmapProfile) {
