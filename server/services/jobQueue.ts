@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import { storage } from '../storage';
 import { journeyExecutor } from './journeyExecutor';
 import { type Job, type InsertJob } from '@shared/schema';
+import { processTracker, type ProcessUpdate } from './processTracker';
 
 export interface JobUpdate {
   jobId: string;
@@ -9,15 +10,78 @@ export interface JobUpdate {
   progress?: number;
   currentTask?: string;
   error?: string;
+  // Campos para monitoramento de processos
+  pid?: number;
+  processName?: 'nmap' | 'nuclei';
+  stage?: string;
+  isAlive?: boolean;
 }
 
 class JobQueueService extends EventEmitter {
   private runningJobs = new Map<string, Job>();
   private maxConcurrentJobs = 3;
+  private cancelledJobs = new Set<string>(); // Track cancelled jobs
 
   constructor() {
     super();
     this.startQueueProcessor();
+    this.setupProcessTrackerListener();
+  }
+
+  /**
+   * Configura listener para atualizações do ProcessTracker
+   */
+  private setupProcessTrackerListener(): void {
+    processTracker.on('processUpdate', (update: ProcessUpdate) => {
+      this.handleProcessUpdate(update);
+    });
+  }
+
+  /**
+   * Manipula atualizações de processos
+   */
+  private async handleProcessUpdate(update: ProcessUpdate): Promise<void> {
+    try {
+      // Verificar se job ainda está ativo antes de atualizar
+      const job = await storage.getJob(update.jobId);
+      if (!job) {
+        console.log(`🚫 Job ${update.jobId} não encontrado, ignorando update de processo`);
+        return;
+      }
+
+      // Não atualizar se job já está em estado terminal
+      if (job.status === 'completed' || job.status === 'failed' || job.status === 'timeout') {
+        console.log(`🚫 Job ${update.jobId} em estado terminal (${job.status}), ignorando update de processo`);
+        return;
+      }
+
+      // Construir mensagem de currentTask com PID
+      let currentTask = update.stage;
+      if (update.pid && update.processName) {
+        currentTask = `${update.stage} (${update.processName} pid ${update.pid})`;
+      }
+
+      // Emitir JobUpdate com informações de processo (sem forçar status)
+      const jobUpdate: JobUpdate = {
+        jobId: update.jobId,
+        status: job.status, // Preservar status atual do job
+        currentTask,
+        pid: update.pid,
+        processName: update.processName,
+        stage: update.stage,
+        isAlive: update.isAlive,
+      };
+
+      // Atualizar apenas currentTask no database (não status)
+      await storage.updateJob(update.jobId, { currentTask });
+
+      // Emitir para WebSocket
+      this.emit('jobUpdate', jobUpdate);
+
+      console.log(`📡 JobUpdate emitido para ${update.jobId}: ${currentTask} (alive: ${update.isAlive}, status: ${job.status})`);
+    } catch (error) {
+      console.error(`❌ Erro ao processar update de processo:`, error);
+    }
   }
 
   /**
@@ -87,6 +151,13 @@ class JobQueueService extends EventEmitter {
         });
       });
 
+      // Check if job was cancelled before marking as completed
+      if (this.isJobCancelled(job.id)) {
+        console.log(`🚫 Job ${job.id} foi cancelado, não marcando como completed`);
+        await this.updateJobStatus(job.id, 'failed', undefined, 'Job cancelado pelo usuário');
+        return;
+      }
+
       // Mark as completed
       await this.updateJobStatus(job.id, 'completed', 100, 'Execução finalizada');
       
@@ -96,12 +167,12 @@ class JobQueueService extends EventEmitter {
         await this.updateJobStatus(job.id, 'failed', undefined, error instanceof Error ? error.message : 'Erro desconhecido');
       } catch (updateError) {
         // Ignore "not found" errors when marking as failed - job may have been deleted
-        if (!updateError.message?.includes('not found')) {
+        if (!(updateError instanceof Error) || !updateError.message?.includes('not found')) {
           console.error(`Failed to mark job ${job.id} as failed:`, updateError);
         }
       }
     } finally {
-      this.runningJobs.delete(job.id);
+      this.removeJobFromRunning(job.id); // Use helper to cleanup both runningJobs and cancelledJobs
       // Process next job in queue if any
       this.processNextJob();
     }
@@ -205,13 +276,40 @@ class JobQueueService extends EventEmitter {
   }
 
   /**
+   * Mark job as cancelled for cooperative cancellation
+   */
+  markJobAsCancelled(jobId: string): void {
+    this.cancelledJobs.add(jobId);
+    console.log(`🚫 Job ${jobId} marcado como cancelado`);
+  }
+
+  /**
+   * Check if job was cancelled
+   */
+  isJobCancelled(jobId: string): boolean {
+    return this.cancelledJobs.has(jobId);
+  }
+
+  /**
+   * Remove job completed from running jobs map
+   */
+  private removeJobFromRunning(jobId: string): void {
+    this.runningJobs.delete(jobId);
+    this.cancelledJobs.delete(jobId); // Cleanup cancelled flag
+    console.log(`🗑️  Job ${jobId} removido dos jobs em execução`);
+  }
+
+  /**
    * Cancels a running job
    */
   async cancelJob(jobId: string): Promise<void> {
     const job = this.runningJobs.get(jobId);
     if (job) {
+      // Mark as cancelled first for cooperative cancellation
+      this.markJobAsCancelled(jobId);
+      
       await this.updateJobStatus(jobId, 'failed', undefined, 'Job cancelado pelo usuário');
-      this.runningJobs.delete(jobId);
+      this.removeJobFromRunning(jobId);
     }
   }
 }

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import https from 'https';
 import http from 'http';
 import { URL } from 'url';
+import { processTracker } from '../processTracker';
 
 export interface VulnerabilityFinding {
   type: 'vulnerability' | 'web_vulnerability';
@@ -17,6 +18,16 @@ export interface VulnerabilityFinding {
   port?: string;
   details?: string;
   evidence?: any;
+}
+
+/**
+ * Context for process tracking in vulnerability scanner
+ */
+interface ProcessContext {
+  jobId?: string;
+  processName?: 'nmap' | 'nuclei';
+  stage?: string;
+  maxWaitTime?: number;
 }
 
 export class VulnerabilityScanner {
@@ -51,7 +62,7 @@ export class VulnerabilityScanner {
   /**
    * Executa scan de vulnerabilidades em um target
    */
-  async scanVulnerabilities(target: string, ports: string[], portResults?: import('./networkScanner').PortScanResult[]): Promise<VulnerabilityFinding[]> {
+  async scanVulnerabilities(target: string, ports: string[], portResults?: import('./networkScanner').PortScanResult[], jobId?: string): Promise<VulnerabilityFinding[]> {
     console.log(`Iniciando scan de vulnerabilidades para ${target}`);
     
     const results: VulnerabilityFinding[] = [];
@@ -72,13 +83,13 @@ export class VulnerabilityScanner {
         const targetUrl = `${protocol}://${target}:${webService.port}`;
         
         console.log(`Executando nuclei para URL construída: ${targetUrl} (service: ${webService.service})`);
-        const nucleiResults = await this.nucleiScanUrl(targetUrl);
+        const nucleiResults = await this.nucleiScanUrl(targetUrl, jobId);
         
         // Log verboso dos resultados do nuclei
         if (nucleiResults.length > 0) {
           console.log(`🎯 Nuclei encontrou ${nucleiResults.length} vulnerabilidades em ${targetUrl}:`);
           for (const vuln of nucleiResults) {
-            console.log(`  ⚠️  ${vuln.title || vuln.templateId} | Severidade: ${vuln.severity || 'medium'} | URL: ${vuln.url}`);
+            console.log(`  ⚠️  ${vuln.name || vuln.template} | Severidade: ${vuln.severity || 'medium'} | Target: ${vuln.target}`);
           }
         } else {
           console.log(`✅ Nuclei não encontrou vulnerabilidades em ${targetUrl}`);
@@ -96,7 +107,7 @@ export class VulnerabilityScanner {
   /**
    * Scan usando nuclei com URL construída adequadamente
    */
-  private async nucleiScanUrl(targetUrl: string): Promise<VulnerabilityFinding[]> {
+  private async nucleiScanUrl(targetUrl: string, jobId?: string): Promise<VulnerabilityFinding[]> {
     // Validar URL para prevenir injeção de comando
     if (!this.isValidUrl(targetUrl)) {
       console.warn(`URL inválida para nuclei: ${targetUrl}`);
@@ -122,8 +133,17 @@ export class VulnerabilityScanner {
         '-t', '/tmp/nuclei/nuclei-templates', // Caminho dos templates
       ];
       
-      console.log(`Executando nuclei para ${targetUrl} com templates em /tmp/nuclei/nuclei-templates`);
-      const stdout = await this.spawnCommand('nuclei', args, 300000);
+      const stage = `Analisando vulnerabilidades em ${targetUrl}... nuclei`;
+      console.log(`🎯 ${stage}`);
+      
+      const context: ProcessContext = {
+        jobId,
+        processName: 'nuclei',
+        stage,
+        maxWaitTime: 1800000 // 30 minutos para sites com muitas páginas
+      };
+      
+      const stdout = await this.spawnCommand('nuclei', args, context);
       console.log(`Nuclei completado para ${targetUrl}, processando resultados...`);
       
       return this.parseNucleiOutput(stdout, targetUrl);
@@ -167,7 +187,8 @@ export class VulnerabilityScanner {
       const updateArgs = ['-update-templates', '-ud', templatesDir];
       
       try {
-        await this.spawnCommand('nuclei', updateArgs, 120000); // 2 minutos para download
+        const context: ProcessContext = { maxWaitTime: 120000 }; // 2 minutos para download
+        await this.spawnCommand('nuclei', updateArgs, context);
         console.log('Templates nuclei baixados com sucesso');
       } catch (error) {
         console.warn(`Falha ao baixar templates nuclei: ${error}`);
@@ -175,7 +196,8 @@ export class VulnerabilityScanner {
         // Fallback: tentar com flag alternativa
         try {
           const altArgs = ['-ut', '-ud', templatesDir];
-          await this.spawnCommand('nuclei', altArgs, 120000);
+          const altContext: ProcessContext = { maxWaitTime: 120000 };
+          await this.spawnCommand('nuclei', altArgs, altContext);
           console.log('Templates nuclei baixados com sucesso (fallback)');
         } catch (altError) {
           console.warn(`Falha no fallback de templates: ${altError}`);
@@ -294,10 +316,17 @@ export class VulnerabilityScanner {
   }
 
   /**
-   * Executa comando usando spawn para segurança
+   * Executa comando usando spawn com monitoramento de PID
    */
-  private async spawnCommand(command: string, args: string[], timeout: number): Promise<string> {
+  private async spawnCommand(command: string, args: string[], context: ProcessContext = {}): Promise<string> {
     return new Promise((resolve, reject) => {
+      const { jobId, processName, stage, maxWaitTime = 1800000 } = context; // 30min default for nuclei
+
+      console.log(`🔧 Executando: ${command} ${args.join(' ')}`);
+      if (jobId && processName && stage) {
+        console.log(`📍 Job: ${jobId} | Processo: ${processName} | Stage: ${stage}`);
+      }
+
       const child = spawn(command, args, {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: {
@@ -309,9 +338,23 @@ export class VulnerabilityScanner {
           NUCLEI_TEMPLATES_DIR: '/tmp/nuclei/nuclei-templates', // Diretório específico dos templates
         },
       });
+
+      if (!child.pid) {
+        reject(new Error('Failed to get process PID'));
+        return;
+      }
       
       let stdout = '';
       let stderr = '';
+
+      // Registrar no ProcessTracker se contexto foi fornecido
+      if (jobId && processName && stage) {
+        try {
+          processTracker.register(jobId, processName, child, stage);
+        } catch (error) {
+          console.warn(`⚠️ Falha ao registrar processo no tracker: ${error}`);
+        }
+      }
       
       child.stdout?.on('data', (data) => {
         stdout += data.toString();
@@ -321,22 +364,36 @@ export class VulnerabilityScanner {
         stderr += data.toString();
       });
       
-      const timer = setTimeout(() => {
-        child.kill();
-        reject(new Error('Command timeout'));
-      }, timeout);
+      // Fallback protection - kill if exceeds maximum wait time
+      const fallbackTimer = setTimeout(() => {
+        console.log(`⏱️ Fallback timeout após ${maxWaitTime/1000}s - matando processo ${child.pid}`);
+        
+        if (jobId && child.pid) {
+          processTracker.kill(jobId, child.pid);
+        } else {
+          child.kill('SIGTERM');
+          setTimeout(() => child.kill('SIGKILL'), 5000);
+        }
+        
+        reject(new Error(`Process exceeded maximum wait time of ${maxWaitTime/1000}s`));
+      }, maxWaitTime);
       
       child.on('close', (code) => {
-        clearTimeout(timer);
+        clearTimeout(fallbackTimer);
+        console.log(`📋 Comando concluído com código ${code}`);
+        
         if (code === 0) {
           resolve(stdout);
         } else {
-          reject(new Error(`Command failed with code ${code}: ${stderr}`));
+          const errorMsg = `Command failed with code ${code}: ${stderr}`;
+          console.error(`❌ ${errorMsg}`);
+          reject(new Error(errorMsg));
         }
       });
       
       child.on('error', (error: Error) => {
-        clearTimeout(timer);
+        clearTimeout(fallbackTimer);
+        console.error(`💥 Erro no comando:`, error);
         reject(error);
       });
     });
@@ -359,8 +416,8 @@ export class VulnerabilityScanner {
         console.log(`📝 Nuclei linha raw: ${line.substring(0, 200)}...`);
         console.log(`📝 Nuclei achado parseado: template=${finding.templateID || finding.template}, severity=${finding.info?.severity}, matched=${finding['matched-at'] || finding.matched_at}`);
         
-        const vulnerability = {
-          type: 'vulnerability',  // Tipo para corresponder ao matcher do threatEngine
+        const vulnerability: VulnerabilityFinding = {
+          type: 'vulnerability' as const,  // Tipo para corresponder ao matcher do threatEngine
           target,
           name: finding.info?.name || finding.templateID || finding.template,
           severity: this.mapNucleiSeverity(finding.info?.severity),

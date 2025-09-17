@@ -5,6 +5,7 @@ import { networkScanner } from './scanners/networkScanner';
 import { vulnScanner } from './scanners/vulnScanner';
 import { adScanner } from './scanners/adScanner';
 import { EDRAVScanner } from './scanners/edrAvScanner';
+import { jobQueue } from './jobQueue';
 import { type Journey, type Job } from '@shared/schema';
 
 export interface JourneyProgress {
@@ -40,12 +41,25 @@ class JourneyExecutorService {
         throw new Error(`Tipo de jornada não suportado: ${journey.type}`);
     }
 
+    // Check if job was cancelled before threat analysis
+    if (this.isJobCancelled(jobId)) {
+      console.log(`🚫 Job ${jobId} cancelado, parando antes de análise de ameaças`);
+      throw new Error('Job cancelado pelo usuário');
+    }
+
     onProgress({ status: 'running', progress: 90, currentTask: 'Analisando resultados' });
     
     // Process results and generate threats
     await threatEngine.processJobResults(jobId);
     
     onProgress({ status: 'completed', progress: 100, currentTask: 'Execução finalizada' });
+  }
+
+  /**
+   * Check if job was cancelled for cooperative cancellation
+   */
+  private isJobCancelled(jobId: string): boolean {
+    return jobQueue.isJobCancelled(jobId);
   }
 
   /**
@@ -76,6 +90,12 @@ class JourneyExecutorService {
     let currentAsset = 0;
 
     for (const asset of assets) {
+      // Check if job was cancelled before processing each asset
+      if (this.isJobCancelled(jobId)) {
+        console.log(`🚫 Job ${jobId} cancelado, parando execução no asset ${asset.value}`);
+        throw new Error('Job cancelado pelo usuário');
+      }
+
       currentAsset++;
       const progressPercent = 20 + (currentAsset / assets.length) * 50;
       
@@ -91,10 +111,10 @@ class JourneyExecutorService {
         
         if (asset.type === 'range') {
           // For CIDR ranges, scan each host in the range
-          portResults = await networkScanner.scanCidrRange(asset.value, params.nmapProfile);
+          portResults = await networkScanner.scanCidrRange(asset.value, params.nmapProfile, jobId);
         } else {
           // For individual hosts, scan with specified nmap profile
-          portResults = await networkScanner.scanPorts(asset.value, undefined, params.nmapProfile);
+          portResults = await networkScanner.scanPorts(asset.value, undefined, params.nmapProfile, jobId);
         }
         
         findings.push(...portResults);
@@ -122,7 +142,7 @@ class JourneyExecutorService {
               
               // Real vulnerability scan using vulnScanner for each host
               const hostPortResults = portResults.filter(r => r.target === host && r.state === 'open');
-              const vulnResults = await vulnScanner.scanVulnerabilities(host, openPorts, hostPortResults);
+              const vulnResults = await vulnScanner.scanVulnerabilities(host, openPorts, hostPortResults, jobId);
               findings.push(...vulnResults);
             }
           }
@@ -133,6 +153,12 @@ class JourneyExecutorService {
             .map(result => result.port);
             
           if (openPorts.length > 0) {
+            // Check if job was cancelled before vulnerability scan
+            if (this.isJobCancelled(jobId)) {
+              console.log(`🚫 Job ${jobId} cancelado, parando antes de scan de vulnerabilidades`);
+              throw new Error('Job cancelado pelo usuário');
+            }
+
             onProgress({ 
               status: 'running', 
               progress: progressPercent + 10, 
@@ -141,7 +167,7 @@ class JourneyExecutorService {
             
             // Real vulnerability scan using vulnScanner
             const openPortResults = portResults.filter(r => r.state === 'open');
-            const vulnResults = await vulnScanner.scanVulnerabilities(asset.value, openPorts, openPortResults);
+            const vulnResults = await vulnScanner.scanVulnerabilities(asset.value, openPorts, openPortResults, jobId);
             findings.push(...vulnResults);
           }
         }

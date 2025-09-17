@@ -6,6 +6,7 @@ import { setupAuth, isAuthenticatedWithPasswordCheck } from "./localAuth";
 import { jobQueue } from "./services/jobQueue";
 import { threatEngine } from "./services/threatEngine";
 import { encryptionService } from "./services/encryption";
+import { processTracker } from "./services/processTracker";
 import { 
   insertAssetSchema, 
   insertCredentialSchema, 
@@ -400,6 +401,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao buscar resultado do job:", error);
       res.status(500).json({ message: "Falha ao buscar resultado" });
+    }
+  });
+
+  app.post('/api/jobs/:id/cancel-process', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      
+      // Verificar se o job existe
+      const job = await storage.getJob(id);
+      if (!job) {
+        return res.status(404).json({ message: "Job não encontrado" });
+      }
+      
+      // Verificar se o job está em execução
+      if (job.status !== 'running') {
+        return res.status(400).json({ message: "Job não está em execução" });
+      }
+      
+      // Marcar job como cancelado para cooperative cancellation
+      jobQueue.markJobAsCancelled(id);
+      
+      // Cancelar todos os processos do job
+      const killedCount = processTracker.killAll(id);
+      
+      if (killedCount === 0) {
+        return res.status(404).json({ 
+          message: "Nenhum processo ativo encontrado para este job" 
+        });
+      }
+      
+      // Marcar job como cancelado
+      await storage.updateJob(id, { 
+        status: 'failed',
+        error: 'Job cancelado pelo usuário',
+        finishedAt: new Date()
+      });
+      
+      // Log de auditoria
+      await storage.logAudit({
+        actorId: userId,
+        action: 'cancel',
+        objectType: 'job',
+        objectId: id,
+        after: { status: 'failed', error: 'Job cancelado pelo usuário' },
+      });
+      
+      console.log(`🔪 Job ${id} cancelado pelo usuário ${userId} - ${killedCount} processos terminados`);
+      
+      res.json({ 
+        message: `Job cancelado com sucesso. ${killedCount} processo(s) terminado(s).`,
+        killedProcesses: killedCount
+      });
+      
+    } catch (error) {
+      console.error("Erro ao cancelar job:", error);
+      res.status(500).json({ message: "Falha ao cancelar job" });
     }
   });
 

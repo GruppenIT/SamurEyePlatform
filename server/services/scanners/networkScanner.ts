@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import dns from 'dns';
 import net from 'net';
 import { promisify } from 'util';
+import { processTracker } from '../processTracker';
 
 const dnsLookup = promisify(dns.lookup);
 
@@ -22,6 +23,16 @@ export interface ServiceInfo {
   name: string;
   version?: string;
   banner?: string;
+}
+
+/**
+ * Context for process tracking
+ */
+interface ProcessContext {
+  jobId?: string;
+  processName?: 'nmap' | 'nuclei';
+  stage?: string;
+  maxWaitTime?: number; // Maximum time to wait (fallback protection)
 }
 
 export class NetworkScanner {
@@ -53,7 +64,7 @@ export class NetworkScanner {
   /**
    * Realiza scan de portas em um host
    */
-  async scanPorts(target: string, ports?: number[], nmapProfile?: string): Promise<PortScanResult[]> {
+  async scanPorts(target: string, ports?: number[], nmapProfile?: string, jobId?: string): Promise<PortScanResult[]> {
     console.log(`Iniciando scan de portas para ${target}`);
     
     // Verificar se é um IP válido ou hostname
@@ -70,7 +81,7 @@ export class NetworkScanner {
 
     // Tentar usar nmap se disponível, senão usar scan TCP nativo
     try {
-      const nmapResults = await this.nmapScan(target, resolvedTarget, portsToScan, nmapProfile);
+      const nmapResults = await this.nmapScan(target, resolvedTarget, portsToScan, nmapProfile, jobId);
       return nmapResults;
     } catch (error) {
       console.log(`⚠️ nmap falhou, usando scan TCP nativo:`, error);
@@ -127,7 +138,7 @@ export class NetworkScanner {
   /**
    * Scan usando nmap (quando disponível)
    */
-  private async nmapScan(originalTarget: string, resolvedTarget: string, ports: number[], nmapProfile?: string): Promise<PortScanResult[]> {
+  private async nmapScan(originalTarget: string, resolvedTarget: string, ports: number[], nmapProfile?: string, jobId?: string): Promise<PortScanResult[]> {
     // Validar e sanitizar target para prevenir injeção de comando
     if (!this.isValidTarget(resolvedTarget)) {
       throw new Error(`Target inválido: ${resolvedTarget}`);
@@ -136,21 +147,30 @@ export class NetworkScanner {
     const args = this.buildNmapArgs(resolvedTarget, ports, nmapProfile);
     
     // Timeout diferenciado por perfil - ajustado para evitar timeouts prematuros
-    let timeout = 120000; // 2 minutos padrão
+    let maxWaitTime = 120000; // 2 minutos padrão
     switch (nmapProfile) {
       case 'fast':
-        timeout = 90000; // 1.5 minutos - tempo suficiente para hosts lentos
+        maxWaitTime = 600000; // 10 minutos - mesmo fast pode ser lento em hosts com firewall
         break;
       case 'comprehensive':
-        timeout = 600000; // 10 minutos - scan completo precisa mais tempo
+        maxWaitTime = 1800000; // 30 minutos - scan completo precisa muito mais tempo
         break;
       case 'stealth':
-        timeout = 300000; // 5 minutos - scan discreto pode ser muito mais lento
+        maxWaitTime = 1200000; // 20 minutos - scan discreto pode ser muito mais lento
         break;
     }
     
-    console.log(`⏱️ Timeout nmap: ${timeout/1000}s para perfil '${nmapProfile}'`);
-    const stdout = await this.spawnCommand('nmap', args, timeout);
+    const stage = `Escaneando portas de ${originalTarget}... nmap`;
+    console.log(`🎯 ${stage} (perfil: ${nmapProfile || 'default'})`);
+    
+    const context: ProcessContext = {
+      jobId,
+      processName: 'nmap',
+      stage,
+      maxWaitTime
+    };
+    
+    const stdout = await this.spawnCommand('nmap', args, context);
     const results = this.parseNmapOutput(stdout, originalTarget, resolvedTarget);
     
     // Log verboso das portas detectadas
@@ -188,18 +208,37 @@ export class NetworkScanner {
   }
 
   /**
-   * Executa comando usando spawn para segurança
+   * Executa comando usando spawn com monitoramento de PID
    */
-  private async spawnCommand(command: string, args: string[], timeout: number): Promise<string> {
+  private async spawnCommand(command: string, args: string[], context: ProcessContext = {}): Promise<string> {
     return new Promise((resolve, reject) => {
+      const { jobId, processName, stage, maxWaitTime = 600000 } = context; // 10min default fallback
+      
       console.log(`🔧 Executando: ${command} ${args.join(' ')}`);
+      if (jobId && processName && stage) {
+        console.log(`📍 Job: ${jobId} | Processo: ${processName} | Stage: ${stage}`);
+      }
       
       const child = spawn(command, args, {
         stdio: ['ignore', 'pipe', 'pipe'],
       });
       
+      if (!child.pid) {
+        reject(new Error('Failed to get process PID'));
+        return;
+      }
+
       let stdout = '';
       let stderr = '';
+      
+      // Registrar no ProcessTracker se contexto foi fornecido
+      if (jobId && processName && stage) {
+        try {
+          processTracker.register(jobId, processName, child, stage);
+        } catch (error) {
+          console.warn(`⚠️ Falha ao registrar processo no tracker: ${error}`);
+        }
+      }
       
       child.stdout?.on('data', (data) => {
         stdout += data.toString();
@@ -209,20 +248,22 @@ export class NetworkScanner {
         stderr += data.toString();
       });
       
-      const timer = setTimeout(() => {
-        console.log(`⏱️ Timeout após ${timeout/1000}s - matando processo`);
-        child.kill('SIGTERM');
+      // Fallback protection - kill if exceeds maximum wait time
+      const fallbackTimer = setTimeout(() => {
+        console.log(`⏱️ Fallback timeout após ${maxWaitTime/1000}s - matando processo ${child.pid}`);
         
-        // Force kill após 5s se não responder
-        setTimeout(() => {
-          child.kill('SIGKILL');
-        }, 5000);
+        if (jobId && child.pid) {
+          processTracker.kill(jobId, child.pid);
+        } else {
+          child.kill('SIGTERM');
+          setTimeout(() => child.kill('SIGKILL'), 5000);
+        }
         
-        reject(new Error(`Command timeout after ${timeout/1000}s`));
-      }, timeout);
+        reject(new Error(`Process exceeded maximum wait time of ${maxWaitTime/1000}s`));
+      }, maxWaitTime);
       
       child.on('close', (code) => {
-        clearTimeout(timer);
+        clearTimeout(fallbackTimer);
         console.log(`📋 Comando concluído com código ${code}`);
         
         if (code === 0) {
@@ -235,7 +276,7 @@ export class NetworkScanner {
       });
       
       child.on('error', (error) => {
-        clearTimeout(timer);
+        clearTimeout(fallbackTimer);
         console.error(`💥 Erro no comando:`, error);
         reject(error);
       });
@@ -518,7 +559,7 @@ export class NetworkScanner {
   /**
    * Scan de range CIDR
    */
-  async scanCidrRange(cidr: string, nmapProfile?: string): Promise<PortScanResult[]> {
+  async scanCidrRange(cidr: string, nmapProfile?: string, jobId?: string): Promise<PortScanResult[]> {
     const hosts = this.expandCidrRange(cidr);
     const results: PortScanResult[] = [];
 
@@ -527,7 +568,7 @@ export class NetworkScanner {
     
     for (const host of hostsToScan) {
       try {
-        const hostResults = await this.scanPorts(host, undefined, nmapProfile);
+        const hostResults = await this.scanPorts(host, undefined, nmapProfile, jobId);
         results.push(...hostResults);
       } catch (error) {
         console.error(`Erro ao escanear ${host}:`, error);
