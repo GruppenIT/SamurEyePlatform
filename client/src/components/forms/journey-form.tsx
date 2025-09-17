@@ -447,7 +447,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                             .filter(cred => cred.type === 'ad')
                             .map((credential) => (
                               <SelectItem key={credential.id} value={credential.id}>
-                                {credential.name} ({credential.domain})
+                                {credential.name}{credential.domain ? ` (${credential.domain})` : ''}
                               </SelectItem>
                             ))}
                         </SelectContent>

@@ -440,7 +440,7 @@ class JourneyExecutorService {
           statistics,
           summary: {
             ...statistics,
-            ...(credential.domain && { domain: credential.domain }),
+            domain: credential.domain,
             testDuration: new Date().toISOString(),
           },
         },
