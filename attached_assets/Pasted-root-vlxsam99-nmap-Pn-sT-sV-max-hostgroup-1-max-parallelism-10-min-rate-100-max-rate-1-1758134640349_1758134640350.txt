@@ -1,0 +1,120 @@
+root@vlxsam99:~# nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 10 --min-rate 100 --max-rate 1000 --max-rtt-timeout 3s --initial-rtt-timeout 500ms --version-intensity 5 -T4 --top-ports 1000 192.168.100.3
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-09-17 18:42 UTC
+Nmap scan report for VMSHO03.gruppen.com.br (192.168.100.3)
+Host is up (0.0011s latency).
+Not shown: 989 closed tcp ports (conn-refused)
+PORT     STATE SERVICE        VERSION
+80/tcp   open  http?
+135/tcp  open  msrpc          Microsoft Windows RPC
+139/tcp  open  netbios-ssn    Microsoft Windows netbios-ssn
+389/tcp  open  ldap
+443/tcp  open  ssl/https?
+445/tcp  open  microsoft-ds?
+636/tcp  open  tcpwrapped
+3389/tcp open  ms-wbt-server  Microsoft Terminal Services
+4001/tcp open  newoak?
+4002/tcp open  mlchat-proxy?
+8443/tcp open  ssl/https-alt?
+3 services unrecognized despite returning data. If you know the service/version, please submit the following fingerprints at https://nmap.org/cgi-bin/submit.cgi?new-service :
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port80-TCP:V=7.94SVN%I=5%D=9/17%Time=68CB0114%P=x86_64-pc-linux-gnu%r(G
+SF:etRequest,F5,"HTTP/1\.1\x20307\x20Temporary\x20Redirect\r\nLocation:\x2
+SF:0https://vmsho03\.gruppen\.com\.br:443/\r\nX-Permitted-Cross-Domain-Pol
+SF:icies:\x20none\r\nX-Robots-Tag:\x20none\r\nReferrer-Policy:\x20strict-o
+SF:rigin-when-cross-origin\r\nX-Content-Type-Options:\x20nosniff\r\nConten
+SF:t-Length:\x200\r\n\r\n")%r(HTTPOptions,39E,"HTTP/1\.1\x20405\x20Method\
+SF:x20Not\x20Allowed\r\nX-Permitted-Cross-Domain-Policies:\x20none\r\nX-Ro
+SF:bots-Tag:\x20none\r\nReferrer-Policy:\x20strict-origin-when-cross-origi
+SF:n\r\nX-Content-Type-Options:\x20nosniff\r\nConnection:\x20close\r\nDate
+SF::\x20Wed,\x2017\x20Sep\x202025\x2018:42:28\x20GMT\r\nContent-Length:\x2
+SF:0645\r\nContent-Type:\x20text/html\r\n\r\n<html>\r\n<head>\r\n<link\x20
+SF:rel=\"icon\"\x20href=\"data:;base64,=\">\r\n<title>405\x20Method\x20Not
+SF:\x20Allowed</title>\r\n<link\x20rel=stylesheet\x20href=\"/error/base\.c
+SF:ss\"\x20type=\"text/css\"\x20/>\r\n</head>\r\n<body\x20leftmargin=\"0\"
+SF:\x20rightmargin=\"0\"\x20topmargin=\"0\"\x20marginwidth=\"0\"\r\n\tmarg
+SF:inheight=\"0\">\r\n\r\n<div\x20class=\"container\">\r\n<img\x20src=\"/e
+SF:rror/465x292_error_banner\.png\"\x20/>\r\n<h2>405\x20Method\x20Not\x20A
+SF:llowed</h2>\r\n<span\x20id=\"errorMessage\">\r\n\tThe\x20page\x20you\x2
+SF:0requested\x20is\x20not\x20available\.\r\n<script\x20language=\"JavaScr
+SF:ipt\">\r\n\tvar\x20url\x20=\x20escapeHTML\(location\.href\);\r\n\tif\x2
+SF:0\(url\.indexOf\(\"http:\"\)\x20==\x200\x20&&\x20405\x20==\x20\"404\"\)
+SF:\x20{\r\n\t\tdocument\.write\(\"\x20Try\x20HTTPS\x20instead\.\"\);\r\n\
+SF:t}\r\n</script>\r\n</span>")%r(RTSPRequest,39E,"HTTP/1\.1\x20405\x20Met
+SF:hod\x20Not\x20Allowed\r\nX-Permitted-Cross-Domain-Policies:\x20none\r\n
+SF:X-Robots-Tag:\x20none\r\nReferrer-Policy:\x20strict-origin-when-cross-o
+SF:rigin\r\nX-Content-Type-Options:\x20nosniff\r\nConnection:\x20close\r\n
+SF:Date:\x20Wed,\x2017\x20Sep\x202025\x2018:42:28\x20GMT\r\nContent-Length
+SF::\x20645\r\nContent-Type:\x20text/html\r\n\r\n<html>\r\n<head>\r\n<link
+SF:\x20rel=\"icon\"\x20href=\"data:;base64,=\">\r\n<title>405\x20Method\x2
+SF:0Not\x20Allowed</title>\r\n<link\x20rel=stylesheet\x20href=\"/error/bas
+SF:e\.css\"\x20type=\"text/css\"\x20/>\r\n</head>\r\n<body\x20leftmargin=\
+SF:"0\"\x20rightmargin=\"0\"\x20topmargin=\"0\"\x20marginwidth=\"0\"\r\n\t
+SF:marginheight=\"0\">\r\n\r\n<div\x20class=\"container\">\r\n<img\x20src=
+SF:\"/error/465x292_error_banner\.png\"\x20/>\r\n<h2>405\x20Method\x20Not\
+SF:x20Allowed</h2>\r\n<span\x20id=\"errorMessage\">\r\n\tThe\x20page\x20yo
+SF:u\x20requested\x20is\x20not\x20available\.\r\n<script\x20language=\"Jav
+SF:aScript\">\r\n\tvar\x20url\x20=\x20escapeHTML\(location\.href\);\r\n\ti
+SF:f\x20\(url\.indexOf\(\"http:\"\)\x20==\x200\x20&&\x20405\x20==\x20\"404
+SF:\"\)\x20{\r\n\t\tdocument\.write\(\"\x20Try\x20HTTPS\x20instead\.\"\);\
+SF:r\n\t}\r\n</script>\r\n</span>");
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port443-TCP:V=7.94SVN%T=SSL%I=5%D=9/17%Time=68CB011A%P=x86_64-pc-linux-
+SF:gnu%r(GetRequest,290,"HTTP/1\.1\x20302\x20Found\r\nSet-Cookie:\x20JSESS
+SF:IONID=AC54A6718999E09987F4CEDD9B579E99;\x20Path=/;\x20Secure;\x20HttpOn
+SF:ly;\x20SameSite=Lax\r\nX-Content-Type-Options:\x20nosniff\r\nLocation:\
+SF:x20https:///portal/webclient/index\.html\r\nStrict-Transport-Security:\
+SF:x20max-age=31536000\r\nX-Permitted-Cross-Domain-Policies:\x20none\r\nX-
+SF:Robots-Tag:\x20none\r\nReferrer-Policy:\x20strict-origin-when-cross-ori
+SF:gin\r\nContent-Security-Policy:\x20default-src\x20'none';connect-src\x2
+SF:0'self'\x20wss:;font-src\x20'self';img-src\x20'self'\x20data:\x20blob:;
+SF:media-src\x20'self'\x20blob:;base-uri\x20'self';form-action\x20'none';f
+SF:rame-ancestors\x20'none';child-src\x20'self'\x20blob:;script-src\x20'se
+SF:lf'\x20'unsafe-eval';style-src\x20'self'\x20'unsafe-inline'\r\nContent-
+SF:Length:\x200\r\n\r\n")%r(HTTPOptions,4E4,"HTTP/1\.1\x20405\x20Method\x2
+SF:0Not\x20Allowed\r\nStrict-Transport-Security:\x20max-age=31536000\r\nX-
+SF:Permitted-Cross-Domain-Policies:\x20none\r\nX-Robots-Tag:\x20none\r\nRe
+SF:ferrer-Policy:\x20strict-origin-when-cross-origin\r\nContent-Security-P
+SF:olicy:\x20default-src\x20'none';connect-src\x20'self'\x20wss:;font-src\
+SF:x20'self';img-src\x20'self'\x20data:\x20blob:;media-src\x20'self'\x20bl
+SF:ob:;base-uri\x20'self';form-action\x20'none';frame-ancestors\x20'none';
+SF:child-src\x20'self'\x20blob:;script-src\x20'self'\x20'unsafe-eval';styl
+SF:e-src\x20'self'\x20'unsafe-inline'\r\nX-Content-Type-Options:\x20nosnif
+SF:f\r\nConnection:\x20close\r\nDate:\x20Wed,\x2017\x20Sep\x202025\x2018:4
+SF:2:34\x20GMT\r\nContent-Length:\x20645\r\nContent-Type:\x20text/html\r\n
+SF:\r\n<html>\r\n<head>\r\n<link\x20rel=\"icon\"\x20href=\"data:;base64,=\
+SF:">\r\n<title>405\x20Method\x20Not\x20Allowed</title>\r\n<link\x20rel=st
+SF:ylesheet\x20href=\"/error/base\.css\"\x20type=\"text/css\"\x20/>\r\n</h
+SF:ead>\r\n<body\x20leftmargin=\"0\"\x20rightmargin=\"0\"\x20topmargin=\"0
+SF:\"\x20marginwidth=\"0\"\r\n\tmarginheight=\"0\">\r\n\r\n<div\x20class=\
+SF:"container\">\r\n<img\x20src=")%r(FourOhFourRequest,110,"HTTP/1\.1\x204
+SF:04\x20Not\x20Found\r\nDate:\x20Wed,\x2017\x20Sep\x202025\x2018:42:34\x2
+SF:0GMT\r\nContent-Length:\x20148\r\nContent-Type:\x20text/html;\x20charse
+SF:t=utf-8\r\n\r\n<!DOCTYPE\x20HTML\x20PUBLIC\x20\"-//IETF//DTD\x20HTML\x2
+SF:02\.0//EN\">\n<HTML><HEAD><TITLE>404\x20Not\x20Found</TITLE>\n</HEAD><B
+SF:ODY><H1>Not\x20Found</H1><PRE></PRE></BODY></HTML>");
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port8443-TCP:V=7.94SVN%T=SSL%I=5%D=9/17%Time=68CB011A%P=x86_64-pc-linux
+SF:-gnu%r(GetRequest,67,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nConnection:
+SF:\x20close\r\nDate:\x20Wed,\x2017\x20Sep\x202025\x2018:42:34\x20GMT\r\n\
+SF:r\nMissing\x20Host\x20header")%r(HTTPOptions,67,"HTTP/1\.1\x20400\x20Ba
+SF:d\x20Request\r\nConnection:\x20close\r\nDate:\x20Wed,\x2017\x20Sep\x202
+SF:025\x2018:42:34\x20GMT\r\n\r\nMissing\x20Host\x20header")%r(FourOhFourR
+SF:equest,67,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nConnection:\x20close\r
+SF:\nDate:\x20Wed,\x2017\x20Sep\x202025\x2018:42:34\x20GMT\r\n\r\nMissing\
+SF:x20Host\x20header")%r(RTSPRequest,67,"HTTP/1\.1\x20400\x20Bad\x20Reques
+SF:t\r\nConnection:\x20close\r\nDate:\x20Wed,\x2017\x20Sep\x202025\x2018:4
+SF:2:39\x20GMT\r\n\r\nMissing\x20Host\x20header")%r(RPCCheck,2F,"HTTP/1\.1
+SF:\x20400\x20Bad\x20Request\r\nConnection:\x20close\r\n\r\n")%r(DNSVersio
+SF:nBindReqTCP,2F,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nConnection:\x20cl
+SF:ose\r\n\r\n")%r(SSLSessionReq,2F,"HTTP/1\.1\x20400\x20Bad\x20Request\r\
+SF:nConnection:\x20close\r\n\r\n")%r(TLSSessionReq,2F,"HTTP/1\.1\x20400\x2
+SF:0Bad\x20Request\r\nConnection:\x20close\r\n\r\n")%r(Kerberos,2F,"HTTP/1
+SF:\.1\x20400\x20Bad\x20Request\r\nConnection:\x20close\r\n\r\n")%r(SMBPro
+SF:gNeg,2F,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nConnection:\x20close\r\n
+SF:\r\n")%r(X11Probe,2F,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nConnection:
+SF:\x20close\r\n\r\n");
+Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 62.99 seconds
+root@vlxsam99:~#

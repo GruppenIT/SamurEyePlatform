@@ -135,17 +135,17 @@ export class NetworkScanner {
     
     const args = this.buildNmapArgs(resolvedTarget, ports, nmapProfile);
     
-    // Timeout diferenciado por perfil para reduzir fallbacks prematuros
+    // Timeout diferenciado por perfil - ajustado para evitar timeouts prematuros
     let timeout = 120000; // 2 minutos padrão
     switch (nmapProfile) {
       case 'fast':
-        timeout = 60000; // 1 minuto - scan rápido
+        timeout = 90000; // 1.5 minutos - tempo suficiente para hosts lentos
         break;
       case 'comprehensive':
-        timeout = 300000; // 5 minutos - scan completo precisa mais tempo
+        timeout = 600000; // 10 minutos - scan completo precisa mais tempo
         break;
       case 'stealth':
-        timeout = 180000; // 3 minutos - scan discreto pode ser mais lento
+        timeout = 300000; // 5 minutos - scan discreto pode ser muito mais lento
         break;
     }
     
