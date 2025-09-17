@@ -1,0 +1,105 @@
+{
+  "summary": {
+    "domain": null,
+    "testDuration": "2025-09-17T13:06:49.189Z",
+    "totalDiscovered": 15,
+    "attemptsExhausted": false,
+    "eicarRemovedCount": 3,
+    "failedDeployments": 2,
+    "eicarPersistedCount": 4,
+    "requestedSampleRate": 50,
+    "requestedSampleSize": 7,
+    "successfulDeployments": 7
+  },
+  "findings": [
+    {
+      "type": "edr_test",
+      "filePath": "\\\\VMSDB18.gruppen.com.br\\C$\\Windows\\Temp\\samureye_eicar.txt",
+      "hostname": "VMSDB18.gruppen.com.br",
+      "timestamp": "2025-09-17T13:05:35.097Z",
+      "eicarRemoved": false,
+      "testDuration": 10,
+      "deploymentMethod": "smb"
+    },
+    {
+      "type": "edr_test",
+      "filePath": "\\\\VMSPT41.gruppen.com.br\\C$\\Windows\\Temp\\samureye_eicar.txt",
+      "hostname": "VMSPT41.gruppen.com.br",
+      "timestamp": "2025-09-17T13:05:45.559Z",
+      "eicarRemoved": true,
+      "testDuration": 10,
+      "deploymentMethod": "smb"
+    },
+    {
+      "type": "edr_test",
+      "filePath": "\\\\VMSDB04.gruppen.com.br\\C$\\Windows\\Temp\\samureye_eicar.txt",
+      "hostname": "VMSDB04.gruppen.com.br",
+      "timestamp": "2025-09-17T13:05:56.037Z",
+      "eicarRemoved": true,
+      "testDuration": 10,
+      "deploymentMethod": "smb"
+    },
+    {
+      "type": "edr_test",
+      "error": "Falha em todos os métodos de deployment: SMB (gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system\ngencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system\ndo_connect: Connection to VMLAB02.gruppen.com.br failed (Error NT_STATUS_UNSUCCESSFUL)), WMI (WMI deployment desabilitado por questões de segurança. Use SMB.)",
+      "hostname": "VMLAB02.gruppen.com.br",
+      "timestamp": "2025-09-17T13:05:56.128Z",
+      "eicarRemoved": null,
+      "testDuration": 0
+    },
+    {
+      "type": "edr_test",
+      "error": "Falha em todos os métodos de deployment: SMB (gencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system\ngencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system\ngencache_init: Failed to create directory: /opt/samureye/.cache/samba - Read-only file system\ndo_connect: Connection to VMSAPPPRX68.gruppen.com.br failed (Error NT_STATUS_IO_TIMEOUT)), WMI (WMI deployment desabilitado por questões de segurança. Use SMB.)",
+      "hostname": "VMSAPPPRX68.gruppen.com.br",
+      "timestamp": "2025-09-17T13:06:06.222Z",
+      "eicarRemoved": null,
+      "testDuration": 10
+    },
+    {
+      "type": "edr_test",
+      "filePath": "\\\\VMSAAD67.gruppen.com.br\\C$\\Windows\\Temp\\samureye_eicar.txt",
+      "hostname": "VMSAAD67.gruppen.com.br",
+      "timestamp": "2025-09-17T13:06:16.871Z",
+      "eicarRemoved": false,
+      "testDuration": 10,
+      "deploymentMethod": "smb"
+    },
+    {
+      "type": "edr_test",
+      "filePath": "\\\\VMSSIS20.gruppen.com.br\\C$\\Windows\\Temp\\samureye_eicar.txt",
+      "hostname": "VMSSIS20.gruppen.com.br",
+      "timestamp": "2025-09-17T13:06:27.898Z",
+      "eicarRemoved": false,
+      "testDuration": 11,
+      "deploymentMethod": "smb"
+    },
+    {
+      "type": "edr_test",
+      "filePath": "\\\\VMSVDIS02.gruppen.com.br\\C$\\Windows\\Temp\\samureye_eicar.txt",
+      "hostname": "VMSVDIS02.gruppen.com.br",
+      "timestamp": "2025-09-17T13:06:38.626Z",
+      "eicarRemoved": false,
+      "testDuration": 10,
+      "deploymentMethod": "smb"
+    },
+    {
+      "type": "edr_test",
+      "filePath": "\\\\VMSDC53.gruppen.com.br\\C$\\Windows\\Temp\\samureye_eicar.txt",
+      "hostname": "VMSDC53.gruppen.com.br",
+      "timestamp": "2025-09-17T13:06:49.188Z",
+      "eicarRemoved": true,
+      "testDuration": 10,
+      "deploymentMethod": "smb"
+    }
+  ],
+  "statistics": {
+    "totalDiscovered": 15,
+    "attemptsExhausted": false,
+    "eicarRemovedCount": 3,
+    "failedDeployments": 2,
+    "eicarPersistedCount": 4,
+    "requestedSampleRate": 50,
+    "requestedSampleSize": 7,
+    "successfulDeployments": 7
+  }
+}
