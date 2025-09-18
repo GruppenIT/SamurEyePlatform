@@ -1,0 +1,21 @@
+Sep 17 23:47:52 vlxsam99 npm[418050]: 📡 JobUpdate emitido para d9810034-5650-44de-9234-a616c7e5c9d8: Analisando vulnerabilidades em http://vmsho03.gruppen.com.br:80... nuclei (nuclei pid 418155) (alive: true, status: running)
+Sep 17 23:47:53 vlxsam99 npm[418050]: 🗑️ Processo removido: nuclei pid 418155 para job d9810034-5650-44de-9234-a616c7e5c9d8
+Sep 17 23:47:53 vlxsam99 npm[418050]: 📋 Comando concluído com código 0
+Sep 17 23:47:53 vlxsam99 npm[418050]: 📊 DEBUG stdout length: 0 characters
+Sep 17 23:47:53 vlxsam99 npm[418050]: 📊 DEBUG stderr length: 0 characters
+Sep 17 23:47:53 vlxsam99 npm[418050]: Nuclei completado para http://vmsho03.gruppen.com.br:80, processando resultados...
+Sep 17 23:47:53 vlxsam99 npm[418050]: 🔍 DEBUG parseNucleiOutput recebeu: 0 characters
+Sep 17 23:47:53 vlxsam99 npm[418050]: 🔍 Total lines: 1, after filter: 0
+Sep 17 23:47:53 vlxsam99 npm[418050]: 🔍 DEBUG primeira linha raw: ""
+Sep 17 23:47:53 vlxsam99 npm[418050]: 🔍 Parseando 0 linhas de saída do nuclei para http://vmsho03.gruppen.com.br:80...
+Sep 17 23:47:53 vlxsam99 npm[418050]: ❌ Erro ao parsear linha do nuclei:  Erro: SyntaxError: Unexpected end of JSON input
+Sep 17 23:47:53 vlxsam99 npm[418050]:     at JSON.parse (<anonymous>)
+Sep 17 23:47:53 vlxsam99 npm[418050]:     at VulnerabilityScanner.parseNucleiOutput (file:///opt/samureye/dist/index.js:3233:30)
+Sep 17 23:47:53 vlxsam99 npm[418050]:     at VulnerabilityScanner.nucleiScanUrl (file:///opt/samureye/dist/index.js:2953:19)
+Sep 17 23:47:53 vlxsam99 npm[418050]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 17 23:47:53 vlxsam99 npm[418050]:     at async VulnerabilityScanner.scanVulnerabilities (file:///opt/samureye/dist/index.js:2885:31)
+Sep 17 23:47:53 vlxsam99 npm[418050]:     at async JourneyExecutorService.executeAttackSurface (file:///opt/samureye/dist/index.js:4979:33)
+Sep 17 23:47:53 vlxsam99 npm[418050]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:4883:9)
+Sep 17 23:47:53 vlxsam99 npm[418050]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:5551:7)
+Sep 17 23:47:53 vlxsam99 npm[418050]: 📊 Nuclei parsing concluído: 0 vulnerabilidades extraídas de 1 linhas
+Sep 17 23:47:53 vlxsam99 npm[418050]: ✅ Nuclei não encontrou vulnerabilidades em http://vmsho03.gruppen.com.br:80
