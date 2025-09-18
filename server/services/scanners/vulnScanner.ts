@@ -478,19 +478,8 @@ export class VulnerabilityScanner {
     
     console.log(`🔍 Parseando ${filteredLines.length} linhas de saída do nuclei para ${target}...`);
     
-    // Se não há linhas válidas, retornar array vazio (caso normal quando não há vulnerabilidades)
-    if (filteredLines.length === 0) {
-      console.log(`📊 Nenhuma vulnerabilidade encontrada em ${target} (saída vazia é normal)`);
-      return results;
-    }
-    
-    for (const line of filteredLines) {
+    for (const line of lines) {
       try {
-        // Validar que a linha não está vazia após trim antes de tentar fazer parse
-        if (!line.trim()) {
-          continue;
-        }
-        
         const finding = JSON.parse(line);
         
         // Log detalhado do achado parseado - mostra linha raw para debug
