@@ -87,23 +87,39 @@ class HostService {
       return 'server';
     }
 
-    // Check for server indicators
+    // Check for server indicators (including Windows Server services)
     const hasServerServices = findings.some(f => 
-      services.some(s => s.includes('http') || s.includes('ssh') || s.includes('ftp') || s.includes('smtp') || s.includes('dns')) ||
-      ports.some(p => [80, 443, 22, 21, 25, 53, 8080, 8443].includes(p))
+      services.some(s => 
+        s.includes('http') || s.includes('ssh') || s.includes('ftp') || 
+        s.includes('smtp') || s.includes('dns') || s.includes('ms-sql') ||
+        s.includes('mssql') || s.includes('sql server') || s.includes('iis') ||
+        s.includes('ms-wbt-server') // Terminal Services on Windows Server
+      ) ||
+      ports.some(p => [80, 443, 22, 21, 25, 53, 8080, 8443, 1433, 1434].includes(p)) // Include SQL Server ports
     );
     
-    if (hasServerServices) {
+    // Check for Windows Server specific indicators in banners
+    const hasWindowsServerBanners = banners.some(b => 
+      b.includes('windows server') || b.includes('microsoft sql server') ||
+      b.includes('terminal services') || b.includes('microsoft iis')
+    );
+    
+    if (hasServerServices || hasWindowsServerBanners) {
       return 'server';
     }
 
-    // Check for desktop/workstation indicators (RDP, NetBIOS)
+    // Check for desktop/workstation indicators (only if not server)
     const hasWorkstationServices = findings.some(f => 
-      services.some(s => s.includes('microsoft-ds') || s.includes('netbios') || s.includes('rdp')) ||
-      ports.some(p => [3389, 445, 139].includes(p))
+      services.some(s => s.includes('microsoft-ds') || s.includes('netbios')) ||
+      ports.some(p => [445, 139].includes(p))
+    ) && !hasServerServices && !hasWindowsServerBanners;
+    
+    // RDP alone doesn't determine desktop vs server, check context
+    const hasRDP = findings.some(f => 
+      services.some(s => s.includes('rdp')) || ports.includes(3389)
     );
     
-    if (hasWorkstationServices) {
+    if (hasWorkstationServices && !hasServerServices && !hasWindowsServerBanners) {
       return 'desktop';
     }
 

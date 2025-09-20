@@ -32,16 +32,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { 
   Search, 
-  Edit, 
   Server, 
   Globe, 
-  Shield, 
   Router,
-  Smartphone,
   Monitor,
-  HardDrive,
   Filter,
-  Eye
+  Eye,
+  AlertTriangle
 } from "lucide-react";
 import { Host } from "@shared/schema";
 
@@ -49,7 +46,6 @@ export default function Hosts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [familyFilter, setFamilyFilter] = useState<string>("all");
-  const [editingHost, setEditingHost] = useState<Host | null>(null);
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   
   const { toast } = useToast();
@@ -68,37 +64,12 @@ export default function Hosts() {
     queryKey: ['/api/hosts', { type: typeFilter, family: familyFilter, search: searchTerm }],
   });
 
-  const updateHostMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Host> }) => {
-      return await apiRequest('PATCH', `/api/hosts/${id}`, data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Sucesso",
-        description: "Host atualizado com sucesso",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/hosts'] });
-      setEditingHost(null);
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Não autorizado",
-          description: "Você foi desconectado. Fazendo login novamente...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Erro",
-        description: "Falha ao atualizar host",
-        variant: "destructive",
-      });
-    },
+  // Query for threats associated with the selected host
+  const { data: hostThreats = [] } = useQuery({
+    queryKey: ['/api/threats', { hostId: selectedHost?.id }],
+    enabled: !!selectedHost,
   });
+
 
   const filteredHosts = hosts.filter(host => {
     if (!searchTerm) return true;
@@ -111,22 +82,11 @@ export default function Hosts() {
     );
   });
 
-  const handleEditHost = (host: Host) => {
-    setEditingHost(host);
-  };
 
   const handleViewHost = (host: Host) => {
     setSelectedHost(host);
   };
 
-  const handleUpdateHost = async (data: { name: string; description: string; aliases: string[] }) => {
-    if (!editingHost) return;
-    
-    updateHostMutation.mutate({
-      id: editingHost.id,
-      data
-    });
-  };
 
   const getHostIcon = (type: string) => {
     switch (type) {
@@ -362,14 +322,6 @@ export default function Hosts() {
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditHost(host)}
-                                data-testid={`button-edit-${host.id}`}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -458,94 +410,35 @@ export default function Hosts() {
                   </div>
                 </div>
               </div>
+              
+              {/* Ameaças Associadas */}
+              {hostThreats && hostThreats.length > 0 && (
+                <div className="pt-4 border-t">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    Ameaças Identificadas ({hostThreats.length})
+                  </label>
+                  <div className="mt-2 space-y-2">
+                    {hostThreats.map((threat: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{threat.title}</div>
+                          <div className="text-xs text-muted-foreground">{threat.description}</div>
+                        </div>
+                        <Badge variant={threat.severity === 'critical' ? 'destructive' : 
+                                      threat.severity === 'high' ? 'destructive' :
+                                      threat.severity === 'medium' ? 'default' : 'secondary'}>
+                          {threat.severity}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Edit Host Dialog */}
-      <Dialog open={!!editingHost} onOpenChange={() => setEditingHost(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Host</DialogTitle>
-          </DialogHeader>
-          {editingHost && (
-            <HostEditForm 
-              host={editingHost}
-              onSubmit={handleUpdateHost}
-              onCancel={() => setEditingHost(null)}
-              isLoading={updateHostMutation.isPending}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
-  );
-}
-
-// Simple inline edit form component
-interface HostEditFormProps {
-  host: Host;
-  onSubmit: (data: { name: string; description: string; aliases: string[] }) => void;
-  onCancel: () => void;
-  isLoading?: boolean;
-}
-
-function HostEditForm({ host, onSubmit, onCancel, isLoading = false }: HostEditFormProps) {
-  const [name, setName] = useState(host.name);
-  const [description, setDescription] = useState(host.description || "");
-  const [aliasesText, setAliasesText] = useState(host.aliases?.join(', ') || "");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const aliases = aliasesText
-      .split(',')
-      .map(alias => alias.trim())
-      .filter(alias => alias.length > 0);
-    
-    onSubmit({ name, description, aliases });
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="text-sm font-medium">Nome</label>
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Nome do host"
-          data-testid="input-host-name"
-        />
-      </div>
-      
-      <div>
-        <label className="text-sm font-medium">Descrição</label>
-        <Input
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Descrição opcional"
-          data-testid="input-host-description"
-        />
-      </div>
-      
-      <div>
-        <label className="text-sm font-medium">Aliases (separados por vírgula)</label>
-        <Input
-          value={aliasesText}
-          onChange={(e) => setAliasesText(e.target.value)}
-          placeholder="alias1, alias2, alias3"
-          data-testid="input-host-aliases"
-        />
-      </div>
-      
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={onCancel} data-testid="button-cancel-edit">
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={isLoading} data-testid="button-save-host">
-          {isLoading ? 'Salvando...' : 'Salvar'}
-        </Button>
-      </div>
-    </form>
   );
 }

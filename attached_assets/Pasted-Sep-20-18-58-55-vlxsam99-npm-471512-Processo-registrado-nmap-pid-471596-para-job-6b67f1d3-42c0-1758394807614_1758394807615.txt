@@ -1,0 +1,15 @@
+Sep 20 18:58:55 vlxsam99 npm[471512]: 📍 Processo registrado: nmap pid 471596 para job 6b67f1d3-42c0-4905-a3f0-1c7d723f4d87 - Escaneando portas de 192.168.100.4... nmap
+Sep 20 18:58:55 vlxsam99 npm[471512]: 📡 JobUpdate emitido para 6b67f1d3-42c0-4905-a3f0-1c7d723f4d87: Escaneando portas de 192.168.100.4... nmap (nmap pid 471596) (alive: true, status: running)
+Sep 20 18:58:57 vlxsam99 npm[471512]: 📡 JobUpdate emitido para 6b67f1d3-42c0-4905-a3f0-1c7d723f4d87: Escaneando portas de 192.168.100.4... nmap (nmap pid 471596) (alive: true, status: running)
+Sep 20 18:58:59 vlxsam99 npm[471512]: 📡 JobUpdate emitido para 6b67f1d3-42c0-4905-a3f0-1c7d723f4d87: Escaneando portas de 192.168.100.4... nmap (nmap pid 471596) (alive: true, status: running)
+Sep 20 18:59:01 vlxsam99 npm[471512]: 📡 JobUpdate emitido para 6b67f1d3-42c0-4905-a3f0-1c7d723f4d87: Escaneando portas de 192.168.100.4... nmap (nmap pid 471596) (alive: true, status: running)
+Sep 20 18:59:02 vlxsam99 npm[471512]: 🗑️ Processo removido: nmap pid 471596 para job 6b67f1d3-42c0-4905-a3f0-1c7d723f4d87
+Sep 20 18:59:02 vlxsam99 npm[471512]: 📋 Comando concluído com código 0
+Sep 20 18:59:02 vlxsam99 npm[471512]: Parse nmap encontrou 5 portas para 192.168.100.4
+Sep 20 18:59:02 vlxsam99 npm[471512]: Primeiras portas encontradas: [ '135/open', '139/open', '445/open' ]
+Sep 20 18:59:02 vlxsam99 npm[471512]: 📊 Nmap concluído para 192.168.100.4 - 5 portas processadas:
+Sep 20 18:59:02 vlxsam99 npm[471512]:   🔍 Porta 135: open | Serviço: msrpc | Versão: Microsoft Windows RPC
+Sep 20 18:59:02 vlxsam99 npm[471512]:   🔍 Porta 139: open | Serviço: netbios-ssn | Versão: Microsoft Windows netbios-ssn
+Sep 20 18:59:02 vlxsam99 npm[471512]:   🔍 Porta 445: open | Serviço: microsoft-ds | Versão: Microsoft Windows Server 2008 R2 - 2012 microsoft-ds
+Sep 20 18:59:02 vlxsam99 npm[471512]:   🔍 Porta 1433: open | Serviço: ms-sql-s | Versão: Microsoft SQL Server 2016 13.00.1742
+Sep 20 18:59:02 vlxsam99 npm[471512]:   🔍 Porta 3389: open | Serviço: ms-wbt-server | Versão: Microsoft Terminal Services
