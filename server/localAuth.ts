@@ -136,14 +136,16 @@ export function getSession() {
     throw new Error("SESSION_SECRET environment variable is required");
   }
 
-  // Use 8 hours for security applications (8 * 60 * 60 * 1000)
-  // This is more appropriate for security-focused applications than 1 week
-  const sessionTtl = 8 * 60 * 60 * 1000; // 8 hours
+  // Use 8 hours for security applications  
+  // TTL for cookies (in milliseconds) and store (in seconds)
+  const sessionTtlMs = 8 * 60 * 60 * 1000; // 8 hours in milliseconds 
+  const sessionTtlSec = 8 * 60 * 60; // 8 hours in seconds
+  
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
     createTableIfMissing: false,
-    ttl: sessionTtl,
+    ttl: sessionTtlSec, // connect-pg-simple expects seconds, not milliseconds!
     tableName: "sessions"
   });
 
@@ -162,13 +164,14 @@ export function getSession() {
       httpOnly: true,
       secure: 'auto', // Automatically detects HTTPS based on trust proxy + X-Forwarded-Proto
       sameSite: 'lax', // CSRF protection
-      maxAge: sessionTtl,
+      maxAge: sessionTtlMs, // Cookie maxAge expects milliseconds
     },
   });
 }
 
 /**
- * Middleware para verificar se a sessão ainda é válida
+ * Middleware para verificar se a sessão ainda é válida (simplificado)
+ * Usa a funcionalidade nativa do express-session ao invés de cálculos manuais
  */
 export function validateSession(): RequestHandler {
   return (req: any, res, next) => {
@@ -177,14 +180,9 @@ export function validateSession(): RequestHandler {
       return next();
     }
 
-    // Verificar se a sessão ainda é válida
-    const sessionStartTime = req.session.cookie.originalMaxAge || 0;
-    const currentTime = Date.now();
-    const sessionCreated = req.session.cookie._expires ? 
-      req.session.cookie._expires.getTime() - sessionStartTime : 0;
-    
-    // Se a sessão expirou baseado no tempo configurado
-    if (sessionCreated > 0 && (currentTime - sessionCreated) > sessionStartTime) {
+    // Verificar se a sessão expirou usando o método nativo
+    const cookieExpires = req.session.cookie.expires;
+    if (cookieExpires && cookieExpires <= new Date()) {
       console.log(`🔒 Sessão expirada para usuário ${req.user.id}, forçando logout`);
       
       // Destruir sessão
@@ -220,7 +218,7 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
   
-  // Adicionar middleware de validação de sessão
+  // Express-session já controla expiração, mas adicionamos validação extra para APIs
   app.use(validateSession());
 
   // Bootstrap admin user for development testing
