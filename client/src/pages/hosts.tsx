@@ -132,22 +132,15 @@ export default function Hosts() {
     switch (type) {
       case 'server':
         return Server;
-      case 'workstation':
-      case 'windows_desktop':
+      case 'desktop':
         return Monitor;
-      case 'network_device':
       case 'router':
       case 'switch':
       case 'firewall':
         return Router;
-      case 'mobile':
-        return Smartphone;
       case 'domain':
         return Globe;
-      case 'domain_controller':
-        return Shield;
-      case 'storage':
-        return HardDrive;
+      case 'other':
       default:
         return Server;
     }
@@ -157,20 +150,15 @@ export default function Hosts() {
     switch (type) {
       case 'server':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'workstation':
-      case 'windows_desktop':
+      case 'desktop':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'network_device':
       case 'router':
       case 'switch':
       case 'firewall':
         return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
-      case 'mobile':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
       case 'domain':
         return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300';
-      case 'domain_controller':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      case 'other':
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
@@ -209,16 +197,12 @@ export default function Hosts() {
                 <SelectContent>
                   <SelectItem value="all">Todos os tipos</SelectItem>
                   <SelectItem value="server">Servidor</SelectItem>
-                  <SelectItem value="workstation">Workstation</SelectItem>
-                  <SelectItem value="network_device">Dispositivo de rede</SelectItem>
-                  <SelectItem value="mobile">Mobile</SelectItem>
-                  <SelectItem value="domain">Domínio</SelectItem>
-                  <SelectItem value="domain_controller">Domain Controller</SelectItem>
-                  <SelectItem value="router">Router</SelectItem>
-                  <SelectItem value="switch">Switch</SelectItem>
+                  <SelectItem value="desktop">Desktop</SelectItem>
                   <SelectItem value="firewall">Firewall</SelectItem>
-                  <SelectItem value="windows_desktop">Windows Desktop</SelectItem>
-                  <SelectItem value="storage">Storage</SelectItem>
+                  <SelectItem value="switch">Switch</SelectItem>
+                  <SelectItem value="router">Router</SelectItem>
+                  <SelectItem value="domain">Domínio</SelectItem>
+                  <SelectItem value="other">Outro</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -229,12 +213,12 @@ export default function Hosts() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as famílias</SelectItem>
-                  <SelectItem value="windows">Windows</SelectItem>
                   <SelectItem value="linux">Linux</SelectItem>
-                  <SelectItem value="macos">macOS</SelectItem>
-                  <SelectItem value="network_os">Network OS</SelectItem>
+                  <SelectItem value="windows_server">Windows Server</SelectItem>
+                  <SelectItem value="windows_desktop">Windows Desktop</SelectItem>
                   <SelectItem value="fortios">FortiOS</SelectItem>
-                  <SelectItem value="unknown">Desconhecida</SelectItem>
+                  <SelectItem value="network_os">Network OS</SelectItem>
+                  <SelectItem value="other">Outra</SelectItem>
                 </SelectContent>
               </Select>
             </div>

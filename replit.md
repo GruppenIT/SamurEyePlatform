@@ -81,3 +81,10 @@ Role-based access control (RBAC) supports three user roles: global_administrator
 - **Nuclei Template Download Fixed**: Corrected ensureNucleiTemplates() function to properly configure environment variables for template downloads, fixing issue where nuclei would run for extended periods but find zero vulnerabilities due to missing templates
 - **Session Control Implemented**: Replaced indefinite sessions (7 days) with secure 8-hour expiration, fixed critical TTL bug where connect-pg-simple expected seconds but received milliseconds (preventing 333-day sessions), implemented automatic cleanup of expired sessions every 10 minutes, and added middleware validation for enhanced API security
 - **Bug Fixes**: Resolved job creation/execution issues, corrected URL construction in job results fetching, and fixed 5-minute timeout issues in attack surface scanning caused by DNS resolution failures
+
+### September 20, 2025
+- **Host Management System Implemented**: Complete host discovery and management architecture deployed with automated host discovery from security scans, intelligent deduplication, automatic threat-to-host linkage, and comprehensive management interface
+- **Host Database Integration**: Added hosts table with proper enums (host_type, host_family), automatic discovery from Attack Surface and AD Hygiene scans, and threat attribution system linking vulnerabilities to discovered hosts
+- **UI Terminology Updated**: Renamed "Ativos" to "Alvos" throughout the user interface for improved clarity while maintaining technical consistency in backend identifiers
+- **Host Filters Fixed**: Resolved PostgreSQL enum errors in host filtering by correcting frontend filter values to match database enum constraints; host_type values now properly use 'server', 'desktop', 'firewall', 'switch', 'router', 'domain', 'other' and host_family uses 'linux', 'windows_server', 'windows_desktop', 'fortios', 'network_os', 'other'
+- **Authentication Access**: Development environment uses admin@example.com/admin for system access, with proper bcrypt password hashing and session management

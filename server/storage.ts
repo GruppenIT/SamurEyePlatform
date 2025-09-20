@@ -607,8 +607,8 @@ export class DatabaseStorage implements IStorage {
           )
         );
       }
-      if (filters.type) conditions.push(eq(hosts.type, filters.type as any));
-      if (filters.family) conditions.push(eq(hosts.family, filters.family as any));
+      if (filters.type && filters.type !== "all") conditions.push(eq(hosts.type, filters.type as any));
+      if (filters.family && filters.family !== "all") conditions.push(eq(hosts.family, filters.family as any));
       
       if (conditions.length > 0) {
         return await db

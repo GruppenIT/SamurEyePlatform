@@ -1,0 +1,27 @@
+Sep 20 18:34:33 vlxsam99 npm[468131]: 6:34:33 PM [express] GET /api/auth/user 304 in 4ms :: {"id":"6b3400bb-7bd3-4fbe-be73-d6248f3e2bf2","…
+Sep 20 18:34:33 vlxsam99 npm[468131]: 6:34:33 PM [express] GET /api/threats 304 in 5ms :: []
+Sep 20 18:34:33 vlxsam99 npm[468131]: Erro ao buscar hosts: error: invalid input value for enum host_type: "all"
+Sep 20 18:34:33 vlxsam99 npm[468131]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 20 18:34:33 vlxsam99 npm[468131]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 20 18:34:33 vlxsam99 npm[468131]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 20 18:34:33 vlxsam99 npm[468131]:     at async DatabaseStorage.getHosts (file:///opt/samureye/dist/index.js:728:16)
+Sep 20 18:34:33 vlxsam99 npm[468131]:     at async file:///opt/samureye/dist/index.js:6373:22 {
+Sep 20 18:34:33 vlxsam99 npm[468131]:   length: 132,
+Sep 20 18:34:33 vlxsam99 npm[468131]:   severity: 'ERROR',
+Sep 20 18:34:33 vlxsam99 npm[468131]:   code: '22P02',
+Sep 20 18:34:33 vlxsam99 npm[468131]:   detail: undefined,
+Sep 20 18:34:33 vlxsam99 npm[468131]:   hint: undefined,
+Sep 20 18:34:33 vlxsam99 npm[468131]:   position: undefined,
+Sep 20 18:34:33 vlxsam99 npm[468131]:   internalPosition: undefined,
+Sep 20 18:34:33 vlxsam99 npm[468131]:   internalQuery: undefined,
+Sep 20 18:34:33 vlxsam99 npm[468131]:   where: "unnamed portal parameter $1 = '...'",
+Sep 20 18:34:33 vlxsam99 npm[468131]:   schema: undefined,
+Sep 20 18:34:33 vlxsam99 npm[468131]:   table: undefined,
+Sep 20 18:34:33 vlxsam99 npm[468131]:   column: undefined,
+Sep 20 18:34:33 vlxsam99 npm[468131]:   dataType: undefined,
+Sep 20 18:34:33 vlxsam99 npm[468131]:   constraint: undefined,
+Sep 20 18:34:33 vlxsam99 npm[468131]:   file: 'enum.c',
+Sep 20 18:34:33 vlxsam99 npm[468131]:   line: '129',
+Sep 20 18:34:33 vlxsam99 npm[468131]:   routine: 'enum_in'
+Sep 20 18:34:33 vlxsam99 npm[468131]: }
+Sep 20 18:34:33 vlxsam99 npm[468131]: 6:34:33 PM [express] GET /api/hosts 500 in 15ms :: {"message":"Falha ao buscar hosts"}
