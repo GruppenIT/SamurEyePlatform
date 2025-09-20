@@ -6,6 +6,8 @@ import bcrypt from "bcryptjs";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 import { loginUserSchema, changePasswordSchema, type LoginUser, type ChangePassword } from "@shared/schema";
+import { sql } from "drizzle-orm";
+import { db } from "./db";
 
 // Hash password utility function
 async function hashPassword(password: string): Promise<string> {
@@ -112,20 +114,43 @@ function recordLoginAttempt(identifier: string, success: boolean) {
   loginAttempts.set(identifier, entry);
 }
 
+/**
+ * Limpa sessões expiradas do banco de dados
+ */
+async function cleanupExpiredSessions(): Promise<void> {
+  try {
+    await db.execute(sql`
+      DELETE FROM sessions 
+      WHERE expire < NOW()
+    `);
+    
+    console.log(`🧹 Limpeza de sessões expiradas executada`);
+  } catch (error) {
+    console.error('❌ Erro ao limpar sessões expiradas:', error);
+  }
+}
+
 export function getSession() {
   // Require SESSION_SECRET in production
   if (!process.env.SESSION_SECRET) {
     throw new Error("SESSION_SECRET environment variable is required");
   }
 
-  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  // Use 8 hours for security applications (8 * 60 * 60 * 1000)
+  // This is more appropriate for security-focused applications than 1 week
+  const sessionTtl = 8 * 60 * 60 * 1000; // 8 hours
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
     createTableIfMissing: false,
     ttl: sessionTtl,
-    tableName: "sessions",
+    tableName: "sessions"
   });
+
+  // Configurar limpeza automática de sessões expiradas
+  setInterval(() => {
+    cleanupExpiredSessions();
+  }, 10 * 60 * 1000); // Limpar a cada 10 minutos
 
   // Use express-session's built-in HTTPS detection with trust proxy
   return session({
@@ -142,11 +167,61 @@ export function getSession() {
   });
 }
 
+/**
+ * Middleware para verificar se a sessão ainda é válida
+ */
+export function validateSession(): RequestHandler {
+  return (req: any, res, next) => {
+    // Se não há usuário logado, prosseguir normalmente
+    if (!req.user) {
+      return next();
+    }
+
+    // Verificar se a sessão ainda é válida
+    const sessionStartTime = req.session.cookie.originalMaxAge || 0;
+    const currentTime = Date.now();
+    const sessionCreated = req.session.cookie._expires ? 
+      req.session.cookie._expires.getTime() - sessionStartTime : 0;
+    
+    // Se a sessão expirou baseado no tempo configurado
+    if (sessionCreated > 0 && (currentTime - sessionCreated) > sessionStartTime) {
+      console.log(`🔒 Sessão expirada para usuário ${req.user.id}, forçando logout`);
+      
+      // Destruir sessão
+      req.session.destroy((err: any) => {
+        if (err) {
+          console.error('Erro ao destruir sessão expirada:', err);
+        }
+      });
+      
+      // Limpar cookie
+      res.clearCookie('connect.sid', {
+        path: '/',
+        httpOnly: true,
+        secure: req.secure || req.get('X-Forwarded-Proto') === 'https',
+        sameSite: 'lax'
+      });
+      
+      // Retornar 401 se for request API, redirect se for página
+      if (req.path.startsWith('/api/')) {
+        return res.status(401).json({ message: 'Sessão expirada', expired: true });
+      } else {
+        return res.redirect('/login');
+      }
+    }
+    
+    next();
+  };
+}
+
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
   app.use(getSession());
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // Adicionar middleware de validação de sessão
+  app.use(validateSession());
 
   // Bootstrap admin user for development testing
   if (process.env.NODE_ENV === 'development') {
