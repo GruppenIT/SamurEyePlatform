@@ -26,7 +26,7 @@ import { AssetFormData } from "@/types";
 
 const assetSchema = z.object({
   type: z.enum(['host', 'range'], {
-    required_error: "Tipo de ativo é obrigatório",
+    required_error: "Tipo de alvo é obrigatório",
   }),
   value: z.string().min(1, "Valor é obrigatório"),
   tags: z.array(z.string()).default([]),
@@ -102,7 +102,7 @@ export default function AssetForm({ onSubmit, onCancel, isLoading = false, initi
           name="type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tipo de Ativo</FormLabel>
+              <FormLabel>Tipo de Alvo</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger data-testid="select-asset-type">
@@ -188,7 +188,7 @@ export default function AssetForm({ onSubmit, onCancel, isLoading = false, initi
                 )}
               </div>
               <FormDescription>
-                Tags ajudam a organizar e filtrar seus ativos
+                Tags ajudam a organizar e filtrar seus alvos
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -210,7 +210,7 @@ export default function AssetForm({ onSubmit, onCancel, isLoading = false, initi
             disabled={isLoading}
             data-testid="button-submit"
           >
-            {isLoading ? 'Salvando...' : 'Salvar Ativo'}
+            {isLoading ? 'Salvando...' : 'Salvar Alvo'}
           </Button>
         </div>
       </form>

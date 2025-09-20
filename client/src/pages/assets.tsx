@@ -48,7 +48,7 @@ export default function Assets() {
     onSuccess: () => {
       toast({
         title: "Sucesso",
-        description: "Ativo criado com sucesso",
+        description: "Alvo criado com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
       setShowCreateDialog(false);
@@ -67,7 +67,7 @@ export default function Assets() {
       }
       toast({
         title: "Erro",
-        description: "Falha ao criar ativo",
+        description: "Falha ao criar alvo",
         variant: "destructive",
       });
     },
@@ -80,7 +80,7 @@ export default function Assets() {
     onSuccess: () => {
       toast({
         title: "Sucesso",
-        description: "Ativo atualizado com sucesso",
+        description: "Alvo atualizado com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
       setEditingAsset(null);
@@ -99,7 +99,7 @@ export default function Assets() {
       }
       toast({
         title: "Erro",
-        description: "Falha ao atualizar ativo",
+        description: "Falha ao atualizar alvo",
         variant: "destructive",
       });
     },
@@ -112,7 +112,7 @@ export default function Assets() {
     onSuccess: () => {
       toast({
         title: "Sucesso",
-        description: "Ativo excluído com sucesso",
+        description: "Alvo excluído com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/assets"] });
     },
@@ -130,7 +130,7 @@ export default function Assets() {
       }
       toast({
         title: "Erro",
-        description: "Falha ao excluir ativo",
+        description: "Falha ao excluir alvo",
         variant: "destructive",
       });
     },
@@ -152,7 +152,7 @@ export default function Assets() {
   };
 
   const handleDeleteAsset = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este ativo?')) {
+    if (confirm('Tem certeza que deseja excluir este alvo?')) {
       deleteAssetMutation.mutate(id);
     }
   };
@@ -171,7 +171,7 @@ export default function Assets() {
       
       <main className="flex-1 overflow-auto">
         <TopBar 
-          title="Gestão de Ativos"
+          title="Gestão de Alvos"
           subtitle="Configure e gerencie hosts e faixas de IP para monitoramento"
           actions={
             <Button
@@ -179,7 +179,7 @@ export default function Assets() {
               data-testid="button-create-asset"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Novo Ativo
+              Novo Alvo
             </Button>
           }
         />
@@ -192,7 +192,7 @@ export default function Assets() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    placeholder="Buscar ativos por valor ou tag..."
+                    placeholder="Buscar alvos por valor ou tag..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -200,7 +200,7 @@ export default function Assets() {
                   />
                 </div>
                 <Badge variant="secondary" data-testid="assets-count">
-                  {filteredAssets.length} ativos
+                  {filteredAssets.length} alvos
                 </Badge>
               </div>
             </CardContent>
@@ -209,30 +209,30 @@ export default function Assets() {
           {/* Assets Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Ativos Cadastrados</CardTitle>
+              <CardTitle>Alvos Cadastrados</CardTitle>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div className="text-center py-8">
                   <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">Carregando ativos...</p>
+                  <p className="text-muted-foreground">Carregando alvos...</p>
                 </div>
               ) : filteredAssets.length === 0 ? (
                 <div className="text-center py-8">
                   <Server className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-medium text-foreground mb-2">
-                    {searchTerm ? 'Nenhum ativo encontrado' : 'Nenhum ativo cadastrado'}
+                    {searchTerm ? 'Nenhum alvo encontrado' : 'Nenhum alvo cadastrado'}
                   </h3>
                   <p className="text-muted-foreground mb-4">
                     {searchTerm 
                       ? 'Tente ajustar os termos de busca'
-                      : 'Comece adicionando seu primeiro ativo para monitoramento'
+                      : 'Comece adicionando seu primeiro alvo para monitoramento'
                     }
                   </p>
                   {!searchTerm && (
                     <Button onClick={() => setShowCreateDialog(true)}>
                       <Plus className="mr-2 h-4 w-4" />
-                      Adicionar Primeiro Ativo
+                      Adicionar Primeiro Alvo
                     </Button>
                   )}
                 </div>
@@ -309,7 +309,7 @@ export default function Assets() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Criar Novo Ativo</DialogTitle>
+            <DialogTitle>Criar Novo Alvo</DialogTitle>
           </DialogHeader>
           <AssetForm
             onSubmit={handleCreateAsset}
@@ -323,7 +323,7 @@ export default function Assets() {
       <Dialog open={!!editingAsset} onOpenChange={() => setEditingAsset(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Editar Ativo</DialogTitle>
+            <DialogTitle>Editar Alvo</DialogTitle>
           </DialogHeader>
           {editingAsset && (
             <AssetForm

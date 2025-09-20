@@ -24,7 +24,7 @@ export default function MetricsOverview() {
 
   const metricCards = [
     {
-      title: "Ativos Ativos",
+      title: "Alvos Ativos",
       value: metrics?.activeAssets || 0,
       icon: Server,
       iconBg: "bg-primary/20",

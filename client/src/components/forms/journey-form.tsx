@@ -132,11 +132,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         return (
           <div className="space-y-4">
             <div>
-              <FormLabel>Ativos Selecionados</FormLabel>
+              <FormLabel>Alvos Selecionados</FormLabel>
               <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
                 {assets.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    Nenhum ativo disponível. Crie ativos primeiro.
+                    Nenhum alvo disponível. Crie alvos primeiro.
                   </p>
                 ) : (
                   assets.map((asset) => (
@@ -157,7 +157,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                 )}
               </div>
               <FormDescription>
-                Selecione os ativos para incluir na varredura
+                Selecione os alvos para incluir na varredura
               </FormDescription>
             </div>
 
@@ -415,7 +415,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="ad_based">AD Based - Descoberta via LDAP</SelectItem>
-                      <SelectItem value="network_based">Network Based - Ativos específicos</SelectItem>
+                      <SelectItem value="network_based">Network Based - Alvos específicos</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
@@ -522,7 +522,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                   name="params.assetIds"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Ativos/Targets</FormLabel>
+                      <FormLabel>Alvos/Targets</FormLabel>
                       <Select 
                         onValueChange={(value) => {
                           const currentValues = field.value || [];
@@ -534,7 +534,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                       >
                         <FormControl>
                           <SelectTrigger data-testid="select-assets">
-                            <SelectValue placeholder="Selecione ativos para teste" />
+                            <SelectValue placeholder="Selecione alvos para teste" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -546,7 +546,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                         </SelectContent>
                       </Select>
                       <div className="text-sm text-muted-foreground mt-1">
-                        Selecionados: {(field.value || []).length} ativos
+                        Selecionados: {(field.value || []).length} alvos
                       </div>
                       <FormDescription>
                         Selecione hosts ou ranges de rede para testar

@@ -29,7 +29,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: "/", label: "Dashboard", icon: BarChart3 },
-  { href: "/assets", label: "Ativos", icon: Server },
+  { href: "/assets", label: "Alvos", icon: Server },
   { href: "/credentials", label: "Credenciais", icon: Key },
   { href: "/journeys", label: "Jornadas", icon: Route },
   { href: "/schedules", label: "Agendamentos", icon: Clock },

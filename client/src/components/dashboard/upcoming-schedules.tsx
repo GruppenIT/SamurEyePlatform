@@ -48,7 +48,7 @@ export default function UpcomingSchedules() {
     // This would normally come from the journey data
     return {
       type: "Jornada Personalizada",
-      assets: "Múltiplos ativos",
+      assets: "Múltiplos alvos",
     };
   };
 
