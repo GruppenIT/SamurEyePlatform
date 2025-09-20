@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { hostService } from './hostService';
 import { type InsertThreat, type Threat } from '@shared/schema';
 
 export interface ThreatRule {
@@ -791,9 +792,13 @@ class ThreatEngineService {
 
           const threatData = rule.createThreat(finding, undefined, jobId);
           
+          // Find associated host for this threat
+          const hostId = await this.findHostForThreat(finding, journeyType);
+          
           // Use upsert logic with lifecycle fields
           const threat = await storage.upsertThreat({
             ...threatData,
+            hostId, // Link threat to discovered host
             correlationKey,
             category: journeyType,
             lastSeenAt: new Date(),
@@ -1001,6 +1006,104 @@ class ThreatEngineService {
       ...threatData,
       source: 'manual',
     });
+  }
+
+  /**
+   * Finds the appropriate host for a threat based on the finding and journey type
+   */
+  private async findHostForThreat(finding: any, journeyType: string): Promise<string | null> {
+    try {
+      switch (journeyType) {
+        case 'attack_surface':
+          // For Attack Surface, use the target (IP or hostname) from the finding
+          let target = finding.target || finding.ip || finding.host;
+          
+          // If no direct target, try to extract hostname from URL in evidence
+          if (!target && finding.evidence?.url) {
+            try {
+              const url = new URL(finding.evidence.url);
+              target = url.hostname;
+            } catch {
+              // If URL parsing fails, continue without target
+            }
+          }
+          
+          if (target) {
+            const hosts = await hostService.findHostsByTarget(target);
+            if (hosts.length > 0) {
+              console.log(`🔗 Linking threat to host: ${hosts[0].name} (${target})`);
+              return hosts[0].id;
+            }
+          }
+          break;
+
+        case 'ad_hygiene':
+          // For AD Hygiene, find the domain host using normalized domain extraction
+          const domainHost = await this.findDomainHost(finding);
+          if (domainHost) {
+            console.log(`🔗 Linking AD threat to domain host: ${domainHost.name}`);
+            return domainHost.id;
+          }
+          break;
+
+        case 'edr_av':
+          // For EDR/AV, use the hostname from the finding
+          const hostname = finding.hostname || finding.target;
+          if (hostname) {
+            const hosts = await hostService.findHostsByTarget(hostname);
+            if (hosts.length > 0) {
+              console.log(`🔗 Linking EDR/AV threat to host: ${hosts[0].name} (${hostname})`);
+              return hosts[0].id;
+            }
+          }
+          break;
+      }
+
+      // If no host found, log for debugging
+      const target = finding.target || finding.ip || finding.host || finding.hostname || 'unknown';
+      console.log(`⚠️  No host found for threat (${journeyType}): ${target}`);
+      return null;
+    } catch (error) {
+      console.error('❌ Error finding host for threat:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Finds and normalizes domain host for AD Hygiene threats
+   */
+  private async findDomainHost(finding: any): Promise<any | null> {
+    // Extract domain from various possible sources, normalize consistently
+    let domain = '';
+    
+    if (finding.evidence?.domain) {
+      domain = finding.evidence.domain;
+    } else if (finding.target) {
+      // Handle both FQDN (corp.local) and NetBIOS (CORP) cases
+      const parts = finding.target.split('.');
+      if (parts.length > 1) {
+        // FQDN case: use the first part as NetBIOS name
+        domain = parts[0];
+      } else {
+        // Already NetBIOS case
+        domain = finding.target;
+      }
+    } else {
+      domain = 'unknown';
+    }
+    
+    // Normalize domain name to lowercase for consistent matching
+    const normalizedDomain = domain.toLowerCase();
+    
+    // Get all domain hosts and find matching one
+    const domainHosts = await storage.getHosts({ type: 'domain' });
+    const matchingDomain = domainHosts.find(h => 
+      h.name.toLowerCase().includes(normalizedDomain) ||
+      h.aliases?.some(alias => alias.toLowerCase().includes(normalizedDomain)) ||
+      normalizedDomain.includes(h.name.toLowerCase())
+    );
+    
+    return matchingDomain || null;
   }
 }
 
