@@ -11,6 +11,7 @@ import Login from "@/pages/login";
 import ChangePassword from "@/pages/change-password";
 import Dashboard from "@/pages/dashboard";
 import Assets from "@/pages/assets";
+import Hosts from "@/pages/hosts";
 import Credentials from "@/pages/credentials";
 import Journeys from "@/pages/journeys";
 import Schedules from "@/pages/schedules";
@@ -55,6 +56,7 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/assets" component={Assets} />
+          <Route path="/hosts" component={Hosts} />
           <Route path="/credentials" component={Credentials} />
           <Route path="/journeys" component={Journeys} />
           <Route path="/schedules" component={Schedules} />

@@ -16,7 +16,8 @@ import {
   Users, 
   Settings, 
   History,
-  LogOut
+  LogOut,
+  Monitor
 } from "lucide-react";
 
 interface NavItem {
@@ -30,6 +31,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: "/", label: "Dashboard", icon: BarChart3 },
   { href: "/assets", label: "Alvos", icon: Server },
+  { href: "/hosts", label: "Hosts", icon: Monitor },
   { href: "/credentials", label: "Credenciais", icon: Key },
   { href: "/journeys", label: "Jornadas", icon: Route },
   { href: "/schedules", label: "Agendamentos", icon: Clock },
