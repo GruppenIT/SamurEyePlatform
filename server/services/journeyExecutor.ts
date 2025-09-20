@@ -6,6 +6,7 @@ import { vulnScanner } from './scanners/vulnScanner';
 import { adScanner } from './scanners/adScanner';
 import { EDRAVScanner } from './scanners/edrAvScanner';
 import { jobQueue } from './jobQueue';
+import { hostService } from './hostService';
 import { type Journey, type Job } from '@shared/schema';
 
 export interface JourneyProgress {
@@ -187,6 +188,17 @@ class JourneyExecutorService {
       }
     }
 
+    // Discover hosts from findings before storing results
+    onProgress({ status: 'running', progress: 75, currentTask: 'Descobrindo hosts' });
+    
+    try {
+      const discoveredHosts = await hostService.discoverHostsFromFindings(findings, jobId);
+      console.log(`🏠 Attack Surface: ${discoveredHosts.length} hosts descobertos/atualizados`);
+    } catch (error) {
+      console.error('❌ Erro ao descobrir hosts:', error);
+      // Continue execution even if host discovery fails
+    }
+
     // Store results
     await storage.createJobResult({
       jobId,
@@ -254,6 +266,17 @@ class JourneyExecutorService {
         credential.port || undefined,
         enabledAnalyses
       );
+
+      onProgress({ status: 'running', progress: 75, currentTask: 'Criando host de domínio' });
+
+      // Create domain host for AD Hygiene
+      try {
+        const domainHost = await hostService.createDomainHost(domain, jobId);
+        console.log(`🏠 AD Hygiene: Host de domínio criado: ${domainHost.name}`);
+      } catch (error) {
+        console.error('❌ Erro ao criar host de domínio:', error);
+        // Continue execution even if domain host creation fails
+      }
 
       onProgress({ status: 'running', progress: 80, currentTask: 'Processando resultados' });
 
