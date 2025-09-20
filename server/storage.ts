@@ -7,6 +7,7 @@ import {
   jobs,
   jobResults,
   threats,
+  hosts,
   settings,
   auditLog,
   type User,
@@ -22,6 +23,8 @@ import {
   type Job,
   type InsertJob,
   type JobResult,
+  type Host,
+  type InsertHost,
   type Threat,
   type InsertThreat,
   type Setting,
@@ -84,8 +87,17 @@ export interface IStorage {
   getRunningJobs(): Promise<Job[]>;
   getRecentJobs(limit?: number): Promise<Job[]>;
 
+  // Host operations
+  getHosts(filters?: { search?: string; type?: string; family?: string }): Promise<Host[]>;
+  getHost(id: string): Promise<Host | undefined>;
+  upsertHost(host: InsertHost): Promise<Host>;
+  updateHost(id: string, host: Partial<InsertHost>): Promise<Host>;
+  deleteHost(id: string): Promise<void>;
+  getHostByName(name: string): Promise<Host | undefined>;
+  findHostByTarget(target: string, ip?: string): Promise<Host | undefined>;
+
   // Threat operations
-  getThreats(filters?: { severity?: string; status?: string; assetId?: string }): Promise<Threat[]>;
+  getThreats(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string }): Promise<Threat[]>;
   getThreat(id: string): Promise<Threat | undefined>;
   createThreat(threat: InsertThreat): Promise<Threat>;
   updateThreat(id: string, threat: Partial<Threat>): Promise<Threat>;
@@ -219,14 +231,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAsset(asset: InsertAsset, userId: string): Promise<Asset> {
+    const assetValues = {
+      type: asset.type,
+      value: asset.value,
+      tags: asset.tags || [],
+      createdBy: userId,
+    } as any;
+    
     const [newAsset] = await db
       .insert(assets)
-      .values({
-        type: asset.type,
-        value: asset.value,
-        tags: asset.tags || [],
-        createdBy: userId,
-      })
+      .values(assetValues)
       .returning();
     return newAsset;
   }
@@ -425,12 +439,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Threat operations
-  async getThreats(filters?: { severity?: string; status?: string; assetId?: string }): Promise<Threat[]> {
+  async getThreats(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string }): Promise<Threat[]> {
     if (filters) {
       const conditions = [];
       if (filters.severity) conditions.push(eq(threats.severity, filters.severity as any));
       if (filters.status) conditions.push(eq(threats.status, filters.status as any));
       if (filters.assetId) conditions.push(eq(threats.assetId, filters.assetId));
+      if (filters.hostId) conditions.push(eq(threats.hostId, filters.hostId));
       
       if (conditions.length > 0) {
         return await db
@@ -514,6 +529,7 @@ export class DatabaseStorage implements IStorage {
         status: threats.status,
         source: threats.source,
         assetId: threats.assetId,
+        hostId: threats.hostId,
         evidence: threats.evidence,
         jobId: threats.jobId,
         correlationKey: threats.correlationKey,
@@ -574,6 +590,146 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return newThreat;
     }
+  }
+
+  // Host operations
+  async getHosts(filters?: { search?: string; type?: string; family?: string }): Promise<Host[]> {
+    if (filters) {
+      const conditions = [];
+      if (filters.search) {
+        const searchTerm = `%${filters.search.toLowerCase()}%`;
+        conditions.push(
+          or(
+            like(hosts.name, searchTerm),
+            like(hosts.description, searchTerm),
+            sql`${hosts.ips}::text LIKE ${searchTerm}`,
+            sql`${hosts.aliases}::text LIKE ${searchTerm}`
+          )
+        );
+      }
+      if (filters.type) conditions.push(eq(hosts.type, filters.type as any));
+      if (filters.family) conditions.push(eq(hosts.family, filters.family as any));
+      
+      if (conditions.length > 0) {
+        return await db
+          .select()
+          .from(hosts)
+          .where(and(...conditions))
+          .orderBy(desc(hosts.updatedAt));
+      }
+    }
+    
+    return await db.select().from(hosts).orderBy(desc(hosts.updatedAt));
+  }
+
+  async getHost(id: string): Promise<Host | undefined> {
+    const [host] = await db.select().from(hosts).where(eq(hosts.id, id));
+    return host;
+  }
+
+  async upsertHost(host: InsertHost): Promise<Host> {
+    const normalizedName = host.name.toLowerCase();
+    
+    // Try to find existing host by name first
+    const existingHost = await this.getHostByName(normalizedName);
+    
+    if (existingHost) {
+      // Update existing host, merging IPs and aliases
+      const mergedIps = Array.from(new Set([...(existingHost.ips || []), ...(host.ips || [])]));
+      const mergedAliases = Array.from(new Set([...(existingHost.aliases || []), ...(host.aliases || [])]));
+      
+      const [updatedHost] = await db
+        .update(hosts)
+        .set({
+          description: host.description || existingHost.description,
+          operatingSystem: host.operatingSystem || existingHost.operatingSystem,
+          type: host.type || existingHost.type,
+          family: host.family || existingHost.family,
+          ips: mergedIps,
+          aliases: mergedAliases,
+          updatedAt: new Date(),
+        })
+        .where(eq(hosts.id, existingHost.id))
+        .returning();
+      return updatedHost;
+    } else {
+      // Create new host
+      const hostValues = {
+        ...host,
+        name: normalizedName,
+      } as any;
+      
+      const [newHost] = await db
+        .insert(hosts)
+        .values(hostValues)
+        .returning();
+      return newHost;
+    }
+  }
+
+  async updateHost(id: string, host: Partial<InsertHost>): Promise<Host> {
+    const updates: any = { updatedAt: new Date() };
+    
+    if (host.name !== undefined) updates.name = host.name.toLowerCase();
+    if (host.description !== undefined) updates.description = host.description;
+    if (host.operatingSystem !== undefined) updates.operatingSystem = host.operatingSystem;
+    if (host.type !== undefined) updates.type = host.type;
+    if (host.family !== undefined) updates.family = host.family;
+    if (host.ips !== undefined) updates.ips = host.ips;
+    if (host.aliases !== undefined) updates.aliases = host.aliases;
+    
+    const [updatedHost] = await db
+      .update(hosts)
+      .set(updates)
+      .where(eq(hosts.id, id))
+      .returning();
+    return updatedHost;
+  }
+
+  async deleteHost(id: string): Promise<void> {
+    await db.delete(hosts).where(eq(hosts.id, id));
+  }
+
+  async getHostByName(name: string): Promise<Host | undefined> {
+    const [host] = await db.select().from(hosts).where(eq(hosts.name, name.toLowerCase()));
+    return host;
+  }
+
+  async findHostByTarget(target: string, ip?: string): Promise<Host | undefined> {
+    const normalizedTarget = target.toLowerCase();
+    
+    // Try to find by name first
+    let host = await this.getHostByName(normalizedTarget);
+    if (host) return host;
+    
+    // Try to find by IP or aliases
+    if (ip) {
+      const results = await db
+        .select()
+        .from(hosts)
+        .where(
+          or(
+            sql`${hosts.ips} ? ${ip}`, // JSON contains operator
+            sql`${hosts.aliases} ? ${normalizedTarget}`,
+            sql`${hosts.aliases} ? ${target}` // Try original case too
+          )
+        );
+      if (results.length > 0) return results[0];
+    }
+    
+    // Try to find by aliases without IP
+    const aliasResults = await db
+      .select()
+      .from(hosts)
+      .where(
+        or(
+          sql`${hosts.aliases} ? ${normalizedTarget}`,
+          sql`${hosts.aliases} ? ${target}` // Try original case too
+        )
+      );
+    if (aliasResults.length > 0) return aliasResults[0];
+    
+    return undefined;
   }
 
   // Settings operations

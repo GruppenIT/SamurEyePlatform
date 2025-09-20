@@ -49,6 +49,12 @@ export const threatSeverityEnum = pgEnum('threat_severity', ['low', 'medium', 'h
 // Threat status enum
 export const threatStatusEnum = pgEnum('threat_status', ['open', 'investigating', 'mitigated', 'closed']);
 
+// Host types enum
+export const hostTypeEnum = pgEnum('host_type', ['server', 'desktop', 'firewall', 'switch', 'router', 'domain', 'other']);
+
+// Host families enum  
+export const hostFamilyEnum = pgEnum('host_family', ['linux', 'windows_server', 'windows_desktop', 'fortios', 'network_os', 'other']);
+
 // Users table
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -138,6 +144,23 @@ export const jobResults = pgTable("job_results", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Hosts table
+export const hosts = pgTable("hosts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // Always lowercase, initially NetBIOS or reverse DNS
+  description: text("description"), // User-editable description
+  operatingSystem: text("operating_system"), // Detected from scans
+  type: hostTypeEnum("type").default('other').notNull(),
+  family: hostFamilyEnum("family").default('other').notNull(),
+  ips: jsonb("ips").$type<string[]>().default([]).notNull(), // Array of IPs
+  aliases: jsonb("aliases").$type<string[]>().default([]).notNull(), // FQDNs and alternative names
+  discoveredAt: timestamp("discovered_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_hosts_name").on(table.name),
+  index("IDX_hosts_type").on(table.type),
+]);
+
 // Threats table
 export const threats = pgTable("threats", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -147,6 +170,7 @@ export const threats = pgTable("threats", {
   status: threatStatusEnum("status").default('open').notNull(),
   source: text("source").notNull(), // e.g., 'journey', 'manual'
   assetId: varchar("asset_id").references(() => assets.id),
+  hostId: varchar("host_id").references(() => hosts.id), // Link to discovered host
   evidence: jsonb("evidence").$type<Record<string, any>>().default({}).notNull(),
   jobId: varchar("job_id").references(() => jobs.id),
   // Lifecycle management fields
@@ -159,6 +183,7 @@ export const threats = pgTable("threats", {
   assignedTo: varchar("assigned_to").references(() => users.id),
 }, (table) => [
   index("IDX_threats_correlation_key").on(table.correlationKey),
+  index("IDX_threats_host_id").on(table.hostId),
 ]);
 
 // Settings table
@@ -248,10 +273,18 @@ export const jobResultsRelations = relations(jobResults, ({ one }) => ({
   }),
 }));
 
+export const hostsRelations = relations(hosts, ({ many }) => ({
+  threats: many(threats),
+}));
+
 export const threatsRelations = relations(threats, ({ one }) => ({
   asset: one(assets, {
     fields: [threats.assetId],
     references: [assets.id],
+  }),
+  host: one(hosts, {
+    fields: [threats.hostId],
+    references: [hosts.id],
   }),
   job: one(jobs, {
     fields: [threats.jobId],
@@ -343,6 +376,12 @@ export const insertJobSchema = createInsertSchema(jobs).omit({
   finishedAt: true,
 });
 
+export const insertHostSchema = createInsertSchema(hosts).omit({
+  id: true,
+  discoveredAt: true,
+  updatedAt: true,
+});
+
 export const insertThreatSchema = createInsertSchema(threats).omit({
   id: true,
   createdAt: true,
@@ -372,6 +411,8 @@ export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type Job = typeof jobs.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;
 export type JobResult = typeof jobResults.$inferSelect;
+export type Host = typeof hosts.$inferSelect;
+export type InsertHost = z.infer<typeof insertHostSchema>;
 export type Threat = typeof threats.$inferSelect;
 export type InsertThreat = z.infer<typeof insertThreatSchema>;
 export type Setting = typeof settings.$inferSelect;
