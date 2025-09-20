@@ -12,7 +12,8 @@ import {
   insertCredentialSchema, 
   insertJourneySchema, 
   insertScheduleSchema,
-  registerUserSchema 
+  registerUserSchema,
+  insertHostSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -130,7 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'update',
         objectType: 'asset',
         objectId: id,
-        before: beforeAsset,
+        before: beforeAsset || null,
         after: asset,
       });
       
@@ -154,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'delete',
         objectType: 'asset',
         objectId: id,
-        before: beforeAsset,
+        before: beforeAsset || null,
         after: null,
       });
       
@@ -162,6 +163,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao excluir ativo:", error);
       res.status(400).json({ message: "Falha ao excluir ativo" });
+    }
+  });
+
+  // Host routes
+  app.get('/api/hosts', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      // Extract query parameters for filtering
+      const { type, family, search } = req.query;
+      
+      const filters: any = {};
+      if (type) filters.type = type as string;
+      if (family) filters.family = family as string;
+      if (search) filters.search = search as string;
+      
+      const hosts = await storage.getHosts(filters);
+      res.json(hosts);
+    } catch (error) {
+      console.error("Erro ao buscar hosts:", error);
+      res.status(500).json({ message: "Falha ao buscar hosts" });
+    }
+  });
+
+  app.get('/api/hosts/:id', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const host = await storage.getHost(id);
+      
+      if (!host) {
+        return res.status(404).json({ message: "Host não encontrado" });
+      }
+      
+      res.json(host);
+    } catch (error) {
+      console.error("Erro ao buscar host:", error);
+      res.status(500).json({ message: "Falha ao buscar host" });
+    }
+  });
+
+  app.patch('/api/hosts/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      
+      // Validate updates using partial host schema (only allow certain fields)
+      const allowedUpdates = insertHostSchema.partial().pick({
+        name: true,
+        description: true,
+        aliases: true,
+      });
+      const updates = allowedUpdates.parse(req.body);
+      
+      const beforeHost = await storage.getHost(id);
+      if (!beforeHost) {
+        return res.status(404).json({ message: "Host não encontrado" });
+      }
+      
+      const host = await storage.updateHost(id, updates);
+      
+      await storage.logAudit({
+        actorId: userId,
+        action: 'update',
+        objectType: 'host',
+        objectId: id,
+        before: beforeHost || null,
+        after: host,
+      });
+      
+      res.json(host);
+    } catch (error) {
+      console.error("Erro ao atualizar host:", error);
+      res.status(400).json({ message: "Falha ao atualizar host" });
     }
   });
 
@@ -189,9 +261,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: credentialData.type,
         hostOverride: credentialData.hostOverride ?? null,
         port: credentialData.port ?? null,
+        domain: credentialData.domain ?? null,
         username: credentialData.username,
         secretEncrypted,
         dekEncrypted,
+        createdBy: userId,
       }, userId);
       
       await storage.logAudit({
@@ -284,7 +358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'update',
         objectType: 'journey',
         objectId: id,
-        before: beforeJourney,
+        before: beforeJourney || null,
         after: journey,
       });
       
@@ -308,7 +382,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'delete',
         objectType: 'journey',
         objectId: id,
-        before: beforeJourney,
+        before: beforeJourney || null,
+        after: null,
       });
       
       res.status(204).send();
@@ -340,6 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'create',
         objectType: 'schedule',
         objectId: schedule.id,
+        before: null,
         after: schedule,
       });
       
@@ -378,6 +454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'execute',
         objectType: 'job',
         objectId: job.id,
+        before: null,
         after: job,
       });
       
@@ -445,6 +522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'cancel',
         objectType: 'job',
         objectId: id,
+        before: null,
         after: { status: 'failed', error: 'Job cancelado pelo usuário' },
       });
       
@@ -493,7 +571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'update',
         objectType: 'threat',
         objectId: id,
-        before: beforeThreat,
+        before: beforeThreat || null,
         after: threat,
       });
       
@@ -612,7 +690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'update_role',
         objectType: 'user',
         objectId: id,
-        before: beforeUser,
+        before: beforeUser || null,
         after: user,
       });
       
