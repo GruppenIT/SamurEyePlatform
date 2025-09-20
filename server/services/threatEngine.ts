@@ -1033,6 +1033,10 @@ class ThreatEngineService {
             if (hosts.length > 0) {
               console.log(`🔗 Linking threat to host: ${hosts[0].name} (${target})`);
               return hosts[0].id;
+            } else {
+              // Debug: Count hosts for diagnosis but don't expose full inventory in logs
+              const hostCount = (await storage.getHosts()).length;
+              console.log(`🔍 Debug: Tentativa de busca para target '${target}' entre ${hostCount} hosts falhou`);
             }
           }
           break;

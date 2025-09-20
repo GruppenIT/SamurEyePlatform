@@ -1,0 +1,68 @@
+Sep 20 19:19:24 vlxsam99 npm[474880]: 7:19:24 PM [express] POST /api/jobs/execute 201 in 40ms :: {"id":"2dc3ecc9-1077-4739-80d7-65cc6ddf64…
+Sep 20 19:19:24 vlxsam99 npm[474880]: Iniciando scan de portas para 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: 📍 Target 192.168.100.4 já é um IP válido
+Sep 20 19:19:24 vlxsam99 npm[474880]: ✅ DNS resolvido: 192.168.100.4 → 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: 🥷 Perfil stealth selecionado: escaneando portas comuns discretamente
+Sep 20 19:19:24 vlxsam99 npm[474880]: 🔍 Executando nmap com portas: 21,22,23,25,53,80,110,135,139,143,443,445,993,995,1433,3306,3389,5432,5985,5986,8080,8443
+Sep 20 19:19:24 vlxsam99 npm[474880]: 🎯 Escaneando portas de 192.168.100.4... nmap (perfil: stealth)
+Sep 20 19:19:24 vlxsam99 npm[474880]: 🔧 Executando: nmap -Pn -sS -sV --script=vuln --script-args vulns.showall --max-hostgroup 1 --max-parallelism 5 --min-rate 50 --max-rate 500 --max-rtt-timeout 5s --initial-rtt-timeout 1s --version-intensity 7 -T2 -p 21,22,23,25,53,80,110,135,139,143,443,445,993,995,1433,3306,3389,5432,5985,5986,8080,8443 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: 📍 Job: 2dc3ecc9-1077-4739-80d7-65cc6ddf6432 | Processo: nmap | Stage: Escaneando portas de 192.168.100.4... nmap
+Sep 20 19:19:24 vlxsam99 npm[474880]: 📍 Processo registrado: nmap pid 475006 para job 2dc3ecc9-1077-4739-80d7-65cc6ddf6432 - Escaneando portas de 192.168.100.4... nmap
+Sep 20 19:19:24 vlxsam99 npm[474880]: 📡 JobUpdate emitido para 2dc3ecc9-1077-4739-80d7-65cc6ddf6432: Escaneando portas de 192.168.100.4... nmap (nmap pid 475006) (alive: true, status: running)
+Sep 20 19:19:24 vlxsam99 npm[474880]: 🗑️ Processo removido: nmap pid 475006 para job 2dc3ecc9-1077-4739-80d7-65cc6ddf6432
+Sep 20 19:19:24 vlxsam99 npm[474880]: 📋 Comando concluído com código 1
+Sep 20 19:19:24 vlxsam99 npm[474880]: ❌ Command failed with code 1: You requested a scan type which requires root privileges.
+Sep 20 19:19:24 vlxsam99 npm[474880]: QUITTING!
+Sep 20 19:19:24 vlxsam99 npm[474880]: ⚠️ nmap falhou, usando scan TCP nativo: Error: Command failed with code 1: You requested a scan type which requires root privileges.
+Sep 20 19:19:24 vlxsam99 npm[474880]: QUITTING!
+Sep 20 19:19:24 vlxsam99 npm[474880]:     at ChildProcess.<anonymous> (file:///opt/samureye/dist/index.js:3018:18)
+Sep 20 19:19:24 vlxsam99 npm[474880]:     at ChildProcess.emit (node:events:536:35)
+Sep 20 19:19:24 vlxsam99 npm[474880]:     at maybeClose (node:internal/child_process:1104:16)
+Sep 20 19:19:24 vlxsam99 npm[474880]:     at ChildProcess._handle.onexit (node:internal/child_process:304:5)
+Sep 20 19:19:24 vlxsam99 npm[474880]: 🔄 TCP fallback usará 22 portas comuns
+Sep 20 19:19:24 vlxsam99 npm[474880]: 🔄 Iniciando TCP scan nativo para 192.168.100.4 em 22 portas
+Sep 20 19:19:24 vlxsam99 npm[474880]: 📦 Processando lote 1: portas 21, 22, 23, 25, 53, 80, 110, 135, 139, 143
+Sep 20 19:19:24 vlxsam99 npm[474880]: ❌ Porta 21 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: ❌ Porta 22 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: ❌ Porta 23 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: ❌ Porta 25 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: ❌ Porta 53 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: ❌ Porta 80 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: ❌ Porta 110 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: ✅ Porta 135 aberta em 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: ✅ Porta 139 aberta em 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: ❌ Porta 143 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:24 vlxsam99 npm[474880]: 📡 JobUpdate emitido para 2dc3ecc9-1077-4739-80d7-65cc6ddf6432: Escaneando portas de 192.168.100.4... nmap (nmap pid 475006) (alive: false, status: running)
+Sep 20 19:19:29 vlxsam99 npm[474880]: 📊 Lote concluído: 2/10 portas abertas
+Sep 20 19:19:29 vlxsam99 npm[474880]: 📦 Processando lote 2: portas 443, 445, 993, 995, 1433, 3306, 3389, 5432, 5985, 5986
+Sep 20 19:19:29 vlxsam99 npm[474880]: ❌ Porta 443 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:29 vlxsam99 npm[474880]: ✅ Porta 445 aberta em 192.168.100.4
+Sep 20 19:19:29 vlxsam99 npm[474880]: ❌ Porta 993 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:29 vlxsam99 npm[474880]: ❌ Porta 995 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:29 vlxsam99 npm[474880]: ✅ Porta 1433 aberta em 192.168.100.4
+Sep 20 19:19:29 vlxsam99 npm[474880]: ❌ Porta 3306 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:29 vlxsam99 npm[474880]: ✅ Porta 3389 aberta em 192.168.100.4
+Sep 20 19:19:29 vlxsam99 npm[474880]: ❌ Porta 5432 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:29 vlxsam99 npm[474880]: ✅ Porta 5985 aberta em 192.168.100.4
+Sep 20 19:19:29 vlxsam99 npm[474880]: ❌ Porta 5986 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:34 vlxsam99 npm[474880]: 📊 Lote concluído: 4/10 portas abertas
+Sep 20 19:19:34 vlxsam99 npm[474880]: 📦 Processando lote 3: portas 8080, 8443
+Sep 20 19:19:34 vlxsam99 npm[474880]: ❌ Porta 8080 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:34 vlxsam99 npm[474880]: ❌ Porta 8443 fechada/filtrada em 192.168.100.4
+Sep 20 19:19:34 vlxsam99 npm[474880]: 📊 Lote concluído: 0/2 portas abertas
+Sep 20 19:19:34 vlxsam99 npm[474880]: 🎯 TCP scan concluído: 6 portas abertas encontradas de 22 testadas
+Sep 20 19:19:34 vlxsam99 npm[474880]: Iniciando scan de vulnerabilidades para 192.168.100.4
+Sep 20 19:19:34 vlxsam99 npm[474880]: Encontrados 0 serviços web para escanear: []
+Sep 20 19:19:34 vlxsam99 npm[474880]: 🏠 Host descoberto/atualizado: host-192-168-100-4 (192.168.100.4)
+Sep 20 19:19:34 vlxsam99 npm[474880]: 🏠 Attack Surface: 1 hosts descobertos/atualizados
+Sep 20 19:19:34 vlxsam99 npm[474880]: ⚠️  No host found for threat (attack_surface): 192.168.100.4
+Sep 20 19:19:34 vlxsam99 npm[474880]: 🔄 Threat upserted: Porta SMB 139 exposta (Key: as:port:192.168.100.4:139)
+Sep 20 19:19:34 vlxsam99 npm[474880]: ⚠️  No host found for threat (attack_surface): 192.168.100.4
+Sep 20 19:19:34 vlxsam99 npm[474880]: 🔄 Threat upserted: Porta SMB 445 exposta (Key: as:port:192.168.100.4:445)
+Sep 20 19:19:34 vlxsam99 npm[474880]: ⚠️  No host found for threat (attack_surface): 192.168.100.4
+Sep 20 19:19:34 vlxsam99 npm[474880]: 🔄 Threat upserted: Porta de banco 1433 exposta (Key: as:port:192.168.100.4:1433)
+Sep 20 19:19:34 vlxsam99 npm[474880]: ⚠️  No host found for threat (attack_surface): 192.168.100.4
+Sep 20 19:19:34 vlxsam99 npm[474880]: 🔄 Threat upserted: Porta administrativa 3389 exposta (Key: as:port:192.168.100.4:3389)
+Sep 20 19:19:34 vlxsam99 npm[474880]: ⚠️  No host found for threat (attack_surface): 192.168.100.4
+Sep 20 19:19:34 vlxsam99 npm[474880]: 🔄 Threat upserted: Porta administrativa 5985 exposta (Key: as:port:192.168.100.4:5985)
+Sep 20 19:19:34 vlxsam99 npm[474880]: 🗑️  Job 2dc3ecc9-1077-4739-80d7-65cc6ddf6432 removido dos jobs em execução

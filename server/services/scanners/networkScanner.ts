@@ -144,7 +144,7 @@ export class NetworkScanner {
       throw new Error(`Target inválido: ${resolvedTarget}`);
     }
     
-    const args = this.buildNmapArgs(resolvedTarget, ports, nmapProfile);
+    let args = this.buildNmapArgs(resolvedTarget, ports, nmapProfile);
     
     // Timeout diferenciado por perfil - ajustado para evitar timeouts prematuros
     let maxWaitTime = 120000; // 2 minutos padrão
@@ -170,22 +170,49 @@ export class NetworkScanner {
       maxWaitTime
     };
     
-    const stdout = await this.spawnCommand('nmap', args, context);
-    const results = this.parseNmapOutput(stdout, originalTarget, resolvedTarget);
-    
-    // Log verboso das portas detectadas
-    console.log(`📊 Nmap concluído para ${originalTarget} - ${results.length} portas processadas:`);
-    for (const result of results) {
-      console.log(`  🔍 Porta ${result.port}: ${result.state} | Serviço: ${result.service || 'desconhecido'} | Versão: ${result.version || 'N/A'}`);
-      if (result.ip && result.ip !== originalTarget) {
-        console.log(`    🔗 IP resolvido: ${result.ip}`);
+    try {
+      const stdout = await this.spawnCommand('nmap', args, context);
+      const results = this.parseNmapOutput(stdout, originalTarget, resolvedTarget);
+      
+      // Log verboso das portas detectadas
+      console.log(`📊 Nmap concluído para ${originalTarget} - ${results.length} portas processadas:`);
+      for (const result of results) {
+        console.log(`  🔍 Porta ${result.port}: ${result.state} | Serviço: ${result.service || 'desconhecido'} | Versão: ${result.version || 'N/A'}`);
+        if (result.ip && result.ip !== originalTarget) {
+          console.log(`    🔗 IP resolvido: ${result.ip}`);
+        }
+        if (result.osInfo) {
+          console.log(`    💻 OS detectado: ${result.osInfo}`);
+        }
       }
-      if (result.osInfo) {
-        console.log(`    💻 OS detectado: ${result.osInfo}`);
+      
+      return results;
+    } catch (error) {
+      // Verificar se é erro de privilégios e fazer fallback para TCP scan
+      if (error instanceof Error && (
+        error.message.includes('requires root privileges') ||
+        error.message.includes('You requested a scan type which requires root')
+      )) {
+        console.log(`⚠️ nmap requer privilégios de root para perfil ${nmapProfile}, fazendo fallback para TCP scan`);
+        
+        // Reconstruir args com TCP scan
+        args = this.buildNmapArgs(resolvedTarget, ports, 'tcp-fallback');
+        
+        try {
+          const stdout = await this.spawnCommand('nmap', args, context);
+          const results = this.parseNmapOutput(stdout, originalTarget, resolvedTarget);
+          
+          console.log(`📊 Nmap TCP fallback concluído para ${originalTarget} - ${results.length} portas processadas`);
+          return results;
+        } catch (fallbackError) {
+          console.error(`❌ Fallback TCP também falhou: ${fallbackError}`);
+          throw fallbackError;
+        }
       }
+      
+      // Re-throw outros erros
+      throw error;
     }
-    
-    return results;
   }
 
   /**
@@ -649,6 +676,10 @@ export class NetworkScanner {
     switch (nmapProfile) {
       case 'stealth':
         args.push('-sS'); // SYN stealth scan
+        break;
+      case 'tcp-fallback':
+        args.push('-sT'); // TCP connect scan forçado (fallback de privilégios)
+        console.log('🔄 Usando TCP connect scan como fallback por falta de privilégios root');
         break;
       default:
         args.push('-sT'); // TCP connect scan (não requer root)

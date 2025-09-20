@@ -702,29 +702,30 @@ export class DatabaseStorage implements IStorage {
     let host = await this.getHostByName(normalizedTarget);
     if (host) return host;
     
-    // Try to find by IP or aliases
+    // Try to find by IP or aliases (correct JSON array containment)
     if (ip) {
       const results = await db
         .select()
         .from(hosts)
         .where(
           or(
-            sql`${hosts.ips} ? ${ip}`, // JSON contains operator
-            sql`${hosts.aliases} ? ${normalizedTarget}`,
-            sql`${hosts.aliases} ? ${target}` // Try original case too
+            // Correct way to check if IP exists in JSONB array
+            sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${hosts.ips}) v WHERE v = ${ip})`,
+            sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${hosts.aliases}) v WHERE v = ${normalizedTarget})`,
+            sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${hosts.aliases}) v WHERE v = ${target})`
           )
         );
       if (results.length > 0) return results[0];
     }
     
-    // Try to find by aliases without IP
+    // Try to find by aliases without IP (correct JSON array containment)
     const aliasResults = await db
       .select()
       .from(hosts)
       .where(
         or(
-          sql`${hosts.aliases} ? ${normalizedTarget}`,
-          sql`${hosts.aliases} ? ${target}` // Try original case too
+          sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${hosts.aliases}) v WHERE v = ${normalizedTarget})`,
+          sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${hosts.aliases}) v WHERE v = ${target})`
         )
       );
     if (aliasResults.length > 0) return aliasResults[0];

@@ -1,0 +1,100 @@
+🔍 1. Estratégia de Scanners: Nmap + Nuclei é a Combinação Ideal
+Resposta: Sim, você precisa dos dois scanners trabalhando juntos. Cada um tem uma função específica:
+
+Nmap (Descoberta e Fingerprinting)
+Descobre serviços expostos com versões detalhadas
+Identifica produtos específicos (Apache 2.4.41, OpenSSH 8.2, etc.)
+Detecta sistemas operacionais e informações de banner
+Mapeia a superfície de ataque completa
+Nuclei (Vulnerabilidades e CVEs)
+Identifica CVEs específicos por serviço/produto
+Testa OWASP Top 10 automaticamente
+Verifica configurações inadequadas
+Valida vulnerabilidades reais
+⚙️ 2. Comandos Otimizados Recomendados
+Nmap - Descoberta Detalhada
+# Privilegiado (como root)
+nmap -Pn -n -sS -p <portas> --open -sV --version-all --reason -O --osscan-limit \
+     --max-retries 1 --host-timeout 15m -T4 -oX - <target>
+# Não-privilegiado 
+nmap -Pn -n -sT -p <portas> --open -sV --version-all --reason \
+     --max-retries 1 --host-timeout 15m -T4 -oX - <target>
+# Para identificar CVEs (opcional)
+--script=vulners,vulscan
+Nuclei - Vulnerabilidades Focadas
+nuclei -u <url> -jsonl -silent -duc -ni -nc \
+       -s low,medium,high,critical \
+       -retries 1 -timeout 10 -c 10 -rl 50 \
+       -headless -tags cve,owasp,misconfiguration,exposure \
+       -t /tmp/nuclei/nuclei-templates
+🎯 3. Enriquecimento de Ameaças - Sistema Granular
+Ameaças por Serviço Exposto
+Criticidade Média: Serviços comuns (HTTP, SMTP, DNS)
+Criticidade Alta: Serviços administrativos (SSH-22, RDP-3389, WinRM-5985/5986, SMB-445, Telnet-23)
+Evidências Ricas: Versão do produto, banner, sistema operacional
+Ameaças por CVE Individual
+Criticidade baseada em CVSS v3:
+>=9.0 → Crítica
+7.0-8.9 → Alta
+4.0-6.9 → Média
+<4.0 → Baixa
+Uma ameaça por CVE encontrado
+Evidências detalhadas: CVE, CVSS, CWE, URL/serviço afetado, referências
+Ameaças OWASP Top 10
+Categorização automática por tag do Nuclei
+Headers de segurança ausentes
+Directory listing habilitado
+Configurações TLS fracas
+Credenciais padrão
+🔄 4. Fluxo de Dados Recomendado
+1. NMAP SCAN
+   ↓ Descobre portas abertas + versões + CPE/OS
+2. ENRIQUECIMENTO CVE (serviços não-web)
+   ↓ CPE → consulta NVD/CIRCL para CVEs relacionados
+3. NUCLEI SCAN (serviços web)
+   ↓ URLs construídas + templates OWASP/CVE
+   ↓ Opcionalmente: crawling superficial (depth 1-2)
+4. NORMALIZAÇÃO + THREAT ENGINE
+   ↓ Junta dados nmap+nuclei por target+porta
+   ↓ Aplica regras de criticidade
+   ↓ Cria ameaças individuais enriquecidas
+📋 5. Implementação Prática
+Melhorias no ThreatEngine
+Regra de Serviço Exposto Genérico
+
+Uma ameaça para cada porta aberta
+Criticidade baseada na lista de serviços administrativos
+Regra CVE Individual
+
+Substitui a regra "critical-cve" atual
+Mapeamento automático CVSS → severidade
+Uma ameaça por CVE detectado
+Regras OWASP Específicas
+
+Headers de segurança
+Directory listing
+Configuração TLS
+Credenciais padrão
+Estrutura de Evidências Enriquecida
+{
+  "host": "example.com",
+  "ip": "192.168.1.100", 
+  "port": "443",
+  "service": "https",
+  "product": "nginx",
+  "version": "1.18.0",
+  "cve": "CVE-2021-23017",
+  "cvss": 7.5,
+  "cwe": "CWE-476",
+  "osInfo": "Ubuntu Linux",
+  "references": ["https://cve.mitre.org/..."],
+  "owaspCategory": "A06:2021 – Vulnerable Components"
+}
+🎯 Resultado Final
+Com essa implementação, você terá:
+
+✅ Uma ameaça para cada serviço exposto com criticidade adequada
+✅ Ameaças individuais para cada CVE encontrado
+✅ Análise OWASP Top 10 automática para serviços web
+✅ Evidências ricas para melhor detalhamento na console
+✅ Performance otimizada com timeouts adequados

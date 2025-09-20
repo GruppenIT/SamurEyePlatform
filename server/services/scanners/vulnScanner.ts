@@ -289,6 +289,7 @@ export class VulnerabilityScanner {
     
     // Fallback para portas comuns se não houver resultados web válidos
     if (webServices.length === 0) {
+      // Portas web tradicionais
       const commonWebPorts = ports.filter(port => ['80', '443', '8080', '8443'].includes(port));
       for (const port of commonWebPorts) {
         if (!seenPorts.has(port)) {
@@ -297,13 +298,25 @@ export class VulnerabilityScanner {
           seenPorts.add(port);
         }
       }
+      
+      // Portas que podem ter interface web ou APIs (estratégia expandida)
+      const webCapablePorts = ports.filter(port => ['5985', '5986', '8000', '8001', '8090', '8888', '9000', '9090'].includes(port));
+      for (const port of webCapablePorts) {
+        if (!seenPorts.has(port)) {
+          // WinRM e outras portas administrativas que podem ter HTTP
+          const service = ['5986', '443', '8443'].includes(port) ? 'https' : 'http';
+          webServices.push({ port, service });
+          seenPorts.add(port);
+          console.log(`🌐 Adicionando porta ${port} como potencial serviço web (${service})`);
+        }
+      }
     }
     
     return webServices;
   }
 
   /**
-   * Verifica se um serviço é relacionado a HTTP/HTTPS
+   * Verifica se um serviço é relacionado a HTTP/HTTPS ou pode ter interface web
    */
   private isWebService(service: string): boolean {
     if (!service || typeof service !== 'string') {
@@ -316,7 +329,9 @@ export class VulnerabilityScanner {
       // Removido 'tcpwrapped' pois pode ser qualquer serviço mascarado
       'nginx', 'apache', 'lighttpd', 'httpd',
       'tomcat', 'jetty', 'websphere',
-      'iis', 'nodejs', 'express'
+      'iis', 'nodejs', 'express',
+      // Adicionar serviços que realmente usam HTTP
+      'winrm', 'wsman', 'wsmans'
     ];
     
     const serviceLower = service.toLowerCase();
