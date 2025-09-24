@@ -55,14 +55,12 @@ function ThreatSummarySection({ threats, hostId }: { threats: Threat[], hostId: 
   }, [threats]);
 
   const handleSeverityClick = (severity: string, count: number) => {
-    if (count > 0) {
-      const params = new URLSearchParams();
-      params.set('hostId', hostId);
-      if (severity !== 'all') {
-        params.set('severity', severity);
-      }
-      setLocation(`/threats?${params.toString()}`);
+    const params = new URLSearchParams();
+    params.set('hostId', hostId);
+    if (severity !== 'all') {
+      params.set('severity', severity);
     }
+    setLocation(`/threats?${params.toString()}`);
   };
 
   return (
@@ -81,7 +79,7 @@ function ThreatSummarySection({ threats, hostId }: { threats: Threat[], hostId: 
           </div>
           <Badge 
             variant="destructive" 
-            className={`min-w-[2rem] justify-center ${threatCounts.critical > 0 ? 'cursor-pointer hover:bg-red-700' : ''}`}
+            className="min-w-[2rem] justify-center cursor-pointer hover:bg-red-700"
             data-testid="text-threats-critical-count"
             onClick={() => handleSeverityClick('critical', threatCounts.critical)}
           >
@@ -97,7 +95,7 @@ function ThreatSummarySection({ threats, hostId }: { threats: Threat[], hostId: 
           </div>
           <Badge 
             variant="outline" 
-            className={`min-w-[2rem] justify-center bg-orange-500 text-white border-orange-500 ${threatCounts.high > 0 ? 'cursor-pointer hover:bg-orange-700' : 'hover:bg-orange-600'}`}
+            className="min-w-[2rem] justify-center bg-orange-500 text-white border-orange-500 cursor-pointer hover:bg-orange-700"
             data-testid="text-threats-high-count"
             onClick={() => handleSeverityClick('high', threatCounts.high)}
           >
@@ -113,7 +111,7 @@ function ThreatSummarySection({ threats, hostId }: { threats: Threat[], hostId: 
           </div>
           <Badge 
             variant="outline" 
-            className={`min-w-[2rem] justify-center bg-yellow-500 text-white border-yellow-500 ${threatCounts.medium > 0 ? 'cursor-pointer hover:bg-yellow-700' : 'hover:bg-yellow-600'}`}
+            className="min-w-[2rem] justify-center bg-yellow-500 text-white border-yellow-500 cursor-pointer hover:bg-yellow-700"
             data-testid="text-threats-medium-count"
             onClick={() => handleSeverityClick('medium', threatCounts.medium)}
           >
@@ -129,7 +127,7 @@ function ThreatSummarySection({ threats, hostId }: { threats: Threat[], hostId: 
           </div>
           <Badge 
             variant="outline" 
-            className={`min-w-[2rem] justify-center bg-green-600 text-white border-green-600 ${threatCounts.low > 0 ? 'cursor-pointer hover:bg-green-800' : 'hover:bg-green-700'}`}
+            className="min-w-[2rem] justify-center bg-green-600 text-white border-green-600 cursor-pointer hover:bg-green-800"
             data-testid="text-threats-low-count"
             onClick={() => handleSeverityClick('low', threatCounts.low)}
           >

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
@@ -35,6 +36,7 @@ import { Threat, Host } from "@shared/schema";
 import { ThreatStats } from "@/types";
 
 export default function Threats() {
+  const [location] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [severityFilter, setSeverityFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -43,6 +45,24 @@ export default function Threats() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Initialize filters from URL parameters
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.split('?')[1] || '');
+    const hostId = searchParams.get('hostId');
+    const severity = searchParams.get('severity');
+    const status = searchParams.get('status');
+    
+    if (hostId) {
+      setHostFilter(hostId);
+    }
+    if (severity) {
+      setSeverityFilter(severity);
+    }
+    if (status) {
+      setStatusFilter(status);
+    }
+  }, [location]);
 
   const { data: threats = [], isLoading } = useQuery<(Threat & { host?: Host })[]>({
     queryKey: ["/api/threats", { 
