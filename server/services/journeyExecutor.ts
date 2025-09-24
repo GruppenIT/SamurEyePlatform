@@ -248,6 +248,20 @@ class JourneyExecutorService {
     onProgress({ status: 'running', progress: 30, currentTask: 'Conectando ao Active Directory' });
 
     try {
+      onProgress({ status: 'running', progress: 40, currentTask: 'Criando host de domínio' });
+
+      // CREATE DOMAIN HOST FIRST - this ensures the host exists before threat analysis
+      let domainHost;
+      try {
+        domainHost = await hostService.createDomainHost(domain, jobId);
+        console.log(`🏠 AD Hygiene: Host de domínio criado: ${domainHost.name}`);
+      } catch (error) {
+        console.error('❌ Erro ao criar host de domínio:', error);
+        // Continue execution even if domain host creation fails
+      }
+
+      onProgress({ status: 'running', progress: 50, currentTask: 'Executando análise AD' });
+
       // Extract enabled analyses from journey params
       const enabledAnalyses = {
         enableUsers: params.enableUsers !== false,          // default true
@@ -258,7 +272,7 @@ class JourneyExecutorService {
         enableDomainConfiguration: params.enableDomainConfiguration !== false // default true
       };
 
-      // Real AD hygiene scan using adScanner
+      // Real AD hygiene scan using adScanner - PASS DOMAIN for target field
       const findings = await adScanner.scanADHygiene(
         domain,
         credential.username,
@@ -266,17 +280,6 @@ class JourneyExecutorService {
         credential.port || undefined,
         enabledAnalyses
       );
-
-      onProgress({ status: 'running', progress: 75, currentTask: 'Criando host de domínio' });
-
-      // Create domain host for AD Hygiene
-      try {
-        const domainHost = await hostService.createDomainHost(domain, jobId);
-        console.log(`🏠 AD Hygiene: Host de domínio criado: ${domainHost.name}`);
-      } catch (error) {
-        console.error('❌ Erro ao criar host de domínio:', error);
-        // Continue execution even if domain host creation fails
-      }
 
       onProgress({ status: 'running', progress: 80, currentTask: 'Processando resultados' });
 

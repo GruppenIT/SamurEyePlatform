@@ -373,7 +373,7 @@ export class ADScanner {
       for (const admin of domainAdminsWithOldPasswords) {
         findings.push({
           type: 'ad_vulnerability',
-          target: admin.username,
+          target: this.domain, // Use domain as target for all AD findings
           name: 'Domain Admin com Senha Crítica Expirada',
           severity: 'critical',
           category: 'users',
@@ -394,7 +394,7 @@ export class ADScanner {
       for (const inactiveUser of specificInactiveUsers) {
         findings.push({
           type: 'ad_hygiene',
-          target: inactiveUser.username,
+          target: this.domain, // Use domain as target for all AD findings
           name: 'Usuário Inativo Detectado',
           severity: 'low',
           category: 'users',
@@ -413,7 +413,7 @@ export class ADScanner {
       if (usersWithPasswordNeverExpires > 0) {
         findings.push({
           type: 'ad_misconfiguration',
-          target: 'Domain Users',
+          target: this.domain, // Use domain as target for all AD findings
           name: 'Usuários com Senhas que Nunca Expiram',
           severity: 'medium',
           category: 'users',
@@ -426,7 +426,7 @@ export class ADScanner {
       if (inactiveUsers > 0) {
         findings.push({
           type: 'ad_hygiene',
-          target: 'Domain Users',
+          target: this.domain, // Use domain as target for all AD findings
           name: 'Usuários Inativos Identificados',
           severity: 'low',
           category: 'users',
@@ -439,7 +439,7 @@ export class ADScanner {
       if (usersWithOldPasswords > 0) {
         findings.push({
           type: 'ad_vulnerability',
-          target: 'Domain Users',
+          target: this.domain, // Use domain as target for all AD findings
           name: 'Usuários com Senhas Antigas',
           severity: 'medium',
           category: 'users',
@@ -479,12 +479,12 @@ export class ADScanner {
         if (members.length > 5) {
           findings.push({
             type: 'ad_misconfiguration',
-            target: groupName,
+            target: this.domain, // Use domain as target for all AD findings
             name: 'Grupo Privilegiado com Muitos Membros',
             severity: 'high',
             category: 'groups',
             description: `Grupo ${groupName} possui ${members.length} membros (recomendado: máximo 5)`,
-            evidence: { memberCount: members.length, members },
+            evidence: { memberCount: members.length, members, groupName },
             recommendation: 'Revisar e reduzir membros de grupos privilegiados'
           });
         }
@@ -552,7 +552,7 @@ export class ADScanner {
       for (const inactiveComp of specificInactiveComputers) {
         findings.push({
           type: 'ad_hygiene',
-          target: inactiveComp.computerName,
+          target: this.domain, // Use domain as target for all AD findings
           name: 'Computador Inativo no Domínio',
           severity: 'low',
           category: 'computers',
@@ -571,7 +571,7 @@ export class ADScanner {
       for (const obsoleteComp of specificObsoleteComputers) {
         findings.push({
           type: 'ad_vulnerability',
-          target: obsoleteComp.computerName,
+          target: this.domain, // Use domain as target for all AD findings
           name: 'Sistema Operacional Obsoleto',
           severity: 'medium',
           category: 'computers',
@@ -588,7 +588,7 @@ export class ADScanner {
       if (oldSystems > 0) {
         findings.push({
           type: 'ad_vulnerability',
-          target: 'Domain Computers',
+          target: this.domain, // Use domain as target for all AD findings
           name: 'Sistemas Operacionais Obsoletos',
           severity: 'high',
           category: 'computers',
@@ -601,7 +601,7 @@ export class ADScanner {
       if (inactiveComputers > 0) {
         findings.push({
           type: 'ad_hygiene',
-          target: 'Domain Computers',
+          target: this.domain, // Use domain as target for all AD findings
           name: 'Computadores Inativos',
           severity: 'low',
           category: 'computers',
@@ -739,7 +739,7 @@ export class ADScanner {
     // acessar as GPOs e analisar configurações específicas
     findings.push({
       type: 'ad_hygiene',
-      target: 'Group Policies',
+      target: this.domain, // Use domain as target for all AD findings
       name: 'Análise de Políticas Limitada',
       severity: 'low',
       category: 'policies',
