@@ -98,6 +98,7 @@ export interface IStorage {
 
   // Threat operations
   getThreats(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string }): Promise<Threat[]>;
+  getThreatsWithHosts(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string }): Promise<(Threat & { host?: Host })[]>;
   getThreat(id: string): Promise<Threat | undefined>;
   createThreat(threat: InsertThreat): Promise<Threat>;
   updateThreat(id: string, threat: Partial<Threat>): Promise<Threat>;
@@ -500,6 +501,88 @@ export class DatabaseStorage implements IStorage {
     }
     
     return stats;
+  }
+
+  async getThreatsWithHosts(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string }): Promise<(Threat & { host?: Host })[]> {
+    let query = db
+      .select({
+        // Threat fields
+        id: threats.id,
+        title: threats.title,
+        description: threats.description,
+        severity: threats.severity,
+        status: threats.status,
+        source: threats.source,
+        assetId: threats.assetId,
+        hostId: threats.hostId,
+        evidence: threats.evidence,
+        jobId: threats.jobId,
+        correlationKey: threats.correlationKey,
+        category: threats.category,
+        lastSeenAt: threats.lastSeenAt,
+        closureReason: threats.closureReason,
+        createdAt: threats.createdAt,
+        updatedAt: threats.updatedAt,
+        assignedTo: threats.assignedTo,
+        // Host fields (will be null if no host)
+        hostIdFromTable: hosts.id,
+        hostName: hosts.name,
+        hostType: hosts.type,
+        hostFamily: hosts.family,
+        hostIps: hosts.ips,
+        hostAliases: hosts.aliases,
+        hostDescription: hosts.description,
+        hostOperatingSystem: hosts.operatingSystem,
+        hostDiscoveredAt: hosts.discoveredAt,
+        hostUpdatedAt: hosts.updatedAt,
+      })
+      .from(threats)
+      .leftJoin(hosts, eq(threats.hostId, hosts.id));
+      
+    const conditions = [];
+    if (filters) {
+      if (filters.severity) conditions.push(eq(threats.severity, filters.severity as any));
+      if (filters.status) conditions.push(eq(threats.status, filters.status as any));
+      if (filters.assetId) conditions.push(eq(threats.assetId, filters.assetId));
+      if (filters.hostId) conditions.push(eq(threats.hostId, filters.hostId));
+    }
+
+    const results = await (conditions.length > 0 
+      ? query.where(and(...conditions)).orderBy(desc(threats.createdAt))
+      : query.orderBy(desc(threats.createdAt)));
+    
+    // Transform results to include host object
+    return results.map(row => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      severity: row.severity,
+      status: row.status,
+      source: row.source,
+      assetId: row.assetId,
+      hostId: row.hostId,
+      evidence: row.evidence,
+      jobId: row.jobId,
+      correlationKey: row.correlationKey,
+      category: row.category,
+      lastSeenAt: row.lastSeenAt,
+      closureReason: row.closureReason,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      assignedTo: row.assignedTo,
+      host: row.hostName ? {
+        id: row.hostIdFromTable!,
+        name: row.hostName,
+        type: row.hostType || 'other',
+        family: row.hostFamily || 'other',
+        ips: row.hostIps || [],
+        aliases: row.hostAliases || [],
+        description: row.hostDescription,
+        operatingSystem: row.hostOperatingSystem,
+        discoveredAt: row.hostDiscoveredAt!,
+        updatedAt: row.hostUpdatedAt!
+      } : undefined
+    }));
   }
 
   // Threat lifecycle operations

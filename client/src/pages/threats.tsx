@@ -31,26 +31,36 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Search, AlertTriangle, Eye, CheckCircle, Clock, Shield } from "lucide-react";
-import { Threat } from "@shared/schema";
+import { Threat, Host } from "@shared/schema";
 import { ThreatStats } from "@/types";
 
 export default function Threats() {
   const [searchTerm, setSearchTerm] = useState("");
   const [severityFilter, setSeverityFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [hostFilter, setHostFilter] = useState<string>("all");
   const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: threats = [], isLoading } = useQuery<Threat[]>({
-    queryKey: ["/api/threats", { severity: severityFilter !== "all" ? severityFilter : undefined, status: statusFilter !== "all" ? statusFilter : undefined }],
+  const { data: threats = [], isLoading } = useQuery<(Threat & { host?: Host })[]>({
+    queryKey: ["/api/threats", { 
+      severity: severityFilter !== "all" ? severityFilter : undefined, 
+      status: statusFilter !== "all" ? statusFilter : undefined,
+      hostId: hostFilter !== "all" ? hostFilter : undefined
+    }],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   const { data: stats } = useQuery<ThreatStats>({
     queryKey: ["/api/threats/stats"],
     refetchInterval: 30000,
+  });
+
+  const { data: hosts = [] } = useQuery<Host[]>({
+    queryKey: ["/api/hosts"],
+    refetchInterval: 60000, // Refresh every minute
   });
 
   const updateThreatMutation = useMutation({
@@ -89,10 +99,7 @@ export default function Threats() {
     const matchesSearch = threat.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (threat.description && threat.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesSeverity = severityFilter === "all" || threat.severity === severityFilter;
-    const matchesStatus = statusFilter === "all" || threat.status === statusFilter;
-    
-    return matchesSearch && matchesSeverity && matchesStatus;
+    return matchesSearch;
   });
 
   const getSeverityColor = (severity: string) => {
@@ -304,6 +311,19 @@ export default function Threats() {
                     <SelectItem value="closed">Fechada</SelectItem>
                   </SelectContent>
                 </Select>
+                <Select value={hostFilter} onValueChange={setHostFilter}>
+                  <SelectTrigger className="w-48" data-testid="select-host-filter">
+                    <SelectValue placeholder="Filtrar por host" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Hosts</SelectItem>
+                    {hosts.map(host => (
+                      <SelectItem key={host.id} value={host.id}>
+                        {host.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Badge variant="secondary" data-testid="threats-count">
                   {filteredThreats.length} ameaças
                 </Badge>
@@ -343,6 +363,7 @@ export default function Threats() {
                     <TableRow>
                       <TableHead>Severidade</TableHead>
                       <TableHead>Título</TableHead>
+                      <TableHead>Host</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Detectado em</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
@@ -368,6 +389,18 @@ export default function Threats() {
                               )}
                             </div>
                           </TableCell>
+                          <TableCell data-testid={`cell-host-${threat.id}`}>
+                            {threat.host ? (
+                              <div className="flex flex-col">
+                                <span className="font-medium text-foreground">{threat.host.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {threat.host.ips?.[0] || "-"}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">N/A</span>
+                            )}
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-2">
                               <StatusIcon className="h-4 w-4" />
@@ -389,7 +422,7 @@ export default function Threats() {
                             </div>
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {formatTimeAgo(threat.createdAt)}
+                            {formatTimeAgo(threat.createdAt.toString())}
                           </TableCell>
                           <TableCell className="text-right">
                             <Button

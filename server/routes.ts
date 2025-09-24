@@ -542,14 +542,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Threat routes
   app.get('/api/threats', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
-      const { severity, status, assetId } = req.query;
+      const { severity, status, assetId, hostId } = req.query;
       const filters: any = {};
       
       if (severity) filters.severity = severity as string;
       if (status) filters.status = status as string;
       if (assetId) filters.assetId = assetId as string;
+      if (hostId) filters.hostId = hostId as string;
       
-      const threats = await storage.getThreats(filters);
+      const threats = await storage.getThreatsWithHosts(filters);
       res.json(threats);
     } catch (error) {
       console.error("Erro ao buscar ameaças:", error);
