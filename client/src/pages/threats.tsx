@@ -48,7 +48,7 @@ export default function Threats() {
 
   // Initialize filters from URL parameters
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.split('?')[1] || '');
+    const searchParams = new URLSearchParams(window.location.search);
     const hostId = searchParams.get('hostId');
     const severity = searchParams.get('severity');
     const status = searchParams.get('status');
@@ -72,6 +72,7 @@ export default function Threats() {
     }],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
+
 
   const { data: stats } = useQuery<ThreatStats>({
     queryKey: ["/api/threats/stats"],
