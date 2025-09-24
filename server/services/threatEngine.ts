@@ -784,9 +784,17 @@ class ThreatEngineService {
     const threats: Threat[] = [];
     const observedKeys = new Set<string>();
 
+    console.log(`🔍 ThreatEngine.analyzeWithLifecycle: Analisando ${findings.length} findings para journeyType '${journeyType}' (jobId: ${jobId})`);
+
     for (const finding of findings) {
+      console.log(`📋 Finding: type=${finding.type}, name=${finding.name}, target=${finding.target}`);
+      
+      let matchedRule = false;
       for (const rule of this.rules) {
         if (rule.matcher(finding)) {
+          matchedRule = true;
+          console.log(`✅ Finding matched rule: ${rule.id}`);
+          
           const correlationKey = this.computeCorrelationKey(finding, journeyType);
           observedKeys.add(correlationKey);
 
@@ -794,6 +802,7 @@ class ThreatEngineService {
           
           // Find associated host for this threat
           const hostId = await this.findHostForThreat(finding, journeyType, jobId);
+          console.log(`🔗 Host found for threat: ${hostId ? hostId : 'NULL'}`);
           
           // Use upsert logic with lifecycle fields
           const threat = await storage.upsertThreat({
@@ -805,12 +814,17 @@ class ThreatEngineService {
           });
 
           threats.push(threat);
-          console.log(`🔄 Threat upserted: ${threat.title} (Key: ${correlationKey})`);
+          console.log(`🔄 Threat upserted: ${threat.title} (Category: ${threat.category}, HostId: ${threat.hostId}, Key: ${correlationKey})`);
           break; // Stop after first matching rule
         }
       }
+      
+      if (!matchedRule) {
+        console.log(`⚪ Nenhuma regra correspondeu ao finding: type=${finding.type}, name=${finding.name}`);
+      }
     }
 
+    console.log(`🎯 ThreatEngine.analyzeWithLifecycle: Criou ${threats.length} ameaças de ${findings.length} findings para journeyType '${journeyType}'`);
     return threats;
   }
 
