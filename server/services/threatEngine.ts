@@ -1047,6 +1047,19 @@ class ThreatEngineService {
           if (domainHost) {
             console.log(`🔗 Linking AD threat to domain host: ${domainHost.name}`);
             return domainHost.id;
+          } else {
+            // If no domain host found, try to create one using hostService
+            let domain = finding.evidence?.domain || finding.target;
+            if (domain && domain !== 'unknown') {
+              try {
+                console.log(`🏠 AD Hygiene: Criando host de domínio via hostService para '${domain}'`);
+                const newDomainHost = await hostService.createDomainHost(domain, jobId || 'unknown');
+                console.log(`✅ AD Hygiene: Host de domínio criado: ${newDomainHost.name}`);
+                return newDomainHost.id;
+              } catch (error) {
+                console.error(`❌ AD Hygiene: Erro ao criar host de domínio:`, error);
+              }
+            }
           }
           break;
 
@@ -1102,14 +1115,18 @@ class ThreatEngineService {
       // Handle both FQDN (corp.local) and NetBIOS (CORP) cases
       const parts = finding.target.split('.');
       if (parts.length > 1) {
-        // FQDN case: use the first part as NetBIOS name
-        domain = parts[0];
+        // FQDN case: use full domain name
+        domain = finding.target;
       } else {
-        // Already NetBIOS case
+        // NetBIOS case - keep as is but handle it in matching
         domain = finding.target;
       }
-    } else {
-      domain = 'unknown';
+    }
+    
+    // Don't proceed if we don't have a valid domain
+    if (!domain || domain === 'unknown') {
+      console.log(`⚠️  AD Hygiene: Domínio inválido ou desconhecido, pulando vinculação`);
+      return null;
     }
     
     // Normalize domain name to lowercase for consistent matching
@@ -1117,11 +1134,31 @@ class ThreatEngineService {
     
     // Get all domain hosts and find matching one
     const domainHosts = await storage.getHosts({ type: 'domain' });
-    const matchingDomain = domainHosts.find(h => 
-      h.name.toLowerCase().includes(normalizedDomain) ||
-      h.aliases?.some(alias => alias.toLowerCase().includes(normalizedDomain)) ||
-      normalizedDomain.includes(h.name.toLowerCase())
-    );
+    
+    // Try exact match first, then partial matches
+    const matchingDomain = domainHosts.find(h => {
+      const hostName = h.name.toLowerCase();
+      const searchDomain = normalizedDomain;
+      
+      // Exact match
+      if (hostName === searchDomain) return true;
+      
+      // Check aliases for exact match
+      if (h.aliases?.some(alias => alias.toLowerCase() === searchDomain)) return true;
+      
+      // For NetBIOS vs FQDN matching
+      const hostParts = hostName.split('.');
+      const searchParts = searchDomain.split('.');
+      
+      // If one is NetBIOS and other is FQDN, compare base names
+      if (hostParts.length !== searchParts.length) {
+        const hostBase = hostParts[0];
+        const searchBase = searchParts[0];
+        return hostBase === searchBase;
+      }
+      
+      return false;
+    });
     
     return matchingDomain || null;
   }
