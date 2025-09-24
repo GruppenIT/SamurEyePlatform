@@ -1042,23 +1042,52 @@ class ThreatEngineService {
           break;
 
         case 'ad_hygiene':
-          // For AD Hygiene, find the domain host using normalized domain extraction
-          const domainHost = await this.findDomainHost(finding);
+          // For AD Hygiene, find the domain host - ALL threats link to the SAME domain host
+          const domainHost = await this.findDomainHost(finding, jobId);
           if (domainHost) {
             console.log(`🔗 Linking AD threat to domain host: ${domainHost.name}`);
             return domainHost.id;
           } else {
-            // If no domain host found, try to create one using hostService
-            let domain = finding.evidence?.domain || finding.target;
-            if (domain && domain !== 'unknown') {
+            // If no domain host found, try to create one using the domain from credentials/job context
+            let targetDomain = '';
+            
+            // Try to get domain from job credentials first (most reliable)
+            if (jobId) {
               try {
-                console.log(`🏠 AD Hygiene: Criando host de domínio via hostService para '${domain}'`);
-                const newDomainHost = await hostService.createDomainHost(domain, jobId || 'unknown');
+                const job = await storage.getJob(jobId);
+                if (job) {
+                  const journey = await storage.getJourney(job.journeyId);
+                  if (journey && journey.params.credentialId) {
+                    const credential = await storage.getCredential(journey.params.credentialId);
+                    if (credential && credential.domain) {
+                      targetDomain = credential.domain;
+                    }
+                  } else if (journey && journey.params.domain) {
+                    // Use domain from journey params if available
+                    targetDomain = journey.params.domain;
+                  }
+                }
+              } catch (error) {
+                console.log(`⚠️  AD Hygiene: Erro ao buscar domínio das credenciais:`, error);
+              }
+            }
+            
+            // Fallback to evidence.domain
+            if (!targetDomain && finding.evidence?.domain) {
+              targetDomain = finding.evidence.domain;
+            }
+            
+            if (targetDomain && targetDomain !== 'unknown') {
+              try {
+                console.log(`🏠 AD Hygiene: Criando host de domínio via hostService para '${targetDomain}'`);
+                const newDomainHost = await hostService.createDomainHost(targetDomain, jobId || 'unknown');
                 console.log(`✅ AD Hygiene: Host de domínio criado: ${newDomainHost.name}`);
                 return newDomainHost.id;
               } catch (error) {
                 console.error(`❌ AD Hygiene: Erro ao criar host de domínio:`, error);
               }
+            } else {
+              console.log(`⚠️  AD Hygiene: Não foi possível determinar o domínio para criar host`);
             }
           }
           break;
@@ -1104,33 +1133,59 @@ class ThreatEngineService {
 
   /**
    * Finds and normalizes domain host for AD Hygiene threats
+   * For AD Hygiene, ALL threats should be linked to the SAME domain host
    */
-  private async findDomainHost(finding: any): Promise<any | null> {
-    // Extract domain from various possible sources, normalize consistently
+  private async findDomainHost(finding: any, jobId?: string): Promise<any | null> {
+    // For AD Hygiene, the domain should be consistently extracted
+    // Priority: evidence.domain > try to extract from various sources
     let domain = '';
     
     if (finding.evidence?.domain) {
+      // Best source: explicit domain field
       domain = finding.evidence.domain;
-    } else if (finding.target) {
-      // Handle both FQDN (corp.local) and NetBIOS (CORP) cases
-      const parts = finding.target.split('.');
-      if (parts.length > 1) {
-        // FQDN case: use full domain name
-        domain = finding.target;
-      } else {
-        // NetBIOS case - keep as is but handle it in matching
-        domain = finding.target;
+    } else {
+      // Try to extract domain from the journey context or findings
+      // This requires looking at the job to get the domain being scanned
+      if (jobId) {
+        try {
+          const job = await storage.getJob(jobId);
+          if (job) {
+            const journey = await storage.getJourney(job.journeyId);
+            if (journey && journey.params.credentialId) {
+              // Extract domain from credentials if available
+              const credential = await storage.getCredential(journey.params.credentialId);
+              if (credential && credential.domain) {
+                domain = credential.domain;
+              }
+            } else if (journey && journey.params.domain) {
+              // Use domain from journey params if available
+              domain = journey.params.domain;
+            }
+          }
+        } catch (error) {
+          console.log(`⚠️  AD Hygiene: Erro ao buscar domínio do job ${jobId}:`, error);
+        }
+      }
+      
+      // Fallback: try to extract from target field patterns
+      if (!domain && finding.target) {
+        // Look for FQDN patterns like "gruppenhomologia.local"
+        if (finding.target.includes('.') && !finding.target.startsWith('CN=')) {
+          // Looks like FQDN
+          domain = finding.target;
+        }
       }
     }
     
     // Don't proceed if we don't have a valid domain
     if (!domain || domain === 'unknown') {
-      console.log(`⚠️  AD Hygiene: Domínio inválido ou desconhecido, pulando vinculação`);
+      console.log(`⚠️  AD Hygiene: Não foi possível identificar o domínio para vinculação`);
       return null;
     }
     
     // Normalize domain name to lowercase for consistent matching
     const normalizedDomain = domain.toLowerCase();
+    console.log(`🔍 AD Hygiene: Buscando host do domínio '${normalizedDomain}'`);
     
     // Get all domain hosts and find matching one
     const domainHosts = await storage.getHosts({ type: 'domain' });
@@ -1159,6 +1214,12 @@ class ThreatEngineService {
       
       return false;
     });
+    
+    if (matchingDomain) {
+      console.log(`✅ AD Hygiene: Host de domínio encontrado: ${matchingDomain.name}`);
+    } else {
+      console.log(`❌ AD Hygiene: Nenhum host de domínio encontrado para '${normalizedDomain}'`);
+    }
     
     return matchingDomain || null;
   }
