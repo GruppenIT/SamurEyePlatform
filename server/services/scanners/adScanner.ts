@@ -772,7 +772,7 @@ export class ADScanner {
         if (minPwdLength < 8) {
           findings.push({
             type: 'ad_vulnerability',
-            target: 'Domain Configuration',
+            target: this.domain, // Use domain as target for all AD findings
             name: 'Política de Senha Fraca',
             severity: 'medium',
             category: 'configuration',
@@ -787,7 +787,7 @@ export class ADScanner {
         if (lockoutThreshold === 0) {
           findings.push({
             type: 'ad_vulnerability',
-            target: 'Domain Configuration',
+            target: this.domain, // Use domain as target for all AD findings
             name: 'Política de Bloqueio Desabilitada',
             severity: 'medium',
             category: 'configuration',
@@ -826,7 +826,7 @@ export class ADScanner {
           if (members.length > settings.adMaxPrivilegedGroupMembers) {
             findings.push({
               type: 'ad_vulnerability',
-              target: groupName,
+              target: this.domain, // Use domain as target for all AD findings
               name: 'Grupo Privilegiado com Muitos Membros',
               severity: 'medium',
               category: 'groups',
@@ -859,7 +859,7 @@ export class ADScanner {
         if (pwdHistoryLength < 12) {
           findings.push({
             type: 'ad_vulnerability',
-            target: 'Domain Password Policy',
+            target: this.domain, // Use domain as target for all AD findings
             name: 'Histórico de Senhas Insuficiente',
             severity: 'low',
             category: 'configuration',
@@ -876,7 +876,7 @@ export class ADScanner {
         if (!complexityEnabled) {
           findings.push({
             type: 'ad_vulnerability',
-            target: 'Domain Password Policy',
+            target: this.domain, // Use domain as target for all AD findings
             name: 'Complexidade de Senha Desabilitada',
             severity: 'high',
             category: 'configuration',
@@ -891,7 +891,7 @@ export class ADScanner {
         if (maxPwdAge === 0) {
           findings.push({
             type: 'ad_vulnerability',
-            target: 'Domain Password Policy',
+            target: this.domain, // Use domain as target for all AD findings
             name: 'Senhas Sem Expiração',
             severity: 'medium',
             category: 'configuration',
@@ -916,7 +916,7 @@ export class ADScanner {
           if (trustDirection === 3) { // Bidirectional trust
             findings.push({
               type: 'ad_hygiene',
-              target: trustName,
+              target: this.domain, // Use domain as target for all AD findings
               name: 'Trust Bidirecional Detectado',
               severity: 'low',
               category: 'configuration',
