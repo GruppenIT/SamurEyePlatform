@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -40,7 +40,7 @@ import {
   Eye,
   AlertTriangle
 } from "lucide-react";
-import { Host } from "@shared/schema";
+import { Host, Threat } from "@shared/schema";
 
 export default function Hosts() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -65,7 +65,7 @@ export default function Hosts() {
   });
 
   // Query for threats associated with the selected host
-  const { data: hostThreats = [] } = useQuery({
+  const { data: hostThreats = [] } = useQuery<Threat[]>({
     queryKey: ['/api/threats', { hostId: selectedHost?.id }],
     enabled: !!selectedHost,
   });
@@ -411,30 +411,70 @@ export default function Hosts() {
                 </div>
               </div>
               
-              {/* Ameaças Associadas */}
-              {hostThreats && hostThreats.length > 0 && (
-                <div className="pt-4 border-t">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
-                    Ameaças Identificadas ({hostThreats.length})
-                  </label>
-                  <div className="mt-2 space-y-2">
-                    {hostThreats.map((threat: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-2 border rounded">
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">{threat.title}</div>
-                          <div className="text-xs text-muted-foreground">{threat.description}</div>
+              {/* Resumo de Ameaças por Severidade */}
+              {hostThreats && Array.isArray(hostThreats) && hostThreats.length > 0 && (() => {
+                const threatCounts = useMemo(() => {
+                  return hostThreats.reduce((counts, threat) => {
+                    counts[threat.severity] = (counts[threat.severity] || 0) + 1;
+                    return counts;
+                  }, { critical: 0, high: 0, medium: 0, low: 0 } as Record<string, number>);
+                }, [hostThreats]);
+
+                return (
+                  <div className="pt-4 border-t">
+                    <label className="text-sm font-medium flex items-center gap-2 mb-3">
+                      <AlertTriangle className="h-4 w-4" />
+                      Resumo de Ameaças ({hostThreats.length})
+                    </label>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Crítica */}
+                      <div className="flex items-center justify-between p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                          <span className="text-sm font-medium">Crítica</span>
                         </div>
-                        <Badge variant={threat.severity === 'critical' ? 'destructive' : 
-                                      threat.severity === 'high' ? 'destructive' :
-                                      threat.severity === 'medium' ? 'default' : 'secondary'}>
-                          {threat.severity}
+                        <Badge variant="destructive" className="min-w-[2rem] justify-center" data-testid="text-threats-critical-count">
+                          {threatCounts.critical}
                         </Badge>
                       </div>
-                    ))}
+                      
+                      {/* Alta */}
+                      <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                          <span className="text-sm font-medium">Alta</span>
+                        </div>
+                        <Badge variant="outline" className="min-w-[2rem] justify-center bg-orange-500 text-white border-orange-500 hover:bg-orange-600" data-testid="text-threats-high-count">
+                          {threatCounts.high}
+                        </Badge>
+                      </div>
+                      
+                      {/* Média */}
+                      <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                          <span className="text-sm font-medium">Média</span>
+                        </div>
+                        <Badge variant="outline" className="min-w-[2rem] justify-center bg-yellow-500 text-white border-yellow-500 hover:bg-yellow-600" data-testid="text-threats-medium-count">
+                          {threatCounts.medium}
+                        </Badge>
+                      </div>
+                      
+                      {/* Baixa */}
+                      <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                          <span className="text-sm font-medium">Baixa</span>
+                        </div>
+                        <Badge variant="outline" className="min-w-[2rem] justify-center bg-green-600 text-white border-green-600 hover:bg-green-700" data-testid="text-threats-low-count">
+                          {threatCounts.low}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           )}
         </DialogContent>
