@@ -793,7 +793,7 @@ class ThreatEngineService {
           const threatData = rule.createThreat(finding, undefined, jobId);
           
           // Find associated host for this threat
-          const hostId = await this.findHostForThreat(finding, journeyType);
+          const hostId = await this.findHostForThreat(finding, journeyType, jobId);
           
           // Use upsert logic with lifecycle fields
           const threat = await storage.upsertThreat({
@@ -1011,7 +1011,7 @@ class ThreatEngineService {
   /**
    * Finds the appropriate host for a threat based on the finding and journey type
    */
-  private async findHostForThreat(finding: any, journeyType: string): Promise<string | null> {
+  private async findHostForThreat(finding: any, journeyType: string, jobId?: string): Promise<string | null> {
     try {
       switch (journeyType) {
         case 'attack_surface':
@@ -1054,10 +1054,26 @@ class ThreatEngineService {
           // For EDR/AV, use the hostname from the finding
           const hostname = finding.hostname || finding.target;
           if (hostname) {
-            const hosts = await hostService.findHostsByTarget(hostname);
+            let hosts = await hostService.findHostsByTarget(hostname);
             if (hosts.length > 0) {
               console.log(`🔗 Linking EDR/AV threat to host: ${hosts[0].name} (${hostname})`);
               return hosts[0].id;
+            } else {
+              // Create host if not found (common in EDR-only environments)
+              try {
+                const newHost = await storage.upsertHost({
+                  name: hostname.toLowerCase(),
+                  description: `Host descoberto via teste EDR/AV (Job ID: ${jobId || 'unknown'})`,
+                  type: 'desktop', // Assume desktop for EDR endpoints
+                  family: 'windows_desktop', // Most EDR endpoints are Windows desktops
+                  ips: [], // EDR tests may not have IP information
+                  aliases: [],
+                });
+                console.log(`🏠 Host criado para EDR/AV: ${newHost.name} (${hostname})`);
+                return newHost.id;
+              } catch (error) {
+                console.error(`❌ Erro ao criar host para EDR/AV ${hostname}:`, error);
+              }
             }
           }
           break;

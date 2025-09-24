@@ -652,13 +652,20 @@ export class DatabaseStorage implements IStorage {
     
     if (existingThreat && existingThreat.status !== 'closed') {
       // Update existing threat
+      const updateSet: any = {
+        evidence: threat.evidence,
+        lastSeenAt: threat.lastSeenAt || new Date(),
+        updatedAt: new Date(),
+      };
+      
+      // Only update hostId if provided (avoid nulling existing links)
+      if (threat.hostId !== undefined) {
+        updateSet.hostId = threat.hostId;
+      }
+      
       const [updatedThreat] = await db
         .update(threats)
-        .set({
-          evidence: threat.evidence,
-          lastSeenAt: threat.lastSeenAt || new Date(),
-          updatedAt: new Date(),
-        })
+        .set(updateSet)
         .where(eq(threats.id, existingThreat.id))
         .returning();
       return updatedThreat;
