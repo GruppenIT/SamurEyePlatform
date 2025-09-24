@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
@@ -43,13 +44,26 @@ import {
 import { Host, Threat } from "@shared/schema";
 
 // Threat Summary Component
-function ThreatSummarySection({ threats }: { threats: Threat[] }) {
+function ThreatSummarySection({ threats, hostId }: { threats: Threat[], hostId: string }) {
+  const [, setLocation] = useLocation();
+  
   const threatCounts = useMemo(() => {
     return threats.reduce((counts, threat) => {
       counts[threat.severity] = (counts[threat.severity] || 0) + 1;
       return counts;
     }, { critical: 0, high: 0, medium: 0, low: 0 } as Record<string, number>);
   }, [threats]);
+
+  const handleSeverityClick = (severity: string, count: number) => {
+    if (count > 0) {
+      const params = new URLSearchParams();
+      params.set('hostId', hostId);
+      if (severity !== 'all') {
+        params.set('severity', severity);
+      }
+      setLocation(`/threats?${params.toString()}`);
+    }
+  };
 
   return (
     <div className="pt-4 border-t">
@@ -65,7 +79,12 @@ function ThreatSummarySection({ threats }: { threats: Threat[] }) {
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
             <span className="text-sm font-medium">Crítica</span>
           </div>
-          <Badge variant="destructive" className="min-w-[2rem] justify-center" data-testid="text-threats-critical-count">
+          <Badge 
+            variant="destructive" 
+            className={`min-w-[2rem] justify-center ${threatCounts.critical > 0 ? 'cursor-pointer hover:bg-red-700' : ''}`}
+            data-testid="text-threats-critical-count"
+            onClick={() => handleSeverityClick('critical', threatCounts.critical)}
+          >
             {threatCounts.critical}
           </Badge>
         </div>
@@ -76,7 +95,12 @@ function ThreatSummarySection({ threats }: { threats: Threat[] }) {
             <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
             <span className="text-sm font-medium">Alta</span>
           </div>
-          <Badge variant="outline" className="min-w-[2rem] justify-center bg-orange-500 text-white border-orange-500 hover:bg-orange-600" data-testid="text-threats-high-count">
+          <Badge 
+            variant="outline" 
+            className={`min-w-[2rem] justify-center bg-orange-500 text-white border-orange-500 ${threatCounts.high > 0 ? 'cursor-pointer hover:bg-orange-700' : 'hover:bg-orange-600'}`}
+            data-testid="text-threats-high-count"
+            onClick={() => handleSeverityClick('high', threatCounts.high)}
+          >
             {threatCounts.high}
           </Badge>
         </div>
@@ -87,7 +111,12 @@ function ThreatSummarySection({ threats }: { threats: Threat[] }) {
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
             <span className="text-sm font-medium">Média</span>
           </div>
-          <Badge variant="outline" className="min-w-[2rem] justify-center bg-yellow-500 text-white border-yellow-500 hover:bg-yellow-600" data-testid="text-threats-medium-count">
+          <Badge 
+            variant="outline" 
+            className={`min-w-[2rem] justify-center bg-yellow-500 text-white border-yellow-500 ${threatCounts.medium > 0 ? 'cursor-pointer hover:bg-yellow-700' : 'hover:bg-yellow-600'}`}
+            data-testid="text-threats-medium-count"
+            onClick={() => handleSeverityClick('medium', threatCounts.medium)}
+          >
             {threatCounts.medium}
           </Badge>
         </div>
@@ -98,7 +127,12 @@ function ThreatSummarySection({ threats }: { threats: Threat[] }) {
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             <span className="text-sm font-medium">Baixa</span>
           </div>
-          <Badge variant="outline" className="min-w-[2rem] justify-center bg-green-600 text-white border-green-600 hover:bg-green-700" data-testid="text-threats-low-count">
+          <Badge 
+            variant="outline" 
+            className={`min-w-[2rem] justify-center bg-green-600 text-white border-green-600 ${threatCounts.low > 0 ? 'cursor-pointer hover:bg-green-800' : 'hover:bg-green-700'}`}
+            data-testid="text-threats-low-count"
+            onClick={() => handleSeverityClick('low', threatCounts.low)}
+          >
             {threatCounts.low}
           </Badge>
         </div>
@@ -478,7 +512,7 @@ export default function Hosts() {
               
               {/* Resumo de Ameaças por Severidade */}
               {hostThreats && Array.isArray(hostThreats) && hostThreats.length > 0 && (
-                <ThreatSummarySection threats={hostThreats} />
+                <ThreatSummarySection threats={hostThreats} hostId={selectedHost.id} />
               )}
             </div>
           )}
