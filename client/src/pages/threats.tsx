@@ -84,6 +84,13 @@ export default function Threats() {
     refetchInterval: 60000, // Refresh every minute
   });
 
+  // Fetch threat status history when a threat is selected
+  const { data: statusHistory = [], isLoading: isLoadingHistory } = useQuery<any[]>({
+    queryKey: [`/api/threats/${selectedThreat?.id}/status-history`],
+    enabled: !!selectedThreat,
+    refetchInterval: 10000, // Refresh every 10 seconds when modal is open
+  });
+
   const updateThreatMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Threat> }) => {
       return await apiRequest('PATCH', `/api/threats/${id}`, data);
@@ -95,6 +102,10 @@ export default function Threats() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/threats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/threats/stats"] });
+      // Invalidate status history for the selected threat
+      if (selectedThreat) {
+        queryClient.invalidateQueries({ queryKey: [`/api/threats/${selectedThreat.id}/status-history`] });
+      }
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -163,6 +174,8 @@ export default function Threats() {
         return 'bg-primary/20 text-primary';
       case 'closed':
         return 'bg-chart-4/20 text-chart-4';
+      case 'hibernated':
+        return 'bg-amber-500/20 text-amber-600';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -178,6 +191,8 @@ export default function Threats() {
         return 'Mitigada';
       case 'closed':
         return 'Fechada';
+      case 'hibernated':
+        return 'Hibernada';
       default:
         return status;
     }
@@ -515,6 +530,59 @@ export default function Threats() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Status History Section */}
+              <div>
+                <h4 className="font-medium text-foreground mb-4">Histórico de Status</h4>
+                {isLoadingHistory ? (
+                  <div className="text-center py-4">
+                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                    <p className="text-sm text-muted-foreground">Carregando histórico...</p>
+                  </div>
+                ) : statusHistory.length > 0 ? (
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
+                    {statusHistory.map((entry: any, index: number) => (
+                      <div key={index} className="p-3 bg-muted/50 border rounded-md" data-testid={`status-history-${index}`}>
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            {entry.fromStatus && (
+                              <Badge variant="outline" className="text-xs">
+                                {getStatusLabel(entry.fromStatus)}
+                              </Badge>
+                            )}
+                            <span className="text-muted-foreground text-xs">→</span>
+                            <Badge className={getStatusColor(entry.toStatus) + " text-xs"}>
+                              {getStatusLabel(entry.toStatus)}
+                            </Badge>
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(entry.changedAt || entry.createdAt).toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                        {entry.justification && (
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {entry.justification}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">
+                            Por: {entry.changedBy?.firstName} {entry.changedBy?.lastName} ({entry.changedBy?.email})
+                          </span>
+                          {entry.hibernatedUntil && (
+                            <span className="text-muted-foreground">
+                              Hibernado até: {new Date(entry.hibernatedUntil).toLocaleString('pt-BR')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">Sem histórico de mudanças de status ainda</p>
+                  </div>
+                )}
               </div>
 
               {selectedThreat.evidence && Object.keys(selectedThreat.evidence).length > 0 && (
