@@ -670,6 +670,9 @@ export class DatabaseStorage implements IStorage {
     const existingThreat = await this.findThreatByCorrelationKey(threat.correlationKey);
     
     if (existingThreat && existingThreat.status !== 'closed') {
+      // Check if threat needs reactivation (mitigated, hibernated, or other closed states)
+      const shouldReactivate = ['mitigated', 'hibernated'].includes(existingThreat.status);
+      
       // Update existing threat
       const updateSet: any = {
         evidence: threat.evidence,
@@ -681,12 +684,35 @@ export class DatabaseStorage implements IStorage {
       if (threat.hostId !== undefined) {
         updateSet.hostId = threat.hostId;
       }
+
+      // Reactivate if needed
+      if (shouldReactivate) {
+        updateSet.status = 'open';
+        updateSet.hibernatedUntil = null;
+        updateSet.statusChangedAt = new Date();
+        updateSet.statusJustification = `Reaberta automaticamente: detectada novamente na jornada`;
+        console.log(`🔄 Reativating threat ${existingThreat.id} from ${existingThreat.status} to open - found again in journey`);
+      }
       
       const [updatedThreat] = await db
         .update(threats)
         .set(updateSet)
         .where(eq(threats.id, existingThreat.id))
         .returning();
+
+      // Create status history entry for reactivation
+      if (shouldReactivate) {
+        await this.createThreatStatusHistory({
+          threatId: existingThreat.id,
+          fromStatus: existingThreat.status,
+          toStatus: 'open',
+          justification: `Reaberta automaticamente: detectada novamente na jornada`,
+          hibernatedUntil: null,
+          changedBy: 'system', // System change
+        });
+        console.log(`📋 Created status history for threat reactivation: ${existingThreat.id}`);
+      }
+
       return updatedThreat;
     } else {
       // Create new threat
