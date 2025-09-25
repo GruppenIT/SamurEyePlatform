@@ -1,0 +1,29 @@
+root@vlxsam99:~# journalctl -u samureye-api.service -f | grep -v GET
+Sep 25 21:40:11 vlxsam99 npm[631404]: 9:40:11 PM [express] POST /api/credentials 201 in 10ms :: {"id":"c56b6110-52e5-4598-ba5f-47e96c15df5…
+Sep 25 21:40:31 vlxsam99 npm[631404]: 9:40:31 PM [express] POST /api/journeys 201 in 23ms :: {"id":"417b9717-f77c-41a8-9be6-a8de8e4caef1",…
+Sep 25 21:40:38 vlxsam99 npm[631404]: 9:40:38 PM [express] POST /api/jobs/execute 201 in 20ms :: {"id":"3dbfe326-3b57-45d4-8b90-ce4e7e9b30…
+Sep 25 21:40:38 vlxsam99 npm[631404]: 🏠 Host de domínio criado/atualizado: gruppen.com.br
+Sep 25 21:40:38 vlxsam99 npm[631404]: 🏠 AD Hygiene: Host de domínio criado: gruppen.com.br
+Sep 25 21:40:38 vlxsam99 npm[631404]: Iniciando análise de higiene AD para domínio gruppen.com.br
+Sep 25 21:40:38 vlxsam99 npm[631404]: Encontrados 2 controladores de domínio
+Sep 25 21:40:38 vlxsam99 npm[631404]: 📍 Usando base DN: DC=gruppen,DC=com,DC=br
+Sep 25 21:40:38 vlxsam99 npm[631404]: 🔧 Usando protocolo LDAP na porta 389 conforme especificado
+Sep 25 21:40:38 vlxsam99 npm[631404]: ⚠️  Usando protocolo LDAP não criptografado na porta 389 conforme especificado
+Sep 25 21:40:38 vlxsam99 npm[631404]: Tentando conectar via ldap://vmsdc43.gruppen.com.br:389
+Sep 25 21:40:38 vlxsam99 npm[631404]: Bind falhou em ldap://vmsdc43.gruppen.com.br:389: 80090308: LdapErr: DSID-0C09050F, comment: AcceptSecurityContext error, data 532, v4f7c
+Sep 25 21:40:38 vlxsam99 npm[631404]:  Code: 0x31
+Sep 25 21:40:38 vlxsam99 npm[631404]: Erro durante análise AD: Error: Falha ao conectar em todas as URLs LDAP tentadas. Último erro: 80090308: LdapErr: DSID-0C09050F, comment: AcceptSecurityContext error, data 532, v4f7c
+Sep 25 21:40:38 vlxsam99 npm[631404]:  Code: 0x31
+Sep 25 21:40:38 vlxsam99 npm[631404]:     at ADScanner.connectToAD (file:///opt/samureye/dist/index.js:5062:11)
+Sep 25 21:40:38 vlxsam99 npm[631404]:     at async ADScanner.scanADHygiene (file:///opt/samureye/dist/index.js:4901:7)
+Sep 25 21:40:38 vlxsam99 npm[631404]:     at async JourneyExecutorService.executeADHygiene (file:///opt/samureye/dist/index.js:6366:24)
+Sep 25 21:40:38 vlxsam99 npm[631404]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6192:9)
+Sep 25 21:40:38 vlxsam99 npm[631404]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6874:7)
+Sep 25 21:40:38 vlxsam99 npm[631404]: 🔍 ThreatEngine.analyzeWithLifecycle: Analisando 1 findings para journeyType 'ad_hygiene' (jobId: 3dbfe326-3b57-45d4-8b90-ce4e7e9b30fe)
+Sep 25 21:40:38 vlxsam99 npm[631404]: 📋 Finding: type=ad_vulnerability, name=Falha na Conexão AD, target=gruppen.com.br
+Sep 25 21:40:38 vlxsam99 npm[631404]: ⚪ Nenhuma regra correspondeu ao finding: type=ad_vulnerability, name=Falha na Conexão AD
+Sep 25 21:40:38 vlxsam99 npm[631404]: 🎯 ThreatEngine.analyzeWithLifecycle: Criou 0 ameaças de 1 findings para journeyType 'ad_hygiene'
+Sep 25 21:40:38 vlxsam99 npm[631404]: 🔄 Processing journey completion for job 3dbfe326-3b57-45d4-8b90-ce4e7e9b30fe
+Sep 25 21:40:38 vlxsam99 npm[631404]: 📊 Found 0 open threats for journey 417b9717-f77c-41a8-9be6-a8de8e4caef1
+Sep 25 21:40:38 vlxsam99 npm[631404]: ✅ Journey completion processing finished for job 3dbfe326-3b57-45d4-8b90-ce4e7e9b30fe
+Sep 25 21:40:38 vlxsam99 npm[631404]: 🗑️  Job 3dbfe326-3b57-45d4-8b90-ce4e7e9b30fe removido dos jobs em execução

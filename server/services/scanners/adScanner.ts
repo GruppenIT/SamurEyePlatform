@@ -189,6 +189,115 @@ export class ADScanner {
   }
 
   /**
+   * Mapeia códigos de erro específicos do AD
+   */
+  private mapADError(error: Error): { message: string; isCredentialError: boolean } {
+    const errorStr = error.message;
+    
+    // Extrair código de dados do erro AD (formato: "data 532" ou "data 52e")
+    const dataMatch = errorStr.match(/data\s+(\w+)/i);
+    if (!dataMatch) {
+      return { message: errorStr, isCredentialError: false };
+    }
+    
+    const code = dataMatch[1].toLowerCase();
+    const codeInt = parseInt(code, 16) || parseInt(code, 10);
+    
+    switch (codeInt) {
+      case 525:
+      case 0x525:
+        return {
+          message: "Usuário não encontrado no AD - verifique o nome de usuário",
+          isCredentialError: true
+        };
+      case 0x52e:
+        return {
+          message: "Credenciais inválidas (usuário/senha incorretos) - verifique usuário e senha",
+          isCredentialError: true
+        };
+      case 530:
+      case 0x530:
+        return {
+          message: "Conta não permitida para login neste horário",
+          isCredentialError: true
+        };
+      case 531:
+      case 0x531:
+        return {
+          message: "Conta não permitida para login nesta estação de trabalho",
+          isCredentialError: true
+        };
+      case 532:
+      case 0x532:
+        return {
+          message: "SENHA EXPIRADA - A senha da conta precisa ser alterada no AD. Use uma conta de serviço com 'senha nunca expira' ou atualize a senha desta conta.",
+          isCredentialError: true
+        };
+      case 533:
+      case 0x533:
+        return {
+          message: "Conta desabilitada - habilite a conta no AD ou use uma conta ativa",
+          isCredentialError: true
+        };
+      case 701:
+      case 0x701:
+        return {
+          message: "Conta expirada - a conta passou da data de expiração configurada no AD",
+          isCredentialError: true
+        };
+      case 773:
+      case 0x773:
+        return {
+          message: "RESET DE SENHA OBRIGATÓRIO - O administrador marcou que a senha deve ser alterada no próximo login. Altere a senha no AD.",
+          isCredentialError: true
+        };
+      case 775:
+      case 0x775:
+        return {
+          message: "Conta bloqueada - desbloquear a conta no AD antes de tentar novamente",
+          isCredentialError: true
+        };
+      default:
+        return {
+          message: `Erro de autenticação AD (código ${code}): ${errorStr}`,
+          isCredentialError: true
+        };
+    }
+  }
+
+  /**
+   * Gera diferentes formatos de bind para tentar autenticação
+   */
+  private generateBindFormats(username: string, domain: string): string[] {
+    const formats: string[] = [];
+    
+    // Se já contém @, usar como está primeiro
+    if (username.includes('@')) {
+      formats.push(username);
+    }
+    
+    // Tentar UPN (User Principal Name)
+    if (!username.includes('@')) {
+      formats.push(`${username}@${domain}`);
+    }
+    
+    // Tentar Down-Level Logon Name (DOMAIN\user)
+    const netbiosDomain = domain.split('.')[0].toUpperCase();
+    const downLevelFormat = `${netbiosDomain}\\${username.replace(/@.*$/, '')}`;
+    if (!formats.includes(downLevelFormat)) {
+      formats.push(downLevelFormat);
+    }
+    
+    // Tentar apenas o nome de usuário (para alguns cenários)
+    const plainUsername = username.replace(/@.*$/, '');
+    if (!formats.includes(plainUsername)) {
+      formats.push(plainUsername);
+    }
+    
+    return formats;
+  }
+
+  /**
    * Conecta ao Active Directory
    */
   private async connectToAD(
@@ -253,13 +362,29 @@ export class ADScanner {
           } : undefined,
         });
 
-        // Construir DN do usuário
-        const userDN = username.includes('@') 
-          ? username 
-          : `${username}@${domain}`;
-
-        await this.client.bind(userDN, password);
-        console.log(`Conectado com sucesso via ${url}`);
+        // Tentar diferentes formatos de bind
+        const bindFormats = this.generateBindFormats(username, domain);
+        let bindError: Error | null = null;
+        let successfulFormat = '';
+        
+        for (const bindDN of bindFormats) {
+          try {
+            console.log(`Tentando bind com formato: ${bindDN.includes('\\') ? bindDN.replace(/\\/g, '\\') : bindDN}`);
+            await this.client.bind(bindDN, password);
+            successfulFormat = bindDN;
+            console.log(`✅ Conectado com sucesso via ${url} usando formato: ${bindDN.includes('\\') ? bindDN.replace(/\\/g, '\\') : bindDN}`);
+            break;
+          } catch (err) {
+            bindError = err instanceof Error ? err : new Error(String(err));
+            console.log(`Bind falhou para ${bindDN}: ${bindError.message}`);
+          }
+        }
+        
+        // Se todos os formatos falharam, lançar erro detalhado
+        if (!successfulFormat && bindError) {
+          const { message: detailedMessage, isCredentialError } = this.mapADError(bindError);
+          throw new Error(`Falha na autenticação AD: ${detailedMessage}`);
+        }
         
         // Avisar sobre conexão insegura
         if (url.startsWith('ldap://')) {
