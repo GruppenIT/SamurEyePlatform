@@ -666,12 +666,48 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertThreat(threat: InsertThreat & { correlationKey: string; category: string; lastSeenAt?: Date }): Promise<Threat> {
+    console.log(`📋 UPSERT: Processing threat with correlationKey: ${threat.correlationKey}`);
+    
     // Try to find existing threat by correlation key
     const existingThreat = await this.findThreatByCorrelationKey(threat.correlationKey);
+    
+    if (existingThreat) {
+      console.log(`🔍 UPSERT: Found existing threat ${existingThreat.id} with status: ${existingThreat.status}`);
+    } else {
+      console.log(`🆕 UPSERT: No existing threat found for correlationKey: ${threat.correlationKey}`);
     
     if (existingThreat && existingThreat.status !== 'closed') {
       // Check if threat needs reactivation (mitigated, hibernated, or other closed states)
       const shouldReactivate = ['mitigated', 'hibernated'].includes(existingThreat.status);
+      
+      // Verify journey scope - only reactivate if same journey
+      let sameJourney = false; // Default to false for safety
+      if (shouldReactivate && threat.jobId && existingThreat.jobId) {
+        const [existingJob, newJob] = await Promise.all([
+          this.getJob(existingThreat.jobId),
+          this.getJob(threat.jobId)
+        ]);
+        
+        if (existingJob && newJob && existingJob.journeyId === newJob.journeyId) {
+          sameJourney = true;
+        } else if (existingJob && newJob && existingJob.journeyId !== newJob.journeyId) {
+          console.log(`⚠️ Threat ${existingThreat.id} found in different journey - creating new threat instead of reactivating`);
+        }
+      } else if (shouldReactivate) {
+        console.log(`⚠️ Cannot verify journey scope for threat ${existingThreat.id} - skipping reactivation (missing jobId)`);
+      }
+
+      if (shouldReactivate && !sameJourney) {
+        // Different journey - create new threat instead of reactivating
+        const [newThreat] = await db
+          .insert(threats)
+          .values({
+            ...threat,
+            lastSeenAt: threat.lastSeenAt || new Date(),
+          })
+          .returning();
+        return newThreat;
+      }
       
       // Update existing threat
       const updateSet: any = {
@@ -685,35 +721,41 @@ export class DatabaseStorage implements IStorage {
         updateSet.hostId = threat.hostId;
       }
 
-      // Reactivate if needed
-      if (shouldReactivate) {
-        updateSet.status = 'open';
-        updateSet.hibernatedUntil = null;
-        updateSet.statusChangedAt = new Date();
-        updateSet.statusJustification = `Reaberta automaticamente: detectada novamente na jornada`;
-        console.log(`🔄 Reativating threat ${existingThreat.id} from ${existingThreat.status} to open - found again in journey`);
-      }
-      
-      const [updatedThreat] = await db
-        .update(threats)
-        .set(updateSet)
-        .where(eq(threats.id, existingThreat.id))
-        .returning();
+      // Use transaction for atomicity
+      return await db.transaction(async (tx) => {
+        // Reactivate if needed and same journey
+        if (shouldReactivate) {
+          updateSet.status = 'open';
+          updateSet.hibernatedUntil = null;
+          updateSet.statusChangedAt = new Date();
+          updateSet.statusChangedBy = 'system';
+          updateSet.statusJustification = `Reaberta automaticamente: detectada novamente na jornada`;
+          console.log(`🔄 Reactivating threat ${existingThreat.id} from ${existingThreat.status} to open - found again in journey`);
+        }
+        
+        const [updatedThreat] = await tx
+          .update(threats)
+          .set(updateSet)
+          .where(eq(threats.id, existingThreat.id))
+          .returning();
 
-      // Create status history entry for reactivation
-      if (shouldReactivate) {
-        await this.createThreatStatusHistory({
-          threatId: existingThreat.id,
-          fromStatus: existingThreat.status,
-          toStatus: 'open',
-          justification: `Reaberta automaticamente: detectada novamente na jornada`,
-          hibernatedUntil: null,
-          changedBy: 'system', // System change
-        });
-        console.log(`📋 Created status history for threat reactivation: ${existingThreat.id}`);
-      }
+        // Create status history entry for reactivation
+        if (shouldReactivate) {
+          await tx
+            .insert(threatStatusHistory)
+            .values({
+              threatId: existingThreat.id,
+              fromStatus: existingThreat.status,
+              toStatus: 'open',
+              justification: `Reaberta automaticamente: detectada novamente na jornada`,
+              hibernatedUntil: null,
+              changedBy: 'system',
+            });
+          console.log(`📋 Created status history for threat reactivation: ${existingThreat.id}`);
+        }
 
-      return updatedThreat;
+        return updatedThreat;
+      });
     } else {
       // Create new threat
       const [newThreat] = await db
