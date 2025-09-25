@@ -47,7 +47,7 @@ export const jobStatusEnum = pgEnum('job_status', ['pending', 'running', 'comple
 export const threatSeverityEnum = pgEnum('threat_severity', ['low', 'medium', 'high', 'critical']);
 
 // Threat status enum
-export const threatStatusEnum = pgEnum('threat_status', ['open', 'investigating', 'mitigated', 'closed']);
+export const threatStatusEnum = pgEnum('threat_status', ['open', 'investigating', 'mitigated', 'closed', 'hibernated']);
 
 // Host types enum
 export const hostTypeEnum = pgEnum('host_type', ['server', 'desktop', 'firewall', 'switch', 'router', 'domain', 'other']);
@@ -178,12 +178,33 @@ export const threats = pgTable("threats", {
   category: text("category"), // Journey type semantics (attack_surface, ad_hygiene, edr_av)
   lastSeenAt: timestamp("last_seen_at"), // Last time threat was observed
   closureReason: text("closure_reason"), // Reason for closure ('system', 'manual', etc.)
+  // Status management fields
+  hibernatedUntil: timestamp("hibernated_until"), // Date when hibernation expires
+  statusChangedBy: varchar("status_changed_by").references(() => users.id), // Last user who changed status
+  statusChangedAt: timestamp("status_changed_at"), // Last status change time
+  statusJustification: text("status_justification"), // Justification for last status change
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   assignedTo: varchar("assigned_to").references(() => users.id),
 }, (table) => [
   index("IDX_threats_correlation_key").on(table.correlationKey),
   index("IDX_threats_host_id").on(table.hostId),
+  index("IDX_threats_status").on(table.status),
+]);
+
+// Threat status history table
+export const threatStatusHistory = pgTable("threat_status_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  threatId: varchar("threat_id").references(() => threats.id).notNull(),
+  fromStatus: threatStatusEnum("from_status"),
+  toStatus: threatStatusEnum("to_status").notNull(),
+  justification: text("justification").notNull(),
+  hibernatedUntil: timestamp("hibernated_until"), // Only for hibernated status
+  changedBy: varchar("changed_by").references(() => users.id).notNull(),
+  changedAt: timestamp("changed_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_threat_status_history_threat_id").on(table.threatId),
+  index("IDX_threat_status_history_changed_at").on(table.changedAt),
 ]);
 
 // Settings table
@@ -277,7 +298,7 @@ export const hostsRelations = relations(hosts, ({ many }) => ({
   threats: many(threats),
 }));
 
-export const threatsRelations = relations(threats, ({ one }) => ({
+export const threatsRelations = relations(threats, ({ one, many }) => ({
   asset: one(assets, {
     fields: [threats.assetId],
     references: [assets.id],
@@ -292,6 +313,22 @@ export const threatsRelations = relations(threats, ({ one }) => ({
   }),
   assignedTo: one(users, {
     fields: [threats.assignedTo],
+    references: [users.id],
+  }),
+  statusChangedBy: one(users, {
+    fields: [threats.statusChangedBy],
+    references: [users.id],
+  }),
+  statusHistory: many(threatStatusHistory),
+}));
+
+export const threatStatusHistoryRelations = relations(threatStatusHistory, ({ one }) => ({
+  threat: one(threats, {
+    fields: [threatStatusHistory.threatId],
+    references: [threats.id],
+  }),
+  changedBy: one(users, {
+    fields: [threatStatusHistory.changedBy],
     references: [users.id],
   }),
 }));
@@ -394,6 +431,26 @@ export const insertSettingSchema = createInsertSchema(settings).omit({
   updatedBy: true,
 });
 
+export const insertThreatStatusHistorySchema = createInsertSchema(threatStatusHistory).omit({
+  id: true,
+  changedAt: true,
+});
+
+// Schema for status change with justification
+export const changeThreatStatusSchema = z.object({
+  status: z.enum(['open', 'investigating', 'mitigated', 'closed', 'hibernated']),
+  justification: z.string().min(10, "Justificativa deve ter pelo menos 10 caracteres"),
+  hibernatedUntil: z.string().datetime().optional(), // ISO string for hibernated status
+}).refine(data => {
+  if (data.status === 'hibernated' && !data.hibernatedUntil) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Data limite é obrigatória para status hibernado",
+  path: ["hibernatedUntil"],
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type RegisterUser = z.infer<typeof registerUserSchema>;
@@ -417,4 +474,7 @@ export type Threat = typeof threats.$inferSelect;
 export type InsertThreat = z.infer<typeof insertThreatSchema>;
 export type Setting = typeof settings.$inferSelect;
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
+export type ThreatStatusHistory = typeof threatStatusHistory.$inferSelect;
+export type InsertThreatStatusHistory = z.infer<typeof insertThreatStatusHistorySchema>;
+export type ChangeThreatStatus = z.infer<typeof changeThreatStatusSchema>;
 export type AuditLogEntry = typeof auditLog.$inferSelect;
