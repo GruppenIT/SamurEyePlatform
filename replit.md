@@ -88,3 +88,11 @@ Role-based access control (RBAC) supports three user roles: global_administrator
 - **UI Terminology Updated**: Renamed "Ativos" to "Alvos" throughout the user interface for improved clarity while maintaining technical consistency in backend identifiers
 - **Host Filters Fixed**: Resolved PostgreSQL enum errors in host filtering by correcting frontend filter values to match database enum constraints; host_type values now properly use 'server', 'desktop', 'firewall', 'switch', 'router', 'domain', 'other' and host_family uses 'linux', 'windows_server', 'windows_desktop', 'fortios', 'network_os', 'other'
 - **Authentication Access**: Development environment uses admin@example.com/admin for system access, with proper bcrypt password hashing and session management
+
+### September 25, 2025
+- **Cross-Journey Threat Reactivation Implemented**: Complete implementation of automatic reactivation system for mitigated/closed threats detected across different journey types (Attack Surface, AD Hygiene, EDR/AV), enabling proper threat lifecycle management with cross-journey intelligence
+- **Duplicate Prevention System Deployed**: Implemented structural duplicate prevention using partial unique index on threats.correlation_key, preventing database-level creation of duplicate threats while maintaining support for intentionally closed/duplicate entries 
+- **Physical Deduplication Completed**: Consolidated 9 existing duplicate threats in database, maintaining canonical versions and removing redundant entries along with their associated history records to ensure data integrity
+- **Critical Bug Fixes**: Resolved immediate closure protection bug using job-specific timing logic (threat.jobId === jobId && statusChangedBy === 'system') replacing fragile timeout-based approach; fixed jobId overwrite issue preventing proper threat attribution across journey executions
+- **Atomic Upsert Operations**: Implemented onConflictDoUpdate in storage.upsertThreat for thread-safe threat processing, preventing race conditions during concurrent journey executions while ensuring proper conflict resolution
+- **Enhanced Threat Intelligence**: Modified ThreatEngine to support global threat reactivation across journey boundaries while maintaining proper closure logic for threats not re-detected in current journey scope, improving accuracy of threat status lifecycle management
