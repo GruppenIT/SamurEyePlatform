@@ -767,34 +767,54 @@ export class DatabaseStorage implements IStorage {
         return updatedThreat;
       });
     } else {
-      // Create new threat with conflict resolution
+      // Create new threat with defensive conflict resolution
       console.log(`🆕 UPSERT: Creating new threat with correlationKey: ${threat.correlationKey}`);
       
-      const [newThreat] = await db
-        .insert(threats)
-        .values({
-          ...threat,
-          lastSeenAt: threat.lastSeenAt || new Date(),
-        })
-        .onConflictDoUpdate({
-          target: threats.correlationKey,
-          set: {
-            status: sql`'open'`,
+      try {
+        // Try using onConflictDoUpdate if unique index exists (development/updated environments)
+        const [newThreat] = await db
+          .insert(threats)
+          .values({
+            ...threat,
             lastSeenAt: threat.lastSeenAt || new Date(),
-            updatedAt: new Date(),
-            jobId: threat.jobId || sql`job_id`, // Keep existing if not provided
-            hostId: threat.hostId !== undefined ? threat.hostId : sql`host_id`, // Keep existing if not provided
-            evidence: threat.evidence,
-            hibernatedUntil: null,
-            statusChangedAt: new Date(),
-            statusChangedBy: sql`'system'`,
-            statusJustification: sql`'Reaberta automaticamente: detectada novamente durante varredura'`,
-          },
-        })
-        .returning();
-        
-      console.log(`✅ UPSERT: Processed threat ${newThreat.id} via onConflict - status: ${newThreat.status}`);
-      return newThreat;
+          })
+          .onConflictDoUpdate({
+            target: threats.correlationKey,
+            set: {
+              status: sql`'open'`,
+              lastSeenAt: threat.lastSeenAt || new Date(),
+              updatedAt: new Date(),
+              jobId: threat.jobId || sql`job_id`, // Keep existing if not provided
+              hostId: threat.hostId !== undefined ? threat.hostId : sql`host_id`, // Keep existing if not provided
+              evidence: threat.evidence,
+              hibernatedUntil: null,
+              statusChangedAt: new Date(),
+              statusChangedBy: sql`'system'`,
+              statusJustification: sql`'Reaberta automaticamente: detectada novamente durante varredura'`,
+            },
+          })
+          .returning();
+          
+        console.log(`✅ UPSERT: Processed threat ${newThreat.id} via onConflict - status: ${newThreat.status}`);
+        return newThreat;
+      } catch (error) {
+        // If onConflict fails (e.g., no unique index in on-premise), use simple insert
+        if ((error as any)?.code === '42P10') {
+          console.log(`⚠️  UPSERT: onConflict not supported, falling back to simple insert`);
+          const [newThreat] = await db
+            .insert(threats)
+            .values({
+              ...threat,
+              lastSeenAt: threat.lastSeenAt || new Date(),
+            })
+            .returning();
+          
+          console.log(`✅ UPSERT: Created new threat ${newThreat.id} via fallback insert - status: ${newThreat.status}`);
+          return newThreat;
+        }
+        // Re-throw other errors
+        throw error;
+      }
     }
   }
 

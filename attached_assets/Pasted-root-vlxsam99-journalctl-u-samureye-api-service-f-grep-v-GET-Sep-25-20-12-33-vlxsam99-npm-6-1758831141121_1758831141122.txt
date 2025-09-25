@@ -1,0 +1,77 @@
+root@vlxsam99:~# journalctl -u samureye-api.service -f | grep -v GET
+Sep 25 20:12:33 vlxsam99 npm[608571]: 8:12:33 PM [express] POST /api/jobs/execute 201 in 18ms :: {"id":"bc8c7d71-28c3-42d6-8f3b-023e9b20dd…
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🏠 Host de domínio criado/atualizado: gruppen.com.br
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🏠 AD Hygiene: Host de domínio criado: gruppen.com.br
+Sep 25 20:12:33 vlxsam99 npm[608571]: Iniciando análise de higiene AD para domínio gruppen.com.br
+Sep 25 20:12:33 vlxsam99 npm[608571]: Encontrados 2 controladores de domínio
+Sep 25 20:12:33 vlxsam99 npm[608571]: 📍 Usando base DN: DC=gruppen,DC=com,DC=br
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔧 Usando protocolo LDAP na porta 389 conforme especificado
+Sep 25 20:12:33 vlxsam99 npm[608571]: ⚠️  Usando protocolo LDAP não criptografado na porta 389 conforme especificado
+Sep 25 20:12:33 vlxsam99 npm[608571]: Tentando conectar via ldap://vmsdc43.gruppen.com.br:389
+Sep 25 20:12:33 vlxsam99 npm[608571]: Conectado com sucesso via ldap://vmsdc43.gruppen.com.br:389
+Sep 25 20:12:33 vlxsam99 npm[608571]: ⚠️  ATENÇÃO: Conexão LDAP não criptografada em uso - não recomendado para produção
+Sep 25 20:12:33 vlxsam99 npm[608571]: 📊 Iniciando análises de higiene AD...
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=user)
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Domain Admins)
+Sep 25 20:12:33 vlxsam99 npm[608571]: ✅ Análise de usuários concluída: 16 achados
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Domain Admins)
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Enterprise Admins)
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Schema Admins)
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Administrators)
+Sep 25 20:12:33 vlxsam99 npm[608571]: ✅ Análise de grupos concluída: 3 achados
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=computer)
+Sep 25 20:12:33 vlxsam99 npm[608571]: ✅ Análise de computadores concluída: 19 achados
+Sep 25 20:12:33 vlxsam99 npm[608571]: ✅ Análise de políticas concluída: 1 achados
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=domain)
+Sep 25 20:12:33 vlxsam99 npm[608571]: ✅ Análise de configuração concluída: 1 achados
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Domain Admins)
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Enterprise Admins)
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Schema Admins)
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Administrators)
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=domain)
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=trustedDomain)
+Sep 25 20:12:33 vlxsam99 npm[608571]: ✅ Análise de configuração de domínio concluída: 5 achados
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 ThreatEngine.analyzeWithLifecycle: Analisando 45 findings para journeyType 'ad_hygiene' (jobId: bc8c7d71-28c3-42d6-8f3b-023e9b20dd1a)
+Sep 25 20:12:33 vlxsam99 npm[608571]: 📋 Finding: type=ad_vulnerability, name=Domain Admin com Senha Crítica Expirada, target=gruppen.com.br
+Sep 25 20:12:33 vlxsam99 npm[608571]: ✅ Finding matched rule: domain-admin-critical-password-expired
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:12:33 vlxsam99 npm[608571]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔗 Host found for threat: 4775e43b-00db-4635-9004-6572708df2cd
+Sep 25 20:12:33 vlxsam99 npm[608571]: 📋 UPSERT: Processing threat with correlationKey: ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes
+Sep 25 20:12:33 vlxsam99 npm[608571]: 📋 UPSERT: Input threat details - title: Domain Admin com Senha Crítica Expirada, jobId: bc8c7d71-28c3-42d6-8f3b-023e9b20dd1a, status: open
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 FIND: Searching for correlationKey: "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes" (length: 53)
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes"
+Sep 25 20:12:33 vlxsam99 npm[608571]: ❌ FIND: No threat found for key: "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes"
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🔍 UPSERT: Found 0 similar threats: []
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes
+Sep 25 20:12:33 vlxsam99 npm[608571]: Erro na execução do job bc8c7d71-28c3-42d6-8f3b-023e9b20dd1a: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+Sep 25 20:12:33 vlxsam99 npm[608571]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:12:33 vlxsam99 npm[608571]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:12:33 vlxsam99 npm[608571]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:12:33 vlxsam99 npm[608571]:     at async DatabaseStorage.upsertThreat (file:///opt/samureye/dist/index.js:904:27)
+Sep 25 20:12:33 vlxsam99 npm[608571]:     at async ThreatEngineService.analyzeWithLifecycle (file:///opt/samureye/dist/index.js:2511:26)
+Sep 25 20:12:33 vlxsam99 npm[608571]:     at async ThreatEngineService.processJobResults (file:///opt/samureye/dist/index.js:2450:22)
+Sep 25 20:12:33 vlxsam99 npm[608571]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6048:5)
+Sep 25 20:12:33 vlxsam99 npm[608571]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6717:7) {
+Sep 25 20:12:33 vlxsam99 npm[608571]:   length: 148,
+Sep 25 20:12:33 vlxsam99 npm[608571]:   severity: 'ERROR',
+Sep 25 20:12:33 vlxsam99 npm[608571]:   code: '42P10',
+Sep 25 20:12:33 vlxsam99 npm[608571]:   detail: undefined,
+Sep 25 20:12:33 vlxsam99 npm[608571]:   hint: undefined,
+Sep 25 20:12:33 vlxsam99 npm[608571]:   position: undefined,
+Sep 25 20:12:33 vlxsam99 npm[608571]:   internalPosition: undefined,
+Sep 25 20:12:33 vlxsam99 npm[608571]:   internalQuery: undefined,
+Sep 25 20:12:33 vlxsam99 npm[608571]:   where: undefined,
+Sep 25 20:12:33 vlxsam99 npm[608571]:   schema: undefined,
+Sep 25 20:12:33 vlxsam99 npm[608571]:   table: undefined,
+Sep 25 20:12:33 vlxsam99 npm[608571]:   column: undefined,
+Sep 25 20:12:33 vlxsam99 npm[608571]:   dataType: undefined,
+Sep 25 20:12:33 vlxsam99 npm[608571]:   constraint: undefined,
+Sep 25 20:12:33 vlxsam99 npm[608571]:   file: 'plancat.c',
+Sep 25 20:12:33 vlxsam99 npm[608571]:   line: '915',
+Sep 25 20:12:33 vlxsam99 npm[608571]:   routine: 'infer_arbiter_indexes'
+Sep 25 20:12:33 vlxsam99 npm[608571]: }
+Sep 25 20:12:33 vlxsam99 npm[608571]: 🗑️  Job bc8c7d71-28c3-42d6-8f3b-023e9b20dd1a removido dos jobs em execução
