@@ -1,0 +1,2039 @@
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat bdea8b27-e12f-49c5-9a5a-fa2faef65fb0 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_misconfiguration, name=Grupo Privilegiado com Muitos Membros, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: ad-privileged-group-members
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Grupo Privilegiado com Muitos Membros: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins" (length: 62)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat e616b0d2-08e1-4bfe-954f-de7ef798dd2c via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_misconfiguration, name=Grupo Privilegiado com Muitos Membros, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: ad-privileged-group-members
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Grupo Privilegiado com Muitos Membros: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins" (length: 58)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat d457d560-6697-429f-8a81-300006c939ee via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_hygiene, name=Computador Inativo no Domínio, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: inactive-computer-detected
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSVDIS01
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Computador inativo: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSVDIS01" (length: 46)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSVDIS01"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Computador_Inativo_no_Domínio:COM:VMSVDIS01"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSVDIS01
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSVDIS01
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 80235528-b6b0-4b19-96d4-5920b4a7741a via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Computador inativo: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Computador_Inativo_no_Domínio:COM:VMSVDIS01)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_hygiene, name=Computador Inativo no Domínio, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: inactive-computer-detected
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSHO12
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Computador inativo: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSHO12" (length: 44)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSHO12"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Computador_Inativo_no_Domínio:COM:VMSHO12"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSHO12
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSHO12
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat e955cb05-6179-4382-aa70-b3055c5b65e8 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Computador inativo: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Computador_Inativo_no_Domínio:COM:VMSHO12)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_hygiene, name=Computador Inativo no Domínio, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: inactive-computer-detected
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSEAD133
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Computador inativo: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSEAD133" (length: 46)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSEAD133"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Computador_Inativo_no_Domínio:COM:VMSEAD133"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSEAD133
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSEAD133
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 59233032-6a23-435f-afe5-acbb89553640 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Computador inativo: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Computador_Inativo_no_Domínio:COM:VMSEAD133)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_hygiene, name=Computador Inativo no Domínio, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: inactive-computer-detected
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSVDISSO02
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Computador inativo: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSVDISSO02" (length: 48)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSVDISSO02"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Computador_Inativo_no_Domínio:COM:VMSVDISSO02"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSVDISSO02
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSVDISSO02
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 7d591bd3-a5fa-41d8-8de7-fc9fc1812fe5 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Computador inativo: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Computador_Inativo_no_Domínio:COM:VMSVDISSO02)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_hygiene, name=Computador Inativo no Domínio, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: inactive-computer-detected
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:TESTE-CARLOS
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Computador inativo: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Computador_Inativo_no_Domínio:COM:TESTE-CARLOS" (length: 49)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Computador_Inativo_no_Domínio:COM:TESTE-CARLOS"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Computador_Inativo_no_Domínio:COM:TESTE-CARLOS"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Computador_Inativo_no_Domínio:COM:TESTE-CARLOS
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:TESTE-CARLOS
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 8084e41e-49c1-45be-8b85-037e21b8f222 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Computador inativo: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Computador_Inativo_no_Domínio:COM:TESTE-CARLOS)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: obsolete-operating-system
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSVDI45
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSVDI45" (length: 44)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSVDI45"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistema_Operacional_Obsoleto:COM:VMSVDI45"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSVDI45
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSVDI45
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 9eee09ab-f03d-4839-b6dc-6b492a9314f1 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSVDI45)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: obsolete-operating-system
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSTS45
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSTS45" (length: 43)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSTS45"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistema_Operacional_Obsoleto:COM:VMSTS45"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSTS45
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSTS45
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat f56a8e41-8e3a-47b7-9b9f-2807fec3c1c0 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSTS45)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: obsolete-operating-system
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSSIS160
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSSIS160" (length: 45)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSSIS160"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistema_Operacional_Obsoleto:COM:VMSSIS160"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSSIS160
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSSIS160
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 2738d489-adb5-45bc-b153-9ff0fe40bb01 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSSIS160)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: obsolete-operating-system
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSMX46
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSMX46" (length: 43)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSMX46"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistema_Operacional_Obsoleto:COM:VMSMX46"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSMX46
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSMX46
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat efb39a0a-dc6c-4eee-9571-d5314f41287e via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSMX46)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: obsolete-operating-system
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:CMSSITE01
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:CMSSITE01" (length: 45)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:CMSSITE01"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistema_Operacional_Obsoleto:COM:CMSSITE01"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistema_Operacional_Obsoleto:COM:CMSSITE01
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:CMSSITE01
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 7059803d-7f5b-4443-900b-6adade2ebab1 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistema_Operacional_Obsoleto:COM:CMSSITE01)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: obsolete-operating-system
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:KAMILA
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:KAMILA" (length: 42)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:KAMILA"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistema_Operacional_Obsoleto:COM:KAMILA"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistema_Operacional_Obsoleto:COM:KAMILA
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:KAMILA
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 26c1d6e1-7399-4828-b038-bdd185e26c46 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistema_Operacional_Obsoleto:COM:KAMILA)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: obsolete-operating-system
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSXD40
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSXD40" (length: 43)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSXD40"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistema_Operacional_Obsoleto:COM:VMSXD40"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSXD40
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSXD40
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 5afc22f3-3d7c-4b4d-bbce-530ea1ff0373 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSXD40)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: obsolete-operating-system
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSXD41
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSXD41" (length: 43)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSXD41"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistema_Operacional_Obsoleto:COM:VMSXD41"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSXD41
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSXD41
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat ece01e75-4aac-4537-abfc-afc68b834a10 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSXD41)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: obsolete-operating-system
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSFS15
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSFS15" (length: 43)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSFS15"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistema_Operacional_Obsoleto:COM:VMSFS15"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSFS15
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSFS15
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat de25b4d9-caa3-48b5-b384-7f7f7b857ac9 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSFS15)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: obsolete-operating-system
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSWW13OLD
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSWW13OLD" (length: 46)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSWW13OLD"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistema_Operacional_Obsoleto:COM:VMSWW13OLD"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSWW13OLD
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSWW13OLD
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 025bc580-a9ca-43ef-9347-d8b90fb47d37 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSWW13OLD)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: obsolete-operating-system
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSEAD133OLD
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSEAD133OLD" (length: 48)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSEAD133OLD"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistema_Operacional_Obsoleto:COM:VMSEAD133OLD"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSEAD133OLD
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSEAD133OLD
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat c7a62d5f-456a-44ca-b4b2-edac9f9de381 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSEAD133OLD)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: obsolete-operating-system
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSSY05
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSSY05" (length: 43)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSSY05"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistema_Operacional_Obsoleto:COM:VMSSY05"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSSY05
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSSY05
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 2f50e5a4-cb21-494b-bed1-2b1a0cdb5973 via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSSY05)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Sistemas Operacionais Obsoletos, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: ad-obsolete-os
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistemas_Operacionais_Obsoletos:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Sistemas Operacionais Obsoletos, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Sistemas_Operacionais_Obsoletos:COM:gruppen.com.br" (length: 53)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Sistemas_Operacionais_Obsoletos:COM:gruppen.com.br"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Sistemas_Operacionais_Obsoletos:COM:gruppen.com.br"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Sistemas_Operacionais_Obsoletos:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Sistemas_Operacionais_Obsoletos:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat bb9fb3ba-12b3-47f4-bed0-860136f0081b via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Sistemas Operacionais Obsoletos (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Sistemas_Operacionais_Obsoletos:COM:gruppen.com.br)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_hygiene, name=Computadores Inativos, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: ad-inactive-computers
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Computadores_Inativos:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Computadores Inativos, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Computadores_Inativos:COM:gruppen.com.br" (length: 43)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Computadores_Inativos:COM:gruppen.com.br"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Computadores_Inativos:COM:gruppen.com.br"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Computadores_Inativos:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Computadores_Inativos:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 202a121d-c247-4c49-9a03-e84b432128ff via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Computadores Inativos (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Computadores_Inativos:COM:gruppen.com.br)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_hygiene, name=Análise de Políticas Limitada, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚪ Nenhuma regra correspondeu ao finding: type=ad_hygiene, name=Análise de Políticas Limitada
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Política de Senha Fraca, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: ad-weak-password-policy
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Política_de_Senha_Fraca:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Política de Senha Fraca, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Política_de_Senha_Fraca:COM:gruppen.com.br" (length: 45)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Política_de_Senha_Fraca:COM:gruppen.com.br"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Política_de_Senha_Fraca:COM:gruppen.com.br"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Política_de_Senha_Fraca:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Política_de_Senha_Fraca:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 7cab8e7d-6375-4651-a5c4-ff142189d5ac via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Política de Senha Fraca (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Política_de_Senha_Fraca:COM:gruppen.com.br)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Grupo Privilegiado com Muitos Membros, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: privileged-group-too-many-members
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Grupo privilegiado: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins" (length: 58)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ FIND: Using threat bdea8b27-e12f-49c5-9a5a-fa2faef65fb0 with status: open (created: Thu Sep 25 2025 20:37:32 GMT+0000 (Coordinated Universal Time))
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found existing threat bdea8b27-e12f-49c5-9a5a-fa2faef65fb0 with status: open, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Existing threat created: Thu Sep 25 2025 20:37:32 GMT+0000 (Coordinated Universal Time), updated: Thu Sep 25 2025 20:37:32 GMT+0000 (Coordinated Universal Time)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Grupo Privilegiado com Muitos Membros, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: privileged-group-too-many-members
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Grupo privilegiado: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins" (length: 62)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ FIND: Using threat e616b0d2-08e1-4bfe-954f-de7ef798dd2c with status: open (created: Thu Sep 25 2025 20:37:32 GMT+0000 (Coordinated Universal Time))
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found existing threat e616b0d2-08e1-4bfe-954f-de7ef798dd2c with status: open, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Existing threat created: Thu Sep 25 2025 20:37:32 GMT+0000 (Coordinated Universal Time), updated: Thu Sep 25 2025 20:37:32 GMT+0000 (Coordinated Universal Time)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Grupo Privilegiado com Muitos Membros, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: privileged-group-too-many-members
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Grupo privilegiado: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins" (length: 58)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ FIND: Using threat d457d560-6697-429f-8a81-300006c939ee with status: open (created: Thu Sep 25 2025 20:37:32 GMT+0000 (Coordinated Universal Time))
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found existing threat d457d560-6697-429f-8a81-300006c939ee with status: open, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Existing threat created: Thu Sep 25 2025 20:37:32 GMT+0000 (Coordinated Universal Time), updated: Thu Sep 25 2025 20:37:32 GMT+0000 (Coordinated Universal Time)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_vulnerability, name=Histórico de Senhas Insuficiente, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: password-history-insufficient
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Histórico de Senhas Insuficiente, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br" (length: 54)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat b81059ca-b150-43f5-af31-35dccdb477ba via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Histórico de Senhas Insuficiente (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 Finding: type=ad_hygiene, name=Trust Bidirecional Detectado, target=gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Finding matched rule: bidirectional-trust-detected
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔗 Host found for threat: 58d0db60-9de4-457a-b947-124cb68fa3fc
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Processing threat with correlationKey: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📋 UPSERT: Input threat details - title: Trust bidirecional: gruppen.com.br, jobId: 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f, status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Searching for correlationKey: "ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br" (length: 50)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br"
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ FIND: No threat found for key: "ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br"
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "a272b6b9-7794-4549-a81c-72f3a0488447",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3015724c-82b5-4017-a917-5151556f8fa2",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "331809eb-a84f-465b-b071-aae0dcbc93d0",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "9cf18cc9-fd6e-4688-8c8e-743619188473",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   },
+Sep 25 20:37:32 vlxsam99 npm[615036]:   {
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "id": "3aabc160-b0dc-450f-8901-f257ca3ecad9",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:svc.prtg",
+Sep 25 20:37:32 vlxsam99 npm[615036]:     "status": "open"
+Sep 25 20:37:32 vlxsam99 npm[615036]:   }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ]
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br
+Sep 25 20:37:32 vlxsam99 npm[615036]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ UPSERT: Created new threat 61c78c12-b09c-476c-a4fa-f3cf2faf20bb via fallback insert - status: open
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Threat upserted: Trust bidirecional: gruppen.com.br (Category: ad_hygiene, HostId: 58d0db60-9de4-457a-b947-124cb68fa3fc, Key: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br)
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🎯 ThreatEngine.analyzeWithLifecycle: Criou 44 ameaças de 45 findings para journeyType 'ad_hygiene'
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🔄 Processing journey completion for job 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f
+Sep 25 20:37:32 vlxsam99 npm[615036]: 📊 Found 41 open threats for journey f781353a-8b8c-4cc6-b90a-8931162aab2f
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 9cf18cc9-fd6e-4688-8c8e-743619188473: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 3aabc160-b0dc-450f-8901-f257ca3ecad9: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 28c2b5ce-94e1-4da7-b496-eb5231d7824e: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat a27833fa-24d3-4725-ac87-821e76cbe554: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 714c6fdf-dc80-43ef-9c39-0315b3cf1a88: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 66eca730-99a8-4aa3-ae1f-0b6f50988342: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 8d70a063-aaef-409f-a272-79f8f1d4ff82: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 0ebc67d5-b6bc-43fb-a6f5-05ec94e16036: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 2f7ae924-a506-4076-b98b-fa153160d0ee: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 77d6c79a-6a69-4fa2-9e5b-3a0eb80be7a4: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 80235528-b6b0-4b19-96d4-5920b4a7741a: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat e955cb05-6179-4382-aa70-b3055c5b65e8: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 59233032-6a23-435f-afe5-acbb89553640: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 7d591bd3-a5fa-41d8-8de7-fc9fc1812fe5: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 8084e41e-49c1-45be-8b85-037e21b8f222: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 9eee09ab-f03d-4839-b6dc-6b492a9314f1: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat f56a8e41-8e3a-47b7-9b9f-2807fec3c1c0: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 2738d489-adb5-45bc-b153-9ff0fe40bb01: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat d457d560-6697-429f-8a81-300006c939ee: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat efb39a0a-dc6c-4eee-9571-d5314f41287e: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 7059803d-7f5b-4443-900b-6adade2ebab1: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 26c1d6e1-7399-4828-b038-bdd185e26c46: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 5afc22f3-3d7c-4b4d-bbce-530ea1ff0373: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat ece01e75-4aac-4537-abfc-afc68b834a10: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat de25b4d9-caa3-48b5-b384-7f7f7b857ac9: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 025bc580-a9ca-43ef-9347-d8b90fb47d37: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat c7a62d5f-456a-44ca-b4b2-edac9f9de381: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 2f50e5a4-cb21-494b-bed1-2b1a0cdb5973: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat bdea8b27-e12f-49c5-9a5a-fa2faef65fb0: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat e616b0d2-08e1-4bfe-954f-de7ef798dd2c: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ❌ Error processing reactivation logic for threat 61c78c12-b09c-476c-a4fa-f3cf2faf20bb: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3063:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3053:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:2996:13)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2962:9)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6137:5)
+Sep 25 20:37:32 vlxsam99 npm[615036]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6805:7) {
+Sep 25 20:37:32 vlxsam99 npm[615036]:   length: 334,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   severity: 'ERROR',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   code: '23503',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   hint: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   position: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalPosition: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   internalQuery: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   where: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   schema: 'public',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   table: 'threat_status_history',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   column: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   dataType: undefined,
+Sep 25 20:37:32 vlxsam99 npm[615036]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   file: 'ri_triggers.c',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   line: '2608',
+Sep 25 20:37:32 vlxsam99 npm[615036]:   routine: 'ri_ReportViolation'
+Sep 25 20:37:32 vlxsam99 npm[615036]: }
+Sep 25 20:37:32 vlxsam99 npm[615036]: ✅ Journey completion processing finished for job 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f
+Sep 25 20:37:32 vlxsam99 npm[615036]: 🗑️  Job 7a0d7a48-3414-4d9a-8a89-8e88112e7d9f removido dos jobs em execução

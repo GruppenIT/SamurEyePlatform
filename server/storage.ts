@@ -1158,7 +1158,7 @@ export class DatabaseStorage implements IStorage {
           AND indexname = 'UQ_threats_correlation_key'
       `);
       
-      const hasUniqueIndex = indexCheck.rowCount > 0;
+      const hasUniqueIndex = (indexCheck.rowCount ?? 0) > 0;
       console.log(`🔍 Índice único de correlation_key: ${hasUniqueIndex ? 'EXISTE' : 'NÃO EXISTE'}`);
       
       if (!hasUniqueIndex) {
@@ -1193,29 +1193,34 @@ export class DatabaseStorage implements IStorage {
 
   private async consolidateDuplicateThreats(): Promise<void> {
     try {
-      // Find duplicates using select query which returns proper array
-      const duplicates = await db
-        .execute(sql`
-          SELECT 
-            correlation_key,
-            COUNT(*) as total,
-            ARRAY_AGG(id ORDER BY created_at ASC) as ids
-          FROM threats 
-          WHERE correlation_key IS NOT NULL
-          GROUP BY correlation_key
-          HAVING COUNT(*) > 1
-        `)
-        .then(result => result.rows || []);
+      // Find duplicates using direct query execution
+      const duplicatesResult = await db.execute(sql`
+        SELECT 
+          correlation_key,
+          COUNT(*) as total,
+          ARRAY_AGG(id ORDER BY created_at ASC) as ids
+        FROM threats 
+        WHERE correlation_key IS NOT NULL
+        GROUP BY correlation_key
+        HAVING COUNT(*) > 1
+      `);
+      
+      const duplicates = duplicatesResult.rows;
       
       if (duplicates.length === 0) {
         console.log('📋 Nenhuma duplicata encontrada');
         return;
       }
       
-      console.log(`📋 Encontradas ${duplicates.length} chaves com duplicatas`);
+      console.log(`📋 Encontradas ${duplicates?.length || 0} chaves com duplicatas`);
       
       // Consolidate each group of duplicates
       let totalRemoved = 0;
+      
+      if (!duplicates || duplicates.length === 0) {
+        console.log('📋 Nenhuma duplicata encontrada para consolidar');
+        return;
+      }
       
       for (const duplicate of duplicates) {
         const ids = (duplicate as any).ids as string[];
