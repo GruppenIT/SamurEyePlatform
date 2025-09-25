@@ -99,7 +99,7 @@ export default function Threats() {
 
   // Fetch threat status history when a threat is selected
   const { data: statusHistory = [], isLoading: isLoadingHistory } = useQuery<any[]>({
-    queryKey: [`/api/threats/${selectedThreat?.id}/status-history`],
+    queryKey: [`/api/threats/${selectedThreat?.id}/history`],
     enabled: !!selectedThreat,
     refetchInterval: 10000, // Refresh every 10 seconds when modal is open
   });
@@ -117,7 +117,7 @@ export default function Threats() {
       queryClient.invalidateQueries({ queryKey: ["/api/threats/stats"] });
       // Invalidate status history for the selected threat
       if (selectedThreat) {
-        queryClient.invalidateQueries({ queryKey: [`/api/threats/${selectedThreat.id}/status-history`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/threats/${selectedThreat.id}/history`] });
       }
     },
     onError: (error) => {
@@ -156,7 +156,7 @@ export default function Threats() {
       if (hibernatedUntil) {
         data.hibernatedUntil = hibernatedUntil;
       }
-      return await apiRequest('POST', `/api/threats/${id}/status`, data);
+      return await apiRequest('PATCH', `/api/threats/${id}/status`, data);
     },
     onSuccess: () => {
       toast({
@@ -167,7 +167,7 @@ export default function Threats() {
       queryClient.invalidateQueries({ queryKey: ["/api/threats/stats"] });
       // Invalidate status history for the specific threat
       if (statusChangeModal.threat) {
-        queryClient.invalidateQueries({ queryKey: [`/api/threats/${statusChangeModal.threat.id}/status-history`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/threats/${statusChangeModal.threat.id}/history`] });
       }
       // Close modal
       setStatusChangeModal({
