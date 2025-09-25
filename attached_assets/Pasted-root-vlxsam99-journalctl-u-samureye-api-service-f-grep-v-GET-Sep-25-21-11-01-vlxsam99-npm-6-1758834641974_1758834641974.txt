@@ -1,0 +1,84 @@
+root@vlxsam99:~# journalctl -u samureye-api.service -f | grep -v GET
+Sep 25 21:11:01 vlxsam99 npm[621876]:   schema: undefined,
+Sep 25 21:11:01 vlxsam99 npm[621876]:   table: undefined,
+Sep 25 21:11:01 vlxsam99 npm[621876]:   column: undefined,
+Sep 25 21:11:01 vlxsam99 npm[621876]:   dataType: undefined,
+Sep 25 21:11:01 vlxsam99 npm[621876]:   constraint: undefined,
+Sep 25 21:11:01 vlxsam99 npm[621876]:   file: 'jsonfuncs.c',
+Sep 25 21:11:01 vlxsam99 npm[621876]:   line: '634',
+Sep 25 21:11:01 vlxsam99 npm[621876]:   routine: 'json_errsave_error'
+Sep 25 21:11:01 vlxsam99 npm[621876]: }
+Sep 25 21:11:01 vlxsam99 npm[621876]: 🗑️  Job 1f6e6994-9a82-407c-a1b1-63eccbc83403 removido dos jobs em execução
+Sep 25 21:11:09 vlxsam99 npm[621876]: 9:11:09 PM [express] POST /api/jobs/execute 201 in 11ms :: {"id":"87777106-5d27-4815-8348-94ec6b2f14…
+Sep 25 21:11:09 vlxsam99 npm[621876]: 🏠 Host de domínio criado/atualizado: gruppen.com.br
+Sep 25 21:11:09 vlxsam99 npm[621876]: 🏠 AD Hygiene: Host de domínio criado: gruppen.com.br
+Sep 25 21:11:09 vlxsam99 npm[621876]: Iniciando análise de higiene AD para domínio gruppen.com.br
+Sep 25 21:11:09 vlxsam99 npm[621876]: Encontrados 2 controladores de domínio
+Sep 25 21:11:09 vlxsam99 npm[621876]: 📍 Usando base DN: DC=gruppen,DC=com,DC=br
+Sep 25 21:11:09 vlxsam99 npm[621876]: 🔧 Usando protocolo LDAP na porta 389 conforme especificado
+Sep 25 21:11:09 vlxsam99 npm[621876]: ⚠️  Usando protocolo LDAP não criptografado na porta 389 conforme especificado
+Sep 25 21:11:09 vlxsam99 npm[621876]: Tentando conectar via ldap://vmsdc43.gruppen.com.br:389
+Sep 25 21:11:09 vlxsam99 npm[621876]: Bind falhou em ldap://vmsdc43.gruppen.com.br:389: 80090308: LdapErr: DSID-0C09050F, comment: AcceptSecurityContext error, data 532, v4f7c
+Sep 25 21:11:09 vlxsam99 npm[621876]:  Code: 0x31
+Sep 25 21:11:09 vlxsam99 npm[621876]: Erro durante análise AD: Error: Falha ao conectar em todas as URLs LDAP. Apenas LDAPS é permitido em produção. Último erro: 80090308: LdapErr: DSID-0C09050F, comment: AcceptSecurityContext error, data 532, v4f7c
+Sep 25 21:11:09 vlxsam99 npm[621876]:  Code: 0x31
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at ADScanner.connectToAD (file:///opt/samureye/dist/index.js:5029:11)
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async ADScanner.scanADHygiene (file:///opt/samureye/dist/index.js:4868:7)
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async JourneyExecutorService.executeADHygiene (file:///opt/samureye/dist/index.js:6333:24)
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6159:9)
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6841:7)
+Sep 25 21:11:09 vlxsam99 npm[621876]: Erro durante análise AD: error: unsupported Unicode escape sequence
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async DatabaseStorage.createJobResult (file:///opt/samureye/dist/index.js:663:25)
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async JourneyExecutorService.executeADHygiene (file:///opt/samureye/dist/index.js:6341:7)
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6159:9)
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6841:7) {
+Sep 25 21:11:09 vlxsam99 npm[621876]:   length: 250,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   severity: 'ERROR',
+Sep 25 21:11:09 vlxsam99 npm[621876]:   code: '22P05',
+Sep 25 21:11:09 vlxsam99 npm[621876]:   detail: '\\u0000 cannot be converted to text.',
+Sep 25 21:11:09 vlxsam99 npm[621876]:   hint: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   position: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   internalPosition: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   internalQuery: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   where: 'JSON data, line 1: ...cceptSecurityContext error, data 532, v4f7c\\u0000...\n' +
+Sep 25 21:11:09 vlxsam99 npm[621876]:     "unnamed portal parameter $4 = '...'",
+Sep 25 21:11:09 vlxsam99 npm[621876]:   schema: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   table: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   column: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   dataType: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   constraint: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   file: 'jsonfuncs.c',
+Sep 25 21:11:09 vlxsam99 npm[621876]:   line: '634',
+Sep 25 21:11:09 vlxsam99 npm[621876]:   routine: 'json_errsave_error'
+Sep 25 21:11:09 vlxsam99 npm[621876]: }
+Sep 25 21:11:09 vlxsam99 npm[621876]: Erro na execução do job 87777106-5d27-4815-8348-94ec6b2f1433: error: unsupported Unicode escape sequence
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async DatabaseStorage.createJobResult (file:///opt/samureye/dist/index.js:663:25)
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async JourneyExecutorService.executeADHygiene (file:///opt/samureye/dist/index.js:6341:7)
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6159:9)
+Sep 25 21:11:09 vlxsam99 npm[621876]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6841:7) {
+Sep 25 21:11:09 vlxsam99 npm[621876]:   length: 250,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   severity: 'ERROR',
+Sep 25 21:11:09 vlxsam99 npm[621876]:   code: '22P05',
+Sep 25 21:11:09 vlxsam99 npm[621876]:   detail: '\\u0000 cannot be converted to text.',
+Sep 25 21:11:09 vlxsam99 npm[621876]:   hint: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   position: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   internalPosition: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   internalQuery: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   where: 'JSON data, line 1: ...cceptSecurityContext error, data 532, v4f7c\\u0000...\n' +
+Sep 25 21:11:09 vlxsam99 npm[621876]:     "unnamed portal parameter $4 = '...'",
+Sep 25 21:11:09 vlxsam99 npm[621876]:   schema: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   table: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   column: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   dataType: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   constraint: undefined,
+Sep 25 21:11:09 vlxsam99 npm[621876]:   file: 'jsonfuncs.c',
+Sep 25 21:11:09 vlxsam99 npm[621876]:   line: '634',
+Sep 25 21:11:09 vlxsam99 npm[621876]:   routine: 'json_errsave_error'
+Sep 25 21:11:09 vlxsam99 npm[621876]: }
+Sep 25 21:11:09 vlxsam99 npm[621876]: 🗑️  Job 87777106-5d27-4815-8348-94ec6b2f1433 removido dos jobs em execução
