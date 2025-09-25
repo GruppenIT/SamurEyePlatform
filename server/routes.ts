@@ -583,6 +583,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Change threat status with justification
+  app.patch('/api/threats/:id/status', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      const { status, justification, hibernatedUntil } = req.body;
+      
+      // Validate input
+      if (!status || !justification) {
+        return res.status(400).json({ message: "Status e justificativa são obrigatórios" });
+      }
+      
+      if (justification.length < 10) {
+        return res.status(400).json({ message: "Justificativa deve ter pelo menos 10 caracteres" });
+      }
+      
+      if (status === 'hibernated' && !hibernatedUntil) {
+        return res.status(400).json({ message: "Data limite é obrigatória para status hibernado" });
+      }
+      
+      const beforeThreat = await storage.getThreat(id);
+      if (!beforeThreat) {
+        return res.status(404).json({ message: "Ameaça não encontrada" });
+      }
+      
+      // Update threat with new status
+      const updates: any = {
+        status,
+        statusChangedBy: userId,
+        statusChangedAt: new Date(),
+        statusJustification: justification,
+        updatedAt: new Date(),
+      };
+      
+      if (status === 'hibernated' && hibernatedUntil) {
+        updates.hibernatedUntil = new Date(hibernatedUntil);
+      } else {
+        updates.hibernatedUntil = null;
+      }
+      
+      const threat = await storage.updateThreat(id, updates);
+      
+      // Create status history entry
+      await storage.createThreatStatusHistory({
+        threatId: id,
+        fromStatus: beforeThreat.status,
+        toStatus: status,
+        justification,
+        hibernatedUntil: status === 'hibernated' && hibernatedUntil ? new Date(hibernatedUntil) : null,
+        changedBy: userId,
+      });
+      
+      // Log audit
+      await storage.logAudit({
+        actorId: userId,
+        action: 'change_status',
+        objectType: 'threat',
+        objectId: id,
+        before: { status: beforeThreat.status },
+        after: { status, justification },
+      });
+      
+      res.json(threat);
+    } catch (error) {
+      console.error("Erro ao alterar status da ameaça:", error);
+      res.status(400).json({ message: "Falha ao alterar status da ameaça" });
+    }
+  });
+
+  // Get threat status history
+  app.get('/api/threats/:id/history', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const history = await storage.getThreatStatusHistory(id);
+      res.json(history);
+    } catch (error) {
+      console.error("Erro ao buscar histórico da ameaça:", error);
+      res.status(500).json({ message: "Falha ao buscar histórico" });
+    }
+  });
+
   app.get('/api/threats/stats', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const stats = await storage.getThreatStats();

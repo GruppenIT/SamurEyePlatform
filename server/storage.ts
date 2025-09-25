@@ -10,6 +10,7 @@ import {
   hosts,
   settings,
   auditLog,
+  threatStatusHistory,
   type User,
   type UpsertUser,
   type Asset,
@@ -29,6 +30,8 @@ import {
   type InsertThreat,
   type Setting,
   type InsertSetting,
+  type ThreatStatusHistory,
+  type InsertThreatStatusHistory,
   type AuditLogEntry,
 } from "@shared/schema";
 import { db } from "./db";
@@ -110,6 +113,10 @@ export interface IStorage {
   listOpenThreatsByJourney(journeyId: string, category?: string): Promise<Threat[]>;
   closeThreatSystem(id: string, reason?: string): Promise<Threat>;
   upsertThreat(threat: InsertThreat & { correlationKey: string; category: string; lastSeenAt?: Date }): Promise<Threat>;
+  
+  // Threat status history operations
+  createThreatStatusHistory(history: InsertThreatStatusHistory): Promise<ThreatStatusHistory>;
+  getThreatStatusHistory(threatId: string): Promise<(Omit<ThreatStatusHistory, 'changedBy'> & { changedBy: User })[]>;
 
   // Settings operations
   getSetting(key: string): Promise<Setting | undefined>;
@@ -521,6 +528,10 @@ export class DatabaseStorage implements IStorage {
         category: threats.category,
         lastSeenAt: threats.lastSeenAt,
         closureReason: threats.closureReason,
+        hibernatedUntil: threats.hibernatedUntil,
+        statusChangedBy: threats.statusChangedBy,
+        statusChangedAt: threats.statusChangedAt,
+        statusJustification: threats.statusJustification,
         createdAt: threats.createdAt,
         updatedAt: threats.updatedAt,
         assignedTo: threats.assignedTo,
@@ -567,6 +578,10 @@ export class DatabaseStorage implements IStorage {
       category: row.category,
       lastSeenAt: row.lastSeenAt,
       closureReason: row.closureReason,
+      hibernatedUntil: row.hibernatedUntil,
+      statusChangedBy: row.statusChangedBy,
+      statusChangedAt: row.statusChangedAt,
+      statusJustification: row.statusJustification,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       assignedTo: row.assignedTo,
@@ -619,6 +634,10 @@ export class DatabaseStorage implements IStorage {
         category: threats.category,
         lastSeenAt: threats.lastSeenAt,
         closureReason: threats.closureReason,
+        hibernatedUntil: threats.hibernatedUntil,
+        statusChangedBy: threats.statusChangedBy,
+        statusChangedAt: threats.statusChangedAt,
+        statusJustification: threats.statusJustification,
         createdAt: threats.createdAt,
         updatedAt: threats.updatedAt,
         assignedTo: threats.assignedTo,
@@ -680,6 +699,56 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return newThreat;
     }
+  }
+
+  // Threat status history operations
+  async createThreatStatusHistory(history: InsertThreatStatusHistory): Promise<ThreatStatusHistory> {
+    const [newHistory] = await db
+      .insert(threatStatusHistory)
+      .values(history)
+      .returning();
+    return newHistory;
+  }
+
+  async getThreatStatusHistory(threatId: string): Promise<(Omit<ThreatStatusHistory, 'changedBy'> & { changedBy: User })[]> {
+    const results = await db
+      .select({
+        id: threatStatusHistory.id,
+        threatId: threatStatusHistory.threatId,
+        fromStatus: threatStatusHistory.fromStatus,
+        toStatus: threatStatusHistory.toStatus,
+        justification: threatStatusHistory.justification,
+        hibernatedUntil: threatStatusHistory.hibernatedUntil,
+        changedBy: {
+          id: users.id,
+          email: users.email,
+          passwordHash: users.passwordHash,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          role: users.role,
+          profileImageUrl: users.profileImageUrl,
+          mustChangePassword: users.mustChangePassword,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+          lastLogin: users.lastLogin,
+        },
+        changedAt: threatStatusHistory.changedAt,
+      })
+      .from(threatStatusHistory)
+      .innerJoin(users, eq(threatStatusHistory.changedBy, users.id))
+      .where(eq(threatStatusHistory.threatId, threatId))
+      .orderBy(desc(threatStatusHistory.changedAt));
+
+    return results.map(row => ({
+      id: row.id,
+      threatId: row.threatId,
+      fromStatus: row.fromStatus,
+      toStatus: row.toStatus,
+      justification: row.justification,
+      hibernatedUntil: row.hibernatedUntil,
+      changedBy: row.changedBy,
+      changedAt: row.changedAt,
+    }));
   }
 
   // Host operations
