@@ -1,0 +1,1133 @@
+Sep 25 20:52:47 vlxsam99 npm[618568]: 📋 UPSERT: Processing threat with correlationKey: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br
+Sep 25 20:52:47 vlxsam99 npm[618568]: 📋 UPSERT: Input threat details - title: Histórico de Senhas Insuficiente, jobId: 0be277be-375e-4838-9879-b6fd4cdc910c, status: open
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔍 FIND: Searching for correlationKey: "ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br" (length: 54)
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br"
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ FIND: No threat found for key: "ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br"
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:52:47 vlxsam99 npm[618568]:   {
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "id": "f541f031-82ea-4086-809e-d755f8fe9bbc",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "status": "open"
+Sep 25 20:52:47 vlxsam99 npm[618568]:   },
+Sep 25 20:52:47 vlxsam99 npm[618568]:   {
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "id": "41690681-50f4-4c53-b3f0-f16fb302749c",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "status": "open"
+Sep 25 20:52:47 vlxsam99 npm[618568]:   },
+Sep 25 20:52:47 vlxsam99 npm[618568]:   {
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "id": "80f93887-0f6b-4637-a092-d0d5738cd633",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "status": "open"
+Sep 25 20:52:47 vlxsam99 npm[618568]:   },
+Sep 25 20:52:47 vlxsam99 npm[618568]:   {
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "id": "0412d984-54dc-4841-8b7c-6894f6d2120f",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:kamila",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "status": "open"
+Sep 25 20:52:47 vlxsam99 npm[618568]:   },
+Sep 25 20:52:47 vlxsam99 npm[618568]:   {
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "id": "21991376-7a1a-47b8-9fa4-bc469500706c",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "status": "open"
+Sep 25 20:52:47 vlxsam99 npm[618568]:   }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ]
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br
+Sep 25 20:52:47 vlxsam99 npm[618568]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:52:47 vlxsam99 npm[618568]: ✅ UPSERT: Created new threat ba5b11c2-2642-4dd3-abc9-830d00315cfd via fallback insert - status: open
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔄 Threat upserted: Histórico de Senhas Insuficiente (Category: ad_hygiene, HostId: ac3bde97-cd1c-4abe-a281-ee408c3e117c, Key: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br)
+Sep 25 20:52:47 vlxsam99 npm[618568]: 📋 Finding: type=ad_hygiene, name=Trust Bidirecional Detectado, target=gruppen.com.br
+Sep 25 20:52:47 vlxsam99 npm[618568]: ✅ Finding matched rule: bidirectional-trust-detected
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 25 20:52:47 vlxsam99 npm[618568]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔗 Host found for threat: ac3bde97-cd1c-4abe-a281-ee408c3e117c
+Sep 25 20:52:47 vlxsam99 npm[618568]: 📋 UPSERT: Processing threat with correlationKey: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br
+Sep 25 20:52:47 vlxsam99 npm[618568]: 📋 UPSERT: Input threat details - title: Trust bidirecional: gruppen.com.br, jobId: 0be277be-375e-4838-9879-b6fd4cdc910c, status: open
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔍 FIND: Searching for correlationKey: "ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br" (length: 50)
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br"
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ FIND: No threat found for key: "ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br"
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 25 20:52:47 vlxsam99 npm[618568]:   {
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "id": "f541f031-82ea-4086-809e-d755f8fe9bbc",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "status": "open"
+Sep 25 20:52:47 vlxsam99 npm[618568]:   },
+Sep 25 20:52:47 vlxsam99 npm[618568]:   {
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "id": "41690681-50f4-4c53-b3f0-f16fb302749c",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "status": "open"
+Sep 25 20:52:47 vlxsam99 npm[618568]:   },
+Sep 25 20:52:47 vlxsam99 npm[618568]:   {
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "id": "80f93887-0f6b-4637-a092-d0d5738cd633",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "status": "open"
+Sep 25 20:52:47 vlxsam99 npm[618568]:   },
+Sep 25 20:52:47 vlxsam99 npm[618568]:   {
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "id": "0412d984-54dc-4841-8b7c-6894f6d2120f",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:kamila",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "status": "open"
+Sep 25 20:52:47 vlxsam99 npm[618568]:   },
+Sep 25 20:52:47 vlxsam99 npm[618568]:   {
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "id": "21991376-7a1a-47b8-9fa4-bc469500706c",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 25 20:52:47 vlxsam99 npm[618568]:     "status": "open"
+Sep 25 20:52:47 vlxsam99 npm[618568]:   }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ]
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br
+Sep 25 20:52:47 vlxsam99 npm[618568]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 25 20:52:47 vlxsam99 npm[618568]: ✅ UPSERT: Created new threat 6be63638-29aa-4987-a73b-965ae3f08935 via fallback insert - status: open
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔄 Threat upserted: Trust bidirecional: gruppen.com.br (Category: ad_hygiene, HostId: ac3bde97-cd1c-4abe-a281-ee408c3e117c, Key: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br)
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🎯 ThreatEngine.analyzeWithLifecycle: Criou 49 ameaças de 50 findings para journeyType 'ad_hygiene'
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🔄 Processing journey completion for job 0be277be-375e-4838-9879-b6fd4cdc910c
+Sep 25 20:52:47 vlxsam99 npm[618568]: 📊 Found 46 open threats for journey cc3539e3-4af9-4e03-85d1-d2a88a9eb19a
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 0412d984-54dc-4841-8b7c-6894f6d2120f: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 21991376-7a1a-47b8-9fa4-bc469500706c: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat fe1a9397-b949-459f-8695-c6189115b6a2: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat bab6f232-3f32-4710-8edd-13ffe01db5d7: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 93a15553-37cd-4297-8002-0007bdb5af2a: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 34514e1d-09e7-4a3f-846b-ee85a95dfadd: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 11153ab8-015e-4f74-9939-f0529010d2fa: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 1d3389b6-19bb-4b79-985c-01f0dca92029: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat fabbccfd-6678-451c-913a-2e54e47b9561: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 18b9c347-c4a4-4088-9419-67df5362f196: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat d9220dc6-6e52-4f04-8abb-0846e7ae48bc: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 786dbdf0-fc34-4799-b179-6d48d3a3f681: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat d2985cf1-a5ae-46c8-bc37-17386a271f5d: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 1b1c3e81-c06b-479f-8924-e5de11f49251: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 8d48e571-4001-45f2-8325-da1f05c3ded0: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat bc8aab42-d7f4-4403-aa52-dea4deece4e0: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 6f11a078-448b-4691-9251-27614a2960e3: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat ee3bf78c-3183-43b0-ace8-7266c864f9a5: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 4039cd3d-5699-4bdd-bcb4-e56d31c5c5d1: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 845afe48-2f2d-401b-bec1-fc67e02f1e81: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 6c73fd88-593b-4758-adc6-f18863d61a09: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 9731a2d5-1ce2-499d-8953-bf8586cf7a6a: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat ad88f558-6ef4-4c5b-b947-a2f6268ba591: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 1ce55c3b-d8ff-4cf0-a9f1-d7b3022229b7: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 17236f51-8351-4310-b101-ec2c08e1f199: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 00a37daf-e1bf-4e53-92a2-14b6bd2b7d77: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 16732318-5390-4782-944a-5aa2399d61e2: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat cc1850f4-1f96-4f75-8ee2-e53612e405bf: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 4c68181f-2af9-4795-8a82-f0cbdb572abe: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat f1bc8688-a622-47d4-890d-0c2068644f7c: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat a9346076-476d-4f79-9483-01f960b7c270: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 8d202280-0a59-4c47-b9b2-a54c43f23ae0: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat b105755d-83d1-4d0c-ad4a-66312b619a6a: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat b11fc276-2ed7-498b-9240-8532a1cfe90e: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 4e549be5-dc6e-40fb-bbe3-06dbcc3e5402: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ❌ Error processing reactivation logic for threat 6be63638-29aa-4987-a73b-965ae3f08935: error: insert or update on table "threat_status_history" violates foreign key constraint "threat_status_history_changed_by_users_id_fk"
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at /opt/samureye/node_modules/pg-pool/index.js:45:11
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async file:///opt/samureye/node_modules/drizzle-orm/node-postgres/session.js:83:22
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async DatabaseStorage.createThreatStatusHistory (file:///opt/samureye/dist/index.js:943:26)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.updateThreatStatus (file:///opt/samureye/dist/index.js:3068:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.closeThreatAutomatically (file:///opt/samureye/dist/index.js:3058:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processReactivationLogic (file:///opt/samureye/dist/index.js:3001:13)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async ThreatEngineService.processJourneyCompletion (file:///opt/samureye/dist/index.js:2967:9)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:6142:5)
+Sep 25 20:52:47 vlxsam99 npm[618568]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:6810:7) {
+Sep 25 20:52:47 vlxsam99 npm[618568]:   length: 334,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   severity: 'ERROR',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   code: '23503',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   detail: 'Key (changed_by)=(system) is not present in table "users".',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   hint: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   position: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalPosition: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   internalQuery: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   where: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   schema: 'public',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   table: 'threat_status_history',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   column: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   dataType: undefined,
+Sep 25 20:52:47 vlxsam99 npm[618568]:   constraint: 'threat_status_history_changed_by_users_id_fk',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   file: 'ri_triggers.c',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   line: '2608',
+Sep 25 20:52:47 vlxsam99 npm[618568]:   routine: 'ri_ReportViolation'
+Sep 25 20:52:47 vlxsam99 npm[618568]: }
+Sep 25 20:52:47 vlxsam99 npm[618568]: ✅ Journey completion processing finished for job 0be277be-375e-4838-9879-b6fd4cdc910c
+Sep 25 20:52:47 vlxsam99 npm[618568]: 🗑️  Job 0be277be-375e-4838-9879-b6fd4cdc910c removido dos jobs em execução
+^C
+root@vlxsam99:~#

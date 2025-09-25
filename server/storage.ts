@@ -37,6 +37,7 @@ import {
 import { db } from "./db";
 import { eq, desc, and, or, sql, count, like, inArray } from "drizzle-orm";
 import * as os from "os";
+import * as crypto from "crypto";
 
 // Interface for storage operations
 export interface IStorage {
@@ -1150,6 +1151,9 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log('🔧 Verificando estrutura do banco de dados...');
       
+      // Step 0: Ensure system user exists
+      await this.ensureSystemUserExists();
+      
       // Check if unique index exists
       const indexCheck = await db.execute(sql`
         SELECT indexname 
@@ -1188,6 +1192,53 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('❌ Erro na inicialização do banco:', error);
       // Don't throw - let the system continue with fallback mode
+    }
+  }
+
+  private async ensureSystemUserExists(): Promise<void> {
+    try {
+      // Check if system user exists
+      const existingUsers = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, 'system'))
+        .limit(1);
+      
+      if (existingUsers.length === 0) {
+        console.log('🤖 Criando usuário sistema...');
+        
+        // Create system user with Drizzle insert for type safety
+        await db.insert(users).values({
+          id: 'system',
+          email: 'system@samureye.local',
+          firstName: 'Sistema',
+          lastName: 'Automatizado',
+          role: 'global_administrator',
+          passwordHash: crypto.randomBytes(32).toString('hex'), // Unusable random password
+          mustChangePassword: false,
+        }).onConflictDoNothing();
+        
+        console.log('✅ Usuário sistema criado com sucesso!');
+      } else {
+        console.log('✅ Usuário sistema já existe');
+      }
+      
+      // Verify system user exists after creation attempt
+      const verifyUser = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, 'system'))
+        .limit(1);
+        
+      if (verifyUser.length === 0) {
+        console.error('❌ Usuário sistema não foi criado corretamente!');
+        throw new Error('Failed to create system user - this will cause FK violations');
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao verificar/criar usuário sistema:', error);
+      // This is critical for on-premise compatibility - throw to surface configuration issues
+      throw error;
     }
   }
 
