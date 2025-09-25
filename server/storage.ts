@@ -675,6 +675,7 @@ export class DatabaseStorage implements IStorage {
       console.log(`🔍 UPSERT: Found existing threat ${existingThreat.id} with status: ${existingThreat.status}`);
     } else {
       console.log(`🆕 UPSERT: No existing threat found for correlationKey: ${threat.correlationKey}`);
+    }
     
     if (existingThreat && existingThreat.status !== 'closed') {
       // Check if threat needs reactivation (mitigated, hibernated, or other closed states)
