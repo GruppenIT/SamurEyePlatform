@@ -4,6 +4,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
 import { settingsService } from "./services/settingsService";
+import { threatEngine } from "./services/threatEngine";
 
 const app = express();
 
@@ -69,6 +70,10 @@ app.use((req, res, next) => {
 (async () => {
   // Inicializar configurações padrão do sistema
   await settingsService.initializeDefaultSettings();
+  
+  // Start hibernation monitor for automatic threat reactivation
+  console.log('🕒 Iniciando monitor de ameaças hibernadas...');
+  await threatEngine.startHibernationMonitor();
   
   const server = await registerRoutes(app);
 

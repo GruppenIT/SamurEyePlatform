@@ -1237,6 +1237,239 @@ class ThreatEngineService {
     
     return matchingDomain || null;
   }
+
+  /**
+   * Processes threats after a journey completes
+   * Implements automatic closure and reactivation logic
+   */
+  async processJourneyCompletion(jobId: string): Promise<void> {
+    try {
+      console.log(`🔄 Processing journey completion for job ${jobId}`);
+      
+      const job = await storage.getJob(jobId);
+      if (!job) {
+        console.log(`⚠️  Job ${jobId} not found`);
+        return;
+      }
+
+      const journey = await storage.getJourney(job.journeyId);
+      if (!journey) {
+        console.log(`⚠️  Journey ${job.journeyId} not found`);
+        return;
+      }
+
+      // Get all open threats related to this asset/journey type
+      const openThreats = await storage.listOpenThreatsByJourney(job.journeyId, journey.type);
+      console.log(`📊 Found ${openThreats.length} open threats for journey ${job.journeyId}`);
+
+      // For each threat, check if it should be automatically closed or reactivated
+      for (const threat of openThreats) {
+        await this.processReactivationLogic(threat, job, journey);
+      }
+
+      console.log(`✅ Journey completion processing finished for job ${jobId}`);
+    } catch (error) {
+      console.error(`❌ Error processing journey completion for job ${jobId}:`, error);
+    }
+  }
+
+  /**
+   * Processes reactivation logic for specific threat based on journey results
+   */
+  private async processReactivationLogic(threat: Threat, job: any, journey: any): Promise<void> {
+    try {
+      const threatFound = await this.isThreatStillPresent(threat, job, journey);
+      
+      switch (threat.status) {
+        case 'investigating':
+          // Threats under investigation remain in investigating status regardless of findings
+          console.log(`🔍 Threat ${threat.id} remains under investigation`);
+          break;
+          
+        case 'mitigated':
+          if (threatFound) {
+            // Mitigated threat found again - reopen it
+            await this.reactivateThreat(threat.id, 'Ameaça mitigada foi reencontrada durante nova varredura');
+            console.log(`🔄 Mitigated threat ${threat.id} reactivated - found again`);
+          } else {
+            // Mitigated threat not found - close it
+            await this.closeThreatAutomatically(threat.id, 'Ameaça mitigada não foi reencontrada - considerada resolvida');
+            console.log(`✅ Mitigated threat ${threat.id} automatically closed - not found`);
+          }
+          break;
+          
+        case 'hibernated':
+          if (threatFound) {
+            // Hibernated threat found again - reopen it
+            await this.reactivateThreat(threat.id, 'Ameaça hibernada foi reencontrada durante nova varredura');
+            console.log(`🔄 Hibernated threat ${threat.id} reactivated - found again`);
+          }
+          // If hibernated and not found, it remains hibernated until date expires
+          break;
+          
+        case 'open':
+          if (!threatFound) {
+            // Open threat not found - automatically close it
+            await this.closeThreatAutomatically(threat.id, 'Ameaça não foi reencontrada durante nova varredura');
+            console.log(`✅ Open threat ${threat.id} automatically closed - not found`);
+          }
+          break;
+      }
+    } catch (error) {
+      console.error(`❌ Error processing reactivation logic for threat ${threat.id}:`, error);
+    }
+  }
+
+  /**
+   * Checks if a threat is still present based on journey results
+   */
+  private async isThreatStillPresent(threat: Threat, job: any, journey: any): Promise<boolean> {
+    // This is a simplified implementation - in a real system, you would
+    // need to match the threat's evidence against the new findings
+    
+    // For now, we'll implement a basic correlation using correlationKey
+    if (!threat.correlationKey) {
+      return false; // Can't correlate without a key
+    }
+
+    try {
+      // Get job results
+      const jobResults = await storage.getJobResult(job.id);
+      if (!jobResults || !jobResults.artifacts?.findings) {
+        return false;
+      }
+
+      // Look for the same correlation key in the new findings
+      const findings = Array.isArray(jobResults.artifacts.findings) ? jobResults.artifacts.findings : [];
+      const matchingFinding = findings.find((finding: any) => {
+        if (finding.correlationKey === threat.correlationKey) {
+          return true;
+        }
+        
+        // Additional correlation logic based on threat category
+        switch (threat.category) {
+          case 'port_exposure':
+            return finding.type === 'port' && 
+                   finding.port === threat.evidence?.port &&
+                   finding.target === threat.evidence?.host;
+                   
+          case 'vulnerability':
+            return finding.type === 'vulnerability' &&
+                   finding.template === threat.evidence?.templateId;
+                   
+          case 'ad_misconfiguration':
+          case 'ad_vulnerability':
+          case 'ad_hygiene':
+            return finding.type?.startsWith('ad_') &&
+                   finding.name === threat.title;
+                   
+          case 'edr_failure':
+            return finding.type === 'edr_test' &&
+                   finding.hostname === threat.evidence?.hostname &&
+                   finding.eicarRemoved === false;
+                   
+          default:
+            return false;
+        }
+      });
+
+      return !!matchingFinding;
+    } catch (error) {
+      console.error(`❌ Error checking threat presence for threat ${threat.id}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Reactivates a threat (changes status to open)
+   */
+  private async reactivateThreat(threatId: string, justification: string): Promise<void> {
+    await this.updateThreatStatus(threatId, 'open', justification, 'system');
+  }
+
+  /**
+   * Automatically closes a threat
+   */
+  private async closeThreatAutomatically(threatId: string, reason: string): Promise<void> {
+    await this.updateThreatStatus(threatId, 'closed', reason, 'system');
+  }
+
+  /**
+   * Updates threat status with history tracking
+   */
+  private async updateThreatStatus(threatId: string, newStatus: 'open' | 'investigating' | 'mitigated' | 'closed' | 'hibernated', justification: string, changedBy: string, hibernatedUntil?: Date): Promise<void> {
+    const threat = await storage.getThreat(threatId);
+    if (!threat) {
+      throw new Error(`Threat ${threatId} not found`);
+    }
+
+    // Create status history entry
+    await storage.createThreatStatusHistory({
+      threatId,
+      fromStatus: threat.status,
+      toStatus: newStatus,
+      justification,
+      hibernatedUntil: hibernatedUntil || null,
+      changedBy,
+    });
+
+    // Update threat
+    await storage.updateThreat(threatId, {
+      status: newStatus,
+      statusChangedBy: changedBy,
+      statusChangedAt: new Date(),
+      statusJustification: justification,
+      hibernatedUntil: hibernatedUntil || null,
+    });
+  }
+
+  /**
+   * Activates hibernated threats that have passed their hibernation date
+   */
+  async activateHibernatedThreats(): Promise<void> {
+    try {
+      console.log(`🕒 Checking for hibernated threats to activate`);
+      
+      const now = new Date();
+      const threats = await storage.getThreats();
+      
+      const hibernatedThreats = threats.filter(threat => 
+        threat.status === 'hibernated' && 
+        threat.hibernatedUntil && 
+        new Date(threat.hibernatedUntil) <= now
+      );
+
+      console.log(`📊 Found ${hibernatedThreats.length} hibernated threats to activate`);
+
+      for (const threat of hibernatedThreats) {
+        await this.reactivateThreat(
+          threat.id, 
+          `Ameaça reativada automaticamente - período de hibernação expirou em ${threat.hibernatedUntil}`
+        );
+        console.log(`🔄 Hibernated threat ${threat.id} automatically reactivated`);
+      }
+
+      if (hibernatedThreats.length > 0) {
+        console.log(`✅ Activated ${hibernatedThreats.length} hibernated threats`);
+      }
+    } catch (error) {
+      console.error(`❌ Error activating hibernated threats:`, error);
+    }
+  }
+
+  /**
+   * Periodically checks and activates hibernated threats
+   * Should be called by a scheduler
+   */
+  async startHibernationMonitor(): Promise<void> {
+    // Check every hour for hibernated threats
+    setInterval(async () => {
+      await this.activateHibernatedThreats();
+    }, 60 * 60 * 1000); // 1 hour
+
+    // Initial check
+    await this.activateHibernatedThreats();
+  }
 }
 
 export const threatEngine = new ThreatEngineService();

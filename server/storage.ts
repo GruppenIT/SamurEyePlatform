@@ -611,7 +611,7 @@ export class DatabaseStorage implements IStorage {
 
   async listOpenThreatsByJourney(journeyId: string, category?: string): Promise<Threat[]> {
     const conditions = [
-      inArray(threats.status, ['open', 'investigating', 'mitigated'])
+      inArray(threats.status, ['open', 'investigating', 'mitigated', 'hibernated'])
     ];
 
     if (category) {

@@ -53,6 +53,9 @@ class JourneyExecutorService {
     // Process results and generate threats
     await threatEngine.processJobResults(jobId);
     
+    // Process journey completion for threat lifecycle management
+    await threatEngine.processJourneyCompletion(jobId);
+    
     onProgress({ status: 'completed', progress: 100, currentTask: 'Execução finalizada' });
   }
 
