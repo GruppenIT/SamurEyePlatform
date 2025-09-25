@@ -5,6 +5,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
 import { settingsService } from "./services/settingsService";
 import { threatEngine } from "./services/threatEngine";
+import { storage } from "./storage";
 
 const app = express();
 
@@ -69,7 +70,12 @@ app.use((req, res, next) => {
 
 (async () => {
   // Inicializar configurações padrão do sistema
+  console.log('🔧 Inicializando configurações padrão do sistema...');
   await settingsService.initializeDefaultSettings();
+  console.log('✅ Configurações padrão inicializadas com sucesso');
+  
+  // Initialize database structure (unique indexes, duplicate consolidation)
+  await storage.initializeDatabaseStructure();
   
   // Start hibernation monitor for automatic threat reactivation
   console.log('🕒 Iniciando monitor de ameaças hibernadas...');

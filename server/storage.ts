@@ -1144,6 +1144,109 @@ export class DatabaseStorage implements IStorage {
       ],
     };
   }
+
+  // Database initialization and migration utilities
+  async initializeDatabaseStructure(): Promise<void> {
+    try {
+      console.log('🔧 Verificando estrutura do banco de dados...');
+      
+      // Check if unique index exists
+      const indexCheck = await db.execute(sql`
+        SELECT indexname 
+        FROM pg_indexes 
+        WHERE tablename = 'threats' 
+          AND indexname = 'UQ_threats_correlation_key'
+      `);
+      
+      const hasUniqueIndex = indexCheck.rowCount > 0;
+      console.log(`🔍 Índice único de correlation_key: ${hasUniqueIndex ? 'EXISTE' : 'NÃO EXISTE'}`);
+      
+      if (!hasUniqueIndex) {
+        console.log('🔧 Criando estrutura de prevenção de duplicatas...');
+        
+        // Step 1: Consolidate existing duplicates
+        console.log('📋 Consolidando duplicatas existentes...');
+        await this.consolidateDuplicateThreats();
+        
+        // Step 2: Create unique index
+        console.log('🏗️  Criando índice único para correlation_key...');
+        await db.execute(sql`
+          CREATE UNIQUE INDEX "UQ_threats_correlation_key" 
+          ON threats (correlation_key) 
+          WHERE (
+            correlation_key IS NOT NULL 
+            AND (status != 'closed' OR closure_reason != 'duplicate')
+          )
+        `);
+        
+        console.log('✅ Índice único criado com sucesso!');
+        console.log('🎉 Sistema de prevenção de duplicatas ativo!');
+      } else {
+        console.log('✅ Estrutura do banco de dados já está atualizada');
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro na inicialização do banco:', error);
+      // Don't throw - let the system continue with fallback mode
+    }
+  }
+
+  private async consolidateDuplicateThreats(): Promise<void> {
+    try {
+      // Find duplicates using select query which returns proper array
+      const duplicates = await db
+        .execute(sql`
+          SELECT 
+            correlation_key,
+            COUNT(*) as total,
+            ARRAY_AGG(id ORDER BY created_at ASC) as ids
+          FROM threats 
+          WHERE correlation_key IS NOT NULL
+          GROUP BY correlation_key
+          HAVING COUNT(*) > 1
+        `)
+        .then(result => result.rows || []);
+      
+      if (duplicates.length === 0) {
+        console.log('📋 Nenhuma duplicata encontrada');
+        return;
+      }
+      
+      console.log(`📋 Encontradas ${duplicates.length} chaves com duplicatas`);
+      
+      // Consolidate each group of duplicates
+      let totalRemoved = 0;
+      
+      for (const duplicate of duplicates) {
+        const ids = (duplicate as any).ids as string[];
+        const keepId = ids[0]; // Keep the oldest (first in the array)
+        const removeIds = ids.slice(1); // Remove the rest
+        
+        if (removeIds.length > 0) {
+          // Remove status history for duplicates
+          await db.execute(sql`
+            DELETE FROM threat_status_history 
+            WHERE threat_id = ANY(${removeIds})
+          `);
+          
+          // Remove duplicate threats
+          await db.execute(sql`
+            DELETE FROM threats 
+            WHERE id = ANY(${removeIds})
+          `);
+          
+          totalRemoved += removeIds.length;
+          console.log(`🗑️  Removidas ${removeIds.length} duplicatas de ${(duplicate as any).correlation_key}`);
+        }
+      }
+      
+      console.log(`✅ Consolidação concluída: ${totalRemoved} duplicatas removidas`);
+      
+    } catch (error) {
+      console.error('❌ Erro na consolidação de duplicatas:', error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
