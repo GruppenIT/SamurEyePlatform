@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import { relations } from 'drizzle-orm';
 import {
   index,
+  uniqueIndex,
   jsonb,
   pgTable,
   timestamp,
@@ -188,6 +189,7 @@ export const threats = pgTable("threats", {
   assignedTo: varchar("assigned_to").references(() => users.id),
 }, (table) => [
   index("IDX_threats_correlation_key").on(table.correlationKey),
+  uniqueIndex("UQ_threats_correlation_key").on(table.correlationKey).where(sql`correlation_key IS NOT NULL AND (status != 'closed' OR closure_reason != 'duplicate')`),
   index("IDX_threats_host_id").on(table.hostId),
   index("IDX_threats_status").on(table.status),
 ]);

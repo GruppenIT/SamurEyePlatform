@@ -872,6 +872,12 @@ class ThreatEngineService {
     for (const threat of openThreats) {
       if (!threat.correlationKey) continue;
       
+      // Skip threats that were reactivated in the current job to prevent immediate closure
+      if (threat.jobId === jobId && threat.statusChangedBy === 'system') {
+        console.log(`⏰ Skipping threat reactivated in current job: ${threat.title} (jobId: ${jobId})`);
+        continue;
+      }
+      
       // Check if threat's host was in scope but threat wasn't observed
       const threatHost = this.extractHostFromCorrelationKey(threat.correlationKey);
       if (threatHost && scannedHosts.has(threatHost) && !observedKeys.has(threat.correlationKey)) {
@@ -897,6 +903,12 @@ class ThreatEngineService {
     
     for (const threat of openThreats) {
       if (!threat.correlationKey) continue;
+      
+      // Skip threats that were reactivated in the current job to prevent immediate closure
+      if (threat.jobId === jobId && threat.statusChangedBy === 'system') {
+        console.log(`⏰ Skipping AD threat reactivated in current job: ${threat.title} (jobId: ${jobId})`);
+        continue;
+      }
       
       // If threat wasn't observed in this run, condition is fixed - close it
       if (!observedKeys.has(threat.correlationKey)) {
@@ -932,6 +944,12 @@ class ThreatEngineService {
     
     for (const threat of openThreats) {
       if (!threat.correlationKey) continue;
+      
+      // Skip threats that were reactivated in the current job to prevent immediate closure
+      if (threat.jobId === jobId && threat.statusChangedBy === 'system') {
+        console.log(`⏰ Skipping EDR/AV threat reactivated in current job: ${threat.title} (jobId: ${jobId})`);
+        continue;
+      }
       
       const hostname = this.extractHostnameFromEdrKey(threat.correlationKey);
       if (hostname && testedEndpoints.has(hostname)) {
