@@ -225,17 +225,17 @@ export class ADScanner {
     const allowInsecure = process.env.NODE_ENV === 'development';
 
     for (const url of urls) {
-      // Permitir LDAP na porta 389 quando especificamente solicitado
-      const isLdap389 = url === `ldap://${dcHost}:389` && port === 389;
+      // Permitir LDAP quando especificamente solicitado pelo usuário
+      const isLdapExplicitlyRequested = port && url.startsWith('ldap://');
       
-      // Em produção, bloquear LDAP não criptografado EXCETO quando porta 389 for especificada
-      if (!allowInsecure && url.startsWith('ldap://') && !isLdap389) {
-        console.warn('Conexão LDAP não criptografada bloqueada em ambiente de produção');
+      // Em produção, bloquear LDAP não criptografado APENAS quando não foi explicitamente solicitado
+      if (!allowInsecure && url.startsWith('ldap://') && !isLdapExplicitlyRequested) {
+        console.warn('Conexão LDAP não criptografada bloqueada em ambiente de produção (não foi explicitamente solicitada)');
         continue;
       }
       
-      // Avisar sobre uso da porta 389
-      if (isLdap389) {
+      // Avisar sobre uso de LDAP não criptografado
+      if (url.startsWith('ldap://') && port === 389) {
         console.log('⚠️  Usando protocolo LDAP não criptografado na porta 389 conforme especificado');
       }
 
@@ -283,7 +283,7 @@ export class ADScanner {
       }
     }
 
-    throw new Error(`Falha ao conectar em todas as URLs LDAP. ${!allowInsecure ? 'Apenas LDAPS é permitido em produção. ' : ''}Último erro: ${lastError?.message}`);
+    throw new Error(`Falha ao conectar em todas as URLs LDAP tentadas. Último erro: ${lastError?.message}`);
   }
 
   /**
