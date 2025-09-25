@@ -42,6 +42,19 @@ export default function Threats() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [hostFilter, setHostFilter] = useState<string>("all");
   const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null);
+  const [statusChangeModal, setStatusChangeModal] = useState<{
+    threat: Threat | null;
+    isOpen: boolean;
+    newStatus: string;
+    justification: string;
+    hibernatedUntil: string;
+  }>({
+    threat: null,
+    isOpen: false,
+    newStatus: '',
+    justification: '',
+    hibernatedUntil: '',
+  });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -122,6 +135,64 @@ export default function Threats() {
       toast({
         title: "Erro",
         description: "Falha ao atualizar ameaça",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const changeStatusMutation = useMutation({
+    mutationFn: async ({ 
+      id, 
+      status, 
+      justification, 
+      hibernatedUntil 
+    }: { 
+      id: string; 
+      status: string; 
+      justification: string; 
+      hibernatedUntil?: string; 
+    }) => {
+      const data: any = { status, justification };
+      if (hibernatedUntil) {
+        data.hibernatedUntil = hibernatedUntil;
+      }
+      return await apiRequest('POST', `/api/threats/${id}/status`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Status da ameaça atualizado com sucesso",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/threats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/threats/stats"] });
+      // Invalidate status history for the specific threat
+      if (statusChangeModal.threat) {
+        queryClient.invalidateQueries({ queryKey: [`/api/threats/${statusChangeModal.threat.id}/status-history`] });
+      }
+      // Close modal
+      setStatusChangeModal({
+        threat: null,
+        isOpen: false,
+        newStatus: '',
+        justification: '',
+        hibernatedUntil: '',
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Não autorizado",
+          description: "Você foi desconectado. Fazendo login novamente...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Erro",
+        description: "Falha ao alterar status da ameaça",
         variant: "destructive",
       });
     },
@@ -213,9 +284,43 @@ export default function Threats() {
   };
 
   const handleStatusChange = (threat: Threat, newStatus: string) => {
-    updateThreatMutation.mutate({
-      id: threat.id,
-      data: { status: newStatus as any }
+    setStatusChangeModal({
+      threat,
+      isOpen: true,
+      newStatus,
+      justification: '',
+      hibernatedUntil: '',
+    });
+  };
+
+  const handleStatusSubmit = () => {
+    if (!statusChangeModal.threat || !statusChangeModal.justification.trim()) {
+      toast({
+        title: "Erro",
+        description: "Justificativa é obrigatória",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (statusChangeModal.newStatus === 'hibernated' && !statusChangeModal.hibernatedUntil) {
+      toast({
+        title: "Erro",
+        description: "Data limite é obrigatória para hibernação",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const hibernatedUntilISO = statusChangeModal.hibernatedUntil 
+      ? new Date(statusChangeModal.hibernatedUntil).toISOString()
+      : undefined;
+
+    changeStatusMutation.mutate({
+      id: statusChangeModal.threat.id,
+      status: statusChangeModal.newStatus,
+      justification: statusChangeModal.justification,
+      hibernatedUntil: hibernatedUntilISO,
     });
   };
 
@@ -344,6 +449,7 @@ export default function Threats() {
                     <SelectItem value="open">Aberta</SelectItem>
                     <SelectItem value="investigating">Investigando</SelectItem>
                     <SelectItem value="mitigated">Mitigada</SelectItem>
+                    <SelectItem value="hibernated">Hibernada</SelectItem>
                     <SelectItem value="closed">Fechada</SelectItem>
                   </SelectContent>
                 </Select>
@@ -443,7 +549,7 @@ export default function Threats() {
                               <Select
                                 value={threat.status}
                                 onValueChange={(value) => handleStatusChange(threat, value)}
-                                disabled={updateThreatMutation.isPending}
+                                disabled={changeStatusMutation.isPending}
                               >
                                 <SelectTrigger className="w-32 h-8">
                                   <SelectValue />
@@ -452,6 +558,7 @@ export default function Threats() {
                                   <SelectItem value="open">Aberta</SelectItem>
                                   <SelectItem value="investigating">Investigando</SelectItem>
                                   <SelectItem value="mitigated">Mitigada</SelectItem>
+                                  <SelectItem value="hibernated">Hibernada</SelectItem>
                                   <SelectItem value="closed">Fechada</SelectItem>
                                 </SelectContent>
                               </Select>
@@ -723,6 +830,107 @@ export default function Threats() {
                   </details>
                 </div>
               )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Status Change Modal */}
+      <Dialog open={statusChangeModal.isOpen} onOpenChange={(open) => 
+        !open && setStatusChangeModal({
+          threat: null,
+          isOpen: false,
+          newStatus: '',
+          justification: '',
+          hibernatedUntil: '',
+        })
+      }>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Alterar Status da Ameaça</DialogTitle>
+          </DialogHeader>
+          {statusChangeModal.threat && (
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Ameaça:</p>
+                <p className="font-medium">{statusChangeModal.threat.title}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Status atual:</p>
+                <Badge className={getStatusColor(statusChangeModal.threat.status)}>
+                  {getStatusLabel(statusChangeModal.threat.status)}
+                </Badge>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Novo status:</p>
+                <Badge className={getStatusColor(statusChangeModal.newStatus)}>
+                  {getStatusLabel(statusChangeModal.newStatus)}
+                </Badge>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-foreground">
+                  Justificativa *
+                </label>
+                <textarea
+                  className="mt-1 w-full min-h-[80px] px-3 py-2 text-sm border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Descreva o motivo da mudança de status..."
+                  value={statusChangeModal.justification}
+                  onChange={(e) => setStatusChangeModal(prev => ({
+                    ...prev,
+                    justification: e.target.value
+                  }))}
+                  data-testid="textarea-justification"
+                />
+              </div>
+
+              {statusChangeModal.newStatus === 'hibernated' && (
+                <div>
+                  <label className="text-sm font-medium text-foreground">
+                    Data limite para reativação *
+                  </label>
+                  <Input
+                    type="datetime-local"
+                    className="mt-1"
+                    value={statusChangeModal.hibernatedUntil}
+                    onChange={(e) => setStatusChangeModal(prev => ({
+                      ...prev,
+                      hibernatedUntil: e.target.value
+                    }))}
+                    min={new Date().toISOString().slice(0, 16)}
+                    data-testid="input-hibernated-until"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    A ameaça será reativada automaticamente nesta data
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setStatusChangeModal({
+                    threat: null,
+                    isOpen: false,
+                    newStatus: '',
+                    justification: '',
+                    hibernatedUntil: '',
+                  })}
+                  disabled={changeStatusMutation.isPending}
+                  data-testid="button-cancel-status-change"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleStatusSubmit}
+                  disabled={changeStatusMutation.isPending}
+                  data-testid="button-confirm-status-change"
+                >
+                  {changeStatusMutation.isPending ? "Alterando..." : "Confirmar"}
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
