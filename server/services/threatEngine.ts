@@ -881,6 +881,8 @@ class ThreatEngineService {
    * Process Attack Surface auto-closures
    */
   private async processAttackSurfaceClosures(journeyId: string, jobId: string, findings: any[]): Promise<void> {
+    console.log(`🔍 ATTACK_SURFACE_CLOSURES: Starting with journeyId: ${journeyId}, jobId: ${jobId}`);
+    
     // Get hosts that were scanned in this job
     const scannedHosts = new Set<string>();
     findings.forEach(finding => {
@@ -899,22 +901,46 @@ class ThreatEngineService {
     // Find open threats from previous jobs of this journey
     const openThreats = await storage.listOpenThreatsByJourney(journeyId, 'attack_surface');
     
+    let skippedCurrentJobCount = 0;
+    let closedCount = 0;
+    let keptOpenCount = 0;
+    let noCorrelationKeyCount = 0;
+    let outOfScopeCount = 0;
+    
+    console.log(`📊 ATTACK_SURFACE_METRICS: Starting analysis - scannedHosts: ${scannedHosts.size}, observedKeys: ${observedKeys.size}, openThreats: ${openThreats.length}, currentJobId: ${jobId}`);
+    
     for (const threat of openThreats) {
-      if (!threat.correlationKey) continue;
+      if (!threat.correlationKey) {
+        noCorrelationKeyCount++;
+        continue;
+      }
       
       // Skip ALL threats from the current job to prevent immediate closure
       if (threat.jobId === jobId) {
-        console.log(`⏰ Skipping Attack Surface threat from current job: ${threat.title} (jobId: ${jobId})`);
+        console.log(`⏰ GUARD: Skipping Attack Surface threat from current job: ${threat.title} (jobId: ${jobId})`);
+        skippedCurrentJobCount++;
         continue;
       }
       
       // Check if threat's host was in scope but threat wasn't observed
       const threatHost = this.extractHostFromCorrelationKey(threat.correlationKey);
-      if (threatHost && scannedHosts.has(threatHost) && !observedKeys.has(threat.correlationKey)) {
-        await storage.closeThreatSystem(threat.id, 'system');
-        console.log(`🔒 Attack Surface threat auto-closed: ${threat.title} (not found in new scan)`);
+      if (threatHost && scannedHosts.has(threatHost)) {
+        if (!observedKeys.has(threat.correlationKey)) {
+          console.log(`🔒 CLOSURE: Attack Surface threat ${threat.id} from job ${threat.jobId} - host ${threatHost} scanned but key "${threat.correlationKey}" not observed`);
+          await storage.closeThreatSystem(threat.id, 'system');
+          console.log(`✅ CLOSURE: Attack Surface threat ${threat.id} automatically closed - not found in new scan`);
+          closedCount++;
+        } else {
+          console.log(`✅ KEEP_OPEN: Attack Surface threat ${threat.id} kept open - key ${threat.correlationKey} observed in current scan`);
+          keptOpenCount++;
+        }
+      } else {
+        console.log(`⚪ OUT_OF_SCOPE: Attack Surface threat ${threat.id} - host ${threatHost} not in current scan scope`);
+        outOfScopeCount++;
       }
     }
+    
+    console.log(`✅ ATTACK_SURFACE_METRICS: Completed - skippedCurrentJob: ${skippedCurrentJobCount}, closed: ${closedCount}, keptOpen: ${keptOpenCount}, outOfScope: ${outOfScopeCount}, noCorrelationKey: ${noCorrelationKeyCount}, total: ${openThreats.length}`);
   }
 
   /**
@@ -930,36 +956,42 @@ class ThreatEngineService {
       observedKeys.add(key);
     });
 
-    console.log(`🔍 AD_HYGIENE_CLOSURES: Found ${observedKeys.size} observed keys in current job`);
-
     // Find all open AD threats from previous jobs of this journey
     const openThreats = await storage.listOpenThreatsByJourney(journeyId, 'ad_hygiene');
     
-    console.log(`🔍 AD_HYGIENE_CLOSURES: Found ${openThreats.length} open threats for journey ${journeyId}`);
+    let skippedCurrentJobCount = 0;
+    let closedCount = 0;
+    let keptOpenCount = 0;
+    let noCorrelationKeyCount = 0;
+    
+    console.log(`📊 AD_HYGIENE_METRICS: Starting analysis - observedKeys: ${observedKeys.size}, openThreats: ${openThreats.length}, currentJobId: ${jobId}`);
     
     for (const threat of openThreats) {
-      if (!threat.correlationKey) continue;
-      
-      console.log(`🔍 AD_HYGIENE_CLOSURES: Checking threat ${threat.id} (jobId: "${threat.jobId}", type: ${typeof threat.jobId}) vs current jobId: "${jobId}" (type: ${typeof jobId})`);
-      console.log(`🔍 AD_HYGIENE_CLOSURES: Comparison result: ${threat.jobId === jobId}, strict equal: ${threat.jobId === jobId}, loose equal: ${threat.jobId == jobId}`);
+      if (!threat.correlationKey) {
+        noCorrelationKeyCount++;
+        continue;
+      }
       
       // Skip ALL threats from the current job to prevent immediate closure
       if (threat.jobId === jobId) {
-        console.log(`⏰ Skipping AD threat from current job: ${threat.title} (jobId: ${jobId})`);
+        console.log(`⏰ GUARD: Skipping AD threat from current job: ${threat.title} (jobId: ${jobId})`);
+        skippedCurrentJobCount++;
         continue;
       }
       
       // SAFE AUTO-CLOSURE: Only close threats from previous jobs that weren't observed
       if (!observedKeys.has(threat.correlationKey)) {
-        console.log(`🔒 AD_HYGIENE_CLOSURES: Closing threat ${threat.id} from previous job - key "${threat.correlationKey}" not observed in current scan`);
-        console.log(`🔒 AD_HYGIENE_CLOSURES: Previous jobId: ${threat.jobId}, Current jobId: ${jobId}`);
-        console.log(`🔒 AD_HYGIENE_CLOSURES: Key not in observed keys: ${Array.from(observedKeys).slice(0, 5).join(', ')}... (${observedKeys.size} total)`);
+        console.log(`🔒 CLOSURE: AD threat ${threat.id} from job ${threat.jobId} - key "${threat.correlationKey}" not observed in current scan`);
         await storage.closeThreatSystem(threat.id, 'system');
-        console.log(`✅ Open threat ${threat.id} automatically closed - not found in new scan (possible cleanup/remediation)`);
+        console.log(`✅ CLOSURE: AD threat ${threat.id} automatically closed - not found in new scan (possible cleanup/remediation)`);
+        closedCount++;
       } else {
-        console.log(`✅ AD_HYGIENE_CLOSURES: Keeping threat ${threat.id} open - key ${threat.correlationKey} observed in current scan`);
+        console.log(`✅ KEEP_OPEN: AD threat ${threat.id} kept open - key ${threat.correlationKey} observed in current scan`);
+        keptOpenCount++;
       }
     }
+    
+    console.log(`✅ AD_HYGIENE_METRICS: Completed - skippedCurrentJob: ${skippedCurrentJobCount}, closed: ${closedCount}, keptOpen: ${keptOpenCount}, noCorrelationKey: ${noCorrelationKeyCount}, total: ${openThreats.length}`);
   }
 
   /**
@@ -1325,18 +1357,32 @@ class ThreatEngineService {
       const completedPreviousJobs = previousJobs.filter(j => j.id !== jobId && j.status === 'completed');
       
       if (completedPreviousJobs.length === 0) {
-        console.log(`🆕 First-run detected: Skipping auto-closure for journey ${job.journeyId} - no previous completed jobs`);
+        console.log(`🆕 CLOSURE_METRICS: First-run detected for journey ${job.journeyId} - skipping auto-closure (previousJobsCount: 0, currentJobId: ${jobId})`);
         return;
       }
 
       // Get all open threats related to this asset/journey type
       const openThreats = await storage.listOpenThreatsByJourney(job.journeyId, journey.type);
-      console.log(`📊 Found ${openThreats.length} open threats for journey ${job.journeyId} (${completedPreviousJobs.length} previous jobs exist)`);
+      
+      let skippedCurrentJobCount = 0;
+      let closedCount = 0;
+      let reactivatedCount = 0;
+      
+      console.log(`📊 CLOSURE_METRICS: Journey ${job.journeyId} analysis - openThreats: ${openThreats.length}, previousJobsCount: ${completedPreviousJobs.length}, currentJobId: ${jobId}`);
 
       // For each threat, check if it should be automatically closed or reactivated
       for (const threat of openThreats) {
-        await this.processReactivationLogic(threat, job, journey);
+        const result = await this.processReactivationLogic(threat, job, journey);
+        if (result === 'skipped_current_job') {
+          skippedCurrentJobCount++;
+        } else if (result === 'closed') {
+          closedCount++;
+        } else if (result === 'reactivated') {
+          reactivatedCount++;
+        }
       }
+      
+      console.log(`✅ CLOSURE_METRICS: Journey ${job.journeyId} completed - skippedCurrentJob: ${skippedCurrentJobCount}, closed: ${closedCount}, reactivated: ${reactivatedCount}, processed: ${openThreats.length}`);
 
       console.log(`✅ Journey completion processing finished for job ${jobId}`);
     } catch (error) {
@@ -1346,13 +1392,14 @@ class ThreatEngineService {
 
   /**
    * Processes reactivation logic for specific threat based on journey results
+   * Returns action taken for metrics: 'skipped_current_job' | 'closed' | 'reactivated' | 'no_action'
    */
-  private async processReactivationLogic(threat: Threat, job: any, journey: any): Promise<void> {
+  private async processReactivationLogic(threat: Threat, job: any, journey: any): Promise<string> {
     try {
       // CRITICAL: Never process threats from the current job to prevent immediate closure
       if (threat.jobId === job.id) {
-        console.log(`⏰ Skipping threat from current job: ${threat.title} (threatJobId: ${threat.jobId}, currentJobId: ${job.id})`);
-        return;
+        console.log(`⏰ GUARD: Skipping threat from current job: ${threat.title} (threatJobId: ${threat.jobId}, currentJobId: ${job.id})`);
+        return 'skipped_current_job';
       }
       
       const threatFound = await this.isThreatStillPresent(threat, job, journey);
@@ -1361,18 +1408,20 @@ class ThreatEngineService {
       switch (threat.status) {
         case 'investigating':
           // Threats under investigation remain in investigating status regardless of findings
-          console.log(`🔍 Threat ${threat.id} remains under investigation`);
-          break;
+          console.log(`🔍 LIFECYCLE: Threat ${threat.id} remains under investigation`);
+          return 'no_action';
           
         case 'mitigated':
           if (threatFound) {
             // Mitigated threat found again - reopen it
             await this.reactivateThreat(threat.id, 'Ameaça mitigada foi reencontrada durante nova varredura');
-            console.log(`🔄 Mitigated threat ${threat.id} reactivated - found again`);
+            console.log(`🔄 LIFECYCLE: Mitigated threat ${threat.id} reactivated - found again`);
+            return 'reactivated';
           } else {
             // Mitigated threat not found - close it
             await this.closeThreatAutomatically(threat.id, 'Ameaça mitigada não foi reencontrada - considerada resolvida');
-            console.log(`✅ Mitigated threat ${threat.id} automatically closed - not found`);
+            console.log(`✅ LIFECYCLE: Mitigated threat ${threat.id} automatically closed - not found`);
+            return 'closed';
           }
           break;
           
@@ -1380,7 +1429,8 @@ class ThreatEngineService {
           if (threatFound) {
             // Hibernated threat found again - reopen it
             await this.reactivateThreat(threat.id, 'Ameaça hibernada foi reencontrada durante nova varredura');
-            console.log(`🔄 Hibernated threat ${threat.id} reactivated - found again`);
+            console.log(`🔄 LIFECYCLE: Hibernated threat ${threat.id} reactivated - found again`);
+            return 'reactivated';
           }
           // If hibernated and not found, it remains hibernated until date expires
           break;
@@ -1388,14 +1438,17 @@ class ThreatEngineService {
         case 'open':
           if (!threatFound) {
             // SAFE AUTO-CLOSURE: Only close threats that weren't found in new scan and are from previous jobs
-            console.log(`🔒 REACTIVATION_LOGIC: Closing open threat ${threat.id} from job ${threat.jobId} - not found in current job ${job.id}`);
+            console.log(`🔒 LIFECYCLE: Closing open threat ${threat.id} from job ${threat.jobId} - not found in current job ${job.id}`);
             await this.closeThreatAutomatically(threat.id, 'Ameaça não foi reencontrada durante nova varredura (possível higienização)');
-            console.log(`✅ Open threat ${threat.id} automatically closed - not found (possible cleanup/remediation)`);
+            console.log(`✅ LIFECYCLE: Open threat ${threat.id} automatically closed - not found (possible cleanup/remediation)`);
+            return 'closed';
           }
           break;
       }
+      return 'no_action';
     } catch (error) {
       console.error(`❌ Error processing reactivation logic for threat ${threat.id}:`, error);
+      return 'error';
     }
   }
 
