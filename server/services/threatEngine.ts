@@ -916,7 +916,8 @@ class ThreatEngineService {
     for (const threat of openThreats) {
       if (!threat.correlationKey) continue;
       
-      console.log(`🔍 AD_HYGIENE_CLOSURES: Checking threat ${threat.id} (jobId: ${threat.jobId}) vs current jobId: ${jobId}`);
+      console.log(`🔍 AD_HYGIENE_CLOSURES: Checking threat ${threat.id} (jobId: "${threat.jobId}", type: ${typeof threat.jobId}) vs current jobId: "${jobId}" (type: ${typeof jobId})`);
+      console.log(`🔍 AD_HYGIENE_CLOSURES: Comparison result: ${threat.jobId === jobId}, strict equal: ${threat.jobId === jobId}, loose equal: ${threat.jobId == jobId}`);
       
       // Skip ALL threats from the current job to prevent immediate closure
       if (threat.jobId === jobId) {
