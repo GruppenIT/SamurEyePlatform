@@ -872,9 +872,9 @@ class ThreatEngineService {
     for (const threat of openThreats) {
       if (!threat.correlationKey) continue;
       
-      // Skip threats that were reactivated in the current job to prevent immediate closure
-      if (threat.jobId === jobId && threat.statusChangedBy === 'system') {
-        console.log(`⏰ Skipping threat reactivated in current job: ${threat.title} (jobId: ${jobId})`);
+      // Skip ALL threats from the current job to prevent immediate closure
+      if (threat.jobId === jobId) {
+        console.log(`⏰ Skipping Attack Surface threat from current job: ${threat.title} (jobId: ${jobId})`);
         continue;
       }
       
@@ -904,9 +904,9 @@ class ThreatEngineService {
     for (const threat of openThreats) {
       if (!threat.correlationKey) continue;
       
-      // Skip threats that were reactivated in the current job to prevent immediate closure
-      if (threat.jobId === jobId && threat.statusChangedBy === 'system') {
-        console.log(`⏰ Skipping AD threat reactivated in current job: ${threat.title} (jobId: ${jobId})`);
+      // Skip ALL threats from the current job to prevent immediate closure
+      if (threat.jobId === jobId) {
+        console.log(`⏰ Skipping AD threat from current job: ${threat.title} (jobId: ${jobId})`);
         continue;
       }
       
@@ -945,9 +945,9 @@ class ThreatEngineService {
     for (const threat of openThreats) {
       if (!threat.correlationKey) continue;
       
-      // Skip threats that were reactivated in the current job to prevent immediate closure
-      if (threat.jobId === jobId && threat.statusChangedBy === 'system') {
-        console.log(`⏰ Skipping EDR/AV threat reactivated in current job: ${threat.title} (jobId: ${jobId})`);
+      // Skip ALL threats from the current job to prevent immediate closure
+      if (threat.jobId === jobId) {
+        console.log(`⏰ Skipping EDR/AV threat from current job: ${threat.title} (jobId: ${jobId})`);
         continue;
       }
       

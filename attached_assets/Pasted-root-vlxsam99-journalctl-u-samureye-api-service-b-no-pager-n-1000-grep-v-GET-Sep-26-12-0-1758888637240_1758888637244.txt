@@ -1,0 +1,985 @@
+root@vlxsam99:~# journalctl -u samureye-api.service -b --no-pager -n 1000 | grep -v GET
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 887ade6a-9ebb-42dc-b0e6-51b5c5b7bfc7 with status: open, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins)
+Sep 26 12:07:09 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Histórico de Senhas Insuficiente, target=gruppen.com.br
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Finding matched rule: password-history-insufficient
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:09 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br
+Sep 26 12:07:09 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Histórico de Senhas Insuficiente, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4, status: open
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br" (length: 54)
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br"
+Sep 26 12:07:09 vlxsam99 npm[634705]: ❌ FIND: No threat found for key: "ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br"
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 26 12:07:09 vlxsam99 npm[634705]:   {
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "id": "73765663-7750-43c3-9826-7594204fa909",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:09 vlxsam99 npm[634705]:   },
+Sep 26 12:07:09 vlxsam99 npm[634705]:   {
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "id": "777d8bb8-c4aa-42a2-8929-5bf336311b9a",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:09 vlxsam99 npm[634705]:   },
+Sep 26 12:07:09 vlxsam99 npm[634705]:   {
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "id": "a0adc4f5-a919-4069-be99-3fff595e6e51",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:09 vlxsam99 npm[634705]:   },
+Sep 26 12:07:09 vlxsam99 npm[634705]:   {
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "id": "cea3c1d0-d917-4b00-b9a0-ddbffc671cf0",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:kamila",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:09 vlxsam99 npm[634705]:   },
+Sep 26 12:07:09 vlxsam99 npm[634705]:   {
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "id": "a527ccd7-60f9-4937-8fa9-3be44ef81343",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:09 vlxsam99 npm[634705]:   }
+Sep 26 12:07:09 vlxsam99 npm[634705]: ]
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br
+Sep 26 12:07:09 vlxsam99 npm[634705]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ UPSERT: Created new threat f85e9218-8ed0-498a-abb3-6b93b5bdec2b via fallback insert - status: open
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔄 Threat upserted: Histórico de Senhas Insuficiente (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br)
+Sep 26 12:07:09 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Trust Bidirecional Detectado, target=gruppen.com.br
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Finding matched rule: bidirectional-trust-detected
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:09 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br
+Sep 26 12:07:09 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Trust bidirecional: gruppen.com.br, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4, status: open
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br" (length: 50)
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br"
+Sep 26 12:07:09 vlxsam99 npm[634705]: ❌ FIND: No threat found for key: "ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br"
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 26 12:07:09 vlxsam99 npm[634705]:   {
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "id": "73765663-7750-43c3-9826-7594204fa909",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:09 vlxsam99 npm[634705]:   },
+Sep 26 12:07:09 vlxsam99 npm[634705]:   {
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "id": "777d8bb8-c4aa-42a2-8929-5bf336311b9a",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:09 vlxsam99 npm[634705]:   },
+Sep 26 12:07:09 vlxsam99 npm[634705]:   {
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "id": "a0adc4f5-a919-4069-be99-3fff595e6e51",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:09 vlxsam99 npm[634705]:   },
+Sep 26 12:07:09 vlxsam99 npm[634705]:   {
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "id": "cea3c1d0-d917-4b00-b9a0-ddbffc671cf0",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:kamila",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:09 vlxsam99 npm[634705]:   },
+Sep 26 12:07:09 vlxsam99 npm[634705]:   {
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "id": "a527ccd7-60f9-4937-8fa9-3be44ef81343",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$",
+Sep 26 12:07:09 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:09 vlxsam99 npm[634705]:   }
+Sep 26 12:07:09 vlxsam99 npm[634705]: ]
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br
+Sep 26 12:07:09 vlxsam99 npm[634705]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ UPSERT: Created new threat e4b3a0fb-7566-422e-84d5-fb45433bc046 via fallback insert - status: open
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔄 Threat upserted: Trust bidirecional: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br)
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🎯 ThreatEngine.analyzeWithLifecycle: Criou 49 ameaças de 50 findings para journeyType 'ad_hygiene'
+Sep 26 12:07:09 vlxsam99 npm[634705]: 🔄 Processing journey completion for job 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:09 vlxsam99 npm[634705]: 📊 Found 46 open threats for journey d06279bb-564c-4633-9c8a-2f0a2bba9c50
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat cea3c1d0-d917-4b00-b9a0-ddbffc671cf0 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat a527ccd7-60f9-4937-8fa9-3be44ef81343 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 6e743c3a-2bf1-4a78-b66a-d5efbb773cfe automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 185ae9b6-f80b-4807-8ac8-320e08ce071f automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat dc7a24fa-1a50-4c4a-9427-08f8d02cee82 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat a2e402f6-8581-4d54-8dd6-a55bbfb474f0 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat d436d4ec-b048-4f29-b20f-087af8d79be9 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 9f398842-ccb2-47a8-8a62-1e3b28628b80 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 3f5c6d5e-9ac0-4228-92ae-6f05dda2bdd0 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 75d057e4-361f-4c51-9759-b2c70388d35b automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat f415963d-1b35-469f-94b0-809f712be789 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 3b348340-c6e2-48c8-8ba8-a0d8d6d224ab automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 19cc2553-5356-496b-b165-947c038566a8 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat c1b5bf64-b318-48fd-9bbf-aa2797b5b620 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat af5203a3-c1d7-4203-99f3-1776d1c21fee automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 8f2d3489-4948-4ac7-9a69-d13e4e9fedbe automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat e09f40e0-4473-420a-8b86-1d5c4af510df automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 4eb02f58-0412-468f-bf1c-0e23f0046332 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 887ade6a-9ebb-42dc-b0e6-51b5c5b7bfc7 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 2201f025-93b1-45c3-b767-aba0996223de automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 38316106-3005-402f-b153-9c40025a529e automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 4c26ce54-0b9b-401f-80bf-252a6ffb0c8b automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 9c67dee3-2631-4559-ab4e-7d4a8d91f4c8 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 4333b181-fdc1-4b9f-a543-664046788d8d automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 736cb8aa-8a7b-4437-b8a4-d0e38d2fd38e automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat e3046477-bbfe-4365-a0e0-4e2aa93701cd automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 12f78508-10c4-4714-8f58-671a0ab1f569 automatically closed - not found
+Sep 26 12:07:09 vlxsam99 npm[634705]: ✅ Open threat 39538d01-2b1c-4598-ad9d-ad6d71055a18 automatically closed - not found
+Sep 26 12:07:10 vlxsam99 npm[634705]: ✅ Open threat 717354f0-8e41-40e7-aa4f-b53416e2f010 automatically closed - not found
+Sep 26 12:07:10 vlxsam99 npm[634705]: ✅ Open threat dfad7f15-8f89-496a-9792-a20f5a9c4d77 automatically closed - not found
+Sep 26 12:07:10 vlxsam99 npm[634705]: ✅ Open threat 49ab0368-dbcb-4926-9feb-e6f12a5a6704 automatically closed - not found
+Sep 26 12:07:10 vlxsam99 npm[634705]: ✅ Open threat c4c0e18b-2766-4c37-855d-e5116e1c1220 automatically closed - not found
+Sep 26 12:07:10 vlxsam99 npm[634705]: ✅ Open threat 484633bf-ee0f-4e12-b1fe-0b941551ff4c automatically closed - not found
+Sep 26 12:07:10 vlxsam99 npm[634705]: ✅ Open threat 2619855d-1d8e-491d-aa52-e452ce051138 automatically closed - not found
+Sep 26 12:07:10 vlxsam99 npm[634705]: ✅ Open threat 236d4539-d01a-4367-b4ff-8ccb38f5485f automatically closed - not found
+Sep 26 12:07:10 vlxsam99 npm[634705]: ✅ Open threat e4b3a0fb-7566-422e-84d5-fb45433bc046 automatically closed - not found
+Sep 26 12:07:10 vlxsam99 npm[634705]: ✅ Journey completion processing finished for job 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:10 vlxsam99 npm[634705]: 🗑️  Job 6876e8e4-aac1-4947-9672-144e92af44c4 removido dos jobs em execução
+Sep 26 12:07:29 vlxsam99 npm[634705]: 12:07:29 PM [express] POST /api/jobs/execute 201 in 33ms :: {"id":"09bd1f09-4183-4364-8503-ee77aa7330…
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🏠 Host de domínio criado/atualizado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🏠 AD Hygiene: Host de domínio criado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: Iniciando análise de higiene AD para domínio gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: Encontrados 2 controladores de domínio
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📍 Usando base DN: DC=gruppen,DC=com,DC=br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔧 Usando protocolo LDAP na porta 389 conforme especificado
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⚠️  Usando protocolo LDAP não criptografado na porta 389 conforme especificado
+Sep 26 12:07:29 vlxsam99 npm[634705]: Tentando conectar via ldap://vmsdc43.gruppen.com.br:389
+Sep 26 12:07:29 vlxsam99 npm[634705]: Conectado com sucesso via ldap://vmsdc43.gruppen.com.br:389
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⚠️  ATENÇÃO: Conexão LDAP não criptografada em uso - não recomendado para produção
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📊 Iniciando análises de higiene AD...
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=user)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Domain Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Análise de usuários concluída: 16 achados
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Domain Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Enterprise Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Schema Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Administrators)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Análise de grupos concluída: 3 achados
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=computer)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Análise de computadores concluída: 19 achados
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Análise de políticas concluída: 1 achados
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=domain)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Análise de configuração concluída: 1 achados
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Domain Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Enterprise Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Schema Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (cn=Administrators)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=domain)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 Buscando em: DC=gruppen,DC=com,DC=br com filtro: (objectClass=trustedDomain)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Análise de configuração de domínio concluída: 5 achados
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 ThreatEngine.analyzeWithLifecycle: Analisando 45 findings para journeyType 'ad_hygiene' (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Domain Admin com Senha Crítica Expirada, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: domain-admin-critical-password-expired
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Domain Admin com Senha Crítica Expirada, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes" (length: 53)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 73765663-7750-43c3-9826-7594204fa909 with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 73765663-7750-43c3-9826-7594204fa909 with status: open, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Domain Admin com Senha Crítica Expirada (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Domain Admin com Senha Crítica Expirada, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: domain-admin-critical-password-expired
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Domain Admin com Senha Crítica Expirada, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem" (length: 56)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 777d8bb8-c4aa-42a2-8929-5bf336311b9a with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 777d8bb8-c4aa-42a2-8929-5bf336311b9a with status: open, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Domain Admin com Senha Crítica Expirada (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Domain Admin com Senha Crítica Expirada, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: domain-admin-critical-password-expired
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Domain Admin com Senha Crítica Expirada, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon" (length: 58)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat a0adc4f5-a919-4069-be99-3fff595e6e51 with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat a0adc4f5-a919-4069-be99-3fff595e6e51 with status: open, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Domain Admin com Senha Crítica Expirada (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Usuário Inativo Detectado, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: specific-inactive-user
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuário inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$" (length: 43)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat a527ccd7-60f9-4937-8fa9-3be44ef81343 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat a527ccd7-60f9-4937-8fa9-3be44ef81343 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat a527ccd7-60f9-4937-8fa9-3be44ef81343 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: a527ccd7-60f9-4937-8fa9-3be44ef81343
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuário inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuário_Inativo_Detectado:COM:VMSVDIS01$)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Usuário Inativo Detectado, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: specific-inactive-user
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuário_Inativo_Detectado:COM:svc.prtg
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuário inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuário_Inativo_Detectado:COM:svc.prtg" (length: 41)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Usuário_Inativo_Detectado:COM:svc.prtg"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 6e743c3a-2bf1-4a78-b66a-d5efbb773cfe with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 6e743c3a-2bf1-4a78-b66a-d5efbb773cfe with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 6e743c3a-2bf1-4a78-b66a-d5efbb773cfe from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 6e743c3a-2bf1-4a78-b66a-d5efbb773cfe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuário inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuário_Inativo_Detectado:COM:svc.prtg)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Usuário Inativo Detectado, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: specific-inactive-user
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuário_Inativo_Detectado:COM:VMSHO12$
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuário inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuário_Inativo_Detectado:COM:VMSHO12$" (length: 41)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Usuário_Inativo_Detectado:COM:VMSHO12$"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 185ae9b6-f80b-4807-8ac8-320e08ce071f with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 185ae9b6-f80b-4807-8ac8-320e08ce071f with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 185ae9b6-f80b-4807-8ac8-320e08ce071f from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 185ae9b6-f80b-4807-8ac8-320e08ce071f
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuário inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuário_Inativo_Detectado:COM:VMSHO12$)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Usuário Inativo Detectado, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: specific-inactive-user
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuário_Inativo_Detectado:COM:bpm
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuário inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuário_Inativo_Detectado:COM:bpm" (length: 36)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Usuário_Inativo_Detectado:COM:bpm"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat a2e402f6-8581-4d54-8dd6-a55bbfb474f0 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat a2e402f6-8581-4d54-8dd6-a55bbfb474f0 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat a2e402f6-8581-4d54-8dd6-a55bbfb474f0 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: a2e402f6-8581-4d54-8dd6-a55bbfb474f0
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuário inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuário_Inativo_Detectado:COM:bpm)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Usuário Inativo Detectado, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: specific-inactive-user
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuário_Inativo_Detectado:COM:sup_ellevo
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuário inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuário_Inativo_Detectado:COM:sup_ellevo" (length: 43)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Usuário_Inativo_Detectado:COM:sup_ellevo"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat d436d4ec-b048-4f29-b20f-087af8d79be9 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat d436d4ec-b048-4f29-b20f-087af8d79be9 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat d436d4ec-b048-4f29-b20f-087af8d79be9 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: d436d4ec-b048-4f29-b20f-087af8d79be9
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuário inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuário_Inativo_Detectado:COM:sup_ellevo)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Usuário Inativo Detectado, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: specific-inactive-user
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuário_Inativo_Detectado:COM:planper02
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuário inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuário_Inativo_Detectado:COM:planper02" (length: 42)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Usuário_Inativo_Detectado:COM:planper02"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 9f398842-ccb2-47a8-8a62-1e3b28628b80 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 9f398842-ccb2-47a8-8a62-1e3b28628b80 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 9f398842-ccb2-47a8-8a62-1e3b28628b80 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 9f398842-ccb2-47a8-8a62-1e3b28628b80
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuário inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuário_Inativo_Detectado:COM:planper02)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Usuário Inativo Detectado, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: specific-inactive-user
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuário_Inativo_Detectado:COM:VMSEAD133$
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuário inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuário_Inativo_Detectado:COM:VMSEAD133$" (length: 43)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Usuário_Inativo_Detectado:COM:VMSEAD133$"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 3f5c6d5e-9ac0-4228-92ae-6f05dda2bdd0 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 3f5c6d5e-9ac0-4228-92ae-6f05dda2bdd0 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 3f5c6d5e-9ac0-4228-92ae-6f05dda2bdd0 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 3f5c6d5e-9ac0-4228-92ae-6f05dda2bdd0
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuário inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuário_Inativo_Detectado:COM:VMSEAD133$)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Usuário Inativo Detectado, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: specific-inactive-user
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuário_Inativo_Detectado:COM:VMSVDISSO02$
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuário inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuário_Inativo_Detectado:COM:VMSVDISSO02$" (length: 45)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Usuário_Inativo_Detectado:COM:VMSVDISSO02$"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 3b348340-c6e2-48c8-8ba8-a0d8d6d224ab with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 3b348340-c6e2-48c8-8ba8-a0d8d6d224ab with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 3b348340-c6e2-48c8-8ba8-a0d8d6d224ab from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 3b348340-c6e2-48c8-8ba8-a0d8d6d224ab
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuário inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuário_Inativo_Detectado:COM:VMSVDISSO02$)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Usuário Inativo Detectado, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: specific-inactive-user
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuário_Inativo_Detectado:COM:TESTE-CARLOS$
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuário inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuário_Inativo_Detectado:COM:TESTE-CARLOS$" (length: 46)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Usuário_Inativo_Detectado:COM:TESTE-CARLOS$"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat c1b5bf64-b318-48fd-9bbf-aa2797b5b620 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat c1b5bf64-b318-48fd-9bbf-aa2797b5b620 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat c1b5bf64-b318-48fd-9bbf-aa2797b5b620 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: c1b5bf64-b318-48fd-9bbf-aa2797b5b620
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuário inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuário_Inativo_Detectado:COM:TESTE-CARLOS$)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Usuário Inativo Detectado, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: specific-inactive-user
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuário_Inativo_Detectado:COM:svc_feed_fortigate
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuário inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuário_Inativo_Detectado:COM:svc_feed_fortigate" (length: 51)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 0 threats with correlationKey: "ad:Usuário_Inativo_Detectado:COM:svc_feed_fortigate"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ❌ FIND: No threat found for key: "ad:Usuário_Inativo_Detectado:COM:svc_feed_fortigate"
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🆕 UPSERT: No existing threat found for correlationKey: ad:Usuário_Inativo_Detectado:COM:svc_feed_fortigate
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found 5 similar threats: [
+Sep 26 12:07:29 vlxsam99 npm[634705]:   {
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "id": "dc7a24fa-1a50-4c4a-9427-08f8d02cee82",
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:planper.adm",
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "status": "closed"
+Sep 26 12:07:29 vlxsam99 npm[634705]:   },
+Sep 26 12:07:29 vlxsam99 npm[634705]:   {
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "id": "75d057e4-361f-4c51-9759-b2c70388d35b",
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "correlationKey": "ad:Usuário_Inativo_Detectado:COM:HealthMailbox6fb5d68",
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "status": "closed"
+Sep 26 12:07:29 vlxsam99 npm[634705]:   },
+Sep 26 12:07:29 vlxsam99 npm[634705]:   {
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "id": "73765663-7750-43c3-9826-7594204fa909",
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:hermes",
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:29 vlxsam99 npm[634705]:   },
+Sep 26 12:07:29 vlxsam99 npm[634705]:   {
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "id": "777d8bb8-c4aa-42a2-8929-5bf336311b9a",
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_gsiem",
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:29 vlxsam99 npm[634705]:   },
+Sep 26 12:07:29 vlxsam99 npm[634705]:   {
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "id": "a0adc4f5-a919-4069-be99-3fff595e6e51",
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "correlationKey": "ad:Domain_Admin_com_Senha_Crítica_Expirada:COM:svc_horizon",
+Sep 26 12:07:29 vlxsam99 npm[634705]:     "status": "open"
+Sep 26 12:07:29 vlxsam99 npm[634705]:   }
+Sep 26 12:07:29 vlxsam99 npm[634705]: ]
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🆕 UPSERT: Creating new threat with correlationKey: ad:Usuário_Inativo_Detectado:COM:svc_feed_fortigate
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ UPSERT: Created new threat 27153250-1ee9-4ba6-b7d4-4264b176af89 via fallback insert - status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuário inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuário_Inativo_Detectado:COM:svc_feed_fortigate)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_misconfiguration, name=Usuários com Senhas que Nunca Expiram, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: ad-users-password-never-expires
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuários_com_Senhas_que_Nunca_Expiram:COM:gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuários com Senhas que Nunca Expiram, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuários_com_Senhas_que_Nunca_Expiram:COM:gruppen.com.br" (length: 59)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Usuários_com_Senhas_que_Nunca_Expiram:COM:gruppen.com.br"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 7d5c96bf-7424-4c30-91bc-e5d63e079d00 with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 7d5c96bf-7424-4c30-91bc-e5d63e079d00 with status: open, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuários com Senhas que Nunca Expiram (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuários_com_Senhas_que_Nunca_Expiram:COM:gruppen.com.br)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Usuários Inativos Identificados, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: ad-inactive-users
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuários_Inativos_Identificados:COM:gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuários Inativos Identificados, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuários_Inativos_Identificados:COM:gruppen.com.br" (length: 53)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Usuários_Inativos_Identificados:COM:gruppen.com.br"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 8504624b-d444-4057-bac9-288b86e6b222 with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 8504624b-d444-4057-bac9-288b86e6b222 with status: open, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuários Inativos Identificados (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuários_Inativos_Identificados:COM:gruppen.com.br)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Usuários com Senhas Antigas, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: ad-users-old-passwords
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Usuários_com_Senhas_Antigas:COM:gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Usuários com Senhas Antigas, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Usuários_com_Senhas_Antigas:COM:gruppen.com.br" (length: 49)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Usuários_com_Senhas_Antigas:COM:gruppen.com.br"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat c3452795-f2ee-4595-8397-db08929b589d with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat c3452795-f2ee-4595-8397-db08929b589d with status: open, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Usuários com Senhas Antigas (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Usuários_com_Senhas_Antigas:COM:gruppen.com.br)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_misconfiguration, name=Grupo Privilegiado com Muitos Membros, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: ad-privileged-group-members
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Grupo Privilegiado com Muitos Membros: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins" (length: 58)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 2619855d-1d8e-491d-aa52-e452ce051138 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 2619855d-1d8e-491d-aa52-e452ce051138 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:10 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 2619855d-1d8e-491d-aa52-e452ce051138 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 2619855d-1d8e-491d-aa52-e452ce051138
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_misconfiguration, name=Grupo Privilegiado com Muitos Membros, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: ad-privileged-group-members
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Grupo Privilegiado com Muitos Membros: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins" (length: 62)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 236d4539-d01a-4367-b4ff-8ccb38f5485f with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 236d4539-d01a-4367-b4ff-8ccb38f5485f with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:10 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 236d4539-d01a-4367-b4ff-8ccb38f5485f from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 236d4539-d01a-4367-b4ff-8ccb38f5485f
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_misconfiguration, name=Grupo Privilegiado com Muitos Membros, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: ad-privileged-group-members
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Grupo Privilegiado com Muitos Membros: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins" (length: 58)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 887ade6a-9ebb-42dc-b0e6-51b5c5b7bfc7 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 887ade6a-9ebb-42dc-b0e6-51b5c5b7bfc7 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 887ade6a-9ebb-42dc-b0e6-51b5c5b7bfc7 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 887ade6a-9ebb-42dc-b0e6-51b5c5b7bfc7
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Computador Inativo no Domínio, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: inactive-computer-detected
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSVDIS01
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Computador inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSVDIS01" (length: 46)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSVDIS01"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat af5203a3-c1d7-4203-99f3-1776d1c21fee with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat af5203a3-c1d7-4203-99f3-1776d1c21fee with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat af5203a3-c1d7-4203-99f3-1776d1c21fee from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: af5203a3-c1d7-4203-99f3-1776d1c21fee
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Computador inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Computador_Inativo_no_Domínio:COM:VMSVDIS01)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Computador Inativo no Domínio, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: inactive-computer-detected
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSHO12
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Computador inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSHO12" (length: 44)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSHO12"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 8f2d3489-4948-4ac7-9a69-d13e4e9fedbe with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 8f2d3489-4948-4ac7-9a69-d13e4e9fedbe with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 8f2d3489-4948-4ac7-9a69-d13e4e9fedbe from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 8f2d3489-4948-4ac7-9a69-d13e4e9fedbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Computador inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Computador_Inativo_no_Domínio:COM:VMSHO12)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Computador Inativo no Domínio, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: inactive-computer-detected
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSEAD133
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Computador inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSEAD133" (length: 46)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSEAD133"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat e09f40e0-4473-420a-8b86-1d5c4af510df with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat e09f40e0-4473-420a-8b86-1d5c4af510df with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat e09f40e0-4473-420a-8b86-1d5c4af510df from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: e09f40e0-4473-420a-8b86-1d5c4af510df
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Computador inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Computador_Inativo_no_Domínio:COM:VMSEAD133)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Computador Inativo no Domínio, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: inactive-computer-detected
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:VMSVDISSO02
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Computador inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSVDISSO02" (length: 48)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Computador_Inativo_no_Domínio:COM:VMSVDISSO02"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 2201f025-93b1-45c3-b767-aba0996223de with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 2201f025-93b1-45c3-b767-aba0996223de with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 2201f025-93b1-45c3-b767-aba0996223de from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 2201f025-93b1-45c3-b767-aba0996223de
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Computador inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Computador_Inativo_no_Domínio:COM:VMSVDISSO02)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Computador Inativo no Domínio, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: inactive-computer-detected
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Computador_Inativo_no_Domínio:COM:TESTE-CARLOS
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Computador inativo: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Computador_Inativo_no_Domínio:COM:TESTE-CARLOS" (length: 49)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Computador_Inativo_no_Domínio:COM:TESTE-CARLOS"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 38316106-3005-402f-b153-9c40025a529e with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 38316106-3005-402f-b153-9c40025a529e with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 38316106-3005-402f-b153-9c40025a529e from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 38316106-3005-402f-b153-9c40025a529e
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Computador inativo: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Computador_Inativo_no_Domínio:COM:TESTE-CARLOS)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: obsolete-operating-system
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSVDI45
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSVDI45" (length: 44)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSVDI45"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 9c67dee3-2631-4559-ab4e-7d4a8d91f4c8 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 9c67dee3-2631-4559-ab4e-7d4a8d91f4c8 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 9c67dee3-2631-4559-ab4e-7d4a8d91f4c8 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 9c67dee3-2631-4559-ab4e-7d4a8d91f4c8
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSVDI45)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: obsolete-operating-system
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSTS45
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSTS45" (length: 43)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSTS45"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 4c26ce54-0b9b-401f-80bf-252a6ffb0c8b with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 4c26ce54-0b9b-401f-80bf-252a6ffb0c8b with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 4c26ce54-0b9b-401f-80bf-252a6ffb0c8b from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 4c26ce54-0b9b-401f-80bf-252a6ffb0c8b
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSTS45)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: obsolete-operating-system
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSSIS160
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSSIS160" (length: 45)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSSIS160"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 4333b181-fdc1-4b9f-a543-664046788d8d with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 4333b181-fdc1-4b9f-a543-664046788d8d with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 4333b181-fdc1-4b9f-a543-664046788d8d from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 4333b181-fdc1-4b9f-a543-664046788d8d
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSSIS160)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: obsolete-operating-system
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSMX46
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSMX46" (length: 43)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSMX46"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 736cb8aa-8a7b-4437-b8a4-d0e38d2fd38e with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 736cb8aa-8a7b-4437-b8a4-d0e38d2fd38e with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 736cb8aa-8a7b-4437-b8a4-d0e38d2fd38e from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 736cb8aa-8a7b-4437-b8a4-d0e38d2fd38e
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSMX46)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: obsolete-operating-system
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:CMSSITE01
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:CMSSITE01" (length: 45)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:CMSSITE01"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat e3046477-bbfe-4365-a0e0-4e2aa93701cd with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat e3046477-bbfe-4365-a0e0-4e2aa93701cd with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat e3046477-bbfe-4365-a0e0-4e2aa93701cd from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: e3046477-bbfe-4365-a0e0-4e2aa93701cd
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistema_Operacional_Obsoleto:COM:CMSSITE01)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: obsolete-operating-system
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:KAMILA
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:KAMILA" (length: 42)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:KAMILA"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 12f78508-10c4-4714-8f58-671a0ab1f569 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 12f78508-10c4-4714-8f58-671a0ab1f569 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 12f78508-10c4-4714-8f58-671a0ab1f569 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 12f78508-10c4-4714-8f58-671a0ab1f569
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistema_Operacional_Obsoleto:COM:KAMILA)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: obsolete-operating-system
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSXD40
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSXD40" (length: 43)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSXD40"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 39538d01-2b1c-4598-ad9d-ad6d71055a18 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 39538d01-2b1c-4598-ad9d-ad6d71055a18 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 39538d01-2b1c-4598-ad9d-ad6d71055a18 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 39538d01-2b1c-4598-ad9d-ad6d71055a18
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSXD40)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: obsolete-operating-system
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSXD41
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSXD41" (length: 43)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSXD41"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 717354f0-8e41-40e7-aa4f-b53416e2f010 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 717354f0-8e41-40e7-aa4f-b53416e2f010 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:10 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 717354f0-8e41-40e7-aa4f-b53416e2f010 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 717354f0-8e41-40e7-aa4f-b53416e2f010
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSXD41)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: obsolete-operating-system
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSFS15
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSFS15" (length: 43)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSFS15"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat dfad7f15-8f89-496a-9792-a20f5a9c4d77 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat dfad7f15-8f89-496a-9792-a20f5a9c4d77 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:10 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat dfad7f15-8f89-496a-9792-a20f5a9c4d77 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: dfad7f15-8f89-496a-9792-a20f5a9c4d77
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSFS15)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: obsolete-operating-system
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSWW13OLD
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSWW13OLD" (length: 46)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSWW13OLD"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 49ab0368-dbcb-4926-9feb-e6f12a5a6704 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 49ab0368-dbcb-4926-9feb-e6f12a5a6704 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:10 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 49ab0368-dbcb-4926-9feb-e6f12a5a6704 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 49ab0368-dbcb-4926-9feb-e6f12a5a6704
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSWW13OLD)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: obsolete-operating-system
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSEAD133OLD
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSEAD133OLD" (length: 48)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSEAD133OLD"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat c4c0e18b-2766-4c37-855d-e5116e1c1220 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat c4c0e18b-2766-4c37-855d-e5116e1c1220 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:10 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat c4c0e18b-2766-4c37-855d-e5116e1c1220 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: c4c0e18b-2766-4c37-855d-e5116e1c1220
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSEAD133OLD)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistema Operacional Obsoleto, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: obsolete-operating-system
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistema_Operacional_Obsoleto:COM:VMSSY05
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: SO obsoleto: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSSY05" (length: 43)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistema_Operacional_Obsoleto:COM:VMSSY05"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 484633bf-ee0f-4e12-b1fe-0b941551ff4c with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 484633bf-ee0f-4e12-b1fe-0b941551ff4c with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:10 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat 484633bf-ee0f-4e12-b1fe-0b941551ff4c from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: 484633bf-ee0f-4e12-b1fe-0b941551ff4c
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: SO obsoleto: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistema_Operacional_Obsoleto:COM:VMSSY05)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Sistemas Operacionais Obsoletos, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: ad-obsolete-os
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Sistemas_Operacionais_Obsoletos:COM:gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Sistemas Operacionais Obsoletos, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Sistemas_Operacionais_Obsoletos:COM:gruppen.com.br" (length: 53)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Sistemas_Operacionais_Obsoletos:COM:gruppen.com.br"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 66270e7d-bfc5-4f58-af1f-3e33190cfa51 with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 66270e7d-bfc5-4f58-af1f-3e33190cfa51 with status: open, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Sistemas Operacionais Obsoletos (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Sistemas_Operacionais_Obsoletos:COM:gruppen.com.br)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Computadores Inativos, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: ad-inactive-computers
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Computadores_Inativos:COM:gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Computadores Inativos, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Computadores_Inativos:COM:gruppen.com.br" (length: 43)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Computadores_Inativos:COM:gruppen.com.br"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 8179db03-1468-4dad-aa60-3e3d1ac56b35 with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 8179db03-1468-4dad-aa60-3e3d1ac56b35 with status: open, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Computadores Inativos (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Computadores_Inativos:COM:gruppen.com.br)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Análise de Políticas Limitada, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⚪ Nenhuma regra correspondeu ao finding: type=ad_hygiene, name=Análise de Políticas Limitada
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Política de Senha Fraca, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: ad-weak-password-policy
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Política_de_Senha_Fraca:COM:gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Política de Senha Fraca, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Política_de_Senha_Fraca:COM:gruppen.com.br" (length: 45)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Política_de_Senha_Fraca:COM:gruppen.com.br"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 6de7752e-30c6-4ae0-879e-0f02a23d083a with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 6de7752e-30c6-4ae0-879e-0f02a23d083a with status: open, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Política de Senha Fraca (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Política_de_Senha_Fraca:COM:gruppen.com.br)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Grupo Privilegiado com Muitos Membros, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: privileged-group-too-many-members
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Grupo privilegiado: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins" (length: 58)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 2619855d-1d8e-491d-aa52-e452ce051138 with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 2619855d-1d8e-491d-aa52-e452ce051138 with status: open, jobId: 09bd1f09-4183-4364-8503-ee77aa733008
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:29 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Domain Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Grupo Privilegiado com Muitos Membros, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: privileged-group-too-many-members
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Grupo privilegiado: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins" (length: 62)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 236d4539-d01a-4367-b4ff-8ccb38f5485f with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 236d4539-d01a-4367-b4ff-8ccb38f5485f with status: open, jobId: 09bd1f09-4183-4364-8503-ee77aa733008
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:29 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Enterprise Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Grupo Privilegiado com Muitos Membros, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: privileged-group-too-many-members
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Grupo privilegiado: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins" (length: 58)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat 887ade6a-9ebb-42dc-b0e6-51b5c5b7bfc7 with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat 887ade6a-9ebb-42dc-b0e6-51b5c5b7bfc7 with status: open, jobId: 09bd1f09-4183-4364-8503-ee77aa733008
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:29 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Grupo Privilegiado com Muitos Membros: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Grupo_Privilegiado_com_Muitos_Membros:COM:Schema Admins)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_vulnerability, name=Histórico de Senhas Insuficiente, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: password-history-insufficient
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Histórico de Senhas Insuficiente, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br" (length: 54)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat f85e9218-8ed0-498a-abb3-6b93b5bdec2b with status: open (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat f85e9218-8ed0-498a-abb3-6b93b5bdec2b with status: open, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Histórico de Senhas Insuficiente (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Histórico_de_Senhas_Insuficiente:COM:gruppen.com.br)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Finding: type=ad_hygiene, name=Trust Bidirecional Detectado, target=gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Finding matched rule: bidirectional-trust-detected
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔗 Host found for threat: b6344532-f41f-436d-b4be-6b8d177c1dbe
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Processing threat with correlationKey: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 UPSERT: Input threat details - title: Trust bidirecional: gruppen.com.br, jobId: 09bd1f09-4183-4364-8503-ee77aa733008, status: open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Searching for correlationKey: "ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br" (length: 50)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br"
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ FIND: Using threat e4b3a0fb-7566-422e-84d5-fb45433bc046 with status: closed (created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time))
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Found existing threat e4b3a0fb-7566-422e-84d5-fb45433bc046 with status: closed, jobId: 6876e8e4-aac1-4947-9672-144e92af44c4
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔍 UPSERT: Existing threat created: Fri Sep 26 2025 12:07:09 GMT+0000 (Coordinated Universal Time), updated: Fri Sep 26 2025 12:07:10 GMT+0000 (Coordinated Universal Time)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 UPSERT: Existing threat status is 'closed', shouldReactivate: true
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Cross-journey reactivation: threat e4b3a0fb-7566-422e-84d5-fb45433bc046 from closed to open
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📋 Created status history for cross-journey threat reactivation: e4b3a0fb-7566-422e-84d5-fb45433bc046
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Threat upserted: Trust bidirecional: gruppen.com.br (Category: ad_hygiene, HostId: b6344532-f41f-436d-b4be-6b8d177c1dbe, Key: ad:Trust_Bidirecional_Detectado:COM:gruppen.com.br)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🎯 ThreatEngine.analyzeWithLifecycle: Criou 44 ameaças de 45 findings para journeyType 'ad_hygiene'
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Usuário inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Usuário inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Usuário inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Usuário inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Usuário inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Usuário inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Usuário inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Usuário inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Computador inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Computador inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Computador inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: SO obsoleto: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: SO obsoleto: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: SO obsoleto: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: SO obsoleto: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: SO obsoleto: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: SO obsoleto: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: SO obsoleto: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: SO obsoleto: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: SO obsoleto: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: SO obsoleto: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: SO obsoleto: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Usuário inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Grupo Privilegiado com Muitos Membros: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Trust bidirecional: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Computador inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Computador inativo: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: SO obsoleto: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Grupo Privilegiado com Muitos Membros: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: ⏰ Skipping AD threat reactivated in current job: Grupo Privilegiado com Muitos Membros: gruppen.com.br (jobId: 09bd1f09-4183-4364-8503-ee77aa733008)
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🔄 Processing journey completion for job 09bd1f09-4183-4364-8503-ee77aa733008
+Sep 26 12:07:29 vlxsam99 npm[634705]: 📊 Found 41 open threats for journey d06279bb-564c-4633-9c8a-2f0a2bba9c50
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat a527ccd7-60f9-4937-8fa9-3be44ef81343 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 6e743c3a-2bf1-4a78-b66a-d5efbb773cfe automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat a2e402f6-8581-4d54-8dd6-a55bbfb474f0 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat d436d4ec-b048-4f29-b20f-087af8d79be9 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 9f398842-ccb2-47a8-8a62-1e3b28628b80 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 3f5c6d5e-9ac0-4228-92ae-6f05dda2bdd0 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 3b348340-c6e2-48c8-8ba8-a0d8d6d224ab automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat c1b5bf64-b318-48fd-9bbf-aa2797b5b620 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat af5203a3-c1d7-4203-99f3-1776d1c21fee automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 8f2d3489-4948-4ac7-9a69-d13e4e9fedbe automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat e09f40e0-4473-420a-8b86-1d5c4af510df automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 9c67dee3-2631-4559-ab4e-7d4a8d91f4c8 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 4c26ce54-0b9b-401f-80bf-252a6ffb0c8b automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 4333b181-fdc1-4b9f-a543-664046788d8d automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 736cb8aa-8a7b-4437-b8a4-d0e38d2fd38e automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat e3046477-bbfe-4365-a0e0-4e2aa93701cd automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 12f78508-10c4-4714-8f58-671a0ab1f569 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 39538d01-2b1c-4598-ad9d-ad6d71055a18 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 717354f0-8e41-40e7-aa4f-b53416e2f010 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 49ab0368-dbcb-4926-9feb-e6f12a5a6704 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat c4c0e18b-2766-4c37-855d-e5116e1c1220 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 484633bf-ee0f-4e12-b1fe-0b941551ff4c automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 185ae9b6-f80b-4807-8ac8-320e08ce071f automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 887ade6a-9ebb-42dc-b0e6-51b5c5b7bfc7 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat e4b3a0fb-7566-422e-84d5-fb45433bc046 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 27153250-1ee9-4ba6-b7d4-4264b176af89 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 2201f025-93b1-45c3-b767-aba0996223de automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 38316106-3005-402f-b153-9c40025a529e automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat dfad7f15-8f89-496a-9792-a20f5a9c4d77 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 2619855d-1d8e-491d-aa52-e452ce051138 automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Open threat 236d4539-d01a-4367-b4ff-8ccb38f5485f automatically closed - not found
+Sep 26 12:07:29 vlxsam99 npm[634705]: ✅ Journey completion processing finished for job 09bd1f09-4183-4364-8503-ee77aa733008
+Sep 26 12:07:29 vlxsam99 npm[634705]: 🗑️  Job 09bd1f09-4183-4364-8503-ee77aa733008 removido dos jobs em execução
+root@vlxsam99:~#
