@@ -12,6 +12,7 @@ import {
   insertCredentialSchema, 
   insertJourneySchema, 
   insertScheduleSchema,
+  createScheduleSchema,
   registerUserSchema,
   insertHostSchema,
   changeThreatStatusSchema
@@ -408,7 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/schedules', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const scheduleData = insertScheduleSchema.parse(req.body);
+      const scheduleData = createScheduleSchema.parse(req.body);
       const schedule = await storage.createSchedule(scheduleData, userId);
       
       await storage.logAudit({
@@ -424,6 +425,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao criar agendamento:", error);
       res.status(400).json({ message: "Falha ao criar agendamento" });
+    }
+  });
+
+  app.patch('/api/schedules/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      
+      const beforeSchedule = await storage.getSchedule(id);
+      if (!beforeSchedule) {
+        return res.status(404).json({ message: "Agendamento não encontrado" });
+      }
+      
+      const updateData = insertScheduleSchema.parse(req.body);
+      const schedule = await storage.updateSchedule(id, updateData);
+      
+      await storage.logAudit({
+        actorId: userId,
+        action: 'update',
+        objectType: 'schedule',
+        objectId: id,
+        before: beforeSchedule,
+        after: schedule,
+      });
+      
+      res.json(schedule);
+    } catch (error) {
+      console.error("Erro ao atualizar agendamento:", error);
+      res.status(400).json({ message: "Falha ao atualizar agendamento" });
+    }
+  });
+
+  app.delete('/api/schedules/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      
+      const beforeSchedule = await storage.getSchedule(id);
+      
+      await storage.deleteSchedule(id);
+      
+      await storage.logAudit({
+        actorId: userId,
+        action: 'delete',
+        objectType: 'schedule',
+        objectId: id,
+        before: beforeSchedule || null,
+        after: null,
+      });
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Erro ao excluir agendamento:", error);
+      res.status(400).json({ message: "Falha ao excluir agendamento" });
     }
   });
 

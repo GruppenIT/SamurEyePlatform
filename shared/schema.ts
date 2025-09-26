@@ -41,6 +41,9 @@ export const journeyTypeEnum = pgEnum('journey_type', ['attack_surface', 'ad_hyg
 // Schedule kinds enum
 export const scheduleKindEnum = pgEnum('schedule_kind', ['on_demand', 'once', 'recurring']);
 
+// Recurrence types enum for recurring schedules
+export const recurrenceTypeEnum = pgEnum('recurrence_type', ['daily', 'weekly', 'monthly']);
+
 // Job status enum
 export const jobStatusEnum = pgEnum('job_status', ['pending', 'running', 'completed', 'failed', 'timeout']);
 
@@ -114,7 +117,15 @@ export const schedules = pgTable("schedules", {
   journeyId: varchar("journey_id").references(() => journeys.id).notNull(),
   name: varchar("name").notNull(),
   kind: scheduleKindEnum("kind").notNull(),
+  // Legacy CRON support (mantido para compatibilidade)
   cronExpression: text("cron_expression"), // For recurring schedules
+  // New simple recurrence fields
+  recurrenceType: recurrenceTypeEnum("recurrence_type"), // daily, weekly, monthly
+  hour: integer("hour"), // 0-23 for execution hour
+  minute: integer("minute").default(0), // 0-59 for execution minute
+  dayOfWeek: integer("day_of_week"), // 0-6 (Sunday=0) for weekly schedules
+  dayOfMonth: integer("day_of_month"), // 1-31 for monthly schedules
+  // For one-time schedules
   onceAt: timestamp("once_at"), // For one-time schedules
   enabled: boolean("enabled").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -408,6 +419,44 @@ export const insertScheduleSchema = createInsertSchema(schedules).omit({
   createdBy: true,
 });
 
+// Schema customizado para criação de agendamentos com validação condicional
+export const createScheduleSchema = z.object({
+  journeyId: z.string().min(1, "Jornada é obrigatória"),
+  name: z.string().min(1, "Nome é obrigatório"),
+  kind: z.enum(['on_demand', 'once', 'recurring'], {
+    required_error: "Tipo de agendamento é obrigatório",
+  }),
+  // Campos para execução única
+  onceAt: z.date().optional(),
+  // Campos para execução recorrente
+  recurrenceType: z.enum(['daily', 'weekly', 'monthly']).optional(),
+  hour: z.number().min(0).max(23).optional(),
+  minute: z.number().min(0).max(59).default(0),
+  dayOfWeek: z.number().min(0).max(6).optional(), // 0=Sunday, 6=Saturday
+  dayOfMonth: z.number().min(1).max(31).optional(),
+  // Campos legados (mantidos para compatibilidade)
+  cronExpression: z.string().optional(),
+  enabled: z.boolean().default(true),
+}).refine(data => {
+  // Validação para execução única
+  if (data.kind === 'once') {
+    return data.onceAt != null;
+  }
+  // Validação para execução recorrente
+  if (data.kind === 'recurring') {
+    if (!data.recurrenceType) return false;
+    if (data.hour == null) return false;
+    
+    // Validação específica por tipo de recorrência
+    if (data.recurrenceType === 'weekly' && data.dayOfWeek == null) return false;
+    if (data.recurrenceType === 'monthly' && data.dayOfMonth == null) return false;
+  }
+  return true;
+}, {
+  message: "Configuração de agendamento inválida",
+  path: ["recurrenceType"],
+});
+
 export const insertJobSchema = createInsertSchema(jobs).omit({
   id: true,
   createdAt: true,
@@ -467,6 +516,7 @@ export type Journey = typeof journeys.$inferSelect;
 export type InsertJourney = z.infer<typeof insertJourneySchema>;
 export type Schedule = typeof schedules.$inferSelect;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
+export type CreateSchedule = z.infer<typeof createScheduleSchema>;
 export type Job = typeof jobs.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;
 export type JobResult = typeof jobResults.$inferSelect;

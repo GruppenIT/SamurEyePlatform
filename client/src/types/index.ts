@@ -47,7 +47,15 @@ export interface ScheduleFormData {
   journeyId: string;
   name: string;
   kind: 'on_demand' | 'once' | 'recurring';
+  // Campos legados (mantidos para compatibilidade)
   cronExpression?: string;
+  // Campos para execução única
   onceAt?: Date;
+  // Campos para execução recorrente
+  recurrenceType?: 'daily' | 'weekly' | 'monthly';
+  hour?: number;
+  minute?: number;
+  dayOfWeek?: number; // 0=Sunday, 6=Saturday
+  dayOfMonth?: number; // 1-31
   enabled: boolean;
 }

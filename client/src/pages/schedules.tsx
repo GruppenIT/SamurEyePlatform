@@ -202,8 +202,40 @@ export default function Schedules() {
       return date.toLocaleString('pt-BR');
     }
     
-    if (schedule.kind === 'recurring' && schedule.cronExpression) {
-      return `CRON: ${schedule.cronExpression}`;
+    if (schedule.kind === 'recurring') {
+      // Primeiro verificar se usa o novo sistema de recorrência
+      if (schedule.recurrenceType && schedule.hour !== null && schedule.hour !== undefined) {
+        const hourStr = schedule.hour.toString().padStart(2, '0');
+        const minuteStr = (schedule.minute || 0).toString().padStart(2, '0');
+        const timeStr = `${hourStr}:${minuteStr}`;
+        
+        switch (schedule.recurrenceType) {
+          case 'daily':
+            return `Diário às ${timeStr}`;
+            
+          case 'weekly':
+            if (schedule.dayOfWeek !== null && schedule.dayOfWeek !== undefined) {
+              const daysOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+              const dayName = daysOfWeek[schedule.dayOfWeek];
+              return `Semanal (${dayName} às ${timeStr})`;
+            }
+            return `Semanal às ${timeStr}`;
+            
+          case 'monthly':
+            if (schedule.dayOfMonth !== null && schedule.dayOfMonth !== undefined) {
+              return `Mensal (dia ${schedule.dayOfMonth} às ${timeStr})`;
+            }
+            return `Mensal às ${timeStr}`;
+            
+          default:
+            return `Recorrente às ${timeStr}`;
+        }
+      }
+      
+      // Fallback para sistema CRON legado
+      if (schedule.cronExpression) {
+        return `CRON: ${schedule.cronExpression}`;
+      }
     }
     
     return 'Não configurado';
