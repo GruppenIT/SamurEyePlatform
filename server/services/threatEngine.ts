@@ -263,6 +263,30 @@ class ThreatEngineService {
         }),
       },
       {
+        id: 'ad-domain-controller-not-found',
+        name: 'Controlador de Domínio Não Encontrado',
+        description: 'Nenhum controlador de domínio foi encontrado ou está acessível',
+        severity: 'critical',
+        matcher: (finding) => 
+          finding.type === 'ad_misconfiguration' &&
+          finding.name === 'Nenhum Controlador de Domínio Encontrado',
+        createThreat: (finding, assetId, jobId) => ({
+          title: `Controlador de domínio inacessível: ${finding.target}`,
+          description: finding.description || 'Não foi possível conectar ou encontrar controladores de domínio ativos para o domínio especificado. Isso pode indicar problemas de conectividade de rede ou falha de infraestrutura.',
+          severity: 'critical',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            target: finding.target,
+            category: finding.category,
+            errorType: finding.evidence?.errorType,
+            connectionAttempts: finding.evidence?.connectionAttempts,
+            recommendation: finding.recommendation || 'Verificar conectividade de rede com controladores de domínio. Confirmar se os serviços AD DS estão executando nos servidores de domínio.',
+          },
+        }),
+      },
+      {
         id: 'ad-inactive-users',
         name: 'Usuários Inativos Identificados',
         description: 'Usuários sem login há mais de 6 meses',
@@ -925,12 +949,13 @@ class ThreatEngineService {
         continue;
       }
       
+      // TEMPORARILY DISABLED: Auto-closure causing critical bug where threats are closed even after being skipped
       // If threat wasn't observed in this run, condition is fixed - close it
       if (!observedKeys.has(threat.correlationKey)) {
-        console.log(`🔒 AD_HYGIENE_CLOSURES: About to close threat ${threat.id} - key "${threat.correlationKey}" not in observed keys`);
-        console.log(`🔒 AD_HYGIENE_CLOSURES: Observed keys: ${Array.from(observedKeys).slice(0, 5).join(', ')}... (${observedKeys.size} total)`);
-        await storage.closeThreatSystem(threat.id, 'system');
-        console.log(`✅ Open threat ${threat.id} automatically closed - not found`);
+        console.log(`🚫 AD_HYGIENE_CLOSURES: AUTO-CLOSURE DISABLED - Would close threat ${threat.id} - key "${threat.correlationKey}" not in observed keys`);
+        console.log(`🚫 AD_HYGIENE_CLOSURES: Observed keys: ${Array.from(observedKeys).slice(0, 5).join(', ')}... (${observedKeys.size} total)`);
+        // await storage.closeThreatSystem(threat.id, 'system');
+        // console.log(`✅ Open threat ${threat.id} automatically closed - not found`);
       } else {
         console.log(`✅ AD_HYGIENE_CLOSURES: Keeping threat ${threat.id} open - key ${threat.correlationKey} observed`);
       }
@@ -1346,9 +1371,11 @@ class ThreatEngineService {
           
         case 'open':
           if (!threatFound) {
+            // TEMPORARILY DISABLED: Auto-closure causing critical bug
             // Open threat not found - automatically close it
-            await this.closeThreatAutomatically(threat.id, 'Ameaça não foi reencontrada durante nova varredura');
-            console.log(`✅ Open threat ${threat.id} automatically closed - not found`);
+            console.log(`🚫 REACTIVATION_LOGIC: AUTO-CLOSURE DISABLED - Would close open threat ${threat.id} - not found in new scan`);
+            // await this.closeThreatAutomatically(threat.id, 'Ameaça não foi reencontrada durante nova varredura');
+            // console.log(`✅ Open threat ${threat.id} automatically closed - not found`);
           }
           break;
       }
