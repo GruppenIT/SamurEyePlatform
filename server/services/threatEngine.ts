@@ -704,6 +704,8 @@ class ThreatEngineService {
    * Processes job results and generates threats using lifecycle management
    */
   async processJobResults(jobId: string): Promise<Threat[]> {
+    console.log(`🔍 PROCESS_JOB_RESULTS: Starting with jobId: ${jobId}`);
+    
     const jobResult = await storage.getJobResult(jobId);
     if (!jobResult || !jobResult.artifacts) {
       return [];
@@ -720,8 +722,12 @@ class ThreatEngineService {
       return [];
     }
 
+    console.log(`🔍 PROCESS_JOB_RESULTS: Journey ${job.journeyId}, Type: ${journey.type}, JobId: ${jobId}`);
+
     // Use new lifecycle-aware analysis
     const threats = await this.analyzeWithLifecycle(findings, journey.type, job.journeyId, jobId);
+    
+    console.log(`🔍 PROCESS_JOB_RESULTS: About to run post-processing with jobId: ${jobId}`);
     
     // Run post-processing for journey-specific auto-closure logic
     await this.runJourneyPostProcessing(journey.type, job.journeyId, jobId, findings);
@@ -891,6 +897,8 @@ class ThreatEngineService {
    * Process AD Hygiene auto-closures
    */
   private async processAdHygieneClosures(journeyId: string, jobId: string, findings: any[]): Promise<void> {
+    console.log(`🔍 AD_HYGIENE_CLOSURES: Starting with journeyId: ${journeyId}, jobId: ${jobId}`);
+    
     // Get observed correlation keys from this job
     const observedKeys = new Set<string>();
     findings.forEach(finding => {
@@ -898,11 +906,17 @@ class ThreatEngineService {
       observedKeys.add(key);
     });
 
+    console.log(`🔍 AD_HYGIENE_CLOSURES: Found ${observedKeys.size} observed keys in current job`);
+
     // Find all open AD threats from previous jobs of this journey
     const openThreats = await storage.listOpenThreatsByJourney(journeyId, 'ad_hygiene');
     
+    console.log(`🔍 AD_HYGIENE_CLOSURES: Found ${openThreats.length} open threats for journey ${journeyId}`);
+    
     for (const threat of openThreats) {
       if (!threat.correlationKey) continue;
+      
+      console.log(`🔍 AD_HYGIENE_CLOSURES: Checking threat ${threat.id} (jobId: ${threat.jobId}) vs current jobId: ${jobId}`);
       
       // Skip ALL threats from the current job to prevent immediate closure
       if (threat.jobId === jobId) {
@@ -912,8 +926,11 @@ class ThreatEngineService {
       
       // If threat wasn't observed in this run, condition is fixed - close it
       if (!observedKeys.has(threat.correlationKey)) {
+        console.log(`🔒 AD_HYGIENE_CLOSURES: About to close threat ${threat.id} - key ${threat.correlationKey} not observed`);
         await storage.closeThreatSystem(threat.id, 'system');
-        console.log(`🔒 AD Hygiene threat auto-closed: ${threat.title} (condition resolved)`);
+        console.log(`✅ Open threat ${threat.id} automatically closed - not found`);
+      } else {
+        console.log(`✅ AD_HYGIENE_CLOSURES: Keeping threat ${threat.id} open - key ${threat.correlationKey} observed`);
       }
     }
   }
