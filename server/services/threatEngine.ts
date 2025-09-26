@@ -1410,6 +1410,11 @@ class ThreatEngineService {
           // Threats under investigation remain in investigating status regardless of findings
           console.log(`🔍 LIFECYCLE: Threat ${threat.id} remains under investigation`);
           return 'no_action';
+        
+        case 'accepted_risk':
+          // Threats with accepted risk should not be auto-closed or reactivated
+          console.log(`🔒 LIFECYCLE: Threat ${threat.id} has accepted risk status - no automatic action`);
+          return 'no_action';
           
         case 'mitigated':
           if (threatFound) {

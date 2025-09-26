@@ -48,7 +48,7 @@ export const jobStatusEnum = pgEnum('job_status', ['pending', 'running', 'comple
 export const threatSeverityEnum = pgEnum('threat_severity', ['low', 'medium', 'high', 'critical']);
 
 // Threat status enum
-export const threatStatusEnum = pgEnum('threat_status', ['open', 'investigating', 'mitigated', 'closed', 'hibernated']);
+export const threatStatusEnum = pgEnum('threat_status', ['open', 'investigating', 'mitigated', 'closed', 'hibernated', 'accepted_risk']);
 
 // Host types enum
 export const hostTypeEnum = pgEnum('host_type', ['server', 'desktop', 'firewall', 'switch', 'router', 'domain', 'other']);

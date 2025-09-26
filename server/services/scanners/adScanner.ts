@@ -462,8 +462,11 @@ export class ADScanner {
           usersWithPasswordNeverExpires++;
         }
 
-        // Usuários inativos - usando configuração do sistema
-        if (lastLogon && lastLogon.getTime() < inactiveLimitMs && isEnabled) {
+        // Usuários inativos - usando configuração do sistema  
+        // Excluir testes específicos conforme solicitado
+        if (lastLogon && lastLogon.getTime() < inactiveLimitMs && isEnabled && 
+            username !== 'gruppen.com.br' && 
+            username !== 'HealthMailbox6fb5d68') {
           inactiveUsers++;
           specificInactiveUsers.push({
             username,
@@ -548,18 +551,8 @@ export class ADScanner {
         });
       }
 
-      if (inactiveUsers > 0) {
-        findings.push({
-          type: 'ad_hygiene',
-          target: this.domain, // Use domain as target for all AD findings
-          name: 'Usuários Inativos Identificados',
-          severity: 'low',
-          category: 'users',
-          description: `${inactiveUsers} usuários sem login há mais de 6 meses`,
-          evidence: { count: inactiveUsers },
-          recommendation: 'Revisar e desabilitar contas de usuários inativos'
-        });
-      }
+      // Remover finding consolidado conforme solicitado - manter apenas ameaças individuais
+      // (As ameaças individuais já são criadas no loop acima para cada usuário inativo)
 
       if (usersWithOldPasswords > 0) {
         findings.push({
@@ -590,27 +583,36 @@ export class ADScanner {
     if (!this.client) return findings;
 
     try {
-      // Buscar grupos privilegiados
-      const privilegedGroups = [
+      // Buscar grupos administrativos críticos para detecção de novos membros
+      const criticalGroups = [
         'Domain Admins',
-        'Enterprise Admins',
-        'Schema Admins',
-        'Administrators'
+        'Enterprise Admins', 
+        'Schema Admins'
       ];
 
-      for (const groupName of privilegedGroups) {
-        const members = await this.getGroupMembers(groupName);
+      for (const groupName of criticalGroups) {
+        const memberDNs = await this.getGroupMembers(groupName);
         
-        if (members.length > 5) {
+        // Para cada membro, criar uma ameaça individual de "Nova conta com acesso privilegiado"
+        for (const memberDN of memberDNs) {
+          // Extrair username do DN (formato: CN=username,OU=...,DC=...)
+          const cnMatch = memberDN.match(/CN=([^,]+)/);
+          const username = cnMatch ? cnMatch[1] : memberDN;
+          
           findings.push({
             type: 'ad_misconfiguration',
-            target: this.domain, // Use domain as target for all AD findings
-            name: 'Grupo Privilegiado com Muitos Membros',
+            target: this.domain,
+            name: 'Nova Conta com Acesso Privilegiado',
             severity: 'high',
             category: 'groups',
-            description: `Grupo ${groupName} possui ${members.length} membros (recomendado: máximo 5)`,
-            evidence: { memberCount: members.length, members, groupName },
-            recommendation: 'Revisar e reduzir membros de grupos privilegiados'
+            description: `Conta "${username}" é membro do grupo administrativo crítico "${groupName}"`,
+            evidence: {
+              username,
+              groupName,
+              memberDN,
+              requiresApproval: true
+            },
+            recommendation: 'Verificar se esta conta realmente necessita acesso privilegiado e alterar status para "Risco Aceito" após aprovação'
           });
         }
       }
@@ -710,31 +712,11 @@ export class ADScanner {
         });
       }
 
-      if (oldSystems > 0) {
-        findings.push({
-          type: 'ad_vulnerability',
-          target: this.domain, // Use domain as target for all AD findings
-          name: 'Sistemas Operacionais Obsoletos',
-          severity: 'high',
-          category: 'computers',
-          description: `${oldSystems} computadores executando sistemas operacionais sem suporte`,
-          evidence: { count: oldSystems },
-          recommendation: 'Atualizar ou substituir sistemas operacionais obsoletos'
-        });
-      }
+      // Remover finding consolidado conforme solicitado - manter apenas ameaças individuais por computador
+      // (As ameaças individuais já são criadas no loop acima para cada computador com SO obsoleto)
 
-      if (inactiveComputers > 0) {
-        findings.push({
-          type: 'ad_hygiene',
-          target: this.domain, // Use domain as target for all AD findings
-          name: 'Computadores Inativos',
-          severity: 'low',
-          category: 'computers',
-          description: `${inactiveComputers} computadores sem atividade há mais de 3 meses`,
-          evidence: { count: inactiveComputers },
-          recommendation: 'Remover objetos de computadores inativos do domínio'
-        });
-      }
+      // Remover finding consolidado conforme solicitado - manter apenas ameaças individuais por computador
+      // (As ameaças individuais já são criadas no loop acima para cada computador inativo)
 
     } catch (error) {
       console.error('Erro ao analisar computadores:', error);
@@ -986,7 +968,7 @@ export class ADScanner {
             type: 'ad_vulnerability',
             target: this.domain, // Use domain as target for all AD findings
             name: 'Histórico de Senhas Insuficiente',
-            severity: 'low',
+            severity: 'high',
             category: 'configuration',
             description: `Histórico de senhas configurado para ${pwdHistoryLength} senhas (recomendado: 12+)`,
             evidence: { currentHistoryLength: pwdHistoryLength },

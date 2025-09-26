@@ -247,6 +247,8 @@ export default function Threats() {
         return 'bg-chart-4/20 text-chart-4';
       case 'hibernated':
         return 'bg-amber-500/20 text-amber-600';
+      case 'accepted_risk':
+        return 'bg-blue-500/20 text-blue-600';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -264,6 +266,8 @@ export default function Threats() {
         return 'Fechada';
       case 'hibernated':
         return 'Hibernada';
+      case 'accepted_risk':
+        return 'Risco Aceito';
       default:
         return status;
     }
@@ -278,6 +282,8 @@ export default function Threats() {
       case 'mitigated':
       case 'closed':
         return CheckCircle;
+      case 'accepted_risk':
+        return Shield;
       default:
         return AlertTriangle;
     }
@@ -450,6 +456,7 @@ export default function Threats() {
                     <SelectItem value="investigating">Investigando</SelectItem>
                     <SelectItem value="mitigated">Mitigada</SelectItem>
                     <SelectItem value="hibernated">Hibernada</SelectItem>
+                    <SelectItem value="accepted_risk">Risco Aceito</SelectItem>
                     <SelectItem value="closed">Fechada</SelectItem>
                   </SelectContent>
                 </Select>
@@ -559,6 +566,7 @@ export default function Threats() {
                                   <SelectItem value="investigating">Investigando</SelectItem>
                                   <SelectItem value="mitigated">Mitigada</SelectItem>
                                   <SelectItem value="hibernated">Hibernada</SelectItem>
+                                  <SelectItem value="accepted_risk">Risco Aceito</SelectItem>
                                   <SelectItem value="closed">Fechada</SelectItem>
                                 </SelectContent>
                               </Select>
