@@ -567,7 +567,6 @@ export default function Threats() {
                                   <SelectItem value="mitigated">Mitigada</SelectItem>
                                   <SelectItem value="hibernated">Hibernada</SelectItem>
                                   <SelectItem value="accepted_risk">Risco Aceito</SelectItem>
-                                  <SelectItem value="closed">Fechada</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>

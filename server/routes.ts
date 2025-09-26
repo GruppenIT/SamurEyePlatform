@@ -13,7 +13,8 @@ import {
   insertJourneySchema, 
   insertScheduleSchema,
   registerUserSchema,
-  insertHostSchema
+  insertHostSchema,
+  changeThreatStatusSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -588,20 +589,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-      const { status, justification, hibernatedUntil } = req.body;
       
-      // Validate input
-      if (!status || !justification) {
-        return res.status(400).json({ message: "Status e justificativa são obrigatórios" });
+      // Validate input using Zod schema
+      const validationResult = changeThreatStatusSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        console.log(`⚠️ Validation failed for status change:`, validationResult.error.issues);
+        return res.status(400).json({ 
+          message: validationResult.error.issues.map(i => i.message).join(', ') 
+        });
       }
       
-      if (justification.length < 10) {
-        return res.status(400).json({ message: "Justificativa deve ter pelo menos 10 caracteres" });
-      }
-      
-      if (status === 'hibernated' && !hibernatedUntil) {
-        return res.status(400).json({ message: "Data limite é obrigatória para status hibernado" });
-      }
+      const { status, justification, hibernatedUntil } = validationResult.data;
       
       const beforeThreat = await storage.getThreat(id);
       if (!beforeThreat) {

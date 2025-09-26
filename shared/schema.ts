@@ -440,7 +440,7 @@ export const insertThreatStatusHistorySchema = createInsertSchema(threatStatusHi
 
 // Schema for status change with justification
 export const changeThreatStatusSchema = z.object({
-  status: z.enum(['open', 'investigating', 'mitigated', 'closed', 'hibernated']),
+  status: z.enum(['open', 'investigating', 'mitigated', 'hibernated', 'accepted_risk']),
   justification: z.string().min(10, "Justificativa deve ter pelo menos 10 caracteres"),
   hibernatedUntil: z.string().datetime().optional(), // ISO string for hibernated status
 }).refine(data => {
