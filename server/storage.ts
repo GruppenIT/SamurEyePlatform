@@ -496,6 +496,14 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
+  async getJobsByJourneyId(journeyId: string): Promise<Job[]> {
+    return await db
+      .select()
+      .from(jobs)
+      .where(eq(jobs.journeyId, journeyId))
+      .orderBy(desc(jobs.createdAt));
+  }
+
   // Threat operations
   async getThreats(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string }): Promise<Threat[]> {
     if (filters) {

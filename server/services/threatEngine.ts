@@ -1320,9 +1320,18 @@ class ThreatEngineService {
         return;
       }
 
+      // Check if there are previous completed jobs for this journey - skip closure on first run
+      const previousJobs = await storage.getJobsByJourneyId(job.journeyId);
+      const completedPreviousJobs = previousJobs.filter(j => j.id !== jobId && j.status === 'completed');
+      
+      if (completedPreviousJobs.length === 0) {
+        console.log(`🆕 First-run detected: Skipping auto-closure for journey ${job.journeyId} - no previous completed jobs`);
+        return;
+      }
+
       // Get all open threats related to this asset/journey type
       const openThreats = await storage.listOpenThreatsByJourney(job.journeyId, journey.type);
-      console.log(`📊 Found ${openThreats.length} open threats for journey ${job.journeyId}`);
+      console.log(`📊 Found ${openThreats.length} open threats for journey ${job.journeyId} (${completedPreviousJobs.length} previous jobs exist)`);
 
       // For each threat, check if it should be automatically closed or reactivated
       for (const threat of openThreats) {
@@ -1340,7 +1349,14 @@ class ThreatEngineService {
    */
   private async processReactivationLogic(threat: Threat, job: any, journey: any): Promise<void> {
     try {
+      // CRITICAL: Never process threats from the current job to prevent immediate closure
+      if (threat.jobId === job.id) {
+        console.log(`⏰ Skipping threat from current job: ${threat.title} (threatJobId: ${threat.jobId}, currentJobId: ${job.id})`);
+        return;
+      }
+      
       const threatFound = await this.isThreatStillPresent(threat, job, journey);
+      console.log(`🔍 Threat ${threat.id} (${threat.title}) from job ${threat.jobId}: found=${threatFound}, status=${threat.status}`);
       
       switch (threat.status) {
         case 'investigating':
@@ -1372,8 +1388,8 @@ class ThreatEngineService {
         case 'open':
           if (!threatFound) {
             // SAFE AUTO-CLOSURE: Only close threats that weren't found in new scan and are from previous jobs
-            console.log(`🔒 REACTIVATION_LOGIC: Closing open threat ${threat.id} - not found in new scan (job: ${job.id})`);
-            await this.closeThreatAutomatically(threat.id, 'Ameaça não foi reencontrada durante nova varredura');
+            console.log(`🔒 REACTIVATION_LOGIC: Closing open threat ${threat.id} from job ${threat.jobId} - not found in current job ${job.id}`);
+            await this.closeThreatAutomatically(threat.id, 'Ameaça não foi reencontrada durante nova varredura (possível higienização)');
             console.log(`✅ Open threat ${threat.id} automatically closed - not found (possible cleanup/remediation)`);
           }
           break;
