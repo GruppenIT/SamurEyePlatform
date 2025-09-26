@@ -949,15 +949,15 @@ class ThreatEngineService {
         continue;
       }
       
-      // TEMPORARILY DISABLED: Auto-closure causing critical bug where threats are closed even after being skipped
-      // If threat wasn't observed in this run, condition is fixed - close it
+      // SAFE AUTO-CLOSURE: Only close threats from previous jobs that weren't observed
       if (!observedKeys.has(threat.correlationKey)) {
-        console.log(`🚫 AD_HYGIENE_CLOSURES: AUTO-CLOSURE DISABLED - Would close threat ${threat.id} - key "${threat.correlationKey}" not in observed keys`);
-        console.log(`🚫 AD_HYGIENE_CLOSURES: Observed keys: ${Array.from(observedKeys).slice(0, 5).join(', ')}... (${observedKeys.size} total)`);
-        // await storage.closeThreatSystem(threat.id, 'system');
-        // console.log(`✅ Open threat ${threat.id} automatically closed - not found`);
+        console.log(`🔒 AD_HYGIENE_CLOSURES: Closing threat ${threat.id} from previous job - key "${threat.correlationKey}" not observed in current scan`);
+        console.log(`🔒 AD_HYGIENE_CLOSURES: Previous jobId: ${threat.jobId}, Current jobId: ${jobId}`);
+        console.log(`🔒 AD_HYGIENE_CLOSURES: Key not in observed keys: ${Array.from(observedKeys).slice(0, 5).join(', ')}... (${observedKeys.size} total)`);
+        await storage.closeThreatSystem(threat.id, 'system');
+        console.log(`✅ Open threat ${threat.id} automatically closed - not found in new scan (possible cleanup/remediation)`);
       } else {
-        console.log(`✅ AD_HYGIENE_CLOSURES: Keeping threat ${threat.id} open - key ${threat.correlationKey} observed`);
+        console.log(`✅ AD_HYGIENE_CLOSURES: Keeping threat ${threat.id} open - key ${threat.correlationKey} observed in current scan`);
       }
     }
   }
@@ -1371,11 +1371,10 @@ class ThreatEngineService {
           
         case 'open':
           if (!threatFound) {
-            // TEMPORARILY DISABLED: Auto-closure causing critical bug
-            // Open threat not found - automatically close it
-            console.log(`🚫 REACTIVATION_LOGIC: AUTO-CLOSURE DISABLED - Would close open threat ${threat.id} - not found in new scan`);
-            // await this.closeThreatAutomatically(threat.id, 'Ameaça não foi reencontrada durante nova varredura');
-            // console.log(`✅ Open threat ${threat.id} automatically closed - not found`);
+            // SAFE AUTO-CLOSURE: Only close threats that weren't found in new scan and are from previous jobs
+            console.log(`🔒 REACTIVATION_LOGIC: Closing open threat ${threat.id} - not found in new scan (job: ${job.id})`);
+            await this.closeThreatAutomatically(threat.id, 'Ameaça não foi reencontrada durante nova varredura');
+            console.log(`✅ Open threat ${threat.id} automatically closed - not found (possible cleanup/remediation)`);
           }
           break;
       }
