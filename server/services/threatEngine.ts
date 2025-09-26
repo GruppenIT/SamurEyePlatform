@@ -927,7 +927,8 @@ class ThreatEngineService {
       
       // If threat wasn't observed in this run, condition is fixed - close it
       if (!observedKeys.has(threat.correlationKey)) {
-        console.log(`🔒 AD_HYGIENE_CLOSURES: About to close threat ${threat.id} - key ${threat.correlationKey} not observed`);
+        console.log(`🔒 AD_HYGIENE_CLOSURES: About to close threat ${threat.id} - key "${threat.correlationKey}" not in observed keys`);
+        console.log(`🔒 AD_HYGIENE_CLOSURES: Observed keys: ${Array.from(observedKeys).slice(0, 5).join(', ')}... (${observedKeys.size} total)`);
         await storage.closeThreatSystem(threat.id, 'system');
         console.log(`✅ Open threat ${threat.id} automatically closed - not found`);
       } else {
