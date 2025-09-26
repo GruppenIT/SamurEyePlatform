@@ -131,6 +131,7 @@ export interface IStorage {
   createJobResult(result: Omit<JobResult, 'id' | 'createdAt'>): Promise<JobResult>;
   getRunningJobs(): Promise<Job[]>;
   getRecentJobs(limit?: number): Promise<Job[]>;
+  getJobsByJourneyId(journeyId: string): Promise<Job[]>;
 
   // Host operations
   getHosts(filters?: { search?: string; type?: string; family?: string }): Promise<Host[]>;
