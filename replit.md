@@ -37,8 +37,14 @@ The application features a dark security-focused theme. The threat intelligence 
 ### Technical Implementations
 - **Host Management**: Automated host discovery from security scans, intelligent deduplication, and automatic threat-to-host linkage.
 - **Threat Lifecycle Management**: Implemented cross-journey threat reactivation and a duplicate prevention system using partial unique indices.
-- **CVE Analysis**: Integration with NIST NVD API for real-time CVE detection, including Portuguese translations and intelligent remediation guidance.
+- **Active CVE Validation**: Refactored Attack Surface journey to use active validation with nmap vuln scripts (`--script=vuln`) instead of passive NIST NVD API lookups. CVEs are now validated in real-time against live targets, generating `nmap_vuln` findings with detailed exploit information.
+- **Conditional Web Scanning**: Attack Surface journeys feature optional Nuclei web application scanning via the `webScanEnabled` parameter. When enabled, HTTP/HTTPS services are automatically identified and scanned for web vulnerabilities.
+- **Three-Phase Attack Surface Scanning**: 
+  1. **Discovery Phase**: Port scanning with nmap to identify open ports and services
+  2. **Active Validation Phase**: Nmap vuln scripts execution on all discovered ports (always runs)
+  3. **Web Scanning Phase**: Nuclei execution on web services (conditional, based on webScanEnabled)
 - **OS and Version Detection**: Enhanced nmap usage with `-O` and `--osscan-guess` flags for improved OS detection accuracy, service version normalization, and a robust fallback mechanism for environments without root privileges.
+- **Port Sanitization**: Implemented automatic port format normalization to strip `/tcp` and `/udp` suffixes before passing to nmap vuln scripts, ensuring command compatibility.
 - **Session Control**: Secure 8-hour session expiration with automatic cleanup and middleware validation.
 - **PID Monitoring System**: Real-time process tracking for nmap/nuclei with WebSocket updates and cooperative cancellation.
 
