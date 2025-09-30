@@ -1,0 +1,240 @@
+Sep 30 19:09:45 vlxsam99 npm[748436]: 🚀 Iniciando Attack Surface Journey com varredura web: ATIVADA
+Sep 30 19:09:45 vlxsam99 npm[748436]: 📡 FASE 1: Descoberta de serviços em 192.168.100.18
+Sep 30 19:09:45 vlxsam99 npm[748436]: Iniciando scan de portas para 192.168.100.18
+Sep 30 19:09:45 vlxsam99 npm[748436]: 📍 Target 192.168.100.18 já é um IP válido
+Sep 30 19:09:45 vlxsam99 npm[748436]: ✅ DNS resolvido: 192.168.100.18 → 192.168.100.18
+Sep 30 19:09:45 vlxsam99 npm[748436]: 🚀 Perfil rápido selecionado: escaneando top 1000 portas
+Sep 30 19:09:45 vlxsam99 npm[748436]: 🔍 Executando nmap com top 1000 portas
+Sep 30 19:09:45 vlxsam99 npm[748436]: 🎯 Escaneando portas de 192.168.100.18... nmap (perfil: fast)
+Sep 30 19:09:45 vlxsam99 npm[748436]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 10 --min-rate 100 --max-rate 1000 --max-rtt-timeout 3s --initial-rtt-timeout 500ms --version-intensity 5 -O --osscan-guess -T4 --top-ports 1000 192.168.100.18
+Sep 30 19:09:45 vlxsam99 npm[748436]: 📍 Job: d38d48eb-263f-48bd-a682-7d87221e2858 | Processo: nmap | Stage: Escaneando portas de 192.168.100.18... nmap
+Sep 30 19:09:45 vlxsam99 npm[748436]: 📍 Processo registrado: nmap pid 748492 para job d38d48eb-263f-48bd-a682-7d87221e2858 - Escaneando portas de 192.168.100.18... nmap
+Sep 30 19:09:45 vlxsam99 npm[748436]: 🗑️ Processo removido: nmap pid 748492 para job d38d48eb-263f-48bd-a682-7d87221e2858
+Sep 30 19:09:45 vlxsam99 npm[748436]: 📋 Comando concluído com código 1
+Sep 30 19:09:45 vlxsam99 npm[748436]: ❌ Command failed with code 1: TCP/IP fingerprinting (for OS scan) requires root privileges.
+Sep 30 19:09:45 vlxsam99 npm[748436]: QUITTING!
+Sep 30 19:09:45 vlxsam99 npm[748436]: ⚠️ nmap requer privilégios de root para perfil fast, fazendo fallback para TCP scan
+Sep 30 19:09:45 vlxsam99 npm[748436]: 🔄 Usando TCP connect scan como fallback por falta de privilégios root
+Sep 30 19:09:45 vlxsam99 npm[748436]: 🔍 Executando nmap com top 1000 portas
+Sep 30 19:09:45 vlxsam99 npm[748436]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 5 --min-rate 50 --max-rate 500 --max-rtt-timeout 5s --initial-rtt-timeout 1s --version-intensity 5 -T3 --top-ports 1000 192.168.100.18
+Sep 30 19:09:45 vlxsam99 npm[748436]: 📍 Job: d38d48eb-263f-48bd-a682-7d87221e2858 | Processo: nmap | Stage: Escaneando portas de 192.168.100.18... nmap
+Sep 30 19:09:45 vlxsam99 npm[748436]: 📍 Processo registrado: nmap pid 748493 para job d38d48eb-263f-48bd-a682-7d87221e2858 - Escaneando portas de 192.168.100.18... nmap
+Sep 30 19:10:00 vlxsam99 npm[748436]: 🗑️ Processo removido: nmap pid 748493 para job d38d48eb-263f-48bd-a682-7d87221e2858
+Sep 30 19:10:00 vlxsam99 npm[748436]: 📋 Comando concluído com código 0
+Sep 30 19:10:00 vlxsam99 npm[748436]: ⚠️ Versão detectada como range: Microsoft Windows Server 2008 R2 - 2012 microsoft-ds - precisão baixa
+Sep 30 19:10:00 vlxsam99 npm[748436]: Parse nmap encontrou 6 portas para 192.168.100.18
+Sep 30 19:10:00 vlxsam99 npm[748436]: Primeiras portas encontradas: [ '80/open', '135/open', '139/open' ]
+Sep 30 19:10:00 vlxsam99 npm[748436]: 📊 Nmap TCP fallback concluído para 192.168.100.18 - 6 portas processadas
+Sep 30 19:10:00 vlxsam99 npm[748436]: ✅ FASE 1: 6 portas descobertas
+Sep 30 19:10:00 vlxsam99 npm[748436]: 🔍 FASE 2: Validação ativa de vulnerabilidades em vmsapl18.gruppen.com.br
+Sep 30 19:10:00 vlxsam99 npm[748436]: 🎯 FASE 2A: Executando nmap vuln scripts em vmsapl18.gruppen.com.br
+Sep 30 19:10:00 vlxsam99 npm[748436]: 🎯 Executando nmap vuln scripts: nmap -Pn -sT -p 80,135,139,445,1433,3389 --script vuln --script-args vulns.showall vmsapl18.gruppen.com.br
+Sep 30 19:10:10 vlxsam99 npm[748436]: ✅ Nmap vuln scripts concluído: 0 vulnerabilidades encontradas
+Sep 30 19:10:10 vlxsam99 npm[748436]: ✅ FASE 2A: 0 CVEs validados ativamente via nmap
+Sep 30 19:10:10 vlxsam99 npm[748436]: 🌐 FASE 2B: Identificando aplicações web em vmsapl18.gruppen.com.br
+Sep 30 19:10:10 vlxsam99 npm[748436]: 🌐 Aplicação web detectada: http://vmsapl18.gruppen.com.br:80 (service: http)
+Sep 30 19:10:10 vlxsam99 npm[748436]: 🔍 FASE 2B: 1 aplicações web encontradas, executando Nuclei
+Sep 30 19:10:10 vlxsam99 npm[748436]: 🔍 Executando Nuclei em http://vmsapl18.gruppen.com.br:80
+Sep 30 19:10:10 vlxsam99 npm[748436]: Iniciando scan de vulnerabilidades para vmsapl18.gruppen.com.br
+Sep 30 19:10:10 vlxsam99 npm[748436]: Encontrados 1 serviços web para escanear: [ '80/http' ]
+Sep 30 19:10:10 vlxsam99 npm[748436]: Erro na verificação Server Information Disclosure para http://vmsapl18.gruppen.com.br:80: Error: getaddrinfo ENOTFOUND vmsapl18.gruppen.com.br
+Sep 30 19:10:10 vlxsam99 npm[748436]:     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26) {
+Sep 30 19:10:10 vlxsam99 npm[748436]:   errno: -3008,
+Sep 30 19:10:10 vlxsam99 npm[748436]:   code: 'ENOTFOUND',
+Sep 30 19:10:10 vlxsam99 npm[748436]:   syscall: 'getaddrinfo',
+Sep 30 19:10:10 vlxsam99 npm[748436]:   hostname: 'vmsapl18.gruppen.com.br'
+Sep 30 19:10:10 vlxsam99 npm[748436]: }
+Sep 30 19:10:10 vlxsam99 npm[748436]: Erro na verificação HTTP Security Headers para http://vmsapl18.gruppen.com.br:80: Error: getaddrinfo ENOTFOUND vmsapl18.gruppen.com.br
+Sep 30 19:10:10 vlxsam99 npm[748436]:     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26) {
+Sep 30 19:10:10 vlxsam99 npm[748436]:   errno: -3008,
+Sep 30 19:10:10 vlxsam99 npm[748436]:   code: 'ENOTFOUND',
+Sep 30 19:10:10 vlxsam99 npm[748436]:   syscall: 'getaddrinfo',
+Sep 30 19:10:10 vlxsam99 npm[748436]:   hostname: 'vmsapl18.gruppen.com.br'
+Sep 30 19:10:10 vlxsam99 npm[748436]: }
+Sep 30 19:10:10 vlxsam99 npm[748436]: Executando nuclei para URL construída: http://vmsapl18.gruppen.com.br:80 (service: http)
+Sep 30 19:10:10 vlxsam99 npm[748436]: Baixando templates nuclei...
+Sep 30 19:10:10 vlxsam99 npm[748436]: 🔽 Baixando templates: nuclei -update-templates -ud /tmp/nuclei/nuclei-templates
+Sep 30 19:10:10 vlxsam99 npm[748436]: [nuclei download stderr] __     _
+Sep 30 19:10:10 vlxsam99 npm[748436]:    ____  __  _______/ /__  (_)
+Sep 30 19:10:10 vlxsam99 npm[748436]:   / __ \/ / / / ___/ / _ \/ /
+Sep 30 19:10:10 vlxsam99 npm[748436]:  / / / / /_/ / /__/ /  __/ /
+Sep 30 19:10:10 vlxsam99 npm[748436]: /_/ /_/\__,_/\___/_/\___/_/   v2.9.15
+Sep 30 19:10:10 vlxsam99 npm[748436]:                 projectdiscovery.io
+Sep 30 19:10:11 vlxsam99 npm[748436]: [nuclei download stderr] [INF] nuclei-templates are not installed, installing...
+Sep 30 19:10:18 vlxsam99 npm[748436]: [nuclei download stderr] [INF] Successfully installed nuclei-templates at /tmp/nuclei/nuclei-templates
+Sep 30 19:10:18 vlxsam99 npm[748436]: [INF] No new updates found for nuclei templates
+Sep 30 19:10:18 vlxsam99 npm[748436]: 📋 Download de templates concluído com código 0
+Sep 30 19:10:18 vlxsam99 npm[748436]: ✅ Templates nuclei baixados com sucesso
+Sep 30 19:10:18 vlxsam99 npm[748436]: 🎯 Analisando vulnerabilidades em http://vmsapl18.gruppen.com.br:80... nuclei
+Sep 30 19:10:18 vlxsam99 npm[748436]: 🔧 Executando: nuclei -u http://vmsapl18.gruppen.com.br:80 -jsonl -silent -duc -ni -nc -nm -s medium,high,critical -timeout 10 -retries 1 -c 5 -t /tmp/nuclei/nuclei-templates
+Sep 30 19:10:18 vlxsam99 npm[748436]: 📍 Job: d38d48eb-263f-48bd-a682-7d87221e2858 | Processo: nuclei | Stage: Analisando vulnerabilidades em http://vmsapl18.gruppen.com.br:80... nuclei
+Sep 30 19:10:18 vlxsam99 npm[748436]: 📍 Processo registrado: nuclei pid 748509 para job d38d48eb-263f-48bd-a682-7d87221e2858 - Analisando vulnerabilidades em http://vmsapl18.gruppen.com.br:80... nuclei
+Sep 30 19:18:35 vlxsam99 npm[748436]: 🧹 Limpeza de sessões expiradas executada
+Sep 30 19:28:35 vlxsam99 npm[748436]: 🧹 Limpeza de sessões expiradas executada
+Sep 30 19:38:35 vlxsam99 npm[748436]: 🧹 Limpeza de sessões expiradas executada
+Sep 30 19:40:18 vlxsam99 npm[748436]: ⏱️ Fallback timeout após 1800s - matando processo 748509
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔪 Matando processo: nuclei pid 748509
+Sep 30 19:40:18 vlxsam99 npm[748436]: Nuclei não disponível ou falhou: Error: Process exceeded maximum wait time of 1800s
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ Nuclei não encontrou vulnerabilidades em http://vmsapl18.gruppen.com.br:80
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ FASE 2B: 0 vulnerabilidades web encontradas via Nuclei
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🏠 Host descoberto/atualizado: vmsapl18.gruppen.com.br (192.168.100.18, 192.168.100.18, 192.168.100.18, 192.168.100.18, 192.168.100.18, 192.168.100.18)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🏠 FASE 3: 1 hosts descobertos/atualizados
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ Attack Surface concluído: 6 findings total
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 PROCESS_JOB_RESULTS: Starting with jobId: d38d48eb-263f-48bd-a682-7d87221e2858
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 PROCESS_JOB_RESULTS: Journey 025c02b1-3b93-4920-93a1-47fac9bf8221, Type: attack_surface, JobId: d38d48eb-263f-48bd-a682-7d87221e2858
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 ThreatEngine.analyzeWithLifecycle: Analisando 6 findings para journeyType 'attack_surface' (jobId: d38d48eb-263f-48bd-a682-7d87221e2858)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ Finding matched rule: web-ports-exposed
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🗑️ Processo removido: nuclei pid 748509 para job d38d48eb-263f-48bd-a682-7d87221e2858
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 Comando concluído com código null
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📊 DEBUG stdout length: 0 characters
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📊 DEBUG stderr length: 0 characters
+Sep 30 19:40:18 vlxsam99 npm[748436]: ❌ Command failed with code null:
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔗 Linking threat to host: vmsapl18.gruppen.com.br (vmsapl18.gruppen.com.br)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔗 Host found for threat: a42125cd-aa53-45f6-a44b-8f6552b4b696
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:80
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 UPSERT: Input threat details - title: Porta web 80 exposta, jobId: d38d48eb-263f-48bd-a682-7d87221e2858, status: open
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:80" (length: 34)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 FIND: Found 0 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:80"
+Sep 30 19:40:18 vlxsam99 npm[748436]: ❌ FIND: No threat found for key: "as:port:vmsapl18.gruppen.com.br:80"
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🆕 UPSERT: No existing threat found for correlationKey: as:port:vmsapl18.gruppen.com.br:80
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 UPSERT: Found 0 similar threats: []
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🆕 UPSERT: Creating new threat with correlationKey: as:port:vmsapl18.gruppen.com.br:80
+Sep 30 19:40:18 vlxsam99 npm[748436]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ UPSERT: Created new threat e9dc0cb7-5c9e-4b9c-8300-998c0fdb9540 via fallback insert - status: open
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔄 Threat upserted: Porta web 80 exposta (Category: attack_surface, HostId: a42125cd-aa53-45f6-a44b-8f6552b4b696, Key: as:port:vmsapl18.gruppen.com.br:80)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Sep 30 19:40:18 vlxsam99 npm[748436]: ⚪ Nenhuma regra correspondeu ao finding: type=port, name=undefined
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ Finding matched rule: smb-ports-exposed
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔗 Linking threat to host: vmsapl18.gruppen.com.br (vmsapl18.gruppen.com.br)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔗 Host found for threat: a42125cd-aa53-45f6-a44b-8f6552b4b696
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:139
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 UPSERT: Input threat details - title: Porta SMB 139 exposta, jobId: d38d48eb-263f-48bd-a682-7d87221e2858, status: open
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:139" (length: 35)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 FIND: Found 0 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:139"
+Sep 30 19:40:18 vlxsam99 npm[748436]: ❌ FIND: No threat found for key: "as:port:vmsapl18.gruppen.com.br:139"
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🆕 UPSERT: No existing threat found for correlationKey: as:port:vmsapl18.gruppen.com.br:139
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 UPSERT: Found 1 similar threats: [
+Sep 30 19:40:18 vlxsam99 npm[748436]:   {
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "id": "e9dc0cb7-5c9e-4b9c-8300-998c0fdb9540",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "correlationKey": "as:port:vmsapl18.gruppen.com.br:80",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "status": "open"
+Sep 30 19:40:18 vlxsam99 npm[748436]:   }
+Sep 30 19:40:18 vlxsam99 npm[748436]: ]
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🆕 UPSERT: Creating new threat with correlationKey: as:port:vmsapl18.gruppen.com.br:139
+Sep 30 19:40:18 vlxsam99 npm[748436]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ UPSERT: Created new threat 182ab708-df13-4e16-a45a-3c69d73b1a46 via fallback insert - status: open
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔄 Threat upserted: Porta SMB 139 exposta (Category: attack_surface, HostId: a42125cd-aa53-45f6-a44b-8f6552b4b696, Key: as:port:vmsapl18.gruppen.com.br:139)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ Finding matched rule: smb-ports-exposed
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔗 Linking threat to host: vmsapl18.gruppen.com.br (vmsapl18.gruppen.com.br)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔗 Host found for threat: a42125cd-aa53-45f6-a44b-8f6552b4b696
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:445
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 UPSERT: Input threat details - title: Porta SMB 445 exposta, jobId: d38d48eb-263f-48bd-a682-7d87221e2858, status: open
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:445" (length: 35)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 FIND: Found 0 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:445"
+Sep 30 19:40:18 vlxsam99 npm[748436]: ❌ FIND: No threat found for key: "as:port:vmsapl18.gruppen.com.br:445"
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🆕 UPSERT: No existing threat found for correlationKey: as:port:vmsapl18.gruppen.com.br:445
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 UPSERT: Found 2 similar threats: [
+Sep 30 19:40:18 vlxsam99 npm[748436]:   {
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "id": "e9dc0cb7-5c9e-4b9c-8300-998c0fdb9540",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "correlationKey": "as:port:vmsapl18.gruppen.com.br:80",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "status": "open"
+Sep 30 19:40:18 vlxsam99 npm[748436]:   },
+Sep 30 19:40:18 vlxsam99 npm[748436]:   {
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "id": "182ab708-df13-4e16-a45a-3c69d73b1a46",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "correlationKey": "as:port:vmsapl18.gruppen.com.br:139",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "status": "open"
+Sep 30 19:40:18 vlxsam99 npm[748436]:   }
+Sep 30 19:40:18 vlxsam99 npm[748436]: ]
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🆕 UPSERT: Creating new threat with correlationKey: as:port:vmsapl18.gruppen.com.br:445
+Sep 30 19:40:18 vlxsam99 npm[748436]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ UPSERT: Created new threat 44d53422-9758-48ce-a9f7-8da0c5cabc32 via fallback insert - status: open
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔄 Threat upserted: Porta SMB 445 exposta (Category: attack_surface, HostId: a42125cd-aa53-45f6-a44b-8f6552b4b696, Key: as:port:vmsapl18.gruppen.com.br:445)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ Finding matched rule: database-ports-exposed
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔗 Linking threat to host: vmsapl18.gruppen.com.br (vmsapl18.gruppen.com.br)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔗 Host found for threat: a42125cd-aa53-45f6-a44b-8f6552b4b696
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:1433
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 UPSERT: Input threat details - title: Porta de banco 1433 exposta, jobId: d38d48eb-263f-48bd-a682-7d87221e2858, status: open
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:1433" (length: 36)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 FIND: Found 0 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:1433"
+Sep 30 19:40:18 vlxsam99 npm[748436]: ❌ FIND: No threat found for key: "as:port:vmsapl18.gruppen.com.br:1433"
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🆕 UPSERT: No existing threat found for correlationKey: as:port:vmsapl18.gruppen.com.br:1433
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 UPSERT: Found 3 similar threats: [
+Sep 30 19:40:18 vlxsam99 npm[748436]:   {
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "id": "e9dc0cb7-5c9e-4b9c-8300-998c0fdb9540",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "correlationKey": "as:port:vmsapl18.gruppen.com.br:80",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "status": "open"
+Sep 30 19:40:18 vlxsam99 npm[748436]:   },
+Sep 30 19:40:18 vlxsam99 npm[748436]:   {
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "id": "182ab708-df13-4e16-a45a-3c69d73b1a46",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "correlationKey": "as:port:vmsapl18.gruppen.com.br:139",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "status": "open"
+Sep 30 19:40:18 vlxsam99 npm[748436]:   },
+Sep 30 19:40:18 vlxsam99 npm[748436]:   {
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "id": "44d53422-9758-48ce-a9f7-8da0c5cabc32",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "correlationKey": "as:port:vmsapl18.gruppen.com.br:445",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "status": "open"
+Sep 30 19:40:18 vlxsam99 npm[748436]:   }
+Sep 30 19:40:18 vlxsam99 npm[748436]: ]
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🆕 UPSERT: Creating new threat with correlationKey: as:port:vmsapl18.gruppen.com.br:1433
+Sep 30 19:40:18 vlxsam99 npm[748436]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ UPSERT: Created new threat 9cfa9358-902e-4e93-b05b-0a3876e2b90e via fallback insert - status: open
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔄 Threat upserted: Porta de banco 1433 exposta (Category: attack_surface, HostId: a42125cd-aa53-45f6-a44b-8f6552b4b696, Key: as:port:vmsapl18.gruppen.com.br:1433)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ Finding matched rule: open-admin-ports
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔗 Linking threat to host: vmsapl18.gruppen.com.br (vmsapl18.gruppen.com.br)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔗 Host found for threat: a42125cd-aa53-45f6-a44b-8f6552b4b696
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:3389
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📋 UPSERT: Input threat details - title: Porta administrativa 3389 exposta, jobId: d38d48eb-263f-48bd-a682-7d87221e2858, status: open
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:3389" (length: 36)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 FIND: Found 0 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:3389"
+Sep 30 19:40:18 vlxsam99 npm[748436]: ❌ FIND: No threat found for key: "as:port:vmsapl18.gruppen.com.br:3389"
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🆕 UPSERT: No existing threat found for correlationKey: as:port:vmsapl18.gruppen.com.br:3389
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 UPSERT: Searching for threats with similar keys...
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 UPSERT: Found 4 similar threats: [
+Sep 30 19:40:18 vlxsam99 npm[748436]:   {
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "id": "e9dc0cb7-5c9e-4b9c-8300-998c0fdb9540",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "correlationKey": "as:port:vmsapl18.gruppen.com.br:80",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "status": "open"
+Sep 30 19:40:18 vlxsam99 npm[748436]:   },
+Sep 30 19:40:18 vlxsam99 npm[748436]:   {
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "id": "182ab708-df13-4e16-a45a-3c69d73b1a46",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "correlationKey": "as:port:vmsapl18.gruppen.com.br:139",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "status": "open"
+Sep 30 19:40:18 vlxsam99 npm[748436]:   },
+Sep 30 19:40:18 vlxsam99 npm[748436]:   {
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "id": "44d53422-9758-48ce-a9f7-8da0c5cabc32",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "correlationKey": "as:port:vmsapl18.gruppen.com.br:445",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "status": "open"
+Sep 30 19:40:18 vlxsam99 npm[748436]:   },
+Sep 30 19:40:18 vlxsam99 npm[748436]:   {
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "id": "9cfa9358-902e-4e93-b05b-0a3876e2b90e",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "correlationKey": "as:port:vmsapl18.gruppen.com.br:1433",
+Sep 30 19:40:18 vlxsam99 npm[748436]:     "status": "open"
+Sep 30 19:40:18 vlxsam99 npm[748436]:   }
+Sep 30 19:40:18 vlxsam99 npm[748436]: ]
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🆕 UPSERT: Creating new threat with correlationKey: as:port:vmsapl18.gruppen.com.br:3389
+Sep 30 19:40:18 vlxsam99 npm[748436]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ UPSERT: Created new threat 805f5b07-d2e7-43a3-aedc-02194071e889 via fallback insert - status: open
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔄 Threat upserted: Porta administrativa 3389 exposta (Category: attack_surface, HostId: a42125cd-aa53-45f6-a44b-8f6552b4b696, Key: as:port:vmsapl18.gruppen.com.br:3389)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🎯 ThreatEngine.analyzeWithLifecycle: Criou 5 ameaças de 6 findings para journeyType 'attack_surface'
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 PROCESS_JOB_RESULTS: About to run post-processing with jobId: d38d48eb-263f-48bd-a682-7d87221e2858
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔍 ATTACK_SURFACE_CLOSURES: Starting with journeyId: 025c02b1-3b93-4920-93a1-47fac9bf8221, jobId: d38d48eb-263f-48bd-a682-7d87221e2858
+Sep 30 19:40:18 vlxsam99 npm[748436]: 📊 ATTACK_SURFACE_METRICS: Starting analysis - scannedHosts: 1, observedKeys: 6, openThreats: 5, currentJobId: d38d48eb-263f-48bd-a682-7d87221e2858
+Sep 30 19:40:18 vlxsam99 npm[748436]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta web 80 exposta (jobId: d38d48eb-263f-48bd-a682-7d87221e2858)
+Sep 30 19:40:18 vlxsam99 npm[748436]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta SMB 139 exposta (jobId: d38d48eb-263f-48bd-a682-7d87221e2858)
+Sep 30 19:40:18 vlxsam99 npm[748436]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta SMB 445 exposta (jobId: d38d48eb-263f-48bd-a682-7d87221e2858)
+Sep 30 19:40:18 vlxsam99 npm[748436]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta de banco 1433 exposta (jobId: d38d48eb-263f-48bd-a682-7d87221e2858)
+Sep 30 19:40:18 vlxsam99 npm[748436]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta administrativa 3389 exposta (jobId: d38d48eb-263f-48bd-a682-7d87221e2858)
+Sep 30 19:40:18 vlxsam99 npm[748436]: ✅ ATTACK_SURFACE_METRICS: Completed - skippedCurrentJob: 5, closed: 0, keptOpen: 0, outOfScope: 0, noCorrelationKey: 0, total: 5
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🔄 Processing journey completion for job d38d48eb-263f-48bd-a682-7d87221e2858
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🆕 CLOSURE_METRICS: First-run detected for journey 025c02b1-3b93-4920-93a1-47fac9bf8221 - skipping auto-closure (previousJobsCount: 0, currentJobId: d38d48eb-263f-48bd-a682-7d87221e2858)
+Sep 30 19:40:18 vlxsam99 npm[748436]: 🗑️  Job d38d48eb-263f-48bd-a682-7d87221e2858 removido dos jobs em execução
+root@vlxsam99:~#
