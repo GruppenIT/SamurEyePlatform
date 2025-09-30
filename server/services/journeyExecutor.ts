@@ -981,30 +981,193 @@ class JourneyExecutorService {
   }
 
   /**
-   * Executa varredura Nuclei em URLs web
+   * Executa varredura Nuclei em URLs web com timeout configurável
    * Phase 2B: Web vulnerability scanning
    */
   private async runNucleiWebScan(urls: string[], jobId?: string, timeoutMs: number = 3600000): Promise<any[]> {
     const findings: any[] = [];
+    const { spawn } = await import('child_process');
     
-    // Usar o vulnScanner existente que já tem integração com Nuclei
-    // O timeout é passado via context no spawnCommand do vulnScanner
+    // Garantir que templates Nuclei estão instalados
+    await this.ensureNucleiTemplates();
+    
     for (const url of urls) {
       try {
-        // VulnScanner já tem método nucleiScanUrl, mas é privado
-        // Por enquanto, vamos usar scanVulnerabilities que chama nuclei internamente
-        const urlObj = new URL(url);
-        const port = urlObj.port || (urlObj.protocol === 'https:' ? '443' : '80');
-        
         console.log(`🔍 Executando Nuclei em ${url} (timeout: ${timeoutMs/60000}min)`);
-        const results = await vulnScanner.scanVulnerabilities(urlObj.hostname, [port], [], jobId);
-        findings.push(...results);
+        
+        const args = [
+          '-u', url,
+          '-jsonl',
+          '-silent',
+          '-duc',
+          '-ni',
+          '-nc',
+          '-nm',
+          '-s', 'medium,high,critical',
+          '-timeout', '10',
+          '-retries', '1',
+          '-c', '5',
+          '-t', '/tmp/nuclei/nuclei-templates',
+        ];
+        
+        const result = await new Promise<string>((resolve, reject) => {
+          const child = spawn('nuclei', args, {
+            stdio: ['ignore', 'pipe', 'pipe'],
+            env: {
+              ...process.env,
+              HOME: '/tmp/nuclei',
+              NUCLEI_CONFIG_DIR: '/tmp/nuclei/.config',
+              XDG_CONFIG_HOME: '/tmp/nuclei/.config',
+              XDG_CACHE_HOME: '/tmp/nuclei/.cache',
+              NUCLEI_TEMPLATES_DIR: '/tmp/nuclei/nuclei-templates',
+            },
+          });
+          
+          let stdout = '';
+          let stderr = '';
+          
+          const timeout = setTimeout(() => {
+            child.kill('SIGTERM');
+            console.log(`⏱️ Nuclei timeout após ${timeoutMs/60000}min para ${url}`);
+            resolve(''); // Retorna vazio em caso de timeout
+          }, timeoutMs);
+          
+          child.stdout?.on('data', (data) => {
+            stdout += data.toString();
+          });
+          
+          child.stderr?.on('data', (data) => {
+            stderr += data.toString();
+          });
+          
+          child.on('close', (code) => {
+            clearTimeout(timeout);
+            resolve(stdout);
+          });
+          
+          child.on('error', (error) => {
+            clearTimeout(timeout);
+            console.error(`❌ Erro ao executar Nuclei:`, error);
+            resolve('');
+          });
+        });
+        
+        // Parse do output JSON lines
+        const urlFindings = this.parseNucleiOutput(result, url);
+        findings.push(...urlFindings);
+        console.log(`✅ Nuclei concluído para ${url}: ${urlFindings.length} vulnerabilidades`);
+        
       } catch (error) {
         console.error(`❌ Erro ao escanear ${url} com Nuclei:`, error);
       }
     }
     
     return findings;
+  }
+  
+  /**
+   * Parse do output do Nuclei JSONL
+   */
+  private parseNucleiOutput(output: string, target: string): any[] {
+    const findings: any[] = [];
+    
+    if (!output || output.trim().length === 0) {
+      return findings;
+    }
+    
+    const lines = output.split('\n').filter(line => line.trim());
+    
+    for (const line of lines) {
+      try {
+        const finding = JSON.parse(line);
+        
+        findings.push({
+          type: 'vulnerability',
+          target,
+          name: finding.info?.name || finding.templateID || finding.template,
+          severity: this.mapNucleiSeverity(finding.info?.severity),
+          template: finding.templateID || finding.template,
+          description: finding.info?.description || '',
+          evidence: {
+            source: 'nuclei',
+            templateId: finding.templateID || finding.template,
+            url: finding['matched-at'] || finding.matched_at,
+            matcher: finding['matcher-name'] || finding.matcher_name,
+            info: finding.info,
+          },
+        });
+      } catch (error) {
+        // Ignorar linhas que não são JSON válido
+      }
+    }
+    
+    return findings;
+  }
+  
+  /**
+   * Mapeia severidade do Nuclei para padrão do sistema
+   */
+  private mapNucleiSeverity(severity?: string): 'low' | 'medium' | 'high' | 'critical' {
+    const sev = (severity || 'medium').toLowerCase();
+    if (['critical', 'high', 'medium', 'low'].includes(sev)) {
+      return sev as 'low' | 'medium' | 'high' | 'critical';
+    }
+    return 'medium';
+  }
+  
+  /**
+   * Garante que templates do Nuclei estão instalados
+   */
+  private async ensureNucleiTemplates(): Promise<void> {
+    const { spawn } = await import('child_process');
+    const { promises: fs } = await import('fs');
+    
+    const templatesDir = '/tmp/nuclei/nuclei-templates';
+    
+    try {
+      const stats = await fs.stat(templatesDir);
+      if (stats.isDirectory()) {
+        const files = await fs.readdir(templatesDir);
+        if (files.length > 0) {
+          return; // Templates já existem
+        }
+      }
+    } catch {
+      // Diretório não existe
+    }
+    
+    console.log('📥 Baixando templates Nuclei...');
+    
+    return new Promise((resolve, reject) => {
+      const child = spawn('nuclei', ['-update-templates', '-ud', templatesDir], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          HOME: '/tmp/nuclei',
+          NUCLEI_CONFIG_DIR: '/tmp/nuclei/.config',
+        },
+      });
+      
+      const timeout = setTimeout(() => {
+        child.kill('SIGTERM');
+        reject(new Error('Template download timeout'));
+      }, 120000);
+      
+      child.on('close', (code) => {
+        clearTimeout(timeout);
+        if (code === 0 || code === null) {
+          console.log('✅ Templates Nuclei baixados');
+          resolve();
+        } else {
+          reject(new Error(`Failed to download templates: code ${code}`));
+        }
+      });
+      
+      child.on('error', (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      });
+    });
   }
 
   /**
