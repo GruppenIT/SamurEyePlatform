@@ -5,6 +5,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
 import { settingsService } from "./services/settingsService";
 import { threatEngine } from "./services/threatEngine";
+import { schedulerService } from "./services/scheduler";
 import { storage } from "./storage";
 
 const app = express();
@@ -81,6 +82,9 @@ app.use((req, res, next) => {
   console.log('🕒 Iniciando monitor de ameaças hibernadas...');
   await threatEngine.startHibernationMonitor();
   
+  // Start scheduler service for automatic job execution
+  schedulerService.start();
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -142,6 +146,10 @@ app.use((req, res, next) => {
         await (server as any).closeWebSocket();
         log('WebSocket server closed');
       }
+
+      // Stop scheduler service
+      schedulerService.stop();
+      log('Scheduler service stopped');
 
       // Close database pool
       await pool.end();

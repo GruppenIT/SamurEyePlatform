@@ -418,6 +418,13 @@ export default function Schedules() {
                 kind: editingSchedule.kind,
                 cronExpression: editingSchedule.cronExpression || '',
                 onceAt: editingSchedule.onceAt ? new Date(editingSchedule.onceAt) : undefined,
+                recurrenceType: editingSchedule.recurrenceType || undefined,
+                hour: editingSchedule.hour ?? undefined,
+                minute: editingSchedule.minute ?? 0,
+                dayOfWeek: editingSchedule.dayOfWeek ?? undefined,
+                dayOfMonth: editingSchedule.dayOfMonth ?? undefined,
+                repeatInterval: editingSchedule.repeatInterval ?? undefined,
+                repeatUnit: editingSchedule.repeatUnit || undefined,
                 enabled: editingSchedule.enabled,
               }}
             />

@@ -57,5 +57,8 @@ export interface ScheduleFormData {
   minute?: number;
   dayOfWeek?: number; // 0=Sunday, 6=Saturday
   dayOfMonth?: number; // 1-31
+  // Campos de intervalo customizado (Repetir a cada X)
+  repeatInterval?: number; // Número de unidades
+  repeatUnit?: 'hours' | 'days'; // Unidade de tempo
   enabled: boolean;
 }

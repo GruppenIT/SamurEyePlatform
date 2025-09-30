@@ -38,6 +38,9 @@ const scheduleSchema = z.object({
   minute: z.number().min(0).max(59).default(0),
   dayOfWeek: z.number().min(0).max(6).optional(), // 0=Sunday, 6=Saturday
   dayOfMonth: z.number().min(1).max(31).optional(),
+  // Campos de intervalo customizado
+  repeatInterval: z.number().min(1, "Intervalo deve ser maior que 0").optional(),
+  repeatUnit: z.enum(['hours', 'days']).optional(),
   // Campos legados
   cronExpression: z.string().optional(),
   enabled: z.boolean().default(true),
@@ -54,6 +57,17 @@ const scheduleSchema = z.object({
     // Validação específica por tipo de recorrência
     if (data.recurrenceType === 'weekly' && data.dayOfWeek == null) return false;
     if (data.recurrenceType === 'monthly' && data.dayOfMonth == null) return false;
+    
+    // Validação de repeat interval: se um está definido, o outro também deve estar
+    if ((data.repeatInterval != null && !data.repeatUnit) || (!data.repeatInterval && data.repeatUnit)) {
+      return false;
+    }
+    
+    // Validação de unidade baseada no tipo de recorrência
+    if (data.repeatUnit) {
+      if (data.recurrenceType === 'daily' && data.repeatUnit !== 'hours') return false;
+      if ((data.recurrenceType === 'weekly' || data.recurrenceType === 'monthly') && data.repeatUnit !== 'days') return false;
+    }
   }
   return true;
 }, {
@@ -122,6 +136,8 @@ export default function ScheduleForm({ onSubmit, onCancel, isLoading = false, in
       submitData.minute = undefined;
       submitData.dayOfWeek = undefined;
       submitData.dayOfMonth = undefined;
+      submitData.repeatInterval = undefined;
+      submitData.repeatUnit = undefined;
       submitData.cronExpression = undefined;
     }
     
@@ -135,6 +151,8 @@ export default function ScheduleForm({ onSubmit, onCancel, isLoading = false, in
       submitData.minute = undefined;
       submitData.dayOfWeek = undefined;
       submitData.dayOfMonth = undefined;
+      submitData.repeatInterval = undefined;
+      submitData.repeatUnit = undefined;
       submitData.cronExpression = undefined;
       submitData.onceAt = undefined;
     }
@@ -256,6 +274,62 @@ export default function ScheduleForm({ onSubmit, onCancel, isLoading = false, in
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Campos de intervalo customizado (Repetir a cada X) */}
+            <div className="space-y-2">
+              <FormLabel>Repetir a cada (opcional)</FormLabel>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="repeatInterval"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="1"
+                          placeholder="1"
+                          {...field}
+                          value={field.value || ''}
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          data-testid="input-repeat-interval"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="repeatUnit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-repeat-unit">
+                            <SelectValue placeholder="Unidade" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {watchedRecurrenceType === 'daily' ? (
+                            <SelectItem value="hours">Hora(s)</SelectItem>
+                          ) : (
+                            <SelectItem value="days">Dia(s)</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormDescription className="text-xs">
+                {watchedRecurrenceType === 'daily' 
+                  ? 'Para execuções diárias: repita a cada X horas' 
+                  : 'Para execuções semanais/mensais: repita a cada X dias'}
+              </FormDescription>
             </div>
 
             {/* Campos específicos baseados no tipo de recorrência */}

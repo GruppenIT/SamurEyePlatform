@@ -12,14 +12,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Settings as SettingsIcon, Save, Shield, Clock } from "lucide-react";
+import { Settings as SettingsIcon, Save, Shield, Clock, Globe } from "lucide-react";
 import { Setting } from "@shared/schema";
 
 interface SettingsForm {
   // System Settings
   systemName: string;
   systemDescription: string;
+  systemTimezone: string;
   
   // Security Settings
   sessionTimeout: number;
@@ -45,6 +53,7 @@ export default function Settings() {
   const [formData, setFormData] = useState<SettingsForm>({
     systemName: 'SamurEye',
     systemDescription: 'Plataforma de Validação de Exposição Adversarial',
+    systemTimezone: 'America/Sao_Paulo',
     sessionTimeout: 3600,
     maxConcurrentJobs: 3,
     jobTimeout: 1800,
@@ -196,6 +205,36 @@ export default function Settings() {
                       onChange={(e) => handleInputChange('systemDescription', e.target.value)}
                       data-testid="textarea-system-description"
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="systemTimezone" className="flex items-center space-x-2">
+                      <Globe className="h-4 w-4" />
+                      <span>Fuso Horário do Sistema</span>
+                    </Label>
+                    <Select 
+                      value={formData.systemTimezone}
+                      onValueChange={(value) => handleInputChange('systemTimezone', value)}
+                    >
+                      <SelectTrigger id="systemTimezone" data-testid="select-timezone">
+                        <SelectValue placeholder="Selecione o fuso horário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="America/Sao_Paulo">América/São Paulo (BRT)</SelectItem>
+                        <SelectItem value="America/New_York">América/Nova York (EST)</SelectItem>
+                        <SelectItem value="America/Chicago">América/Chicago (CST)</SelectItem>
+                        <SelectItem value="America/Los_Angeles">América/Los Angeles (PST)</SelectItem>
+                        <SelectItem value="Europe/London">Europa/Londres (GMT)</SelectItem>
+                        <SelectItem value="Europe/Paris">Europa/Paris (CET)</SelectItem>
+                        <SelectItem value="Asia/Tokyo">Ásia/Tóquio (JST)</SelectItem>
+                        <SelectItem value="Asia/Shanghai">Ásia/Xangai (CST)</SelectItem>
+                        <SelectItem value="Australia/Sydney">Austrália/Sydney (AEDT)</SelectItem>
+                        <SelectItem value="UTC">UTC (Tempo Universal)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Usado para calcular horários de execução dos agendamentos
+                    </p>
                   </div>
 
                   <div>
