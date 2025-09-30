@@ -17,6 +17,7 @@ export interface PortScanResult {
   banner?: string;
   osInfo?: string;
   hostInfo?: string;
+  versionAccuracy?: 'high' | 'medium' | 'low'; // Indica precisão da detecção
 }
 
 export interface ServiceInfo {
@@ -311,6 +312,44 @@ export class NetworkScanner {
   }
 
   /**
+   * Normaliza e melhora detecção de versão com base em padrões conhecidos
+   */
+  private normalizeServiceVersion(service: string, version: string | undefined, osInfo: string): { 
+    version: string | undefined, 
+    accuracy: 'high' | 'medium' | 'low' 
+  } {
+    if (!version) {
+      return { version, accuracy: 'low' };
+    }
+
+    let normalizedVersion = version;
+    let accuracy: 'high' | 'medium' | 'low' = 'medium';
+
+    // Microsoft-DS: Tentar melhorar precisão com base no OS detectado
+    if (service === 'microsoft-ds' || service === 'netbios-ssn') {
+      // Se temos OS info mais preciso, usar ele
+      if (osInfo && osInfo.includes('Windows')) {
+        // Extrair versão do Windows do OS info
+        const windowsVersionMatch = osInfo.match(/Windows\s+(Server\s+)?(\d{4}|[^,\s]+)/i);
+        if (windowsVersionMatch) {
+          const osVersion = windowsVersionMatch[0];
+          normalizedVersion = osVersion + ' ' + service;
+          accuracy = 'high';
+          console.log(`📝 Versão normalizada de '${version}' para '${normalizedVersion}' baseado em OS detection`);
+        }
+      }
+      
+      // Avisar sobre ranges de versão (indicam baixa precisão)
+      if (version.includes(' - ') || version.includes('|')) {
+        accuracy = 'low';
+        console.log(`⚠️ Versão detectada como range: ${version} - precisão baixa`);
+      }
+    }
+
+    return { version: normalizedVersion, accuracy };
+  }
+
+  /**
    * Parse da saída do nmap
    */
   private parseNmapOutput(output: string, originalTarget: string, resolvedTarget: string): PortScanResult[] {
@@ -350,15 +389,36 @@ export class NetworkScanner {
         }
       }
       
-      // Extrair informações do SO
+      // Extrair informações do SO (priorizar OS details como mais preciso)
       if (trimmed.startsWith('OS details:')) {
-        hostContext.osInfo = trimmed.replace('OS details:', '').trim();
+        const osDetails = trimmed.replace('OS details:', '').trim();
+        hostContext.osInfo = osDetails;
+        console.log(`🖥️ OS detectado via 'OS details': ${osDetails}`);
       } else if (trimmed.startsWith('Running:')) {
-        hostContext.osInfo = trimmed.replace('Running:', '').trim();
+        // Usar Running apenas se não temos OS details
+        if (!hostContext.osInfo) {
+          hostContext.osInfo = trimmed.replace('Running:', '').trim();
+          console.log(`🖥️ OS detectado via 'Running': ${hostContext.osInfo}`);
+        }
       } else if (trimmed.startsWith('Service Info:')) {
-        const osMatch = trimmed.match(/OS:\s*([^;,]+)/i);
-        if (osMatch) {
-          hostContext.osInfo = osMatch[1].trim();
+        // Service Info é menos preciso, usar apenas como fallback
+        if (!hostContext.osInfo) {
+          const osMatch = trimmed.match(/OS:\s*([^;,]+)/i);
+          if (osMatch) {
+            hostContext.osInfo = osMatch[1].trim();
+            console.log(`🖥️ OS detectado via 'Service Info': ${hostContext.osInfo}`);
+          }
+        }
+      }
+      
+      // Tentar extrair OS CPE (Common Platform Enumeration) para mais precisão
+      const cpeMatch = trimmed.match(/OS CPE:\s*cpe:\/o:([^:]+):([^:]+):([^:\s]+)/);
+      if (cpeMatch) {
+        const [, vendor, product, version] = cpeMatch;
+        const cpeOs = `${vendor} ${product} ${version}`;
+        if (!hostContext.osInfo || hostContext.osInfo.length < cpeOs.length) {
+          hostContext.osInfo = cpeOs;
+          console.log(`🖥️ OS detectado via CPE: ${cpeOs}`);
         }
       }
     }
@@ -394,6 +454,13 @@ export class NetworkScanner {
           }
         }
         
+        // Normalizar versão com base em OS info
+        const { version: normalizedVersion, accuracy } = this.normalizeServiceVersion(
+          service, 
+          version?.trim(), 
+          hostContext.osInfo || ''
+        );
+        
         results.push({
           type: 'port',
           target: hostContext.host,
@@ -401,7 +468,8 @@ export class NetworkScanner {
           port,
           state: normalizedState,
           service,
-          version: version?.trim(),
+          version: normalizedVersion,
+          versionAccuracy: accuracy,
           banner: vulnerabilityBuffer.trim() || undefined,
           osInfo: hostContext.osInfo || undefined,
         });
@@ -666,7 +734,7 @@ export class NetworkScanner {
   /**
    * Constrói argumentos do nmap baseado no perfil
    */
-  private buildNmapArgs(target: string, ports: number[], nmapProfile?: string): string[] {
+  private buildNmapArgs(target: string, ports: number[], nmapProfile?: string, skipOsDetection: boolean = false): string[] {
     const args = [];
 
     // Sempre adicionar flag para pular ping discovery
@@ -699,6 +767,26 @@ export class NetworkScanner {
         '--initial-rtt-timeout', '500ms',
         '--version-intensity', '5'  // Intensidade reduzida
       );
+      
+      // Adicionar OS detection se não for explicitamente desabilitado
+      if (!skipOsDetection) {
+        args.push(
+          '-O', // OS detection para melhor precisão
+          '--osscan-guess' // Tentar adivinhar OS mesmo com incerteza
+        );
+      }
+    } else if (nmapProfile === 'tcp-fallback') {
+      // Fallback sem privilégios: apenas scan TCP básico, sem OS detection
+      args.push(
+        '-sV', // Version detection
+        '--max-hostgroup', '1',
+        '--max-parallelism', '5',
+        '--min-rate', '50',
+        '--max-rate', '500',
+        '--max-rtt-timeout', '5s',
+        '--initial-rtt-timeout', '1s',
+        '--version-intensity', '5'  // Intensidade reduzida no fallback
+      );
     } else {
       // Perfis normais/stealth: scan completo
       args.push(
@@ -713,6 +801,14 @@ export class NetworkScanner {
         '--initial-rtt-timeout', '1s',
         '--version-intensity', '7'
       );
+      
+      // Adicionar OS detection se não for explicitamente desabilitado
+      if (!skipOsDetection) {
+        args.push(
+          '-O', // OS detection para melhor precisão
+          '--osscan-guess' // Tentar adivinhar OS mesmo com incerteza
+        );
+      }
     }
 
     // Timing template baseado no perfil
