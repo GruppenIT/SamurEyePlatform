@@ -111,6 +111,9 @@ export const journeys = pgTable("journeys", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Repeat unit enum for flexible intervals
+export const repeatUnitEnum = pgEnum('repeat_unit', ['hours', 'days']);
+
 // Schedules table
 export const schedules = pgTable("schedules", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -125,8 +128,13 @@ export const schedules = pgTable("schedules", {
   minute: integer("minute").default(0), // 0-59 for execution minute
   dayOfWeek: integer("day_of_week"), // 0-6 (Sunday=0) for weekly schedules
   dayOfMonth: integer("day_of_month"), // 1-31 for monthly schedules
+  // Repeat interval fields (Repetir a cada X unidades)
+  repeatInterval: integer("repeat_interval"), // Number of units between executions
+  repeatUnit: repeatUnitEnum("repeat_unit"), // hours or days
   // For one-time schedules
   onceAt: timestamp("once_at"), // For one-time schedules
+  // Execution tracking
+  lastExecutedAt: timestamp("last_executed_at"), // Last time this schedule was executed
   enabled: boolean("enabled").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: varchar("created_by").references(() => users.id).notNull(),
@@ -434,8 +442,12 @@ export const createScheduleSchema = z.object({
   minute: z.number().min(0).max(59).default(0),
   dayOfWeek: z.number().min(0).max(6).optional(), // 0=Sunday, 6=Saturday
   dayOfMonth: z.number().min(1).max(31).optional(),
+  // Campos de intervalo customizado (Repetir a cada X)
+  repeatInterval: z.number().min(1).optional(), // Número de unidades
+  repeatUnit: z.enum(['hours', 'days']).optional(), // Unidade de tempo
   // Campos legados (mantidos para compatibilidade)
   cronExpression: z.string().optional(),
+  lastExecutedAt: z.date().optional(),
   enabled: z.boolean().default(true),
 }).refine(data => {
   // Validação para execução única
@@ -450,6 +462,10 @@ export const createScheduleSchema = z.object({
     // Validação específica por tipo de recorrência
     if (data.recurrenceType === 'weekly' && data.dayOfWeek == null) return false;
     if (data.recurrenceType === 'monthly' && data.dayOfMonth == null) return false;
+    
+    // Se repeatInterval for fornecido, repeatUnit também deve ser
+    if (data.repeatInterval != null && !data.repeatUnit) return false;
+    if (data.repeatUnit != null && data.repeatInterval == null) return false;
   }
   return true;
 }, {
