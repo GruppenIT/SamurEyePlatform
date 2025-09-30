@@ -97,7 +97,7 @@ Role-based access control (RBAC) supports three user roles: global_administrator
 - **Atomic Upsert Operations**: Implemented onConflictDoUpdate in storage.upsertThreat for thread-safe threat processing, preventing race conditions during concurrent journey executions while ensuring proper conflict resolution
 - **Enhanced Threat Intelligence**: Modified ThreatEngine to support global threat reactivation across journey boundaries while maintaining proper closure logic for threats not re-detected in current journey scope, improving accuracy of threat status lifecycle management
 
-### September 30, 2025
+### September 30, 2025 (Parte 1: Filtros Interativos)
 - **Interactive Threat Filters Implemented**: Complete redesign of threat intelligence page with interactive filtering tiles that enable intuitive navigation through the threat landscape
 - **Status Distribution Tiles Added**: Added dedicated distribution section showing threat counts by status (Abertas, Investigando, Mitigadas, Fechadas, Hibernadas, Risco Aceito) alongside existing severity distribution
 - **Clickable Filter Tiles**: All distribution tiles (severity and status) now function as interactive filters with visual feedback (ring borders) indicating active selections; clicking a tile toggles the filter on/off
@@ -105,3 +105,13 @@ Role-based access control (RBAC) supports three user roles: global_administrator
 - **Combined Filter Support**: Users can now apply multiple filters simultaneously (e.g., "Críticas" + "Abertas") with AND logic, and the UI updates all tiles and the threats table accordingly
 - **Enhanced UX Navigation**: Simplified threat exploration workflow - users can now click through different severity/status combinations to quickly navigate the threat landscape without using dropdown filters
 - **Backend Stats Expansion**: Extended getThreatStats to calculate and return both severity and status distributions in a single query, improving performance and enabling the dynamic filtering UI
+
+### September 30, 2025 (Parte 2: Detecção de CVEs)
+- **CVE Detection Service Implemented**: Created complete CVE analysis service (server/services/cveService.ts) integrating with NIST NVD API for real-time vulnerability detection
+- **Attack Surface CVE Analysis**: Enhanced Attack Surface scanning to automatically identify CVEs for all detected services and versions, creating individual threat entries per CVE
+- **NIST NVD Integration**: Implemented robust API client with 6-second rate limiting compliance, intelligent caching to avoid duplicate API calls, and automatic service name normalization (ms-sql-s → Microsoft SQL Server, etc.)
+- **Portuguese Translations**: Built comprehensive PT-BR translation system for CVE descriptions using pattern matching for common vulnerability types (buffer overflow, SQL injection, RCE, etc.) with fallback to structured generic translations
+- **Intelligent Remediation Guidance**: Auto-generated remediation recommendations in Portuguese with severity-based prioritization, including 5-step remediation plans with official NVD references
+- **Per-Host CVE Tracking**: Implemented smart caching that reuses CVE query results across hosts with identical services while ensuring every affected host receives its own threat findings (critical bug fix)
+- **Dynamic Severity Mapping**: CVE threats inherit severity directly from CVSS scores (critical: 9.0+, high: 7.0+, medium: 4.0+, low: <4.0) ensuring accurate risk classification
+- **ThreatEngine CVE Rule**: Added dedicated 'cve-vulnerability' rule to process CVE findings with complete evidence including CVE ID, service, version, port, CVSS score, publication date and remediation steps
