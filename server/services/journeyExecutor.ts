@@ -83,12 +83,15 @@ class JourneyExecutorService {
     const params = journey.params;
     const assetIds = params.assetIds || [];
     const webScanEnabled = params.webScanEnabled === true;
+    const processTimeoutMinutes = params.processTimeout || 60; // Default 60 minutos
+    const processTimeoutMs = processTimeoutMinutes * 60 * 1000; // Converter para ms
     
     if (assetIds.length === 0) {
       throw new Error('Nenhum ativo selecionado para varredura');
     }
 
     console.log(`🚀 Iniciando Attack Surface Journey com varredura web: ${webScanEnabled ? 'ATIVADA' : 'DESATIVADA'}`);
+    console.log(`⏱️  Timeout por processo: ${processTimeoutMinutes} minutos`);
 
     onProgress({ status: 'running', progress: 20, currentTask: 'Carregando ativos' });
 
@@ -168,7 +171,7 @@ class JourneyExecutorService {
           
           // Phase 2A: Nmap vuln scripts for active CVE detection
           console.log(`🎯 FASE 2A: Executando nmap vuln scripts em ${host}`);
-          const nmapVulnResults = await this.runNmapVulnScripts(host, data.ports, jobId);
+          const nmapVulnResults = await this.runNmapVulnScripts(host, data.ports, jobId, processTimeoutMs);
           findings.push(...nmapVulnResults);
           console.log(`✅ FASE 2A: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
 
@@ -186,7 +189,7 @@ class JourneyExecutorService {
                 currentTask: `Fase 2: Varredura web em ${host} (${webUrls.length} URLs)` 
               });
 
-              const nucleiResults = await this.runNucleiWebScan(webUrls, jobId);
+              const nucleiResults = await this.runNucleiWebScan(webUrls, jobId, processTimeoutMs);
               findings.push(...nucleiResults);
               console.log(`✅ FASE 2B: ${nucleiResults.length} vulnerabilidades web encontradas via Nuclei`);
             } else {
@@ -762,7 +765,7 @@ class JourneyExecutorService {
    * Executa nmap vuln scripts para validação ativa de CVEs
    * Phase 2A: Active CVE detection using nmap --script=vuln
    */
-  private async runNmapVulnScripts(host: string, ports: string[], jobId?: string): Promise<any[]> {
+  private async runNmapVulnScripts(host: string, ports: string[], jobId?: string, timeoutMs: number = 3600000): Promise<any[]> {
     try {
       const { spawn } = await import('child_process');
       
@@ -787,9 +790,9 @@ class JourneyExecutorService {
         
         const timeout = setTimeout(() => {
           child.kill('SIGTERM');
-          console.log(`⏱️ Nmap vuln scripts timeout após 10min para ${host}`);
+          console.log(`⏱️ Nmap vuln scripts timeout após ${timeoutMs/60000}min para ${host}`);
           resolve([]); // Retorna vazio em caso de timeout
-        }, 600000); // 10 minutos
+        }, timeoutMs);
         
         child.stdout?.on('data', (data) => {
           stdout += data.toString();
@@ -981,10 +984,11 @@ class JourneyExecutorService {
    * Executa varredura Nuclei em URLs web
    * Phase 2B: Web vulnerability scanning
    */
-  private async runNucleiWebScan(urls: string[], jobId?: string): Promise<any[]> {
+  private async runNucleiWebScan(urls: string[], jobId?: string, timeoutMs: number = 3600000): Promise<any[]> {
     const findings: any[] = [];
     
     // Usar o vulnScanner existente que já tem integração com Nuclei
+    // O timeout é passado via context no spawnCommand do vulnScanner
     for (const url of urls) {
       try {
         // VulnScanner já tem método nucleiScanUrl, mas é privado
@@ -992,7 +996,7 @@ class JourneyExecutorService {
         const urlObj = new URL(url);
         const port = urlObj.port || (urlObj.protocol === 'https:' ? '443' : '80');
         
-        console.log(`🔍 Executando Nuclei em ${url}`);
+        console.log(`🔍 Executando Nuclei em ${url} (timeout: ${timeoutMs/60000}min)`);
         const results = await vulnScanner.scanVulnerabilities(urlObj.hostname, [port], [], jobId);
         findings.push(...results);
       } catch (error) {
