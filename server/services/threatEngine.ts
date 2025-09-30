@@ -24,30 +24,28 @@ class ThreatEngineService {
   private initializeRules(): void {
     this.rules = [
       // Attack Surface Rules
-      // CVE Detection Rule - Individual threats for each CVE
+      // Nmap Vuln Script Detection - Active CVE validation
       {
-        id: 'cve-vulnerability',
-        name: 'Vulnerabilidade CVE Detectada',
-        description: 'CVE identificado em serviço exposto',
-        severity: 'critical', // Will be overridden by finding.severity
-        matcher: (finding) => finding.type === 'cve' && finding.cveId,
+        id: 'nmap-vuln-detected',
+        name: 'Vulnerabilidade CVE Validada (Nmap)',
+        description: 'CVE validado ativamente via nmap vuln scripts',
+        severity: 'high', // Will be overridden by finding.severity
+        matcher: (finding) => finding.type === 'nmap_vuln' && finding.cve,
         createThreat: (finding, assetId, jobId) => ({
-          title: `${finding.cveId}: ${finding.service || 'Serviço'} vulnerável`,
-          description: finding.description || `Vulnerabilidade ${finding.cveId} detectada`,
-          severity: finding.severity || 'medium',
+          title: `${finding.cve}: ${finding.name || 'Vulnerabilidade confirmada'}`,
+          description: finding.description || `CVE ${finding.cve} validado ativamente via nmap vuln scripts. ${finding.details || ''}`,
+          severity: finding.severity || 'high',
           source: 'journey',
           assetId,
           jobId,
           evidence: {
-            cveId: finding.cveId,
+            cve: finding.cve,
+            name: finding.name,
             service: finding.service,
-            version: finding.version,
             port: finding.port,
             host: finding.target,
-            ip: finding.ip,
-            cvssScore: finding.cvssScore,
-            publishedDate: finding.publishedDate,
-            remediation: finding.remediation,
+            details: finding.details,
+            validationMethod: 'nmap_vuln_scripts',
           },
         }),
       },

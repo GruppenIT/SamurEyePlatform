@@ -58,6 +58,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         edrAvType: initialData?.params?.edrAvType || 'network_based',
         sampleRate: initialData?.params?.sampleRate || '15',
         timeout: initialData?.params?.timeout || 30,
+        webScanEnabled: initialData?.params?.webScanEnabled ?? false,
       },
     },
   });
@@ -89,6 +90,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         params.assetIds = selectedAssets;
         params.nmapProfile = form.getValues('params.nmapProfile') || 'fast';
         params.nucleiSeverity = form.getValues('params.nucleiSeverity') || 'medium';
+        params.webScanEnabled = form.getValues('params.webScanEnabled') ?? false;
         break;
       case 'ad_hygiene':
         params.domain = form.getValues('params.domain');
@@ -205,6 +207,30 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                     </SelectContent>
                   </Select>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="params.webScanEnabled"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      data-testid="checkbox-web-scan"
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Varrer aplicações web identificadas?
+                    </FormLabel>
+                    <FormDescription>
+                      Quando habilitado, executa Nuclei em portas HTTP/HTTPS detectadas para identificar vulnerabilidades em aplicações web
+                    </FormDescription>
+                  </div>
                 </FormItem>
               )}
             />
