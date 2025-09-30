@@ -230,10 +230,20 @@ export default function Threats() {
   });
 
   const filteredThreats = threats.filter(threat => {
+    // Search filter
     const matchesSearch = threat.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (threat.description && threat.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    return matchesSearch;
+    // Severity filter
+    const matchesSeverity = severityFilter === 'all' || threat.severity === severityFilter;
+    
+    // Status filter
+    const matchesStatus = statusFilter === 'all' || threat.status === statusFilter;
+    
+    // Host filter
+    const matchesHost = hostFilter === 'all' || threat.hostId === hostFilter;
+    
+    return matchesSearch && matchesSeverity && matchesStatus && matchesHost;
   });
 
   const getSeverityColor = (severity: string) => {
