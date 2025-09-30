@@ -149,7 +149,19 @@ export interface IStorage {
   createThreat(threat: InsertThreat): Promise<Threat>;
   updateThreat(id: string, threat: Partial<Threat>): Promise<Threat>;
   deleteThreat(id: string): Promise<void>;
-  getThreatStats(): Promise<{ total: number; critical: number; high: number; medium: number; low: number }>;
+  getThreatStats(): Promise<{ 
+    total: number; 
+    critical: number; 
+    high: number; 
+    medium: number; 
+    low: number;
+    open: number;
+    investigating: number;
+    mitigated: number;
+    closed: number;
+    hibernated: number;
+    accepted_risk: number;
+  }>;
   
   // Threat lifecycle operations
   findThreatByCorrelationKey(correlationKey: string): Promise<Threat | undefined>;
@@ -549,21 +561,62 @@ export class DatabaseStorage implements IStorage {
     await db.delete(threats).where(eq(threats.id, id));
   }
 
-  async getThreatStats(): Promise<{ total: number; critical: number; high: number; medium: number; low: number }> {
-    const result = await db
+  async getThreatStats(): Promise<{ 
+    total: number; 
+    critical: number; 
+    high: number; 
+    medium: number; 
+    low: number;
+    open: number;
+    investigating: number;
+    mitigated: number;
+    closed: number;
+    hibernated: number;
+    accepted_risk: number;
+  }> {
+    // Get counts by severity
+    const severityResult = await db
       .select({
         severity: threats.severity,
         count: count(),
       })
       .from(threats)
-      .where(eq(threats.status, 'open'))
       .groupBy(threats.severity);
 
-    const stats = { total: 0, critical: 0, high: 0, medium: 0, low: 0 };
+    // Get counts by status
+    const statusResult = await db
+      .select({
+        status: threats.status,
+        count: count(),
+      })
+      .from(threats)
+      .groupBy(threats.status);
+
+    const stats = { 
+      total: 0, 
+      critical: 0, 
+      high: 0, 
+      medium: 0, 
+      low: 0,
+      open: 0,
+      investigating: 0,
+      mitigated: 0,
+      closed: 0,
+      hibernated: 0,
+      accepted_risk: 0
+    };
     
-    for (const row of result) {
-      stats[row.severity as keyof typeof stats] = Number(row.count);
+    // Calculate severity stats
+    for (const row of severityResult) {
+      const severity = row.severity as 'critical' | 'high' | 'medium' | 'low';
+      stats[severity] = Number(row.count);
       stats.total += Number(row.count);
+    }
+
+    // Calculate status stats
+    for (const row of statusResult) {
+      const status = row.status as 'open' | 'investigating' | 'mitigated' | 'closed' | 'hibernated' | 'accepted_risk';
+      stats[status] = Number(row.count);
     }
     
     return stats;

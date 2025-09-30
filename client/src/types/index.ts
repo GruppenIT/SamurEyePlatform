@@ -19,6 +19,12 @@ export interface ThreatStats {
   high: number;
   medium: number;
   low: number;
+  open: number;
+  investigating: number;
+  mitigated: number;
+  closed: number;
+  hibernated: number;
+  accepted_risk: number;
 }
 
 export interface AssetFormData {
