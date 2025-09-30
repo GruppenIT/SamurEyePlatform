@@ -59,6 +59,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         sampleRate: initialData?.params?.sampleRate || '15',
         timeout: initialData?.params?.timeout || 30,
         webScanEnabled: initialData?.params?.webScanEnabled ?? false,
+        processTimeout: initialData?.params?.processTimeout || 60,
       },
     },
   });
@@ -91,6 +92,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         params.nmapProfile = form.getValues('params.nmapProfile') || 'fast';
         params.nucleiSeverity = form.getValues('params.nucleiSeverity') || 'medium';
         params.webScanEnabled = form.getValues('params.webScanEnabled') ?? false;
+        params.processTimeout = parseInt(form.getValues('params.processTimeout')) || 60;
         break;
       case 'ad_hygiene':
         params.domain = form.getValues('params.domain');
@@ -231,6 +233,31 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                       Quando habilitado, executa Nuclei em portas HTTP/HTTPS detectadas para identificar vulnerabilidades em aplicações web
                     </FormDescription>
                   </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="params.processTimeout"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Timeout por Processo (minutos)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="5"
+                      max="180"
+                      placeholder="60"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 60)}
+                      data-testid="input-process-timeout"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Tempo máximo de execução por host (nmap/nuclei). Mínimo: 5min, Máximo: 180min, Padrão: 60min
+                  </FormDescription>
+                  <FormMessage />
                 </FormItem>
               )}
             />
