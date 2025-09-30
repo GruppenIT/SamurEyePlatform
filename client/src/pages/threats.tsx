@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -78,19 +78,50 @@ export default function Threats() {
   }, [location]);
 
   const { data: threats = [], isLoading } = useQuery<(Threat & { host?: Host })[]>({
-    queryKey: ["/api/threats", { 
-      severity: severityFilter !== "all" ? severityFilter : undefined, 
-      status: statusFilter !== "all" ? statusFilter : undefined,
-      hostId: hostFilter !== "all" ? hostFilter : undefined
-    }],
+    queryKey: ["/api/threats"],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
 
-  const { data: stats } = useQuery<ThreatStats>({
+  const { data: globalStats } = useQuery<ThreatStats>({
     queryKey: ["/api/threats/stats"],
     refetchInterval: 30000,
   });
+
+  // Calculate filtered stats based on active filters
+  const stats = useMemo(() => {
+    if (!threats || threats.length === 0) {
+      return globalStats || { 
+        total: 0, critical: 0, high: 0, medium: 0, low: 0,
+        open: 0, investigating: 0, mitigated: 0, closed: 0, hibernated: 0, accepted_risk: 0
+      };
+    }
+
+    // Apply filters
+    const filtered = threats.filter(t => {
+      if (severityFilter !== 'all' && t.severity !== severityFilter) return false;
+      if (statusFilter !== 'all' && t.status !== statusFilter) return false;
+      if (hostFilter !== 'all' && t.hostId !== hostFilter) return false;
+      return true;
+    });
+
+    // Calculate stats from filtered threats
+    const calculatedStats = {
+      total: filtered.length,
+      critical: filtered.filter(t => t.severity === 'critical').length,
+      high: filtered.filter(t => t.severity === 'high').length,
+      medium: filtered.filter(t => t.severity === 'medium').length,
+      low: filtered.filter(t => t.severity === 'low').length,
+      open: filtered.filter(t => t.status === 'open').length,
+      investigating: filtered.filter(t => t.status === 'investigating').length,
+      mitigated: filtered.filter(t => t.status === 'mitigated').length,
+      closed: filtered.filter(t => t.status === 'closed').length,
+      hibernated: filtered.filter(t => t.status === 'hibernated').length,
+      accepted_risk: filtered.filter(t => t.status === 'accepted_risk').length,
+    };
+
+    return calculatedStats;
+  }, [threats, severityFilter, statusFilter, hostFilter, globalStats]);
 
   const { data: hosts = [] } = useQuery<Host[]>({
     queryKey: ["/api/hosts"],
@@ -344,6 +375,15 @@ export default function Threats() {
     }
   };
 
+  // Handle tile click to toggle filters
+  const handleSeverityTileClick = (severity: string) => {
+    setSeverityFilter(current => current === severity ? 'all' : severity);
+  };
+
+  const handleStatusTileClick = (status: string) => {
+    setStatusFilter(current => current === status ? 'all' : status);
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
@@ -355,69 +395,192 @@ export default function Threats() {
         />
         
         <div className="p-6 space-y-6">
-          {/* Stats Overview */}
+          {/* Stats Overview - Severity */}
           {stats && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <Card className="metric-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total</p>
-                      <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-                    </div>
-                    <Shield className="h-8 w-8 text-primary" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="metric-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Críticas</p>
-                      <p className="text-2xl font-bold text-destructive">{stats.critical}</p>
-                    </div>
-                    <AlertTriangle className="h-8 w-8 text-destructive" />
-                  </div>
-                </CardContent>
-              </Card>
+            <>
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-3">Distribuição por Severidade</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <Card className="metric-card">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Total</p>
+                          <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+                        </div>
+                        <Shield className="h-8 w-8 text-primary" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card 
+                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${severityFilter === 'critical' ? 'ring-2 ring-destructive' : ''}`}
+                    onClick={() => handleSeverityTileClick('critical')}
+                    data-testid="tile-severity-critical"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Críticas</p>
+                          <p className="text-2xl font-bold text-destructive">{stats.critical}</p>
+                        </div>
+                        <AlertTriangle className="h-8 w-8 text-destructive" />
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              <Card className="metric-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Altas</p>
-                      <p className="text-2xl font-bold text-orange-500">{stats.high}</p>
-                    </div>
-                    <AlertTriangle className="h-8 w-8 text-orange-500" />
-                  </div>
-                </CardContent>
-              </Card>
+                  <Card 
+                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${severityFilter === 'high' ? 'ring-2 ring-orange-500' : ''}`}
+                    onClick={() => handleSeverityTileClick('high')}
+                    data-testid="tile-severity-high"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Altas</p>
+                          <p className="text-2xl font-bold text-orange-500">{stats.high}</p>
+                        </div>
+                        <AlertTriangle className="h-8 w-8 text-orange-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              <Card className="metric-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Médias</p>
-                      <p className="text-2xl font-bold text-accent">{stats.medium}</p>
-                    </div>
-                    <AlertTriangle className="h-8 w-8 text-accent" />
-                  </div>
-                </CardContent>
-              </Card>
+                  <Card 
+                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${severityFilter === 'medium' ? 'ring-2 ring-accent' : ''}`}
+                    onClick={() => handleSeverityTileClick('medium')}
+                    data-testid="tile-severity-medium"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Médias</p>
+                          <p className="text-2xl font-bold text-accent">{stats.medium}</p>
+                        </div>
+                        <AlertTriangle className="h-8 w-8 text-accent" />
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              <Card className="metric-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Baixas</p>
-                      <p className="text-2xl font-bold text-chart-4">{stats.low}</p>
-                    </div>
-                    <AlertTriangle className="h-8 w-8 text-chart-4" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <Card 
+                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${severityFilter === 'low' ? 'ring-2 ring-chart-4' : ''}`}
+                    onClick={() => handleSeverityTileClick('low')}
+                    data-testid="tile-severity-low"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Baixas</p>
+                          <p className="text-2xl font-bold text-chart-4">{stats.low}</p>
+                        </div>
+                        <AlertTriangle className="h-8 w-8 text-chart-4" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Stats Overview - Status */}
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-3">Distribuição por Status</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                  <Card 
+                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'open' ? 'ring-2 ring-destructive' : ''}`}
+                    onClick={() => handleStatusTileClick('open')}
+                    data-testid="tile-status-open"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Abertas</p>
+                          <p className="text-2xl font-bold text-destructive">{stats.open}</p>
+                        </div>
+                        <AlertTriangle className="h-8 w-8 text-destructive" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card 
+                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'investigating' ? 'ring-2 ring-accent' : ''}`}
+                    onClick={() => handleStatusTileClick('investigating')}
+                    data-testid="tile-status-investigating"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Investigando</p>
+                          <p className="text-2xl font-bold text-accent">{stats.investigating}</p>
+                        </div>
+                        <Clock className="h-8 w-8 text-accent" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card 
+                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'mitigated' ? 'ring-2 ring-primary' : ''}`}
+                    onClick={() => handleStatusTileClick('mitigated')}
+                    data-testid="tile-status-mitigated"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Mitigadas</p>
+                          <p className="text-2xl font-bold text-primary">{stats.mitigated}</p>
+                        </div>
+                        <CheckCircle className="h-8 w-8 text-primary" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card 
+                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'closed' ? 'ring-2 ring-chart-4' : ''}`}
+                    onClick={() => handleStatusTileClick('closed')}
+                    data-testid="tile-status-closed"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Fechadas</p>
+                          <p className="text-2xl font-bold text-chart-4">{stats.closed}</p>
+                        </div>
+                        <CheckCircle className="h-8 w-8 text-chart-4" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card 
+                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'hibernated' ? 'ring-2 ring-amber-600' : ''}`}
+                    onClick={() => handleStatusTileClick('hibernated')}
+                    data-testid="tile-status-hibernated"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Hibernadas</p>
+                          <p className="text-2xl font-bold text-amber-600">{stats.hibernated}</p>
+                        </div>
+                        <Clock className="h-8 w-8 text-amber-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card 
+                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'accepted_risk' ? 'ring-2 ring-blue-600' : ''}`}
+                    onClick={() => handleStatusTileClick('accepted_risk')}
+                    data-testid="tile-status-accepted-risk"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Risco Aceito</p>
+                          <p className="text-2xl font-bold text-blue-600">{stats.accepted_risk}</p>
+                        </div>
+                        <Shield className="h-8 w-8 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </>
           )}
 
           {/* Search and Filters */}
