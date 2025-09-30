@@ -7,6 +7,7 @@ import { adScanner } from './scanners/adScanner';
 import { EDRAVScanner } from './scanners/edrAvScanner';
 import { jobQueue } from './jobQueue';
 import { hostService } from './hostService';
+import { cveService } from './cveService';
 import { type Journey, type Job } from '@shared/schema';
 
 export interface JourneyProgress {
@@ -122,6 +123,16 @@ class JourneyExecutorService {
         }
         
         findings.push(...portResults);
+        
+        // Analyze CVEs for discovered services
+        onProgress({ 
+          status: 'running', 
+          progress: progressPercent + 5, 
+          currentTask: `Analisando CVEs para serviços em ${asset.value}` 
+        });
+        
+        const cveFindings = await this.analyzeCVEsForServices(portResults, asset.value);
+        findings.push(...cveFindings);
         
         if (asset.type === 'range') {
           // For ranges, group port results by host and scan each host individually
@@ -736,6 +747,74 @@ class JourneyExecutorService {
     }
     
     return severityCount;
+  }
+
+  /**
+   * Analisa CVEs para serviços descobertos no scan de portas
+   */
+  private async analyzeCVEsForServices(portResults: any[], target: string): Promise<any[]> {
+    const cveFindings: any[] = [];
+    const cveCache = new Map<string, any[]>(); // Cache de CVEs por service:version
+    
+    for (const portResult of portResults) {
+      if (portResult.state !== 'open' || !portResult.service) {
+        continue;
+      }
+
+      // Criar chave única para serviço+versão
+      const serviceKey = `${portResult.service}:${portResult.version || 'latest'}`;
+      
+      let cves: any[] = [];
+      
+      // Verificar se já temos CVEs em cache para este serviço
+      if (cveCache.has(serviceKey)) {
+        cves = cveCache.get(serviceKey)!;
+        console.log(`📦 Usando CVEs em cache para ${portResult.service} ${portResult.version || ''} no host ${portResult.target || target}`);
+      } else {
+        // Buscar CVEs pela primeira vez para este serviço
+        console.log(`🔍 Buscando CVEs para ${portResult.service} ${portResult.version || '(versão não detectada)'}`);
+
+        try {
+          cves = await cveService.searchCVEs(portResult.service, portResult.version);
+          
+          // Armazenar em cache
+          cveCache.set(serviceKey, cves);
+          
+          if (cves.length > 0) {
+            console.log(`✅ Encontrados ${cves.length} CVEs para ${portResult.service} ${portResult.version || ''}`);
+          } else {
+            console.log(`ℹ️ Nenhum CVE encontrado para ${portResult.service} ${portResult.version || ''}`);
+          }
+        } catch (error) {
+          console.error(`❌ Erro ao buscar CVEs para ${portResult.service}:`, error);
+          // Continue com outros serviços mesmo se houver erro
+          cveCache.set(serviceKey, []); // Cache vazio para evitar retry
+          continue;
+        }
+      }
+      
+      // Criar findings para ESTE host, mesmo que já tenhamos buscado CVEs antes
+      for (const cve of cves) {
+        cveFindings.push({
+          type: 'cve',
+          target: portResult.target || target,
+          ip: portResult.ip,
+          port: portResult.port,
+          service: portResult.service,
+          version: portResult.version,
+          cveId: cve.cveId,
+          description: cve.description,
+          severity: cve.severity,
+          cvssScore: cve.cvssScore,
+          publishedDate: cve.publishedDate,
+          remediation: cve.remediation,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+
+    console.log(`📋 Total de ${cveFindings.length} CVE findings criados para ${portResults.length} port results`);
+    return cveFindings;
   }
 
   /**

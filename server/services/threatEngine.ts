@@ -24,6 +24,33 @@ class ThreatEngineService {
   private initializeRules(): void {
     this.rules = [
       // Attack Surface Rules
+      // CVE Detection Rule - Individual threats for each CVE
+      {
+        id: 'cve-vulnerability',
+        name: 'Vulnerabilidade CVE Detectada',
+        description: 'CVE identificado em serviço exposto',
+        severity: 'critical', // Will be overridden by finding.severity
+        matcher: (finding) => finding.type === 'cve' && finding.cveId,
+        createThreat: (finding, assetId, jobId) => ({
+          title: `${finding.cveId}: ${finding.service || 'Serviço'} vulnerável`,
+          description: finding.description || `Vulnerabilidade ${finding.cveId} detectada`,
+          severity: finding.severity || 'medium',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            cveId: finding.cveId,
+            service: finding.service,
+            version: finding.version,
+            port: finding.port,
+            host: finding.target,
+            ip: finding.ip,
+            cvssScore: finding.cvssScore,
+            publishedDate: finding.publishedDate,
+            remediation: finding.remediation,
+          },
+        }),
+      },
       {
         id: 'critical-cve',
         name: 'CVE Crítico Detectado',
