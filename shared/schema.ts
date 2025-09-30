@@ -420,6 +420,7 @@ export const attackSurfaceParamsSchema = z.object({
   credentials: z.array(z.string()).optional(),
   nmapProfile: z.enum(['fast', 'comprehensive', 'stealth']).optional(),
   webScanEnabled: z.boolean().default(false), // Nova opção para varredura web com Nuclei
+  processTimeout: z.number().min(5).max(180).default(60), // Timeout por processo em minutos (5-180min)
 });
 
 export const insertJourneySchema = createInsertSchema(journeys).omit({
