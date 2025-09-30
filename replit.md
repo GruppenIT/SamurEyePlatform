@@ -96,3 +96,12 @@ Role-based access control (RBAC) supports three user roles: global_administrator
 - **Critical Bug Fixes**: Resolved immediate closure protection bug using job-specific timing logic (threat.jobId === jobId && statusChangedBy === 'system') replacing fragile timeout-based approach; fixed jobId overwrite issue preventing proper threat attribution across journey executions
 - **Atomic Upsert Operations**: Implemented onConflictDoUpdate in storage.upsertThreat for thread-safe threat processing, preventing race conditions during concurrent journey executions while ensuring proper conflict resolution
 - **Enhanced Threat Intelligence**: Modified ThreatEngine to support global threat reactivation across journey boundaries while maintaining proper closure logic for threats not re-detected in current journey scope, improving accuracy of threat status lifecycle management
+
+### September 30, 2025
+- **Interactive Threat Filters Implemented**: Complete redesign of threat intelligence page with interactive filtering tiles that enable intuitive navigation through the threat landscape
+- **Status Distribution Tiles Added**: Added dedicated distribution section showing threat counts by status (Abertas, Investigando, Mitigadas, Fechadas, Hibernadas, Risco Aceito) alongside existing severity distribution
+- **Clickable Filter Tiles**: All distribution tiles (severity and status) now function as interactive filters with visual feedback (ring borders) indicating active selections; clicking a tile toggles the filter on/off
+- **Dynamic Stats Recalculation**: Implemented intelligent stats recalculation using React useMemo that dynamically updates tile counts based on active filters - when filtering by severity, status tile counts reflect only threats of that severity, and vice versa
+- **Combined Filter Support**: Users can now apply multiple filters simultaneously (e.g., "Críticas" + "Abertas") with AND logic, and the UI updates all tiles and the threats table accordingly
+- **Enhanced UX Navigation**: Simplified threat exploration workflow - users can now click through different severity/status combinations to quickly navigate the threat landscape without using dropdown filters
+- **Backend Stats Expansion**: Extended getThreatStats to calculate and return both severity and status distributions in a single query, improving performance and enabling the dynamic filtering UI
