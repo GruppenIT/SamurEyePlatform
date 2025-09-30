@@ -7,7 +7,6 @@ import { adScanner } from './scanners/adScanner';
 import { EDRAVScanner } from './scanners/edrAvScanner';
 import { jobQueue } from './jobQueue';
 import { hostService } from './hostService';
-import { cveService } from './cveService';
 import { type Journey, type Job } from '@shared/schema';
 
 export interface JourneyProgress {
@@ -68,7 +67,13 @@ class JourneyExecutorService {
   }
 
   /**
-   * Executes Attack Surface journey
+   * Executes Attack Surface journey - New architecture with active CVE validation
+   * 
+   * Phase 1: Discovery (port scanning with nmap)
+   * Phase 2: Active Vulnerability Validation
+   *   - Nmap vuln scripts for network services
+   *   - Nuclei for web applications (if webScanEnabled)
+   * Phase 3: Host discovery and result storage
    */
   private async executeAttackSurface(
     journey: Journey, 
@@ -77,10 +82,13 @@ class JourneyExecutorService {
   ): Promise<void> {
     const params = journey.params;
     const assetIds = params.assetIds || [];
+    const webScanEnabled = params.webScanEnabled === true;
     
     if (assetIds.length === 0) {
       throw new Error('Nenhum ativo selecionado para varredura');
     }
+
+    console.log(`🚀 Iniciando Attack Surface Journey com varredura web: ${webScanEnabled ? 'ATIVADA' : 'DESATIVADA'}`);
 
     onProgress({ status: 'running', progress: 20, currentTask: 'Carregando ativos' });
 
@@ -95,104 +103,104 @@ class JourneyExecutorService {
     let currentAsset = 0;
 
     for (const asset of assets) {
-      // Check if job was cancelled before processing each asset
+      // Check if job was cancelled
       if (this.isJobCancelled(jobId)) {
         console.log(`🚫 Job ${jobId} cancelado, parando execução no asset ${asset.value}`);
         throw new Error('Job cancelado pelo usuário');
       }
 
       currentAsset++;
-      const progressPercent = 20 + (currentAsset / assets.length) * 50;
+      const baseProgress = 20 + (currentAsset / assets.length) * 60;
       
       onProgress({ 
         status: 'running', 
-        progress: progressPercent, 
-        currentTask: `Escaneando portas em ${asset.value} (${currentAsset}/${assets.length})` 
+        progress: baseProgress, 
+        currentTask: `Fase 1: Descobrindo serviços em ${asset.value} (${currentAsset}/${assets.length})` 
       });
 
       try {
-        // Real port scan using networkScanner
-        let portResults;
+        // ==================== PHASE 1: DISCOVERY ====================
+        console.log(`📡 FASE 1: Descoberta de serviços em ${asset.value}`);
         
+        let portResults;
         if (asset.type === 'range') {
-          // For CIDR ranges, scan each host in the range
           portResults = await networkScanner.scanCidrRange(asset.value, params.nmapProfile, jobId);
         } else {
-          // For individual hosts, scan with specified nmap profile
           portResults = await networkScanner.scanPorts(asset.value, undefined, params.nmapProfile, jobId);
         }
         
         findings.push(...portResults);
+        console.log(`✅ FASE 1: ${portResults.length} portas descobertas`);
+
+        // ==================== PHASE 2: ACTIVE VALIDATION ====================
+        // Group by host for vulnerability scanning
+        const hostPortMap = new Map<string, { ports: string[], portResults: any[] }>();
         
-        // Analyze CVEs for discovered services
-        onProgress({ 
-          status: 'running', 
-          progress: progressPercent + 5, 
-          currentTask: `Analisando CVEs para serviços em ${asset.value}` 
-        });
-        
-        const cveFindings = await this.analyzeCVEsForServices(portResults, asset.value);
-        findings.push(...cveFindings);
-        
-        if (asset.type === 'range') {
-          // For ranges, group port results by host and scan each host individually
-          const hostPortMap = new Map<string, string[]>();
-          
-          for (const result of portResults) {
-            if (result.state === 'open') {
-              const existingPorts = hostPortMap.get(result.target) || [];
-              existingPorts.push(result.port);
-              hostPortMap.set(result.target, existingPorts);
-            }
+        for (const result of portResults) {
+          if (result.state === 'open') {
+            const target = result.target || asset.value;
+            const existing = hostPortMap.get(target) || { ports: [], portResults: [] };
+            
+            // Sanitize port: remove /tcp or /udp suffix
+            // result.port can be "443" or "443/tcp", nmap needs just "443"
+            const cleanPort = result.port.toString().replace(/\/(tcp|udp)$/i, '');
+            existing.ports.push(cleanPort);
+            existing.portResults.push(result);
+            hostPortMap.set(target, existing);
           }
+        }
+        
+        // Validate vulnerabilities for each discovered host
+        for (const [host, data] of Array.from(hostPortMap.entries())) {
+          if (this.isJobCancelled(jobId)) {
+            throw new Error('Job cancelado pelo usuário');
+          }
+
+          if (data.ports.length === 0) continue;
+
+          onProgress({ 
+            status: 'running', 
+            progress: baseProgress + 5, 
+            currentTask: `Fase 2: Validando vulnerabilidades em ${host}` 
+          });
+
+          console.log(`🔍 FASE 2: Validação ativa de vulnerabilidades em ${host}`);
           
-          // Scan vulnerabilities for each host with its open ports
-          for (const [host, openPorts] of Array.from(hostPortMap.entries())) {
-            if (openPorts.length > 0) {
+          // Phase 2A: Nmap vuln scripts for active CVE detection
+          console.log(`🎯 FASE 2A: Executando nmap vuln scripts em ${host}`);
+          const nmapVulnResults = await this.runNmapVulnScripts(host, data.ports, jobId);
+          findings.push(...nmapVulnResults);
+          console.log(`✅ FASE 2A: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
+
+          // Phase 2B: Nuclei for web applications (conditional)
+          if (webScanEnabled) {
+            console.log(`🌐 FASE 2B: Identificando aplicações web em ${host}`);
+            const webUrls = this.identifyWebServices(host, data.portResults);
+            
+            if (webUrls.length > 0) {
+              console.log(`🔍 FASE 2B: ${webUrls.length} aplicações web encontradas, executando Nuclei`);
+              
               onProgress({ 
                 status: 'running', 
-                progress: progressPercent + 10, 
-                currentTask: `Analisando vulnerabilidades em ${host}` 
+                progress: baseProgress + 10, 
+                currentTask: `Fase 2: Varredura web em ${host} (${webUrls.length} URLs)` 
               });
-              
-              // Real vulnerability scan using vulnScanner for each host
-              const hostPortResults = portResults.filter(r => r.target === host && r.state === 'open');
-              const vulnResults = await vulnScanner.scanVulnerabilities(host, openPorts, hostPortResults, jobId);
-              findings.push(...vulnResults);
-            }
-          }
-        } else {
-          // For individual hosts, scan vulnerabilities normally
-          const openPorts = portResults
-            .filter(result => result.state === 'open')
-            .map(result => result.port);
-            
-          if (openPorts.length > 0) {
-            // Check if job was cancelled before vulnerability scan
-            if (this.isJobCancelled(jobId)) {
-              console.log(`🚫 Job ${jobId} cancelado, parando antes de scan de vulnerabilidades`);
-              throw new Error('Job cancelado pelo usuário');
-            }
 
-            onProgress({ 
-              status: 'running', 
-              progress: progressPercent + 10, 
-              currentTask: `Analisando vulnerabilidades em ${asset.value}` 
-            });
-            
-            // Real vulnerability scan using vulnScanner
-            const openPortResults = portResults.filter(r => r.state === 'open');
-            const vulnResults = await vulnScanner.scanVulnerabilities(asset.value, openPorts, openPortResults, jobId);
-            findings.push(...vulnResults);
+              const nucleiResults = await this.runNucleiWebScan(webUrls, jobId);
+              findings.push(...nucleiResults);
+              console.log(`✅ FASE 2B: ${nucleiResults.length} vulnerabilidades web encontradas via Nuclei`);
+            } else {
+              console.log(`ℹ️  FASE 2B: Nenhuma aplicação web detectada em ${host}`);
+            }
+          } else {
+            console.log(`⏭️  FASE 2B: Varredura web DESATIVADA (webScanEnabled=false)`);
           }
         }
         
       } catch (error) {
-        console.error(`Erro ao escanear ${asset.value}:`, error);
+        console.error(`❌ Erro ao escanear ${asset.value}:`, error);
         
         const errorMessage = error instanceof Error ? error.message : String(error);
-        
-        // Add error finding
         findings.push({
           type: 'error',
           target: asset.value,
@@ -202,31 +210,32 @@ class JourneyExecutorService {
       }
     }
 
-    // Discover hosts from findings before storing results
-    onProgress({ status: 'running', progress: 75, currentTask: 'Descobrindo hosts' });
+    // ==================== PHASE 3: HOST DISCOVERY & STORAGE ====================
+    onProgress({ status: 'running', progress: 85, currentTask: 'Fase 3: Descobrindo hosts' });
     
     try {
       const discoveredHosts = await hostService.discoverHostsFromFindings(findings, jobId);
-      console.log(`🏠 Attack Surface: ${discoveredHosts.length} hosts descobertos/atualizados`);
+      console.log(`🏠 FASE 3: ${discoveredHosts.length} hosts descobertos/atualizados`);
     } catch (error) {
       console.error('❌ Erro ao descobrir hosts:', error);
-      // Continue execution even if host discovery fails
     }
 
     // Store results
     await storage.createJobResult({
       jobId,
-      stdout: `Varredura concluída. ${findings.length} achados encontrados.`,
+      stdout: `Varredura ativa concluída. ${findings.length} achados encontrados.`,
       stderr: '',
       artifacts: {
         findings,
         summary: {
           totalAssets: assets.length,
           totalFindings: findings.length,
-          scanDuration: '8m 42s',
+          webScanEnabled,
         },
       },
     });
+    
+    console.log(`✅ Attack Surface concluído: ${findings.length} findings total`);
   }
 
   /**
@@ -750,71 +759,248 @@ class JourneyExecutorService {
   }
 
   /**
-   * Analisa CVEs para serviços descobertos no scan de portas
+   * Executa nmap vuln scripts para validação ativa de CVEs
+   * Phase 2A: Active CVE detection using nmap --script=vuln
    */
-  private async analyzeCVEsForServices(portResults: any[], target: string): Promise<any[]> {
-    const cveFindings: any[] = [];
-    const cveCache = new Map<string, any[]>(); // Cache de CVEs por service:version
+  private async runNmapVulnScripts(host: string, ports: string[], jobId?: string): Promise<any[]> {
+    try {
+      const { spawn } = await import('child_process');
+      
+      // Construir argumentos do nmap para validação de vulnerabilidades
+      const portList = ports.join(',');
+      const args = [
+        '-Pn',  // Skip ping
+        '-sT',  // TCP connect scan (não requer root)
+        '-p', portList,  // Portas específicas
+        '--script', 'vuln',  // Scripts de vulnerabilidade
+        '--script-args', 'vulns.showall',  // Mostrar todos os CVEs
+        host
+      ];
+      
+      console.log(`🎯 Executando nmap vuln scripts: nmap ${args.join(' ')}`);
+      
+      return new Promise((resolve, reject) => {
+        const child = spawn('nmap', args);
+        
+        let stdout = '';
+        let stderr = '';
+        
+        const timeout = setTimeout(() => {
+          child.kill('SIGTERM');
+          console.log(`⏱️ Nmap vuln scripts timeout após 10min para ${host}`);
+          resolve([]); // Retorna vazio em caso de timeout
+        }, 600000); // 10 minutos
+        
+        child.stdout?.on('data', (data) => {
+          stdout += data.toString();
+        });
+        
+        child.stderr?.on('data', (data) => {
+          stderr += data.toString();
+        });
+        
+        child.on('close', (code) => {
+          clearTimeout(timeout);
+          
+          if (code === 0 || stdout.length > 0) {
+            // Parse do output para extrair vulnerabilidades detectadas
+            const vulnFindings = this.parseNmapVulnOutput(stdout, host);
+            console.log(`✅ Nmap vuln scripts concluído: ${vulnFindings.length} vulnerabilidades encontradas`);
+            resolve(vulnFindings);
+          } else {
+            console.error(`❌ Nmap vuln scripts falhou (code ${code}): ${stderr}`);
+            resolve([]); // Retorna vazio em caso de erro
+          }
+        });
+        
+        child.on('error', (error) => {
+          clearTimeout(timeout);
+          console.error(`❌ Erro ao executar nmap vuln scripts:`, error);
+          resolve([]); // Retorna vazio em caso de erro
+        });
+      });
+    } catch (error) {
+      console.error(`❌ Erro fatal ao executar nmap vuln scripts:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Parse do output do nmap --script=vuln para extrair vulnerabilidades
+   */
+  private parseNmapVulnOutput(output: string, host: string): any[] {
+    const findings: any[] = [];
+    const lines = output.split('\n');
     
-    for (const portResult of portResults) {
-      if (portResult.state !== 'open' || !portResult.service) {
+    let currentPort = '';
+    let currentService = '';
+    let vulnerabilityBuffer = '';
+    let isInVulnBlock = false;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Detectar linha de porta: "445/tcp open  microsoft-ds"
+      const portMatch = line.match(/^(\d+)\/(tcp|udp)\s+(open|filtered)\s+(.+)/);
+      if (portMatch) {
+        // Processar vulnerabilidade anterior se existir
+        if (vulnerabilityBuffer && currentPort) {
+          const vuln = this.extractVulnerabilityFromBuffer(vulnerabilityBuffer, host, currentPort, currentService);
+          if (vuln) findings.push(vuln);
+        }
+        
+        currentPort = portMatch[1];
+        currentService = portMatch[4].trim();
+        vulnerabilityBuffer = '';
+        isInVulnBlock = false;
         continue;
       }
-
-      // Criar chave única para serviço+versão
-      const serviceKey = `${portResult.service}:${portResult.version || 'latest'}`;
       
-      let cves: any[] = [];
-      
-      // Verificar se já temos CVEs em cache para este serviço
-      if (cveCache.has(serviceKey)) {
-        cves = cveCache.get(serviceKey)!;
-        console.log(`📦 Usando CVEs em cache para ${portResult.service} ${portResult.version || ''} no host ${portResult.target || target}`);
-      } else {
-        // Buscar CVEs pela primeira vez para este serviço
-        console.log(`🔍 Buscando CVEs para ${portResult.service} ${portResult.version || '(versão não detectada)'}`);
-
-        try {
-          cves = await cveService.searchCVEs(portResult.service, portResult.version);
-          
-          // Armazenar em cache
-          cveCache.set(serviceKey, cves);
-          
-          if (cves.length > 0) {
-            console.log(`✅ Encontrados ${cves.length} CVEs para ${portResult.service} ${portResult.version || ''}`);
-          } else {
-            console.log(`ℹ️ Nenhum CVE encontrado para ${portResult.service} ${portResult.version || ''}`);
-          }
-        } catch (error) {
-          console.error(`❌ Erro ao buscar CVEs para ${portResult.service}:`, error);
-          // Continue com outros serviços mesmo se houver erro
-          cveCache.set(serviceKey, []); // Cache vazio para evitar retry
-          continue;
-        }
+      // Detectar início de bloco de vulnerabilidade
+      if (line.includes('|') && (line.includes('CVE-') || line.includes('VULNERABLE') || line.includes('State: VULNERABLE'))) {
+        isInVulnBlock = true;
       }
       
-      // Criar findings para ESTE host, mesmo que já tenhamos buscado CVEs antes
-      for (const cve of cves) {
-        cveFindings.push({
-          type: 'cve',
-          target: portResult.target || target,
-          ip: portResult.ip,
-          port: portResult.port,
-          service: portResult.service,
-          version: portResult.version,
-          cveId: cve.cveId,
-          description: cve.description,
-          severity: cve.severity,
-          cvssScore: cve.cvssScore,
-          publishedDate: cve.publishedDate,
-          remediation: cve.remediation,
-          timestamp: new Date().toISOString(),
-        });
+      // Acumular linhas do bloco de vulnerabilidade
+      if (isInVulnBlock && line.includes('|')) {
+        vulnerabilityBuffer += line + '\n';
+      }
+      
+      // Detectar fim do bloco de vulnerabilidade (linha vazia após '|_')
+      if (isInVulnBlock && line.match(/^\|_/)) {
+        vulnerabilityBuffer += line + '\n';
+        
+        // Processar vulnerabilidade acumulada
+        if (currentPort) {
+          const vuln = this.extractVulnerabilityFromBuffer(vulnerabilityBuffer, host, currentPort, currentService);
+          if (vuln) findings.push(vuln);
+        }
+        
+        vulnerabilityBuffer = '';
+        isInVulnBlock = false;
       }
     }
+    
+    // Processar última vulnerabilidade se existir
+    if (vulnerabilityBuffer && currentPort) {
+      const vuln = this.extractVulnerabilityFromBuffer(vulnerabilityBuffer, host, currentPort, currentService);
+      if (vuln) findings.push(vuln);
+    }
+    
+    return findings;
+  }
 
-    console.log(`📋 Total de ${cveFindings.length} CVE findings criados para ${portResults.length} port results`);
-    return cveFindings;
+  /**
+   * Extrai informações de vulnerabilidade de um bloco de output do nmap
+   */
+  private extractVulnerabilityFromBuffer(buffer: string, host: string, port: string, service: string): any | null {
+    // Extrair CVE IDs
+    const cveMatches = buffer.match(/CVE-\d{4}-\d{4,7}/g);
+    if (!cveMatches || cveMatches.length === 0) {
+      return null; // Sem CVE, ignorar
+    }
+    
+    const cveId = cveMatches[0]; // Usar primeiro CVE encontrado
+    
+    // Extrair título/nome da vulnerabilidade
+    let title = '';
+    const titleMatch = buffer.match(/\|\s+(.+?):/);
+    if (titleMatch) {
+      title = titleMatch[1].trim();
+    }
+    
+    // Determinar severidade (padrão: high para CVEs confirmados)
+    let severity: 'low' | 'medium' | 'high' | 'critical' = 'high';
+    if (buffer.toLowerCase().includes('critical')) {
+      severity = 'critical';
+    } else if (buffer.toLowerCase().includes('high')) {
+      severity = 'high';
+    } else if (buffer.toLowerCase().includes('medium')) {
+      severity = 'medium';
+    } else if (buffer.toLowerCase().includes('low')) {
+      severity = 'low';
+    }
+    
+    // Extrair descrição
+    const description = buffer
+      .replace(/\|/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .substring(0, 500); // Limitar tamanho
+    
+    return {
+      type: 'nmap_vuln',
+      target: host,
+      port,
+      service,
+      cve: cveId,
+      name: title || `Vulnerabilidade ${cveId}`,
+      severity,
+      description: description || `CVE ${cveId} detectado ativamente via nmap vuln scripts`,
+      details: buffer.trim(),
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Identifica serviços web (HTTP/HTTPS) dos port results
+   * Retorna array de URLs para varredura com Nuclei
+   */
+  private identifyWebServices(host: string, portResults: any[]): string[] {
+    const webUrls: string[] = [];
+    const webPorts = new Set(['80', '443', '8080', '8443', '3000', '5000', '8000', '8888']);
+    const webServiceNames = ['http', 'https', 'http-alt', 'https-alt', 'http-proxy', 'ssl/http'];
+    
+    for (const result of portResults) {
+      if (result.state !== 'open') continue;
+      
+      const port = result.port;
+      const service = result.service?.toLowerCase() || '';
+      
+      // Determinar protocolo baseado em porta e service
+      let protocol = 'http';
+      
+      // Verificar por HTTPS
+      if (port === '443' || port === '8443' || 
+          service.includes('https') || service.includes('ssl')) {
+        protocol = 'https';
+      }
+      
+      // Verificar se é serviço web conhecido
+      if (webPorts.has(port) || webServiceNames.some(name => service.includes(name))) {
+        const url = `${protocol}://${host}:${port}`;
+        webUrls.push(url);
+        console.log(`🌐 Aplicação web detectada: ${url} (service: ${service || 'unknown'})`);
+      }
+    }
+    
+    return webUrls;
+  }
+
+  /**
+   * Executa varredura Nuclei em URLs web
+   * Phase 2B: Web vulnerability scanning
+   */
+  private async runNucleiWebScan(urls: string[], jobId?: string): Promise<any[]> {
+    const findings: any[] = [];
+    
+    // Usar o vulnScanner existente que já tem integração com Nuclei
+    for (const url of urls) {
+      try {
+        // VulnScanner já tem método nucleiScanUrl, mas é privado
+        // Por enquanto, vamos usar scanVulnerabilities que chama nuclei internamente
+        const urlObj = new URL(url);
+        const port = urlObj.port || (urlObj.protocol === 'https:' ? '443' : '80');
+        
+        console.log(`🔍 Executando Nuclei em ${url}`);
+        const results = await vulnScanner.scanVulnerabilities(urlObj.hostname, [port], [], jobId);
+        findings.push(...results);
+      } catch (error) {
+        console.error(`❌ Erro ao escanear ${url} com Nuclei:`, error);
+      }
+    }
+    
+    return findings;
   }
 
   /**
