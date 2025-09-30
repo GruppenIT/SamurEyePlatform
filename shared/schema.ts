@@ -414,6 +414,14 @@ export const insertCredentialSchema = createInsertSchema(credentials).omit({
   secret: z.string().min(1, "Senha/chave é obrigatória"),
 });
 
+// Schema de validação para parâmetros de jornada Attack Surface
+export const attackSurfaceParamsSchema = z.object({
+  targets: z.array(z.string()).min(1, "Pelo menos um alvo é obrigatório"),
+  credentials: z.array(z.string()).optional(),
+  nmapProfile: z.enum(['fast', 'comprehensive', 'stealth']).optional(),
+  webScanEnabled: z.boolean().default(false), // Nova opção para varredura web com Nuclei
+});
+
 export const insertJourneySchema = createInsertSchema(journeys).omit({
   id: true,
   createdAt: true,
