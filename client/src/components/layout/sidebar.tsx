@@ -17,7 +17,8 @@ import {
   Settings, 
   History,
   LogOut,
-  Monitor
+  Monitor,
+  Bell
 } from "lucide-react";
 
 interface NavItem {
@@ -42,6 +43,7 @@ const navItems: NavItem[] = [
 const adminItems: NavItem[] = [
   { href: "/users", label: "Usuários", icon: Users, adminOnly: true },
   { href: "/settings", label: "Configurações", icon: Settings, adminOnly: true },
+  { href: "/notification-policies", label: "Notificações", icon: Bell, adminOnly: true },
   { href: "/audit", label: "Auditoria", icon: History, adminOnly: true },
 ];
 

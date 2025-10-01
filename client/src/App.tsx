@@ -20,6 +20,7 @@ import Threats from "@/pages/threats";
 import Users from "@/pages/users";
 import Settings from "@/pages/settings";
 import Audit from "@/pages/audit";
+import NotificationPolicies from "@/pages/notification-policies";
 
 function Router() {
   const { isAuthenticated, mustChangePassword, isLoading } = useAuth();
@@ -64,6 +65,7 @@ function Router() {
           <Route path="/threats" component={Threats} />
           <Route path="/users" component={Users} />
           <Route path="/settings" component={Settings} />
+          <Route path="/notification-policies" component={NotificationPolicies} />
           <Route path="/audit" component={Audit} />
         </>
       )}
