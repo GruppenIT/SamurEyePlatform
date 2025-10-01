@@ -29,9 +29,10 @@ export default function NotificationPolicies() {
     },
     statusTriggers: {
       open: false,
+      investigating: false,
       mitigated: false,
-      false_positive: false,
       hibernated: false,
+      accepted_risk: false,
     },
   });
 
@@ -133,9 +134,10 @@ export default function NotificationPolicies() {
       },
       statusTriggers: {
         open: false,
+        investigating: false,
         mitigated: false,
-        false_positive: false,
         hibernated: false,
+        accepted_risk: false,
       },
     });
     setIsCreating(false);
@@ -157,9 +159,10 @@ export default function NotificationPolicies() {
       },
       statusTriggers: {
         open: policy.statuses.includes('open'),
+        investigating: policy.statuses.includes('investigating'),
         mitigated: policy.statuses.includes('mitigated'),
-        false_positive: policy.statuses.includes('false_positive'),
         hibernated: policy.statuses.includes('hibernated'),
+        accepted_risk: policy.statuses.includes('accepted_risk'),
       },
     });
   };
@@ -249,9 +252,10 @@ export default function NotificationPolicies() {
 
   const statusLabels: Record<string, string> = {
     open: 'Aberto',
+    investigating: 'Investigando',
     mitigated: 'Mitigado',
-    false_positive: 'Falso Positivo',
     hibernated: 'Hibernado',
+    accepted_risk: 'Risco Aceito',
   };
 
   return (

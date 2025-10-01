@@ -22,6 +22,14 @@ import {
   insertNotificationPolicySchema
 } from "@shared/schema";
 
+// Admin role check middleware
+function requireAdmin(req: any, res: any, next: any) {
+  if (req.user?.role !== 'global_administrator') {
+    return res.status(403).json({ message: "Acesso negado. Apenas administradores podem acessar este recurso." });
+  }
+  next();
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -90,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Email settings routes
-  app.get('/api/email-settings', isAuthenticatedWithPasswordCheck, async (req, res) => {
+  app.get('/api/email-settings', isAuthenticatedWithPasswordCheck, requireAdmin, async (req, res) => {
     try {
       const settings = await storage.getEmailSettings();
       if (!settings) {
@@ -110,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/email-settings', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/email-settings', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const settingsData = insertEmailSettingsSchema.parse(req.body);
@@ -118,8 +126,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get existing settings for audit log
       const before = await storage.getEmailSettings();
       
-      // Encrypt the password
-      const { secretEncrypted, dekEncrypted } = encryptionService.encryptCredential(settingsData.authPasswordPlain);
+      // Encrypt the password only if provided (otherwise keep existing)
+      let secretEncrypted, dekEncrypted;
+      if (settingsData.authPasswordPlain && settingsData.authPasswordPlain.trim()) {
+        const encrypted = encryptionService.encryptCredential(settingsData.authPasswordPlain);
+        secretEncrypted = encrypted.secretEncrypted;
+        dekEncrypted = encrypted.dekEncrypted;
+      } else if (before) {
+        // Keep existing password if not provided
+        secretEncrypted = before.authPassword;
+        dekEncrypted = before.dekEncrypted;
+      } else {
+        return res.status(400).json({ message: "Senha SMTP é obrigatória para configuração inicial" });
+      }
       
       const settings = await storage.setEmailSettings({
         smtpHost: settingsData.smtpHost,
@@ -157,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/email-settings/test', isAuthenticatedWithPasswordCheck, async (req, res) => {
+  app.post('/api/email-settings/test', isAuthenticatedWithPasswordCheck, requireAdmin, async (req, res) => {
     try {
       // Validate test email
       const testEmail = req.body.email;
@@ -196,7 +215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notification policies routes
-  app.get('/api/notification-policies', isAuthenticatedWithPasswordCheck, async (req, res) => {
+  app.get('/api/notification-policies', isAuthenticatedWithPasswordCheck, requireAdmin, async (req, res) => {
     try {
       const policies = await storage.getNotificationPolicies();
       res.json(policies);
@@ -206,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/notification-policies/:id', isAuthenticatedWithPasswordCheck, async (req, res) => {
+  app.get('/api/notification-policies/:id', isAuthenticatedWithPasswordCheck, requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const policy = await storage.getNotificationPolicy(id);
@@ -220,7 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/notification-policies', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/notification-policies', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const policyData = insertNotificationPolicySchema.parse(req.body);
@@ -243,7 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/notification-policies/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/notification-policies/:id', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -273,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/notification-policies/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.delete('/api/notification-policies/:id', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;

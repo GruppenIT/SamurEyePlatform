@@ -613,7 +613,7 @@ export const insertEmailSettingsSchema = createInsertSchema(emailSettings).omit(
   authPassword: true,
   dekEncrypted: true,
 }).extend({
-  authPasswordPlain: z.string().min(1, "Senha é obrigatória"), // Plain password for encryption
+  authPasswordPlain: z.string().optional(), // Plain password for encryption (optional on updates)
 });
 
 // Notification policy schemas

@@ -589,6 +589,9 @@ export default function Settings() {
                         onChange={(e) => handleEmailSettingChange('authPasswordPlain', e.target.value)}
                         data-testid="input-auth-password"
                       />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Deixe em branco para manter a senha atual
+                      </p>
                     </div>
                   </div>
                   
