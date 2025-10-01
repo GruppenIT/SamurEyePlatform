@@ -403,6 +403,123 @@ export default function Settings() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Email SMTP Settings */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle>Configurações de E-mail SMTP</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Configure o servidor SMTP para envio de notificações por e-mail. Estas configurações são globais e afetam todas as políticas de notificação.
+                  </p>
+                  
+                  <Separator />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="smtpHost">Servidor SMTP</Label>
+                      <Input
+                        id="smtpHost"
+                        placeholder="smtp.gmail.com"
+                        data-testid="input-smtp-host"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="smtpPort">Porta</Label>
+                      <Input
+                        id="smtpPort"
+                        type="number"
+                        placeholder="587"
+                        data-testid="input-smtp-port"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="smtpSecure">Conexão Segura (TLS/SSL)</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Usar conexão criptografada (recomendado)
+                      </p>
+                    </div>
+                    <Switch
+                      id="smtpSecure"
+                      data-testid="switch-smtp-secure"
+                    />
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="authUser">Usuário SMTP</Label>
+                      <Input
+                        id="authUser"
+                        placeholder="usuario@dominio.com"
+                        data-testid="input-auth-user"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="authPassword">Senha SMTP</Label>
+                      <Input
+                        id="authPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        data-testid="input-auth-password"
+                      />
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="fromEmail">E-mail Remetente</Label>
+                      <Input
+                        id="fromEmail"
+                        type="email"
+                        placeholder="notificacoes@empresa.com"
+                        data-testid="input-from-email"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="fromName">Nome do Remetente</Label>
+                      <Input
+                        id="fromName"
+                        placeholder="SamurEye Notificações"
+                        data-testid="input-from-name"
+                      />
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="testEmail">Testar Configuração</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="testEmail"
+                        type="email"
+                        placeholder="seu-email@dominio.com"
+                        data-testid="input-test-email"
+                      />
+                      <Button
+                        variant="outline"
+                        data-testid="button-test-email"
+                      >
+                        Enviar Teste
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Envie um e-mail de teste para verificar se as configurações estão corretas
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
         </div>

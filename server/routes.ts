@@ -8,6 +8,7 @@ import { threatEngine } from "./services/threatEngine";
 import { encryptionService } from "./services/encryption";
 import { processTracker } from "./services/processTracker";
 import { emailService } from "./services/emailService";
+import { notificationService } from "./services/notificationService";
 import { 
   insertAssetSchema, 
   insertCredentialSchema, 
@@ -913,6 +914,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         before: { status: beforeThreat.status },
         after: { status, justification },
       });
+      
+      // Send notifications for status change
+      try {
+        const user = await storage.getUser(userId);
+        if (user) {
+          await notificationService.notifyThreatStatusChanged(
+            threat,
+            beforeThreat.status,
+            status,
+            user,
+            justification
+          );
+        }
+      } catch (notifError) {
+        console.error(`⚠️ Erro ao enviar notificações de mudança de status para ameaça ${id}:`, notifError);
+        // Don't fail status change if notification fails
+      }
       
       res.json(threat);
     } catch (error) {
