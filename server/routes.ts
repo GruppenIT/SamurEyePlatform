@@ -194,6 +194,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notification policies routes
+  app.get('/api/notification-policies', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const policies = await storage.getNotificationPolicies();
+      res.json(policies);
+    } catch (error) {
+      console.error("Erro ao buscar políticas de notificação:", error);
+      res.status(500).json({ message: "Falha ao buscar políticas de notificação" });
+    }
+  });
+
+  app.get('/api/notification-policies/:id', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const policy = await storage.getNotificationPolicy(id);
+      if (!policy) {
+        return res.status(404).json({ message: "Política de notificação não encontrada" });
+      }
+      res.json(policy);
+    } catch (error) {
+      console.error("Erro ao buscar política de notificação:", error);
+      res.status(500).json({ message: "Falha ao buscar política de notificação" });
+    }
+  });
+
+  app.post('/api/notification-policies', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const policyData = insertNotificationPolicySchema.parse(req.body);
+      const policy = await storage.createNotificationPolicy(policyData, userId);
+      
+      // Log audit
+      await storage.logAudit({
+        actorId: userId,
+        action: 'create',
+        objectType: 'notification_policy',
+        objectId: policy.id,
+        before: null,
+        after: policy,
+      });
+      
+      res.status(201).json(policy);
+    } catch (error) {
+      console.error("Erro ao criar política de notificação:", error);
+      res.status(400).json({ message: "Falha ao criar política de notificação" });
+    }
+  });
+
+  app.patch('/api/notification-policies/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      const before = await storage.getNotificationPolicy(id);
+      
+      if (!before) {
+        return res.status(404).json({ message: "Política de notificação não encontrada" });
+      }
+      
+      const policyData = insertNotificationPolicySchema.partial().parse(req.body);
+      const policy = await storage.updateNotificationPolicy(id, policyData);
+      
+      // Log audit
+      await storage.logAudit({
+        actorId: userId,
+        action: 'update',
+        objectType: 'notification_policy',
+        objectId: id,
+        before,
+        after: policy,
+      });
+      
+      res.json(policy);
+    } catch (error) {
+      console.error("Erro ao atualizar política de notificação:", error);
+      res.status(400).json({ message: "Falha ao atualizar política de notificação" });
+    }
+  });
+
+  app.delete('/api/notification-policies/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      const before = await storage.getNotificationPolicy(id);
+      
+      if (!before) {
+        return res.status(404).json({ message: "Política de notificação não encontrada" });
+      }
+      
+      await storage.deleteNotificationPolicy(id);
+      
+      // Log audit
+      await storage.logAudit({
+        actorId: userId,
+        action: 'delete',
+        objectType: 'notification_policy',
+        objectId: id,
+        before,
+        after: null,
+      });
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Erro ao deletar política de notificação:", error);
+      res.status(400).json({ message: "Falha ao deletar política de notificação" });
+    }
+  });
+
   // Asset routes
   app.get('/api/assets', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
