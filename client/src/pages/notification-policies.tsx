@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/hooks/useAuth';
+import Sidebar from '@/components/layout/sidebar';
+import TopBar from '@/components/layout/topbar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +18,19 @@ import type { NotificationPolicy } from '@shared/schema';
 
 export default function NotificationPolicies() {
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
+  
+  // Redirect if not admin
+  useEffect(() => {
+    if (currentUser && currentUser.role !== 'global_administrator') {
+      toast({
+        title: "Acesso Negado",
+        description: "Você não tem permissão para acessar esta área",
+        variant: "destructive",
+      });
+      window.history.back();
+    }
+  }, [currentUser, toast]);
   const [isCreating, setIsCreating] = useState(false);
   const [editingPolicy, setEditingPolicy] = useState<NotificationPolicy | null>(null);
   const [formData, setFormData] = useState({
@@ -258,29 +274,36 @@ export default function NotificationPolicies() {
     accepted_risk: 'Risco Aceito',
   };
 
+  // Don't render if not admin
+  if (currentUser?.role !== 'global_administrator') {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container mx-auto py-6 px-4">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight flex items-center space-x-2">
-              <Bell className="h-8 w-8" />
-              <span>Políticas de Notificação</span>
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Configure quando e para quem enviar notificações por e-mail
-            </p>
+    <div className="flex h-screen overflow-hidden bg-background">
+      <Sidebar />
+      
+      <main className="flex-1 overflow-auto">
+        <TopBar 
+          title="Políticas de Notificação"
+          subtitle="Configure quando e para quem enviar notificações por e-mail"
+        />
+        
+        <div className="p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              {/* Title already in TopBar */}
+            </div>
+            {!isCreating && (
+              <Button
+                onClick={() => setIsCreating(true)}
+                data-testid="button-create-policy"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Política
+              </Button>
+            )}
           </div>
-          {!isCreating && (
-            <Button
-              onClick={() => setIsCreating(true)}
-              data-testid="button-create-policy"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Política
-            </Button>
-          )}
-        </div>
 
         {isCreating && (
           <Card className="mb-6">
@@ -521,6 +544,7 @@ export default function NotificationPolicies() {
               </CardContent>
             </Card>
           ))}
+        </div>
         </div>
       </main>
     </div>

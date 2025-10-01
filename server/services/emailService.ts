@@ -69,7 +69,17 @@ export class EmailService {
   async testConnection(settings: EmailSettings): Promise<boolean> {
     try {
       const transporter = await this.createTransporter(settings);
-      await transporter.verify();
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout: Servidor SMTP não respondeu em 15 segundos')), 15000);
+      });
+      
+      await Promise.race([
+        transporter.verify(),
+        timeoutPromise
+      ]);
+      
       return true;
     } catch (error) {
       console.error('Erro ao testar conexão SMTP:', error);
