@@ -47,6 +47,12 @@ The application features a dark security-focused theme. The threat intelligence 
 - **Port Sanitization**: Implemented automatic port format normalization to strip `/tcp` and `/udp` suffixes before passing to nmap vuln scripts, ensuring command compatibility.
 - **Session Control**: Secure 8-hour session expiration with automatic cleanup and middleware validation.
 - **PID Monitoring System**: Real-time process tracking for nmap/nuclei with WebSocket updates and cooperative cancellation.
+- **Email Notification System**: Comprehensive notification system with support for three authentication methods:
+  - **Basic Password Authentication**: Legacy SMTP password-based authentication (deprecated for Gmail/Microsoft in 2025)
+  - **OAuth2 for Google Workspace/Gmail**: Secure OAuth2 authentication with automatic token refresh using googleapis
+  - **OAuth2 for Microsoft 365**: Secure OAuth2 authentication with automatic token refresh using @azure/msal-node
+  - All OAuth2 credentials (clientId, clientSecret, refreshToken, tenantId) are encrypted using the KEK/DEK pattern
+  - Email settings support configurable SMTP hosts, ports, TLS/SSL, and customizable sender information
 
 ## External Dependencies
 

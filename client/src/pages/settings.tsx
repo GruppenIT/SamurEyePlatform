@@ -69,8 +69,13 @@ export default function Settings() {
     smtpHost: '',
     smtpPort: 587,
     smtpSecure: false,
+    authType: 'password' as 'password' | 'oauth2_gmail' | 'oauth2_microsoft',
     authUser: '',
     authPasswordPlain: '',
+    oauth2ClientId: '',
+    oauth2ClientSecretPlain: '',
+    oauth2RefreshTokenPlain: '',
+    oauth2TenantId: '',
     fromEmail: '',
     fromName: 'SamurEye',
   });
@@ -98,7 +103,10 @@ export default function Settings() {
     smtpHost: string;
     smtpPort: number;
     smtpSecure: boolean;
-    authUser: string;
+    authType: 'password' | 'oauth2_gmail' | 'oauth2_microsoft';
+    authUser: string | null;
+    oauth2ClientId: string | null;
+    oauth2TenantId: string | null;
     fromEmail: string;
     fromName: string;
   } | null>({
@@ -194,8 +202,13 @@ export default function Settings() {
         smtpHost: emailSettingsData.smtpHost,
         smtpPort: emailSettingsData.smtpPort,
         smtpSecure: emailSettingsData.smtpSecure,
-        authUser: emailSettingsData.authUser,
+        authType: emailSettingsData.authType || 'password',
+        authUser: emailSettingsData.authUser || '',
         authPasswordPlain: '',
+        oauth2ClientId: emailSettingsData.oauth2ClientId || '',
+        oauth2ClientSecretPlain: '',
+        oauth2RefreshTokenPlain: '',
+        oauth2TenantId: emailSettingsData.oauth2TenantId || '',
         fromEmail: emailSettingsData.fromEmail,
         fromName: emailSettingsData.fromName,
       });
@@ -228,7 +241,7 @@ export default function Settings() {
   };
 
   const handleSaveEmailSettings = async () => {
-    if (!emailSettings.smtpHost || !emailSettings.authUser || !emailSettings.authPasswordPlain) {
+    if (!emailSettings.smtpHost || !emailSettings.fromEmail) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios",
@@ -236,6 +249,36 @@ export default function Settings() {
       });
       return;
     }
+    
+    // Validate based on auth type
+    if (emailSettings.authType === 'password') {
+      if (!emailSettings.authUser || (!emailSettings.authPasswordPlain && !emailSettingsData)) {
+        toast({
+          title: "Erro",
+          description: "Usuário e senha SMTP são obrigatórios",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (emailSettings.authType === 'oauth2_gmail' || emailSettings.authType === 'oauth2_microsoft') {
+      if (!emailSettings.oauth2ClientId || (!emailSettings.oauth2ClientSecretPlain && !emailSettingsData) || (!emailSettings.oauth2RefreshTokenPlain && !emailSettingsData)) {
+        toast({
+          title: "Erro",
+          description: "Client ID, Client Secret e Refresh Token são obrigatórios para OAuth2",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (emailSettings.authType === 'oauth2_microsoft' && !emailSettings.oauth2TenantId && !emailSettingsData) {
+        toast({
+          title: "Erro",
+          description: "Tenant ID é obrigatório para Microsoft 365",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     await saveEmailSettingsMutation.mutateAsync(emailSettings);
   };
 
@@ -567,33 +610,117 @@ export default function Settings() {
                   
                   <Separator />
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="authUser">Usuário SMTP</Label>
-                      <Input
-                        id="authUser"
-                        placeholder="usuario@dominio.com"
-                        value={emailSettings.authUser}
-                        onChange={(e) => handleEmailSettingChange('authUser', e.target.value)}
-                        data-testid="input-auth-user"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="authPassword">Senha SMTP</Label>
-                      <Input
-                        id="authPassword"
-                        type="password"
-                        placeholder="••••••••"
-                        value={emailSettings.authPasswordPlain}
-                        onChange={(e) => handleEmailSettingChange('authPasswordPlain', e.target.value)}
-                        data-testid="input-auth-password"
-                      />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Deixe em branco para manter a senha atual
-                      </p>
-                    </div>
+                  <div>
+                    <Label htmlFor="authType">Tipo de Autenticação</Label>
+                    <Select
+                      value={emailSettings.authType}
+                      onValueChange={(value) => handleEmailSettingChange('authType', value as 'password' | 'oauth2_gmail' | 'oauth2_microsoft')}
+                    >
+                      <SelectTrigger id="authType" data-testid="select-auth-type">
+                        <SelectValue placeholder="Selecione o tipo de autenticação" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="password">Senha Básica (Legacy)</SelectItem>
+                        <SelectItem value="oauth2_gmail">OAuth2 - Google Workspace/Gmail</SelectItem>
+                        <SelectItem value="oauth2_microsoft">OAuth2 - Microsoft 365</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      OAuth2 é recomendado para Gmail e Microsoft 365 (senha básica será descontinuada em 2025)
+                    </p>
                   </div>
+                  
+                  {emailSettings.authType === 'password' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="authUser">Usuário SMTP</Label>
+                        <Input
+                          id="authUser"
+                          placeholder="usuario@dominio.com"
+                          value={emailSettings.authUser}
+                          onChange={(e) => handleEmailSettingChange('authUser', e.target.value)}
+                          data-testid="input-auth-user"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="authPassword">Senha SMTP</Label>
+                        <Input
+                          id="authPassword"
+                          type="password"
+                          placeholder="••••••••"
+                          value={emailSettings.authPasswordPlain}
+                          onChange={(e) => handleEmailSettingChange('authPasswordPlain', e.target.value)}
+                          data-testid="input-auth-password"
+                        />
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Deixe em branco para manter a senha atual
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {(emailSettings.authType === 'oauth2_gmail' || emailSettings.authType === 'oauth2_microsoft') && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="oauth2ClientId">Client ID</Label>
+                          <Input
+                            id="oauth2ClientId"
+                            placeholder="seu-client-id.apps.googleusercontent.com"
+                            value={emailSettings.oauth2ClientId}
+                            onChange={(e) => handleEmailSettingChange('oauth2ClientId', e.target.value)}
+                            data-testid="input-oauth2-client-id"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="oauth2ClientSecret">Client Secret</Label>
+                          <Input
+                            id="oauth2ClientSecret"
+                            type="password"
+                            placeholder="••••••••"
+                            value={emailSettings.oauth2ClientSecretPlain}
+                            onChange={(e) => handleEmailSettingChange('oauth2ClientSecretPlain', e.target.value)}
+                            data-testid="input-oauth2-client-secret"
+                          />
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Deixe em branco para manter o secret atual
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="oauth2RefreshToken">Refresh Token</Label>
+                          <Input
+                            id="oauth2RefreshToken"
+                            type="password"
+                            placeholder="••••••••"
+                            value={emailSettings.oauth2RefreshTokenPlain}
+                            onChange={(e) => handleEmailSettingChange('oauth2RefreshTokenPlain', e.target.value)}
+                            data-testid="input-oauth2-refresh-token"
+                          />
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Deixe em branco para manter o token atual
+                          </p>
+                        </div>
+                        
+                        {emailSettings.authType === 'oauth2_microsoft' && (
+                          <div>
+                            <Label htmlFor="oauth2TenantId">Tenant ID (Microsoft)</Label>
+                            <Input
+                              id="oauth2TenantId"
+                              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                              value={emailSettings.oauth2TenantId}
+                              onChange={(e) => handleEmailSettingChange('oauth2TenantId', e.target.value)}
+                              data-testid="input-oauth2-tenant-id"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   
                   <Separator />
                   
