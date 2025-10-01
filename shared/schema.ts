@@ -53,6 +53,12 @@ export const threatSeverityEnum = pgEnum('threat_severity', ['low', 'medium', 'h
 // Threat status enum
 export const threatStatusEnum = pgEnum('threat_status', ['open', 'investigating', 'mitigated', 'closed', 'hibernated', 'accepted_risk']);
 
+// Email auth type enum
+export const emailAuthTypeEnum = pgEnum('email_auth_type', ['password', 'oauth2']);
+
+// Notification status enum
+export const notificationStatusEnum = pgEnum('notification_status', ['sent', 'failed']);
+
 // Host types enum
 export const hostTypeEnum = pgEnum('host_type', ['server', 'desktop', 'firewall', 'switch', 'router', 'domain', 'other']);
 
@@ -249,6 +255,56 @@ export const auditLog = pgTable("audit_log", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Email settings table
+export const emailSettings = pgTable("email_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  smtpHost: text("smtp_host").notNull(),
+  smtpPort: integer("smtp_port").notNull(),
+  smtpSecure: boolean("smtp_secure").default(true).notNull(),
+  authType: emailAuthTypeEnum("auth_type").notNull(),
+  authUser: text("auth_user").notNull(),
+  authPassword: text("auth_password"), // Encrypted, only if authType = 'password'
+  oauthClientId: text("oauth_client_id"), // For Microsoft 365
+  oauthClientSecret: text("oauth_client_secret"), // Encrypted, for Microsoft 365
+  oauthTenantId: text("oauth_tenant_id"), // For Microsoft 365
+  oauthRefreshToken: text("oauth_refresh_token"), // Encrypted, for OAuth2
+  dekEncrypted: text("dek_encrypted"), // Data Encryption Key encrypted with KEK
+  fromEmail: text("from_email").notNull(),
+  fromName: text("from_name").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedBy: varchar("updated_by").references(() => users.id).notNull(),
+});
+
+// Notification policies table
+export const notificationPolicies = pgTable("notification_policies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  enabled: boolean("enabled").default(true).notNull(),
+  emailAddresses: jsonb("email_addresses").$type<string[]>().default([]).notNull(),
+  severities: jsonb("severities").$type<string[]>().default([]).notNull(), // ['low', 'medium', 'high', 'critical']
+  statuses: jsonb("statuses").$type<string[]>().default([]).notNull(), // ['open', 'mitigated', etc]
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Notification log table
+export const notificationLog = pgTable("notification_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  policyId: varchar("policy_id").references(() => notificationPolicies.id),
+  threatId: varchar("threat_id").references(() => threats.id),
+  emailAddresses: jsonb("email_addresses").$type<string[]>().default([]).notNull(),
+  subject: text("subject").notNull(),
+  body: text("body").notNull(),
+  status: notificationStatusEnum("status").notNull(),
+  error: text("error"),
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_notification_log_policy_id").on(table.policyId),
+  index("IDX_notification_log_threat_id").on(table.threatId),
+  index("IDX_notification_log_sent_at").on(table.sentAt),
+]);
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   assets: many(assets),
@@ -358,6 +414,32 @@ export const auditLogRelations = relations(auditLog, ({ one }) => ({
   actor: one(users, {
     fields: [auditLog.actorId],
     references: [users.id],
+  }),
+}));
+
+export const emailSettingsRelations = relations(emailSettings, ({ one }) => ({
+  updatedBy: one(users, {
+    fields: [emailSettings.updatedBy],
+    references: [users.id],
+  }),
+}));
+
+export const notificationPoliciesRelations = relations(notificationPolicies, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [notificationPolicies.createdBy],
+    references: [users.id],
+  }),
+  logs: many(notificationLog),
+}));
+
+export const notificationLogRelations = relations(notificationLog, ({ one }) => ({
+  policy: one(notificationPolicies, {
+    fields: [notificationLog.policyId],
+    references: [notificationPolicies.id],
+  }),
+  threat: one(threats, {
+    fields: [notificationLog.threatId],
+    references: [threats.id],
   }),
 }));
 
@@ -527,6 +609,51 @@ export const changeThreatStatusSchema = z.object({
   path: ["hibernatedUntil"],
 });
 
+// Email settings schemas
+export const insertEmailSettingsSchema = createInsertSchema(emailSettings).omit({
+  id: true,
+  updatedAt: true,
+  updatedBy: true,
+  authPassword: true,
+  oauthClientSecret: true,
+  oauthRefreshToken: true,
+  dekEncrypted: true,
+}).extend({
+  authPasswordPlain: z.string().optional(), // Plain password for encryption
+  oauthClientSecretPlain: z.string().optional(), // Plain secret for encryption
+  oauthRefreshTokenPlain: z.string().optional(), // Plain refresh token for encryption
+}).refine(data => {
+  // Validate based on auth type
+  if (data.authType === 'password') {
+    return !!data.authPasswordPlain && !data.oauthClientId && !data.oauthTenantId;
+  }
+  if (data.authType === 'oauth2') {
+    return !!data.oauthClientId && !!data.oauthTenantId && !data.authPasswordPlain;
+  }
+  return true;
+}, {
+  message: "Campos de autenticação inválidos para o tipo selecionado",
+  path: ["authType"],
+});
+
+// Notification policy schemas
+export const insertNotificationPolicySchema = createInsertSchema(notificationPolicies).omit({
+  id: true,
+  createdAt: true,
+  createdBy: true,
+  updatedAt: true,
+}).extend({
+  emailAddresses: z.array(z.string().email("Email inválido")).min(1, "Adicione pelo menos um email"),
+  severities: z.array(z.enum(['low', 'medium', 'high', 'critical'])).min(1, "Selecione pelo menos uma severidade"),
+  statuses: z.array(z.enum(['open', 'investigating', 'mitigated', 'hibernated', 'accepted_risk'])).min(1, "Selecione pelo menos um status"),
+});
+
+// Notification log schema
+export const insertNotificationLogSchema = createInsertSchema(notificationLog).omit({
+  id: true,
+  sentAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type RegisterUser = z.infer<typeof registerUserSchema>;
@@ -555,3 +682,9 @@ export type ThreatStatusHistory = typeof threatStatusHistory.$inferSelect;
 export type InsertThreatStatusHistory = z.infer<typeof insertThreatStatusHistorySchema>;
 export type ChangeThreatStatus = z.infer<typeof changeThreatStatusSchema>;
 export type AuditLogEntry = typeof auditLog.$inferSelect;
+export type EmailSettings = typeof emailSettings.$inferSelect;
+export type InsertEmailSettings = z.infer<typeof insertEmailSettingsSchema>;
+export type NotificationPolicy = typeof notificationPolicies.$inferSelect;
+export type InsertNotificationPolicy = z.infer<typeof insertNotificationPolicySchema>;
+export type NotificationLog = typeof notificationLog.$inferSelect;
+export type InsertNotificationLog = z.infer<typeof insertNotificationLogSchema>;
