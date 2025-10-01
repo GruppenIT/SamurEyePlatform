@@ -7,6 +7,7 @@ import { jobQueue } from "./services/jobQueue";
 import { threatEngine } from "./services/threatEngine";
 import { encryptionService } from "./services/encryption";
 import { processTracker } from "./services/processTracker";
+import { emailService } from "./services/emailService";
 import { 
   insertAssetSchema, 
   insertCredentialSchema, 
@@ -15,7 +16,9 @@ import {
   createScheduleSchema,
   registerUserSchema,
   insertHostSchema,
-  changeThreatStatusSchema
+  changeThreatStatusSchema,
+  insertEmailSettingsSchema,
+  insertNotificationPolicySchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -82,6 +85,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao buscar métricas do sistema:", error);
       res.status(500).json({ message: "Falha ao buscar métricas do sistema" });
+    }
+  });
+
+  // Email settings routes
+  app.get('/api/email-settings', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const settings = await storage.getEmailSettings();
+      if (!settings) {
+        return res.json(null);
+      }
+      
+      // Redact sensitive fields
+      const sanitized = {
+        ...settings,
+        authPassword: '[ENCRYPTED]',
+        dekEncrypted: '[ENCRYPTED]',
+      };
+      res.json(sanitized);
+    } catch (error) {
+      console.error("Erro ao buscar configurações de e-mail:", error);
+      res.status(500).json({ message: "Falha ao buscar configurações de e-mail" });
+    }
+  });
+
+  app.post('/api/email-settings', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const settingsData = insertEmailSettingsSchema.parse(req.body);
+      
+      // Get existing settings for audit log
+      const before = await storage.getEmailSettings();
+      
+      // Encrypt the password
+      const { secretEncrypted, dekEncrypted } = encryptionService.encryptCredential(settingsData.authPasswordPlain);
+      
+      const settings = await storage.setEmailSettings({
+        smtpHost: settingsData.smtpHost,
+        smtpPort: settingsData.smtpPort,
+        smtpSecure: settingsData.smtpSecure || false,
+        authType: settingsData.authType || 'password',
+        authUser: settingsData.authUser,
+        authPassword: secretEncrypted,
+        dekEncrypted,
+        fromEmail: settingsData.fromEmail,
+        fromName: settingsData.fromName,
+        updatedBy: userId,
+      }, userId);
+      
+      // Log audit with redacted sensitive fields
+      await storage.logAudit({
+        actorId: userId,
+        action: before ? 'update' : 'create',
+        objectType: 'email_settings',
+        objectId: settings.id,
+        before: before ? { ...before, authPassword: '[ENCRYPTED]', dekEncrypted: '[ENCRYPTED]' } : null,
+        after: { ...settings, authPassword: '[ENCRYPTED]', dekEncrypted: '[ENCRYPTED]' },
+      });
+      
+      // Redact sensitive fields in response
+      const sanitized = {
+        ...settings,
+        authPassword: '[ENCRYPTED]',
+        dekEncrypted: '[ENCRYPTED]',
+      };
+      res.status(201).json(sanitized);
+    } catch (error) {
+      console.error("Erro ao salvar configurações de e-mail:", error);
+      res.status(400).json({ message: "Falha ao salvar configurações de e-mail" });
+    }
+  });
+
+  app.post('/api/email-settings/test', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      // Validate test email
+      const testEmail = req.body.email;
+      if (!testEmail || typeof testEmail !== 'string' || !testEmail.includes('@')) {
+        return res.status(400).json({ message: "E-mail de teste inválido" });
+      }
+      
+      const settings = await storage.getEmailSettings();
+      if (!settings) {
+        return res.status(400).json({ message: "Configurações de e-mail não encontradas" });
+      }
+
+      // Test connection first
+      const isValid = await emailService.testConnection(settings);
+      if (!isValid) {
+        throw new Error('Falha ao conectar ao servidor SMTP');
+      }
+
+      // Send test email
+      await emailService.sendEmail(settings, {
+        to: testEmail,
+        subject: 'Teste de Configuração de E-mail',
+        html: `
+          <h2>Teste de Configuração de E-mail</h2>
+          <p>Se você recebeu este e-mail, significa que suas configurações de e-mail estão funcionando corretamente!</p>
+          <p><strong>Servidor SMTP:</strong> ${settings.smtpHost}:${settings.smtpPort}</p>
+          <p><strong>De:</strong> ${settings.fromName} &lt;${settings.fromEmail}&gt;</p>
+        `,
+      });
+      
+      res.json({ message: "E-mail de teste enviado com sucesso" });
+    } catch (error: any) {
+      console.error("Erro ao testar configurações de e-mail:", error);
+      res.status(400).json({ message: error.message || "Falha ao testar configurações de e-mail" });
     }
   });
 
