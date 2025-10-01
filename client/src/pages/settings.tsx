@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Settings as SettingsIcon, Save, Shield, Clock, Globe } from "lucide-react";
+import { Settings as SettingsIcon, Save, Shield, Clock, Globe, Mail } from "lucide-react";
 import { Setting } from "@shared/schema";
 
 interface SettingsForm {
@@ -65,6 +65,18 @@ export default function Settings() {
     jobFailureAlert: true,
   });
 
+  const [emailSettings, setEmailSettings] = useState({
+    smtpHost: '',
+    smtpPort: 587,
+    smtpSecure: false,
+    authUser: '',
+    authPasswordPlain: '',
+    fromEmail: '',
+    fromName: 'SamurEye',
+  });
+
+  const [testEmail, setTestEmail] = useState('');
+
   // Redirect if not admin
   useEffect(() => {
     if (currentUser && currentUser.role !== 'global_administrator') {
@@ -79,6 +91,18 @@ export default function Settings() {
 
   const { data: settings = [], isLoading } = useQuery<Setting[]>({
     queryKey: ["/api/settings"],
+    enabled: currentUser?.role === 'global_administrator',
+  });
+
+  const { data: emailSettingsData } = useQuery<{
+    smtpHost: string;
+    smtpPort: number;
+    smtpSecure: boolean;
+    authUser: string;
+    fromEmail: string;
+    fromName: string;
+  } | null>({
+    queryKey: ["/api/email-settings"],
     enabled: currentUser?.role === 'global_administrator',
   });
 
@@ -109,6 +133,45 @@ export default function Settings() {
     },
   });
 
+  const saveEmailSettingsMutation = useMutation({
+    mutationFn: async (settings: typeof emailSettings) => {
+      return await apiRequest('POST', '/api/email-settings', settings);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/email-settings"] });
+      toast({
+        title: "Sucesso",
+        description: "Configurações de e-mail salvas com sucesso",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Falha ao salvar configurações de e-mail",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const testEmailMutation = useMutation({
+    mutationFn: async (email: string) => {
+      return await apiRequest('POST', '/api/email-settings/test', { email });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "E-mail de teste enviado com sucesso",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao enviar e-mail de teste",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Load settings into form when data is available
   useEffect(() => {
     if (settings.length > 0) {
@@ -123,6 +186,21 @@ export default function Settings() {
       });
     }
   }, [settings]); // Remover formData das dependências para evitar loops
+
+  // Load email settings when data is available
+  useEffect(() => {
+    if (emailSettingsData && emailSettingsData.smtpHost) {
+      setEmailSettings({
+        smtpHost: emailSettingsData.smtpHost,
+        smtpPort: emailSettingsData.smtpPort,
+        smtpSecure: emailSettingsData.smtpSecure,
+        authUser: emailSettingsData.authUser,
+        authPasswordPlain: '',
+        fromEmail: emailSettingsData.fromEmail,
+        fromName: emailSettingsData.fromName,
+      });
+    }
+  }, [emailSettingsData]);
 
   const handleSave = async () => {
     const updates = Object.entries(formData).map(([key, value]) => ({ key, value }));
@@ -143,6 +221,34 @@ export default function Settings() {
 
   const handleInputChange = (key: keyof SettingsForm, value: any) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleEmailSettingChange = (key: keyof typeof emailSettings, value: any) => {
+    setEmailSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSaveEmailSettings = async () => {
+    if (!emailSettings.smtpHost || !emailSettings.authUser || !emailSettings.authPasswordPlain) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+    await saveEmailSettingsMutation.mutateAsync(emailSettings);
+  };
+
+  const handleTestEmail = async () => {
+    if (!testEmail) {
+      toast({
+        title: "Erro",
+        description: "Informe um e-mail para teste",
+        variant: "destructive",
+      });
+      return;
+    }
+    await testEmailMutation.mutateAsync(testEmail);
   };
 
   // Don't render if not admin
@@ -407,7 +513,10 @@ export default function Settings() {
               {/* Email SMTP Settings */}
               <Card className="lg:col-span-2">
                 <CardHeader>
-                  <CardTitle>Configurações de E-mail SMTP</CardTitle>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Mail className="h-5 w-5" />
+                    <span>Configurações de E-mail SMTP</span>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm text-muted-foreground">
@@ -422,6 +531,8 @@ export default function Settings() {
                       <Input
                         id="smtpHost"
                         placeholder="smtp.gmail.com"
+                        value={emailSettings.smtpHost}
+                        onChange={(e) => handleEmailSettingChange('smtpHost', e.target.value)}
                         data-testid="input-smtp-host"
                       />
                     </div>
@@ -432,6 +543,8 @@ export default function Settings() {
                         id="smtpPort"
                         type="number"
                         placeholder="587"
+                        value={emailSettings.smtpPort}
+                        onChange={(e) => handleEmailSettingChange('smtpPort', parseInt(e.target.value))}
                         data-testid="input-smtp-port"
                       />
                     </div>
@@ -446,6 +559,8 @@ export default function Settings() {
                     </div>
                     <Switch
                       id="smtpSecure"
+                      checked={emailSettings.smtpSecure}
+                      onCheckedChange={(checked) => handleEmailSettingChange('smtpSecure', checked)}
                       data-testid="switch-smtp-secure"
                     />
                   </div>
@@ -458,6 +573,8 @@ export default function Settings() {
                       <Input
                         id="authUser"
                         placeholder="usuario@dominio.com"
+                        value={emailSettings.authUser}
+                        onChange={(e) => handleEmailSettingChange('authUser', e.target.value)}
                         data-testid="input-auth-user"
                       />
                     </div>
@@ -468,6 +585,8 @@ export default function Settings() {
                         id="authPassword"
                         type="password"
                         placeholder="••••••••"
+                        value={emailSettings.authPasswordPlain}
+                        onChange={(e) => handleEmailSettingChange('authPasswordPlain', e.target.value)}
                         data-testid="input-auth-password"
                       />
                     </div>
@@ -482,6 +601,8 @@ export default function Settings() {
                         id="fromEmail"
                         type="email"
                         placeholder="notificacoes@empresa.com"
+                        value={emailSettings.fromEmail}
+                        onChange={(e) => handleEmailSettingChange('fromEmail', e.target.value)}
                         data-testid="input-from-email"
                       />
                     </div>
@@ -491,9 +612,24 @@ export default function Settings() {
                       <Input
                         id="fromName"
                         placeholder="SamurEye Notificações"
+                        value={emailSettings.fromName}
+                        onChange={(e) => handleEmailSettingChange('fromName', e.target.value)}
                         data-testid="input-from-name"
                       />
                     </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSaveEmailSettings}
+                      disabled={saveEmailSettingsMutation.isPending}
+                      data-testid="button-save-email-settings"
+                    >
+                      <Save className="mr-2 h-4 w-4" />
+                      {saveEmailSettingsMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
+                    </Button>
                   </div>
                   
                   <Separator />
@@ -505,13 +641,17 @@ export default function Settings() {
                         id="testEmail"
                         type="email"
                         placeholder="seu-email@dominio.com"
+                        value={testEmail}
+                        onChange={(e) => setTestEmail(e.target.value)}
                         data-testid="input-test-email"
                       />
                       <Button
                         variant="outline"
+                        onClick={handleTestEmail}
+                        disabled={testEmailMutation.isPending}
                         data-testid="button-test-email"
                       >
-                        Enviar Teste
+                        {testEmailMutation.isPending ? 'Enviando...' : 'Enviar Teste'}
                       </Button>
                     </div>
                     <p className="text-sm text-muted-foreground">
