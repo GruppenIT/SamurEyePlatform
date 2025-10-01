@@ -1,6 +1,7 @@
 import { storage } from '../storage';
 import { hostService } from './hostService';
 import { type InsertThreat, type Threat } from '@shared/schema';
+import { notificationService } from './notificationService';
 
 export interface ThreatRule {
   id: string;
@@ -734,6 +735,14 @@ class ThreatEngineService {
             threats.push(threat);
             
             console.log(`✅ Ameaça criada pela regra '${rule.id}': ${threat.title} (${threat.severity})`);
+            
+            // Send notifications for new threats
+            try {
+              await notificationService.notifyThreatCreated(threat);
+            } catch (notifError) {
+              console.error(`⚠️ Erro ao enviar notificações para ameaça ${threat.id}:`, notifError);
+              // Don't fail threat creation if notification fails
+            }
           } catch (error) {
             console.error(`❌ Erro ao criar ameaça para regra ${rule.id}:`, error);
           }
