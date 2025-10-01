@@ -2,6 +2,8 @@ import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 import { EmailSettings } from '@shared/schema';
 import { EncryptionService } from './encryption';
+import { ConfidentialClientApplication } from '@azure/msal-node';
+import { google } from 'googleapis';
 
 export interface EmailOptions {
   to: string | string[];
@@ -17,31 +19,171 @@ export class EmailService {
     this.encryptionService = new EncryptionService();
   }
 
-  async createTransporter(settings: EmailSettings): Promise<Transporter> {
-    if (!settings.authPassword || !settings.dekEncrypted) {
-      throw new Error('Credenciais de e-mail não configuradas corretamente');
+  private async getGmailAccessToken(settings: EmailSettings): Promise<string> {
+    if (!settings.oauth2ClientId || !settings.oauth2ClientSecret || !settings.oauth2ClientSecretDek) {
+      throw new Error('OAuth2 Gmail não configurado corretamente');
     }
 
-    const password = this.encryptionService.decryptCredential(
-      settings.authPassword,
-      settings.dekEncrypted
+    if (!settings.oauth2RefreshToken || !settings.oauth2RefreshTokenDek) {
+      throw new Error('Refresh token do Gmail não configurado');
+    }
+
+    // Decrypt credentials
+    const clientSecret = this.encryptionService.decryptCredential(
+      settings.oauth2ClientSecret,
+      settings.oauth2ClientSecretDek
     );
 
+    const refreshToken = this.encryptionService.decryptCredential(
+      settings.oauth2RefreshToken,
+      settings.oauth2RefreshTokenDek
+    );
+
+    // Create OAuth2 client
+    const oauth2Client = new google.auth.OAuth2(
+      settings.oauth2ClientId,
+      clientSecret,
+      'https://developers.google.com/oauthplayground'
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: refreshToken,
+    });
+
+    // Get access token
+    const { token } = await oauth2Client.getAccessToken();
+    if (!token) {
+      throw new Error('Falha ao obter access token do Gmail');
+    }
+
+    return token;
+  }
+
+  private async getMicrosoftAccessToken(settings: EmailSettings): Promise<string> {
+    if (!settings.oauth2ClientId || !settings.oauth2ClientSecret || !settings.oauth2ClientSecretDek) {
+      throw new Error('OAuth2 Microsoft não configurado corretamente');
+    }
+
+    if (!settings.oauth2TenantId) {
+      throw new Error('Tenant ID do Microsoft não configurado');
+    }
+
+    if (!settings.oauth2RefreshToken || !settings.oauth2RefreshTokenDek) {
+      throw new Error('Refresh token do Microsoft não configurado');
+    }
+
+    // Decrypt credentials
+    const clientSecret = this.encryptionService.decryptCredential(
+      settings.oauth2ClientSecret,
+      settings.oauth2ClientSecretDek
+    );
+
+    const refreshToken = this.encryptionService.decryptCredential(
+      settings.oauth2RefreshToken,
+      settings.oauth2RefreshTokenDek
+    );
+
+    // Create MSAL app
+    const msalConfig = {
+      auth: {
+        clientId: settings.oauth2ClientId,
+        clientSecret: clientSecret,
+        authority: `https://login.microsoftonline.com/${settings.oauth2TenantId}`,
+      },
+    };
+
+    const cca = new ConfidentialClientApplication(msalConfig);
+
+    try {
+      // Try to get token using refresh token
+      const tokenRequest = {
+        refreshToken: refreshToken,
+        scopes: ['https://outlook.office365.com/.default'],
+      };
+
+      const response = await cca.acquireTokenByRefreshToken(tokenRequest);
+      if (!response || !response.accessToken) {
+        throw new Error('Falha ao obter access token do Microsoft');
+      }
+
+      return response.accessToken;
+    } catch (error) {
+      console.error('Erro ao obter access token Microsoft:', error);
+      throw new Error(`Falha ao obter access token do Microsoft: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+    }
+  }
+
+  async createTransporter(settings: EmailSettings): Promise<Transporter> {
     const config: any = {
       host: settings.smtpHost,
       port: settings.smtpPort,
       secure: settings.smtpSecure,
-      auth: {
-        user: settings.authUser,
-        pass: password,
-      },
     };
 
+    // Configure authentication based on authType
+    if (settings.authType === 'password') {
+      // Basic password authentication
+      if (!settings.authPassword || !settings.dekEncrypted || !settings.authUser) {
+        throw new Error('Credenciais de senha não configuradas corretamente');
+      }
+
+      const password = this.encryptionService.decryptCredential(
+        settings.authPassword,
+        settings.dekEncrypted
+      );
+
+      config.auth = {
+        user: settings.authUser,
+        pass: password,
+      };
+
+    } else if (settings.authType === 'oauth2_gmail') {
+      // Gmail OAuth2
+      const accessToken = await this.getGmailAccessToken(settings);
+
+      config.auth = {
+        type: 'OAuth2',
+        user: settings.fromEmail,
+        clientId: settings.oauth2ClientId,
+        clientSecret: await (async () => {
+          if (!settings.oauth2ClientSecret || !settings.oauth2ClientSecretDek) return '';
+          return this.encryptionService.decryptCredential(
+            settings.oauth2ClientSecret,
+            settings.oauth2ClientSecretDek
+          );
+        })(),
+        refreshToken: await (async () => {
+          if (!settings.oauth2RefreshToken || !settings.oauth2RefreshTokenDek) return '';
+          return this.encryptionService.decryptCredential(
+            settings.oauth2RefreshToken,
+            settings.oauth2RefreshTokenDek
+          );
+        })(),
+        accessToken: accessToken,
+      };
+
+    } else if (settings.authType === 'oauth2_microsoft') {
+      // Microsoft OAuth2
+      const accessToken = await this.getMicrosoftAccessToken(settings);
+
+      config.auth = {
+        type: 'OAuth2',
+        user: settings.fromEmail,
+        accessToken: accessToken,
+      };
+
+      config.tls = {
+        ciphers: 'SSLv3',
+      };
+    }
+
+    // Configure TLS for port 587
     if (!settings.smtpSecure && settings.smtpPort === 587) {
       config.requireTLS = true;
-      config.tls = {
-        servername: settings.smtpHost,
-      };
+      if (!config.tls) {
+        config.tls = {};
+      }
+      config.tls.servername = settings.smtpHost;
     }
 
     return nodemailer.createTransport(config);

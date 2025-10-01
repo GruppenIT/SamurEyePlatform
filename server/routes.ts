@@ -105,11 +105,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(null);
       }
       
-      // Redact sensitive fields
+      // Redact all sensitive fields
       const sanitized = {
         ...settings,
-        authPassword: '[ENCRYPTED]',
-        dekEncrypted: '[ENCRYPTED]',
+        authPassword: settings.authPassword ? '[ENCRYPTED]' : undefined,
+        dekEncrypted: settings.dekEncrypted ? '[ENCRYPTED]' : undefined,
+        oauth2ClientSecret: settings.oauth2ClientSecret ? '[ENCRYPTED]' : undefined,
+        oauth2ClientSecretDek: settings.oauth2ClientSecretDek ? '[ENCRYPTED]' : undefined,
+        oauth2RefreshToken: settings.oauth2RefreshToken ? '[ENCRYPTED]' : undefined,
+        oauth2RefreshTokenDek: settings.oauth2RefreshTokenDek ? '[ENCRYPTED]' : undefined,
       };
       res.json(sanitized);
     } catch (error) {
@@ -126,50 +130,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get existing settings for audit log
       const before = await storage.getEmailSettings();
       
-      // Encrypt the password only if provided (otherwise keep existing)
-      let secretEncrypted, dekEncrypted;
-      if (settingsData.authPasswordPlain && settingsData.authPasswordPlain.trim()) {
-        const encrypted = encryptionService.encryptCredential(settingsData.authPasswordPlain);
-        secretEncrypted = encrypted.secretEncrypted;
-        dekEncrypted = encrypted.dekEncrypted;
-      } else if (before) {
-        // Keep existing password if not provided
-        secretEncrypted = before.authPassword;
-        dekEncrypted = before.dekEncrypted;
-      } else {
-        return res.status(400).json({ message: "Senha SMTP é obrigatória para configuração inicial" });
+      const authType = settingsData.authType || 'password';
+      
+      // Handle basic password authentication
+      let authPassword, authPasswordDek, authUser;
+      if (authType === 'password') {
+        if (settingsData.authPasswordPlain && settingsData.authPasswordPlain.trim()) {
+          const encrypted = encryptionService.encryptCredential(settingsData.authPasswordPlain);
+          authPassword = encrypted.secretEncrypted;
+          authPasswordDek = encrypted.dekEncrypted;
+        } else if (before && before.authPassword && before.dekEncrypted) {
+          // Keep existing password if not provided
+          authPassword = before.authPassword;
+          authPasswordDek = before.dekEncrypted;
+        } else {
+          return res.status(400).json({ message: "Senha SMTP é obrigatória para configuração inicial" });
+        }
+        authUser = settingsData.authUser;
+      }
+      
+      // Handle OAuth2 credentials
+      let oauth2ClientId, oauth2ClientSecret, oauth2ClientSecretDek, oauth2RefreshToken, oauth2RefreshTokenDek, oauth2TenantId;
+      if (authType === 'oauth2_gmail' || authType === 'oauth2_microsoft') {
+        oauth2ClientId = settingsData.oauth2ClientId;
+        oauth2TenantId = settingsData.oauth2TenantId; // Only for Microsoft
+        
+        // Encrypt client secret if provided
+        if (settingsData.oauth2ClientSecretPlain && settingsData.oauth2ClientSecretPlain.trim()) {
+          const encrypted = encryptionService.encryptCredential(settingsData.oauth2ClientSecretPlain);
+          oauth2ClientSecret = encrypted.secretEncrypted;
+          oauth2ClientSecretDek = encrypted.dekEncrypted;
+        } else if (before && before.oauth2ClientSecret && before.oauth2ClientSecretDek) {
+          oauth2ClientSecret = before.oauth2ClientSecret;
+          oauth2ClientSecretDek = before.oauth2ClientSecretDek;
+        }
+        
+        // Encrypt refresh token if provided
+        if (settingsData.oauth2RefreshTokenPlain && settingsData.oauth2RefreshTokenPlain.trim()) {
+          const encrypted = encryptionService.encryptCredential(settingsData.oauth2RefreshTokenPlain);
+          oauth2RefreshToken = encrypted.secretEncrypted;
+          oauth2RefreshTokenDek = encrypted.dekEncrypted;
+        } else if (before && before.oauth2RefreshToken && before.oauth2RefreshTokenDek) {
+          oauth2RefreshToken = before.oauth2RefreshToken;
+          oauth2RefreshTokenDek = before.oauth2RefreshTokenDek;
+        }
+        
+        // Validate OAuth2 required fields for initial setup
+        if (!before && (!oauth2ClientId || !oauth2ClientSecret || !oauth2RefreshToken)) {
+          return res.status(400).json({ message: "Client ID, Client Secret e Refresh Token são obrigatórios para OAuth2" });
+        }
+        
+        if (authType === 'oauth2_microsoft' && !before && !oauth2TenantId) {
+          return res.status(400).json({ message: "Tenant ID é obrigatório para Microsoft 365" });
+        }
       }
       
       const settings = await storage.setEmailSettings({
         smtpHost: settingsData.smtpHost,
         smtpPort: settingsData.smtpPort,
         smtpSecure: settingsData.smtpSecure || false,
-        authType: settingsData.authType || 'password',
-        authUser: settingsData.authUser,
-        authPassword: secretEncrypted,
-        dekEncrypted,
+        authType,
+        // Basic auth fields
+        authUser: authUser || null,
+        authPassword: authPassword || null,
+        dekEncrypted: authPasswordDek || null,
+        // OAuth2 fields
+        oauth2ClientId: oauth2ClientId || null,
+        oauth2ClientSecret: oauth2ClientSecret || null,
+        oauth2ClientSecretDek: oauth2ClientSecretDek || null,
+        oauth2RefreshToken: oauth2RefreshToken || null,
+        oauth2RefreshTokenDek: oauth2RefreshTokenDek || null,
+        oauth2TenantId: oauth2TenantId || null,
+        // Common fields
         fromEmail: settingsData.fromEmail,
         fromName: settingsData.fromName,
         updatedBy: userId,
       }, userId);
       
       // Log audit with redacted sensitive fields
+      const redactedBefore = before ? {
+        ...before,
+        authPassword: before.authPassword ? '[ENCRYPTED]' : undefined,
+        dekEncrypted: before.dekEncrypted ? '[ENCRYPTED]' : undefined,
+        oauth2ClientSecret: before.oauth2ClientSecret ? '[ENCRYPTED]' : undefined,
+        oauth2ClientSecretDek: before.oauth2ClientSecretDek ? '[ENCRYPTED]' : undefined,
+        oauth2RefreshToken: before.oauth2RefreshToken ? '[ENCRYPTED]' : undefined,
+        oauth2RefreshTokenDek: before.oauth2RefreshTokenDek ? '[ENCRYPTED]' : undefined,
+      } : null;
+      
+      const redactedAfter = {
+        ...settings,
+        authPassword: settings.authPassword ? '[ENCRYPTED]' : undefined,
+        dekEncrypted: settings.dekEncrypted ? '[ENCRYPTED]' : undefined,
+        oauth2ClientSecret: settings.oauth2ClientSecret ? '[ENCRYPTED]' : undefined,
+        oauth2ClientSecretDek: settings.oauth2ClientSecretDek ? '[ENCRYPTED]' : undefined,
+        oauth2RefreshToken: settings.oauth2RefreshToken ? '[ENCRYPTED]' : undefined,
+        oauth2RefreshTokenDek: settings.oauth2RefreshTokenDek ? '[ENCRYPTED]' : undefined,
+      };
+      
       await storage.logAudit({
         actorId: userId,
         action: before ? 'update' : 'create',
         objectType: 'email_settings',
         objectId: settings.id,
-        before: before ? { ...before, authPassword: '[ENCRYPTED]', dekEncrypted: '[ENCRYPTED]' } : null,
-        after: { ...settings, authPassword: '[ENCRYPTED]', dekEncrypted: '[ENCRYPTED]' },
+        before: redactedBefore,
+        after: redactedAfter,
       });
       
-      // Redact sensitive fields in response
-      const sanitized = {
-        ...settings,
-        authPassword: '[ENCRYPTED]',
-        dekEncrypted: '[ENCRYPTED]',
-      };
-      res.status(201).json(sanitized);
+      res.status(201).json(redactedAfter);
     } catch (error) {
       console.error("Erro ao salvar configurações de e-mail:", error);
       res.status(400).json({ message: "Falha ao salvar configurações de e-mail" });

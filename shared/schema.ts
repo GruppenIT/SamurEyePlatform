@@ -54,7 +54,7 @@ export const threatSeverityEnum = pgEnum('threat_severity', ['low', 'medium', 'h
 export const threatStatusEnum = pgEnum('threat_status', ['open', 'investigating', 'mitigated', 'closed', 'hibernated', 'accepted_risk']);
 
 // Email auth type enum
-export const emailAuthTypeEnum = pgEnum('email_auth_type', ['password']);
+export const emailAuthTypeEnum = pgEnum('email_auth_type', ['password', 'oauth2_gmail', 'oauth2_microsoft']);
 
 // Notification status enum
 export const notificationStatusEnum = pgEnum('notification_status', ['sent', 'failed']);
@@ -262,9 +262,17 @@ export const emailSettings = pgTable("email_settings", {
   smtpPort: integer("smtp_port").notNull(),
   smtpSecure: boolean("smtp_secure").default(true).notNull(),
   authType: emailAuthTypeEnum("auth_type").notNull().default('password'),
-  authUser: text("auth_user").notNull(),
-  authPassword: text("auth_password").notNull(), // Encrypted password
-  dekEncrypted: text("dek_encrypted").notNull(), // Data Encryption Key encrypted with KEK
+  // Basic auth (password) fields
+  authUser: text("auth_user"),
+  authPassword: text("auth_password"), // Encrypted password (for basic auth)
+  dekEncrypted: text("dek_encrypted"), // Data Encryption Key encrypted with KEK (for basic auth)
+  // OAuth2 fields (for gmail/microsoft)
+  oauth2ClientId: text("oauth2_client_id"),
+  oauth2ClientSecret: text("oauth2_client_secret"), // Encrypted
+  oauth2ClientSecretDek: text("oauth2_client_secret_dek"), // DEK for client secret
+  oauth2RefreshToken: text("oauth2_refresh_token"), // Encrypted
+  oauth2RefreshTokenDek: text("oauth2_refresh_token_dek"), // DEK for refresh token
+  oauth2TenantId: text("oauth2_tenant_id"), // For Microsoft 365 only
   fromEmail: text("from_email").notNull(),
   fromName: text("from_name").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -612,8 +620,15 @@ export const insertEmailSettingsSchema = createInsertSchema(emailSettings).omit(
   updatedBy: true,
   authPassword: true,
   dekEncrypted: true,
+  oauth2ClientSecret: true,
+  oauth2ClientSecretDek: true,
+  oauth2RefreshToken: true,
+  oauth2RefreshTokenDek: true,
 }).extend({
-  authPasswordPlain: z.string().optional(), // Plain password for encryption (optional on updates)
+  // Plain text fields for encryption (optional on updates)
+  authPasswordPlain: z.string().optional(), // For password auth
+  oauth2ClientSecretPlain: z.string().optional(), // For OAuth2
+  oauth2RefreshTokenPlain: z.string().optional(), // For OAuth2
 });
 
 // Notification policy schemas
