@@ -11,6 +11,9 @@ import {
   settings,
   auditLog,
   threatStatusHistory,
+  emailSettings,
+  notificationPolicies,
+  notificationLog,
   type User,
   type UpsertUser,
   type Asset,
@@ -33,6 +36,12 @@ import {
   type ThreatStatusHistory,
   type InsertThreatStatusHistory,
   type AuditLogEntry,
+  type EmailSettings,
+  type InsertEmailSettings,
+  type NotificationPolicy,
+  type InsertNotificationPolicy,
+  type NotificationLog,
+  type InsertNotificationLog,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, count, like, inArray } from "drizzle-orm";
@@ -181,6 +190,21 @@ export interface IStorage {
   // Audit operations
   logAudit(entry: Omit<AuditLogEntry, 'id' | 'createdAt'>): Promise<AuditLogEntry>;
   getAuditLog(limit?: number): Promise<AuditLogEntry[]>;
+
+  // Email settings operations
+  getEmailSettings(): Promise<EmailSettings | undefined>;
+  setEmailSettings(settings: Omit<EmailSettings, 'id' | 'updatedAt'>, userId: string): Promise<EmailSettings>;
+
+  // Notification policy operations
+  getNotificationPolicies(): Promise<NotificationPolicy[]>;
+  getNotificationPolicy(id: string): Promise<NotificationPolicy | undefined>;
+  createNotificationPolicy(policy: InsertNotificationPolicy, userId: string): Promise<NotificationPolicy>;
+  updateNotificationPolicy(id: string, policy: Partial<InsertNotificationPolicy>): Promise<NotificationPolicy>;
+  deleteNotificationPolicy(id: string): Promise<void>;
+
+  // Notification log operations
+  createNotificationLog(log: InsertNotificationLog): Promise<NotificationLog>;
+  getNotificationLogs(limit?: number): Promise<NotificationLog[]>;
 
   // Dashboard operations
   getDashboardMetrics(): Promise<{
@@ -1158,6 +1182,101 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(auditLog)
       .orderBy(desc(auditLog.createdAt))
+      .limit(limit);
+  }
+
+  // Email settings operations
+  async getEmailSettings(): Promise<EmailSettings | undefined> {
+    const [settings] = await db.select().from(emailSettings).limit(1);
+    return settings;
+  }
+
+  async setEmailSettings(settingsData: Omit<EmailSettings, 'id' | 'updatedAt'>, userId: string): Promise<EmailSettings> {
+    const existing = await this.getEmailSettings();
+    
+    if (existing) {
+      const [updated] = await db
+        .update(emailSettings)
+        .set({
+          ...settingsData,
+          updatedAt: new Date(),
+          updatedBy: userId,
+        })
+        .where(eq(emailSettings.id, existing.id))
+        .returning();
+      return updated;
+    }
+    
+    const [created] = await db
+      .insert(emailSettings)
+      .values({
+        ...settingsData,
+        updatedBy: userId,
+      })
+      .returning();
+    return created;
+  }
+
+  // Notification policy operations
+  async getNotificationPolicies(): Promise<NotificationPolicy[]> {
+    return await db
+      .select()
+      .from(notificationPolicies)
+      .orderBy(notificationPolicies.createdAt);
+  }
+
+  async getNotificationPolicy(id: string): Promise<NotificationPolicy | undefined> {
+    const [policy] = await db
+      .select()
+      .from(notificationPolicies)
+      .where(eq(notificationPolicies.id, id));
+    return policy;
+  }
+
+  async createNotificationPolicy(policy: InsertNotificationPolicy, userId: string): Promise<NotificationPolicy> {
+    const [created] = await db
+      .insert(notificationPolicies)
+      .values({
+        ...policy,
+        createdBy: userId,
+      })
+      .returning();
+    return created;
+  }
+
+  async updateNotificationPolicy(id: string, policy: Partial<InsertNotificationPolicy>): Promise<NotificationPolicy> {
+    const [updated] = await db
+      .update(notificationPolicies)
+      .set({
+        ...policy,
+        updatedAt: new Date(),
+      })
+      .where(eq(notificationPolicies.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteNotificationPolicy(id: string): Promise<void> {
+    await db.delete(notificationPolicies).where(eq(notificationPolicies.id, id));
+  }
+
+  // Notification log operations
+  async createNotificationLog(log: InsertNotificationLog): Promise<NotificationLog> {
+    const [created] = await db
+      .insert(notificationLog)
+      .values([{
+        ...log,
+        emailAddresses: Array.isArray(log.emailAddresses) ? [...log.emailAddresses] : [],
+      }])
+      .returning();
+    return created;
+  }
+
+  async getNotificationLogs(limit = 100): Promise<NotificationLog[]> {
+    return await db
+      .select()
+      .from(notificationLog)
+      .orderBy(desc(notificationLog.sentAt))
       .limit(limit);
   }
 
