@@ -54,7 +54,7 @@ export const threatSeverityEnum = pgEnum('threat_severity', ['low', 'medium', 'h
 export const threatStatusEnum = pgEnum('threat_status', ['open', 'investigating', 'mitigated', 'closed', 'hibernated', 'accepted_risk']);
 
 // Email auth type enum
-export const emailAuthTypeEnum = pgEnum('email_auth_type', ['password', 'oauth2']);
+export const emailAuthTypeEnum = pgEnum('email_auth_type', ['password']);
 
 // Notification status enum
 export const notificationStatusEnum = pgEnum('notification_status', ['sent', 'failed']);
@@ -261,14 +261,10 @@ export const emailSettings = pgTable("email_settings", {
   smtpHost: text("smtp_host").notNull(),
   smtpPort: integer("smtp_port").notNull(),
   smtpSecure: boolean("smtp_secure").default(true).notNull(),
-  authType: emailAuthTypeEnum("auth_type").notNull(),
+  authType: emailAuthTypeEnum("auth_type").notNull().default('password'),
   authUser: text("auth_user").notNull(),
-  authPassword: text("auth_password"), // Encrypted, only if authType = 'password'
-  oauthClientId: text("oauth_client_id"), // For Microsoft 365
-  oauthClientSecret: text("oauth_client_secret"), // Encrypted, for Microsoft 365
-  oauthTenantId: text("oauth_tenant_id"), // For Microsoft 365
-  oauthRefreshToken: text("oauth_refresh_token"), // Encrypted, for OAuth2
-  dekEncrypted: text("dek_encrypted"), // Data Encryption Key encrypted with KEK
+  authPassword: text("auth_password").notNull(), // Encrypted password
+  dekEncrypted: text("dek_encrypted").notNull(), // Data Encryption Key encrypted with KEK
   fromEmail: text("from_email").notNull(),
   fromName: text("from_name").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -615,25 +611,9 @@ export const insertEmailSettingsSchema = createInsertSchema(emailSettings).omit(
   updatedAt: true,
   updatedBy: true,
   authPassword: true,
-  oauthClientSecret: true,
-  oauthRefreshToken: true,
   dekEncrypted: true,
 }).extend({
-  authPasswordPlain: z.string().optional(), // Plain password for encryption
-  oauthClientSecretPlain: z.string().optional(), // Plain secret for encryption
-  oauthRefreshTokenPlain: z.string().optional(), // Plain refresh token for encryption
-}).refine(data => {
-  // Validate based on auth type
-  if (data.authType === 'password') {
-    return !!data.authPasswordPlain && !data.oauthClientId && !data.oauthTenantId;
-  }
-  if (data.authType === 'oauth2') {
-    return !!data.oauthClientId && !!data.oauthTenantId && !data.authPasswordPlain;
-  }
-  return true;
-}, {
-  message: "Campos de autenticação inválidos para o tipo selecionado",
-  path: ["authType"],
+  authPasswordPlain: z.string().min(1, "Senha é obrigatória"), // Plain password for encryption
 });
 
 // Notification policy schemas
