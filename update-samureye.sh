@@ -77,6 +77,19 @@ check_installation() {
     success "Instalação verificada em $INSTALL_DIR"
 }
 
+# Função para configurar Git safe directory
+configure_git() {
+    log "Configurando permissões do repositório Git..."
+    
+    # Adiciona o diretório como safe directory para evitar erro de ownership
+    git config --global --add safe.directory "$INSTALL_DIR" 2>/dev/null || true
+    
+    # Configura ownership correto do diretório
+    chown -R $SERVICE_USER:$SERVICE_GROUP "$INSTALL_DIR" 2>/dev/null || true
+    
+    success "Permissões do Git configuradas"
+}
+
 # Função para verificar atualizações disponíveis
 check_updates() {
     log "Verificando atualizações disponíveis no GitHub..."
@@ -498,6 +511,7 @@ main() {
     # Verificações iniciais
     check_root
     check_installation
+    configure_git
     check_updates
     
     # Confirmação do usuário
