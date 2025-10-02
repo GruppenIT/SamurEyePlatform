@@ -42,6 +42,7 @@ The application features a dark security-focused theme. The threat intelligence 
   - **Raw Score**: Weighted sum of threats using CVSS base values (Critical: 10.0, High: 8.5, Medium: 5.5, Low: 2.5)
   - Automatic real-time recalculation when threats are created, updated, or status changes
   - Sortable columns in hosts listing with threat count badges by severity
+  - Admin endpoint `POST /api/admin/recalculate-risk-scores` for manual backfill/recalculation of all host risk scores
 - **Active CVE Validation**: Refactored Attack Surface journey to use active validation with nmap vuln scripts (`--script=vuln`) instead of passive NIST NVD API lookups. CVEs are now validated in real-time against live targets, generating `nmap_vuln` findings with detailed exploit information.
 - **Conditional Web Scanning**: Attack Surface journeys feature optional Nuclei web application scanning via the `webScanEnabled` parameter. When enabled, HTTP/HTTPS services are automatically identified and scanned for web vulnerabilities.
 - **Three-Phase Attack Surface Scanning**: 
