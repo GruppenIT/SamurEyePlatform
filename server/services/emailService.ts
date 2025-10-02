@@ -296,21 +296,50 @@ export class EmailService {
 
     let actionTitle = '';
     let actionDescription = '';
+    const currentDate = new Date().toLocaleString('pt-BR', { 
+      dateStyle: 'long', 
+      timeStyle: 'short',
+      timeZone: 'America/Sao_Paulo'
+    });
 
     if (action === 'created') {
-      actionTitle = '🚨 Nova Ameaça Detectada';
-      actionDescription = `Uma nova ameaça foi identificada no sistema.`;
+      actionTitle = 'RELATÓRIO DE THREAT INTELLIGENCE';
+      actionDescription = `
+        <div style="background-color: #fef2f2; border-left: 4px solid ${severityColor}; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+          <strong style="color: #991b1b; font-size: 14px;">⚠️ NOVA AMEAÇA IDENTIFICADA</strong>
+          <p style="margin: 8px 0 0 0; color: #7f1d1d; font-size: 13px; line-height: 1.5;">
+            Nossa plataforma de validação contínua de exposição adversarial identificou uma nova ameaça em seu ambiente. 
+            Esta notificação foi gerada automaticamente pelo sistema de detecção e requer atenção imediata de sua equipe de segurança.
+          </p>
+        </div>
+        <p style="margin: 0; color: #374151; font-size: 13px;">
+          <strong>Data/Hora da Detecção:</strong> ${currentDate}
+        </p>
+      `;
     } else if (action === 'status_changed' && details) {
-      actionTitle = '🔄 Status de Ameaça Alterado';
-      actionDescription = `O status da ameaça foi alterado de <strong>${this.translateStatus(details.oldStatus || '')}</strong> para <strong>${this.translateStatus(details.newStatus || '')}</strong>.`;
-      
-      if (details.user) {
-        actionDescription += `<br><strong>Alterado por:</strong> ${details.user.firstName} ${details.user.lastName}`;
-      }
-      
-      if (details.justification) {
-        actionDescription += `<br><strong>Justificativa:</strong> ${details.justification}`;
-      }
+      actionTitle = 'ATUALIZAÇÃO DE STATUS - THREAT INTELLIGENCE';
+      actionDescription = `
+        <div style="background-color: #eff6ff; border-left: 4px solid #2563eb; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+          <strong style="color: #1e40af; font-size: 14px;">🔄 MUDANÇA DE STATUS REGISTRADA</strong>
+          <p style="margin: 8px 0 0 0; color: #1e3a8a; font-size: 13px; line-height: 1.5;">
+            O status desta ameaça foi atualizado no sistema de gerenciamento de incidentes. 
+            As informações detalhadas sobre a alteração estão documentadas abaixo.
+          </p>
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+          <tr>
+            <td style="padding: 8px 12px; background-color: #f9fafb; border-radius: 4px;">
+              <p style="margin: 0; color: #374151; font-size: 13px; line-height: 1.8;">
+                <strong>Status Anterior:</strong> <span style="color: #6b7280;">${this.translateStatus(details.oldStatus || '')}</span><br>
+                <strong>Status Atual:</strong> <span style="color: #6b7280;">${this.translateStatus(details.newStatus || '')}</span><br>
+                <strong>Data/Hora da Alteração:</strong> <span style="color: #6b7280;">${currentDate}</span>
+                ${details.user ? `<br><strong>Analista Responsável:</strong> <span style="color: #6b7280;">${details.user.firstName} ${details.user.lastName}</span>` : ''}
+                ${details.justification ? `<br><strong>Justificativa Técnica:</strong> <span style="color: #6b7280;">${details.justification}</span>` : ''}
+              </p>
+            </td>
+          </tr>
+        </table>
+      `;
     }
 
     return `
@@ -325,11 +354,7 @@ export class EmailService {
         <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 20px;">
           <tr>
             <td align="center">
-              <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                <!-- Header -->
-                <tr>
-                  <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-                    <h1 style="margin: 0; color: #ffffff; font-size: 24px;">SamurEye</h1>
+>
                     <p style="margin: 10px 0 0 0; color: #e0e7ff; font-size: 14px;">Plataforma de Validação de Exposição Adversarial</p>
                   </td>
                 </tr>
