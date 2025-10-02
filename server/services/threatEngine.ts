@@ -869,7 +869,7 @@ class ThreatEngineService {
           console.log(`🔗 Host found for threat: ${hostId ? hostId : 'NULL'}`);
           
           // Use upsert logic with lifecycle fields
-          const threat = await storage.upsertThreat({
+          const { threat, isNew } = await storage.upsertThreat({
             ...threatData,
             hostId, // Link threat to discovered host
             correlationKey,
@@ -878,7 +878,14 @@ class ThreatEngineService {
           });
 
           threats.push(threat);
-          console.log(`🔄 Threat upserted: ${threat.title} (Category: ${threat.category}, HostId: ${threat.hostId}, Key: ${correlationKey})`);
+          console.log(`🔄 Threat upserted: ${threat.title} (Category: ${threat.category}, HostId: ${threat.hostId}, Key: ${correlationKey}, isNew: ${isNew})`);
+          
+          // Send email notification if this is a new threat
+          if (isNew) {
+            console.log(`📧 Sending notification for new threat: ${threat.id}`);
+            await notificationService.notifyThreatCreated(threat);
+          }
+          
           break; // Stop after first matching rule
         }
       }

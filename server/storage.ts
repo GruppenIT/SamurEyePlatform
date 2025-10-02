@@ -176,7 +176,7 @@ export interface IStorage {
   findThreatByCorrelationKey(correlationKey: string): Promise<Threat | undefined>;
   listOpenThreatsByJourney(journeyId: string, category?: string): Promise<Threat[]>;
   closeThreatSystem(id: string, reason?: string): Promise<Threat>;
-  upsertThreat(threat: InsertThreat & { correlationKey: string; category: string; lastSeenAt?: Date }): Promise<Threat>;
+  upsertThreat(threat: InsertThreat & { correlationKey: string; category: string; lastSeenAt?: Date }): Promise<{ threat: Threat; isNew: boolean }>;
   
   // Threat status history operations
   createThreatStatusHistory(history: InsertThreatStatusHistory): Promise<ThreatStatusHistory>;
@@ -821,7 +821,7 @@ export class DatabaseStorage implements IStorage {
     return updatedThreat;
   }
 
-  async upsertThreat(threat: InsertThreat & { correlationKey: string; category: string; lastSeenAt?: Date }): Promise<Threat> {
+  async upsertThreat(threat: InsertThreat & { correlationKey: string; category: string; lastSeenAt?: Date }): Promise<{ threat: Threat; isNew: boolean }> {
     console.log(`📋 UPSERT: Processing threat with correlationKey: ${threat.correlationKey}`);
     console.log(`📋 UPSERT: Input threat details - title: ${threat.title}, jobId: ${threat.jobId}, status: ${threat.status || 'open'}`);
     
@@ -900,7 +900,7 @@ export class DatabaseStorage implements IStorage {
           console.log(`📋 Created status history for cross-journey threat reactivation: ${existingThreat.id}`);
         }
 
-        return updatedThreat;
+        return { threat: updatedThreat, isNew: false };
       });
     } else {
       // Create new threat with defensive conflict resolution
@@ -932,7 +932,7 @@ export class DatabaseStorage implements IStorage {
           .returning();
           
         console.log(`✅ UPSERT: Processed threat ${newThreat.id} via onConflict - status: ${newThreat.status}`);
-        return newThreat;
+        return { threat: newThreat, isNew: true };
       } catch (error) {
         // If onConflict fails (e.g., no unique index in on-premise), use simple insert
         if ((error as any)?.code === '42P10') {
@@ -946,7 +946,7 @@ export class DatabaseStorage implements IStorage {
             .returning();
           
           console.log(`✅ UPSERT: Created new threat ${newThreat.id} via fallback insert - status: ${newThreat.status}`);
-          return newThreat;
+          return { threat: newThreat, isNew: true };
         }
         // Re-throw other errors
         throw error;
