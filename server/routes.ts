@@ -1175,6 +1175,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin maintenance routes
+  app.post('/api/admin/recalculate-risk-scores', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      console.log(`🔄 Iniciando recálculo de risk scores (solicitado por ${userId})...`);
+      await threatEngine.recalculateAllHostRiskScores();
+      
+      await storage.logAudit({
+        actorId: userId,
+        action: 'recalculate_risk_scores',
+        objectType: 'host',
+        objectId: 'all',
+        before: null,
+        after: { message: 'Recálculo de todos os risk scores concluído' },
+      });
+      
+      res.json({ 
+        message: 'Risk scores recalculados com sucesso para todos os hosts',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Erro ao recalcular risk scores:", error);
+      res.status(500).json({ message: "Falha ao recalcular risk scores" });
+    }
+  });
+
   // Health check
   app.get('/api/health', (req, res) => {
     res.json({ 
