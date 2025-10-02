@@ -354,8 +354,12 @@ export class EmailService {
         <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 20px;">
           <tr>
             <td align="center">
->
-                    <p style="margin: 10px 0 0 0; color: #e0e7ff; font-size: 14px;">Plataforma de Validação de Exposição Adversarial</p>
+              <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: 1px;">SamurEye</h1>
+                    <p style="margin: 8px 0 0 0; color: #e0e7ff; font-size: 13px; font-weight: 500;">Plataforma de Validação de Exposição Adversarial</p>
                   </td>
                 </tr>
                 
@@ -423,10 +427,30 @@ export class EmailService {
                 
                 <!-- Footer -->
                 <tr>
-                  <td style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
-                    <p style="margin: 0; color: #6b7280; font-size: 12px;">
-                      Esta é uma notificação automática do SamurEye.<br>
-                      Para alterar suas preferências de notificação, acesse as configurações do sistema.
+                  <td style="background-color: #f9fafb; padding: 25px 20px; text-align: center; border-top: 2px solid #e5e7eb;">
+                    <p style="margin: 0 0 12px 0; color: #4b5563; font-size: 11px; line-height: 1.6; font-weight: 500;">
+                      Esta é uma notificação automática do sistema de monitoramento contínuo.<br>
+                      Para alterar suas preferências de notificação, acesse as Configurações do Sistema.
+                    </p>
+                    
+                    <div style="margin: 15px 0; padding: 15px 0; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;">
+                      <p style="margin: 0 0 6px 0; color: #374151; font-size: 12px; font-weight: 600;">
+                        SamurEye™
+                      </p>
+                      <p style="margin: 0; color: #6b7280; font-size: 11px; line-height: 1.5;">
+                        Solução de segurança desenvolvida e suportada por<br>
+                        <strong style="color: #4b5563;">Gruppen IT Security</strong>
+                      </p>
+                    </div>
+                    
+                    <p style="margin: 12px 0 0 0;">
+                      <a href="https://www.samureye.com.br" style="color: #667eea; text-decoration: none; font-size: 11px; font-weight: 600;">
+                        www.samureye.com.br
+                      </a>
+                    </p>
+                    
+                    <p style="margin: 10px 0 0 0; color: #9ca3af; font-size: 10px;">
+                      © ${new Date().getFullYear()} Gruppen IT Security. Todos os direitos reservados.
                     </p>
                   </td>
                 </tr>
