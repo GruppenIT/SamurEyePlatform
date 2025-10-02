@@ -180,11 +180,14 @@ export const hosts = pgTable("hosts", {
   family: hostFamilyEnum("family").default('other').notNull(),
   ips: jsonb("ips").$type<string[]>().default([]).notNull(), // Array of IPs
   aliases: jsonb("aliases").$type<string[]>().default([]).notNull(), // FQDNs and alternative names
+  riskScore: integer("risk_score").default(0).notNull(), // 0-100 based on CVSS intervals
+  rawScore: integer("raw_score").default(0).notNull(), // Sum of weighted threat scores
   discoveredAt: timestamp("discovered_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [
   index("IDX_hosts_name").on(table.name),
   index("IDX_hosts_type").on(table.type),
+  index("IDX_hosts_risk_score").on(table.riskScore),
 ]);
 
 // Threats table

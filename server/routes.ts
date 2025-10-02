@@ -475,13 +475,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Host routes
   app.get('/api/hosts', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
-      // Extract query parameters for filtering
-      const { type, family, search } = req.query;
+      // Extract query parameters for filtering and sorting
+      const { type, family, search, sortBy } = req.query;
       
       const filters: any = {};
       if (type) filters.type = type as string;
       if (family) filters.family = family as string;
       if (search) filters.search = search as string;
+      if (sortBy) filters.sortBy = sortBy as string;
       
       const hosts = await storage.getHosts(filters);
       res.json(hosts);

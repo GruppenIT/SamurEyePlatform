@@ -736,6 +736,13 @@ class ThreatEngineService {
             
             console.log(`✅ Ameaça criada pela regra '${rule.id}': ${threat.title} (${threat.severity})`);
             
+            // Recalculate host risk score if threat is linked to a host
+            if (threat.hostId) {
+              await this.recalculateHostRiskScore(threat.hostId).catch(err => 
+                console.error(`⚠️ Erro ao recalcular escore de risco do host ${threat.hostId}:`, err)
+              );
+            }
+            
             // Send notifications for new threats
             try {
               await notificationService.notifyThreatCreated(threat);
@@ -1599,6 +1606,13 @@ class ThreatEngineService {
       statusJustification: justification,
       hibernatedUntil: hibernatedUntil || null,
     });
+
+    // Recalculate host risk score after status change
+    if (threat.hostId) {
+      await this.recalculateHostRiskScore(threat.hostId).catch(err => 
+        console.error(`⚠️ Erro ao recalcular escore de risco do host ${threat.hostId}:`, err)
+      );
+    }
   }
 
   /**
@@ -1647,6 +1661,100 @@ class ThreatEngineService {
 
     // Initial check
     await this.activateHibernatedThreats();
+  }
+
+  /**
+   * Calculate risk score for a host based on associated threats
+   * Uses CVSS-based methodology with two metrics:
+   * - riskScore: 0-100 classification based on highest severity
+   * - rawScore: Sum of weighted threat scores (CVSS base values)
+   */
+  async calculateHostRiskScore(hostId: string): Promise<{ riskScore: number; rawScore: number }> {
+    try {
+      // Get all threats for this host
+      const threats = await storage.getThreats();
+      const hostThreats = threats.filter(t => t.hostId === hostId);
+
+      // Count threats by severity
+      const severityCounts = {
+        critical: hostThreats.filter(t => t.severity === 'critical').length,
+        high: hostThreats.filter(t => t.severity === 'high').length,
+        medium: hostThreats.filter(t => t.severity === 'medium').length,
+        low: hostThreats.filter(t => t.severity === 'low').length,
+      };
+
+      // CVSS base scores for each severity
+      const cvssScores = {
+        critical: 10.0,
+        high: 8.5,
+        medium: 5.5,
+        low: 2.5,
+      };
+
+      // Calculate raw score (sum of weighted threats)
+      const rawScore = Math.round(
+        severityCounts.critical * cvssScores.critical +
+        severityCounts.high * cvssScores.high +
+        severityCounts.medium * cvssScores.medium +
+        severityCounts.low * cvssScores.low
+      );
+
+      // Calculate risk score (0-100) based on CVSS intervals
+      let riskScore = 0;
+
+      if (severityCounts.critical > 0) {
+        // Critical threats present: 90-100 range
+        riskScore = Math.min(100, 90 + (severityCounts.critical * 2));
+      } else if (severityCounts.high > 0) {
+        // High threats present: 70-89 range
+        riskScore = Math.min(89, 70 + (severityCounts.high * 3));
+      } else if (severityCounts.medium > 0) {
+        // Medium threats present: 40-69 range
+        riskScore = Math.min(69, 40 + (severityCounts.medium * 5));
+      } else if (severityCounts.low > 0) {
+        // Low threats present: 10-39 range
+        riskScore = Math.min(39, 10 + (severityCounts.low * 5));
+      } else {
+        // No threats: 0-9 range (minimal risk)
+        riskScore = 0;
+      }
+
+      return { riskScore, rawScore };
+    } catch (error) {
+      console.error(`❌ Error calculating risk score for host ${hostId}:`, error);
+      return { riskScore: 0, rawScore: 0 };
+    }
+  }
+
+  /**
+   * Recalculate and update risk scores for a specific host
+   */
+  async recalculateHostRiskScore(hostId: string): Promise<void> {
+    try {
+      const { riskScore, rawScore } = await this.calculateHostRiskScore(hostId);
+      await storage.updateHost(hostId, { riskScore, rawScore });
+      console.log(`✅ Updated risk scores for host ${hostId}: riskScore=${riskScore}, rawScore=${rawScore}`);
+    } catch (error) {
+      console.error(`❌ Error recalculating risk score for host ${hostId}:`, error);
+    }
+  }
+
+  /**
+   * Recalculate risk scores for all hosts
+   */
+  async recalculateAllHostRiskScores(): Promise<void> {
+    try {
+      const hosts = await storage.getHosts();
+      console.log(`🔄 Recalculating risk scores for ${hosts.length} hosts...`);
+      
+      for (const host of hosts) {
+        await this.recalculateHostRiskScore(host.id);
+      }
+      
+      console.log(`✅ Recalculated risk scores for all hosts`);
+    } catch (error) {
+      console.error(`❌ Error recalculating all host risk scores:`, error);
+    }
   }
 }
 

@@ -730,6 +730,8 @@ export class DatabaseStorage implements IStorage {
         aliases: row.hostAliases || [],
         description: row.hostDescription,
         operatingSystem: row.hostOperatingSystem,
+        riskScore: 0,
+        rawScore: 0,
         discoveredAt: row.hostDiscoveredAt!,
         updatedAt: row.hostUpdatedAt!
       } : undefined
@@ -1005,33 +1007,62 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Host operations
-  async getHosts(filters?: { search?: string; type?: string; family?: string }): Promise<Host[]> {
-    if (filters) {
-      const conditions = [];
-      if (filters.search) {
-        const searchTerm = `%${filters.search.toLowerCase()}%`;
-        conditions.push(
-          or(
-            like(hosts.name, searchTerm),
-            like(hosts.description, searchTerm),
-            sql`${hosts.ips}::text LIKE ${searchTerm}`,
-            sql`${hosts.aliases}::text LIKE ${searchTerm}`
-          )
-        );
-      }
-      if (filters.type && filters.type !== "all") conditions.push(eq(hosts.type, filters.type as any));
-      if (filters.family && filters.family !== "all") conditions.push(eq(hosts.family, filters.family as any));
-      
-      if (conditions.length > 0) {
-        return await db
-          .select()
-          .from(hosts)
-          .where(and(...conditions))
-          .orderBy(desc(hosts.updatedAt));
-      }
+  async getHosts(filters?: { search?: string; type?: string; family?: string; sortBy?: string }): Promise<(Host & { threatCounts: { critical: number; high: number; medium: number; low: number } })[]> {
+    // Build conditions
+    const conditions = [];
+    if (filters?.search) {
+      const searchTerm = `%${filters.search.toLowerCase()}%`;
+      conditions.push(
+        or(
+          like(hosts.name, searchTerm),
+          like(hosts.description, searchTerm),
+          sql`${hosts.ips}::text LIKE ${searchTerm}`,
+          sql`${hosts.aliases}::text LIKE ${searchTerm}`
+        )
+      );
+    }
+    if (filters?.type && filters.type !== "all") conditions.push(eq(hosts.type, filters.type as any));
+    if (filters?.family && filters.family !== "all") conditions.push(eq(hosts.family, filters.family as any));
+    
+    // Build base query
+    let query = db
+      .select({
+        host: hosts,
+        threatCritical: sql<number>`COUNT(CASE WHEN ${threats.severity} = 'critical' THEN 1 END)`,
+        threatHigh: sql<number>`COUNT(CASE WHEN ${threats.severity} = 'high' THEN 1 END)`,
+        threatMedium: sql<number>`COUNT(CASE WHEN ${threats.severity} = 'medium' THEN 1 END)`,
+        threatLow: sql<number>`COUNT(CASE WHEN ${threats.severity} = 'low' THEN 1 END)`,
+      })
+      .from(hosts)
+      .leftJoin(threats, eq(hosts.id, threats.hostId))
+      .groupBy(hosts.id);
+    
+    // Apply filters
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as any;
     }
     
-    return await db.select().from(hosts).orderBy(desc(hosts.updatedAt));
+    // Apply sorting
+    const sortBy = filters?.sortBy || 'updatedAt';
+    if (sortBy === 'riskScore') {
+      query = query.orderBy(desc(hosts.riskScore), desc(hosts.rawScore)) as any;
+    } else if (sortBy === 'rawScore') {
+      query = query.orderBy(desc(hosts.rawScore), desc(hosts.riskScore)) as any;
+    } else {
+      query = query.orderBy(desc(hosts.updatedAt)) as any;
+    }
+    
+    const results = await query;
+    
+    return results.map(row => ({
+      ...row.host,
+      threatCounts: {
+        critical: Number(row.threatCritical) || 0,
+        high: Number(row.threatHigh) || 0,
+        medium: Number(row.threatMedium) || 0,
+        low: Number(row.threatLow) || 0,
+      }
+    }));
   }
 
   async getHost(id: string): Promise<Host | undefined> {
@@ -1089,6 +1120,8 @@ export class DatabaseStorage implements IStorage {
     if (host.family !== undefined) updates.family = host.family;
     if (host.ips !== undefined) updates.ips = host.ips;
     if (host.aliases !== undefined) updates.aliases = host.aliases;
+    if (host.riskScore !== undefined) updates.riskScore = host.riskScore;
+    if (host.rawScore !== undefined) updates.rawScore = host.rawScore;
     
     const [updatedHost] = await db
       .update(hosts)
