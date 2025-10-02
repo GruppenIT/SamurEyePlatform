@@ -37,6 +37,11 @@ The application features a dark security-focused theme. The threat intelligence 
 ### Technical Implementations
 - **Host Management**: Automated host discovery from security scans, intelligent deduplication, and automatic threat-to-host linkage.
 - **Threat Lifecycle Management**: Implemented cross-journey threat reactivation and a duplicate prevention system using partial unique indices.
+- **Risk Scoring System**: Hosts feature dual-metric risk assessment:
+  - **Risk Score (0-100)**: CVSS-based classification with intervals - Critical (90-100), High (70-89), Medium (40-69), Low (10-39), Minimal (0-9)
+  - **Raw Score**: Weighted sum of threats using CVSS base values (Critical: 10.0, High: 8.5, Medium: 5.5, Low: 2.5)
+  - Automatic real-time recalculation when threats are created, updated, or status changes
+  - Sortable columns in hosts listing with threat count badges by severity
 - **Active CVE Validation**: Refactored Attack Surface journey to use active validation with nmap vuln scripts (`--script=vuln`) instead of passive NIST NVD API lookups. CVEs are now validated in real-time against live targets, generating `nmap_vuln` findings with detailed exploit information.
 - **Conditional Web Scanning**: Attack Surface journeys feature optional Nuclei web application scanning via the `webScanEnabled` parameter. When enabled, HTTP/HTTPS services are automatically identified and scanned for web vulnerabilities.
 - **Three-Phase Attack Surface Scanning**: 

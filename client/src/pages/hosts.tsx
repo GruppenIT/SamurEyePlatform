@@ -139,10 +139,20 @@ function ThreatSummarySection({ threats, hostId }: { threats: Threat[], hostId: 
   );
 }
 
+type HostWithThreatCounts = Host & {
+  threatCounts: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+  };
+};
+
 export default function Hosts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [familyFilter, setFamilyFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("updatedAt");
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   
   const { toast } = useToast();
@@ -153,12 +163,13 @@ export default function Hosts() {
   if (typeFilter !== "all") queryParams.set("type", typeFilter);
   if (familyFilter !== "all") queryParams.set("family", familyFilter);
   if (searchTerm) queryParams.set("search", searchTerm);
+  if (sortBy) queryParams.set("sortBy", sortBy);
   
   const queryString = queryParams.toString();
   const apiUrl = queryString ? `/api/hosts?${queryString}` : "/api/hosts";
 
-  const { data: hosts = [], isLoading, error } = useQuery<Host[]>({
-    queryKey: ['/api/hosts', { type: typeFilter, family: familyFilter, search: searchTerm }],
+  const { data: hosts = [], isLoading, error } = useQuery<HostWithThreatCounts[]>({
+    queryKey: ['/api/hosts', { type: typeFilter, family: familyFilter, search: searchTerm, sortBy }],
   });
 
   // Query for threats associated with the selected host
@@ -278,6 +289,17 @@ export default function Hosts() {
                   <SelectItem value="other">Outra</SelectItem>
                 </SelectContent>
               </Select>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[180px]" data-testid="select-sort-by">
+                  <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="riskScore">Escore de Risco</SelectItem>
+                  <SelectItem value="rawScore">Pontuação Total</SelectItem>
+                  <SelectItem value="updatedAt">Última Atualização</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -326,16 +348,21 @@ export default function Hosts() {
                     <TableRow>
                       <TableHead>Host</TableHead>
                       <TableHead>Tipo</TableHead>
+                      <TableHead>Escore de Risco</TableHead>
+                      <TableHead>Ameaças</TableHead>
                       <TableHead>IPs</TableHead>
                       <TableHead>Sistema Operacional</TableHead>
-                      <TableHead>Sistema</TableHead>
-                      <TableHead>Descoberto em</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredHosts.map((host) => {
                       const Icon = getHostIcon(host.type);
+                      const totalThreats = (host.threatCounts?.critical || 0) + 
+                                         (host.threatCounts?.high || 0) + 
+                                         (host.threatCounts?.medium || 0) + 
+                                         (host.threatCounts?.low || 0);
+                      
                       return (
                         <TableRow key={host.id} data-testid={`host-row-${host.id}`}>
                           <TableCell className="font-medium">
@@ -348,11 +375,6 @@ export default function Hosts() {
                                     {host.description}
                                   </div>
                                 )}
-                                {host.aliases && host.aliases.length > 0 && (
-                                  <div className="text-xs text-muted-foreground">
-                                    Aliases: {host.aliases.join(', ')}
-                                  </div>
-                                )}
                               </div>
                             </div>
                           </TableCell>
@@ -363,6 +385,53 @@ export default function Hosts() {
                             >
                               {host.type.replace('_', ' ')}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              <div className="text-lg font-bold" data-testid={`text-risk-score-${host.id}`}>
+                                {host.riskScore || 0}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Pontos: {host.rawScore || 0}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {totalThreats > 0 ? (
+                              <div className="flex gap-1.5" data-testid={`threats-badges-${host.id}`}>
+                                {host.threatCounts.critical > 0 && (
+                                  <Badge 
+                                    variant="destructive" 
+                                    className="min-w-[28px] h-6 justify-center bg-red-500 hover:bg-red-600"
+                                  >
+                                    {host.threatCounts.critical}
+                                  </Badge>
+                                )}
+                                {host.threatCounts.high > 0 && (
+                                  <Badge 
+                                    className="min-w-[28px] h-6 justify-center bg-orange-500 text-white hover:bg-orange-600"
+                                  >
+                                    {host.threatCounts.high}
+                                  </Badge>
+                                )}
+                                {host.threatCounts.medium > 0 && (
+                                  <Badge 
+                                    className="min-w-[28px] h-6 justify-center bg-yellow-500 text-white hover:bg-yellow-600"
+                                  >
+                                    {host.threatCounts.medium}
+                                  </Badge>
+                                )}
+                                {host.threatCounts.low > 0 && (
+                                  <Badge 
+                                    className="min-w-[28px] h-6 justify-center bg-green-600 text-white hover:bg-green-700"
+                                  >
+                                    {host.threatCounts.low}
+                                  </Badge>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
@@ -392,22 +461,6 @@ export default function Hosts() {
                                 <span className="text-muted-foreground">—</span>
                               )}
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              {host.family ? (
-                                <div className="font-medium">{host.family}</div>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {new Date(host.discoveredAt).toLocaleDateString('pt-BR', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                            })}
                           </TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
