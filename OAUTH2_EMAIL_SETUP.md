@@ -166,8 +166,17 @@ curl -X POST https://oauth2.googleapis.com/token \
    - **Tipos de conta com suporte**: Escolha conforme sua necessidade:
      - **Somente este diretório organizacional** (single tenant)
      - **Qualquer diretório organizacional** (multi-tenant)
-   - **URI de Redirecionamento**: Opcional para SMTP (deixe em branco ou configure se necessário)
+   - **URI de Redirecionamento**: Selecione **Web** e adicione:
+     - `https://login.microsoftonline.com/common/oauth2/nativeclient` (recomendado para obter refresh token)
+     - OU `https://jwt.ms` (para teste rápido)
+     - OU `http://localhost:8080` (para desenvolvimento local)
 5. Clique em **Registrar**
+
+**IMPORTANTE**: Se você não adicionou o redirect URI no passo 4, adicione agora:
+- Vá para **Autenticação** (menu lateral)
+- Em **URIs de redirecionamento**, clique em **Adicionar URI**
+- Adicione: `https://login.microsoftonline.com/common/oauth2/nativeclient`
+- Clique em **Salvar**
 
 ### 2. Obter Application (Client) ID e Tenant ID
 
@@ -238,24 +247,41 @@ No entanto, se precisar do **Authorization Code Flow** (com refresh token para a
 
 #### Passo A: Obter Código de Autorização
 
+⚠️ **IMPORTANTE**: Use o redirect URI que você registrou no Azure Portal (passo 1).
+
 Crie esta URL (substitua os valores):
 
+```
+https://login.microsoftonline.com/SEU_TENANT_ID/oauth2/v2.0/authorize?client_id=SEU_CLIENT_ID&response_type=code&redirect_uri=https://login.microsoftonline.com/common/oauth2/nativeclient&response_mode=query&scope=offline_access%20https://outlook.office365.com/.default&state=12345
+```
+
+**Versão formatada** (remova as quebras de linha ao usar):
 ```
 https://login.microsoftonline.com/SEU_TENANT_ID/oauth2/v2.0/authorize?
   client_id=SEU_CLIENT_ID
   &response_type=code
-  &redirect_uri=http://localhost:8080
+  &redirect_uri=https://login.microsoftonline.com/common/oauth2/nativeclient
   &response_mode=query
-  &scope=offline_access https://outlook.office365.com/SMTP.Send
+  &scope=offline_access https://outlook.office365.com/.default
   &state=12345
 ```
 
-1. Abra a URL no navegador
-2. Faça login com a conta que enviará emails
-3. Você será redirecionado para: `http://localhost:8080?code=CODIGO&state=12345`
-4. Copie o `code`
+**⚠️ ATENÇÃO**: 
+- O scope correto é `https://outlook.office365.com/.default` (não `SMTP.Send`)
+- Use o mesmo `redirect_uri` que você registrou no Azure Portal
+
+1. Abra a URL no navegador (copie e cole em uma linha única)
+2. Faça login com a conta Microsoft 365 que enviará emails
+3. Conceda as permissões solicitadas
+4. Você será redirecionado para uma página com o código na URL:
+   - Se usou `nativeclient`: A página mostrará o código diretamente
+   - Se usou `jwt.ms`: O código aparecerá decodificado
+   - Se usou `localhost:8080`: Copie o código da URL
+5. Copie o valor do parâmetro `code` da URL
 
 #### Passo B: Trocar Código por Tokens
+
+⚠️ **Use o MESMO redirect_uri** que você usou no Passo A.
 
 ```bash
 curl -X POST https://login.microsoftonline.com/SEU_TENANT_ID/oauth2/v2.0/token \
@@ -263,20 +289,25 @@ curl -X POST https://login.microsoftonline.com/SEU_TENANT_ID/oauth2/v2.0/token \
   -d "client_id=SEU_CLIENT_ID" \
   -d "client_secret=SEU_CLIENT_SECRET" \
   -d "code=CODIGO_DO_PASSO_A" \
-  -d "redirect_uri=http://localhost:8080" \
+  -d "redirect_uri=https://login.microsoftonline.com/common/oauth2/nativeclient" \
   -d "grant_type=authorization_code" \
-  -d "scope=offline_access https://outlook.office365.com/.default"
+  -d "scope=https://outlook.office365.com/.default"
 ```
+
+**Nota**: Substitua `SEU_TENANT_ID`, `SEU_CLIENT_ID`, `SEU_CLIENT_SECRET` e `CODIGO_DO_PASSO_A` pelos seus valores reais.
 
 A resposta conterá:
 ```json
 {
   "access_token": "eyJ0eXAi...",
-  "refresh_token": "OAAABAAAAiL9Kn2Z...",
+  "refresh_token": "0.AXoA...",
   "expires_in": 3599,
-  "token_type": "Bearer"
+  "token_type": "Bearer",
+  "scope": "https://outlook.office365.com/.default"
 }
 ```
+
+**Copie e salve o `refresh_token`** - você vai precisar dele para configurar o SamurEye.
 
 ### Credenciais Necessárias para o SamurEye (Microsoft 365):
 
@@ -361,6 +392,24 @@ A resposta conterá:
 - **Solução**: Você atingiu o limite de envio do Gmail. Para contas gratuitas: 500/dia; Google Workspace: 2000/dia.
 
 ### Microsoft 365
+
+**Problema**: "AADSTS500113: No reply address is registered for the application"
+- **Causa**: O redirect URI usado na URL de autorização não está registrado no Azure Portal
+- **Solução**: 
+  1. Vá para Azure Portal → seu app → **Autenticação**
+  2. Em **URIs de redirecionamento**, adicione o URI que você está usando:
+     - `https://login.microsoftonline.com/common/oauth2/nativeclient` (recomendado)
+     - OU `https://jwt.ms` (para testes)
+     - OU `http://localhost:8080` (se estiver testando localmente)
+  3. Clique em **Salvar**
+  4. Aguarde alguns minutos e tente novamente
+
+**Problema**: "AADSTS70011: The provided value for scope is invalid"
+- **Causa**: Scope incorreto na URL de autorização
+- **Solução**: Use `https://outlook.office365.com/.default` (não `SMTP.Send` ou `outlook.office.com`)
+  ```
+  scope=offline_access https://outlook.office365.com/.default
+  ```
 
 **Problema**: "Client is not authenticated"
 - **Solução**: Execute o registro do Service Principal no Exchange Online (Passo 5 da configuração).
