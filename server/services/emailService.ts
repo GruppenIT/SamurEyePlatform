@@ -19,6 +19,28 @@ export class EmailService {
     this.encryptionService = new EncryptionService();
   }
 
+  private translateStatus(status: string): string {
+    const statusMap: Record<string, string> = {
+      'open': 'Aberta',
+      'investigating': 'Investigando',
+      'mitigated': 'Mitigada',
+      'closed': 'Fechada',
+      'hibernated': 'Hibernada',
+      'accepted_risk': 'Risco Aceito',
+    };
+    return statusMap[status] || status;
+  }
+
+  private translateSeverity(severity: string): string {
+    const severityMap: Record<string, string> = {
+      'critical': 'Crítica',
+      'high': 'Alta',
+      'medium': 'Média',
+      'low': 'Baixa',
+    };
+    return severityMap[severity] || severity;
+  }
+
   private async getGmailAccessToken(settings: EmailSettings): Promise<string> {
     if (!settings.oauth2ClientId || !settings.oauth2ClientSecret || !settings.oauth2ClientSecretDek) {
       throw new Error('OAuth2 Gmail não configurado corretamente');
@@ -280,7 +302,7 @@ export class EmailService {
       actionDescription = `Uma nova ameaça foi identificada no sistema.`;
     } else if (action === 'status_changed' && details) {
       actionTitle = '🔄 Status de Ameaça Alterado';
-      actionDescription = `O status da ameaça foi alterado de <strong>${details.oldStatus}</strong> para <strong>${details.newStatus}</strong>.`;
+      actionDescription = `O status da ameaça foi alterado de <strong>${this.translateStatus(details.oldStatus || '')}</strong> para <strong>${this.translateStatus(details.newStatus || '')}</strong>.`;
       
       if (details.user) {
         actionDescription += `<br><strong>Alterado por:</strong> ${details.user.firstName} ${details.user.lastName}`;
@@ -329,7 +351,7 @@ export class EmailService {
                             <tr>
                               <td>
                                 <div style="display: inline-block; background-color: ${severityColor}; color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 12px;">
-                                  ${threat.severity}
+                                  ${this.translateSeverity(threat.severity)}
                                 </div>
                               </td>
                             </tr>
@@ -347,7 +369,7 @@ export class EmailService {
                             <tr>
                               <td style="padding: 8px 0; border-top: 1px solid #e5e7eb;">
                                 <strong style="color: #374151;">Status:</strong> 
-                                <span style="color: #6b7280;">${threat.status}</span>
+                                <span style="color: #6b7280;">${this.translateStatus(threat.status)}</span>
                               </td>
                             </tr>
                             <tr>
