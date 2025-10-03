@@ -127,7 +127,7 @@ export class ADScanner {
           testResults.push(this.createTestResult(
             'test_dc_discovery_error',
             'Descoberta de Controladores de Domínio',
-            'configuration',
+            'configuracoes_criticas',
             'critical',
             'error',
             { domainControllersFound: 0 },
@@ -200,39 +200,113 @@ export class ADScanner {
         console.log(`✅ Contas Inativas: ${inactiveFindings.length} achados`);
       }
 
-      // 4. Converter findings em testResults
-      // Por simplicidade, criar test results básicos mapeando findings (fail) 
-      // e adicionando resultados "pass" ou "skipped" para categorias
-      const findingTestResults: ADSecurityTestResult[] = findings.map((finding, index) => ({
-        testId: `test_${finding.category}_${index}`,
-        testName: finding.name,
-        category: finding.category,
-        severityHint: finding.severity,
-        status: 'fail' as const,
-        evidence: finding.evidence || {},
-        description: finding.description,
-        recommendation: finding.recommendation,
-      }));
-      
-      testResults.push(...findingTestResults);
-      
-      // Adicionar test results "skipped" para categorias desabilitadas
-      const categoryNames = {
-        configuracoes_criticas: 'Configurações Críticas',
-        gerenciamento_contas: 'Gerenciamento de Contas',
-        kerberos_delegacao: 'Kerberos e Delegação',
-        compartilhamentos_gpos: 'Compartilhamentos e GPOs',
-        politicas_configuracao: 'Políticas e Configuração',
-        contas_inativas: 'Contas Inativas',
+      // 4. Definir todos os 28 testes organizados por categoria
+      const allTests = {
+        configuracoes_criticas: [
+          { id: 'ad_1', name: 'Contas com senha não expira', severity: 'high' as const },
+          { id: 'ad_2', name: 'Senhas vazias permitidas', severity: 'critical' as const },
+          { id: 'ad_3', name: 'Contas com senha nunca expira críticas', severity: 'critical' as const },
+          { id: 'ad_4', name: 'Descriptografia reversível habilitada', severity: 'high' as const },
+        ],
+        gerenciamento_contas: [
+          { id: 'ad_5', name: 'Usuários em grupos privilegiados', severity: 'high' as const },
+          { id: 'ad_6', name: 'Contas com SIDHistory', severity: 'medium' as const },
+          { id: 'ad_7', name: 'Usuários com AllExtendedRights', severity: 'high' as const },
+          { id: 'ad_8', name: 'Senhas em descrição de usuários', severity: 'critical' as const },
+          { id: 'ad_9', name: 'Senhas em scripts ou GPOs', severity: 'critical' as const },
+          { id: 'ad_10', name: 'AdminCount setado incorretamente', severity: 'medium' as const },
+        ],
+        kerberos_delegacao: [
+          { id: 'ad_11', name: 'Kerberos pré-autenticação desabilitada', severity: 'high' as const },
+          { id: 'ad_12', name: 'Delegação irrestrita configurada', severity: 'high' as const },
+          { id: 'ad_13', name: 'Delegação baseada em recursos', severity: 'medium' as const },
+          { id: 'ad_14', name: 'Contas com DES habilitado', severity: 'medium' as const },
+          { id: 'ad_15', name: 'Contas com RC4 apenas', severity: 'low' as const },
+          { id: 'ad_16', name: 'SPNs duplicados no domínio', severity: 'medium' as const },
+        ],
+        compartilhamentos_gpos: [
+          { id: 'ad_17', name: 'Compartilhamentos acessíveis anonimamente', severity: 'high' as const },
+          { id: 'ad_18', name: 'GPOs com permissões fracas', severity: 'high' as const },
+          { id: 'ad_19', name: 'SYSVOL com ACLs modificadas', severity: 'critical' as const },
+          { id: 'ad_20', name: 'Políticas de grupo órfãs', severity: 'low' as const },
+        ],
+        politicas_configuracao: [
+          { id: 'ad_21', name: 'Política de senha fraca', severity: 'high' as const },
+          { id: 'ad_22', name: 'Política de bloqueio de conta', severity: 'medium' as const },
+          { id: 'ad_23', name: 'Proteção de LDAP Signing não forçada', severity: 'high' as const },
+          { id: 'ad_24', name: 'SMB Signing não obrigatório', severity: 'medium' as const },
+          { id: 'ad_25', name: 'Nível funcional do domínio desatualizado', severity: 'low' as const },
+          { id: 'ad_26', name: 'LDAP Channel Binding não configurado', severity: 'medium' as const },
+        ],
+        contas_inativas: [
+          { id: 'ad_27', name: 'Contas de usuário inativas', severity: 'medium' as const },
+          { id: 'ad_28', name: 'Contas de computador inativas', severity: 'low' as const },
+        ],
       };
-      
-      Object.entries(categories).forEach(([catKey, enabled]) => {
-        if (!enabled) {
-          const categoryName = categoryNames[catKey as keyof typeof categoryNames];
+
+      // Assert: Verificar que temos exatamente 28 testes definidos
+      const totalTests = Object.values(allTests).flat().length;
+      if (totalTests !== 28) {
+        console.error(`⚠️ AVISO: Esperado 28 testes AD Security, mas encontrado ${totalTests}`);
+      }
+
+      // Mapear findings para test results com categoria corrigida
+      const findingsByTestName = new Map<string, ADFinding>();
+      findings.forEach(finding => {
+        findingsByTestName.set(finding.name, finding);
+      });
+
+      // Para cada categoria habilitada, gerar todos os test results
+      Object.entries(allTests).forEach(([categoryKey, tests]) => {
+        const categoryEnabled = categories[categoryKey as keyof typeof categories];
+        
+        if (categoryEnabled) {
+          // Categoria habilitada: gerar resultados para todos os testes
+          tests.forEach(test => {
+            const finding = findingsByTestName.get(test.name);
+            
+            if (finding) {
+              // Test falhou - criar resultado "fail"
+              testResults.push(this.createTestResult(
+                test.id,
+                test.name,
+                categoryKey,
+                finding.severity,
+                'fail',
+                finding.evidence || {},
+                finding.description,
+                finding.recommendation
+              ));
+            } else {
+              // Test passou - criar resultado "pass"
+              testResults.push(this.createTestResult(
+                test.id,
+                test.name,
+                categoryKey,
+                test.severity,
+                'pass',
+                {},
+                `Teste ${test.name} passou com sucesso`,
+                undefined
+              ));
+            }
+          });
+        } else {
+          // Categoria desabilitada: criar um único resultado "skipped"
+          const categoryNames = {
+            configuracoes_criticas: 'Configurações Críticas',
+            gerenciamento_contas: 'Gerenciamento de Contas',
+            kerberos_delegacao: 'Kerberos e Delegação',
+            compartilhamentos_gpos: 'Compartilhamentos e GPOs',
+            politicas_configuracao: 'Políticas e Configuração',
+            contas_inativas: 'Contas Inativas',
+          };
+          
+          const categoryName = categoryNames[categoryKey as keyof typeof categoryNames];
           testResults.push(this.createTestResult(
-            `test_${catKey}_skipped`,
+            `test_${categoryKey}_skipped`,
             `${categoryName} - Categoria desabilitada`,
-            catKey,
+            categoryKey,
             'low',
             'skipped',
             {},
@@ -260,7 +334,7 @@ export class ADScanner {
       testResults.push(this.createTestResult(
         'test_error_execution',
         'Erro na Execução da Análise',
-        'configuration',
+        'configuracoes_criticas',
         'critical',
         'error',
         { error: error.message, stack: error.stack },

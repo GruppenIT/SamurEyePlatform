@@ -218,6 +218,154 @@ function RiskHistoryChart({ hostId }: { hostId: string }) {
   );
 }
 
+// AD Security Test Results Component
+interface AdSecurityTestResult {
+  id: string;
+  jobId: string;
+  hostId: string;
+  testId: string;
+  testName: string;
+  category: string;
+  severityHint: 'low' | 'medium' | 'high' | 'critical';
+  status: 'pass' | 'fail' | 'error' | 'skipped';
+  evidence: Record<string, any>;
+  executedAt: string;
+}
+
+function ADSecurityTests({ hostId }: { hostId: string }) {
+  const { data: testResults = [], isLoading } = useQuery<AdSecurityTestResult[]>({
+    queryKey: ['/api/hosts', hostId, 'ad-tests'],
+    queryFn: async () => {
+      const res = await fetch(`/api/hosts/${hostId}/ad-tests`);
+      if (!res.ok) throw new Error('Failed to fetch AD test results');
+      return res.json();
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="p-6 border rounded-lg bg-muted/30 animate-pulse">
+        <div className="text-sm text-muted-foreground text-center">
+          Carregando testes AD Security...
+        </div>
+      </div>
+    );
+  }
+
+  if (!testResults || testResults.length === 0) {
+    return null; // Don't show section if no AD tests available
+  }
+
+  // Group tests by category
+  const categories = {
+    configuracoes_criticas: 'Configurações Críticas',
+    gerenciamento_contas: 'Gerenciamento de Contas',
+    kerberos_delegacao: 'Kerberos e Delegação',
+    compartilhamentos_gpos: 'Compartilhamentos e GPOs',
+    politicas_configuracao: 'Políticas e Configuração',
+    contas_inativas: 'Contas Inativas',
+  } as const;
+
+  const testsByCategory = testResults.reduce((acc, test) => {
+    if (!acc[test.category]) {
+      acc[test.category] = [];
+    }
+    acc[test.category].push(test);
+    return acc;
+  }, {} as Record<string, AdSecurityTestResult[]>);
+
+  // Get status badge styling
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pass':
+        return { className: 'bg-green-500/10 text-green-500 border-green-500/30', label: 'PASSOU' };
+      case 'fail':
+        return { className: 'bg-red-500/10 text-red-500 border-red-500/30', label: 'FALHOU' };
+      case 'error':
+        return { className: 'bg-orange-500/10 text-orange-500 border-orange-500/30', label: 'ERRO' };
+      case 'skipped':
+        return { className: 'bg-slate-500/10 text-slate-400 border-slate-500/30', label: 'PULADO' };
+      default:
+        return { className: 'bg-slate-500/10 text-slate-400 border-slate-500/30', label: status.toUpperCase() };
+    }
+  };
+
+  // Calculate summary stats
+  const stats = testResults.reduce((acc, test) => {
+    acc[test.status] = (acc[test.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return (
+    <div className="border rounded-lg p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold">Testes AD Security</h3>
+        <div className="flex items-center gap-2 text-xs">
+          {stats.pass > 0 && (
+            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30">
+              {stats.pass} passou
+            </Badge>
+          )}
+          {stats.fail > 0 && (
+            <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/30">
+              {stats.fail} falhou
+            </Badge>
+          )}
+          {stats.error > 0 && (
+            <Badge variant="outline" className="bg-orange-500/10 text-orange-500 border-orange-500/30">
+              {stats.error} erro
+            </Badge>
+          )}
+          {stats.skipped > 0 && (
+            <Badge variant="outline" className="bg-slate-500/10 text-slate-400 border-slate-500/30">
+              {stats.skipped} pulado
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {Object.entries(testsByCategory).map(([categoryKey, tests]) => {
+          const categoryName = categories[categoryKey as keyof typeof categories] || categoryKey;
+          
+          return (
+            <div key={categoryKey} className="border-t pt-3">
+              <div className="text-xs font-medium text-muted-foreground mb-2">
+                {categoryName}
+              </div>
+              <div className="space-y-1">
+                {tests.map((test) => {
+                  const statusBadge = getStatusBadge(test.status);
+                  return (
+                    <div
+                      key={test.id}
+                      className="flex items-center justify-between p-2 rounded hover:bg-muted/50 text-xs"
+                      data-testid={`test-result-${test.testId}`}
+                    >
+                      <span className="text-foreground/90 flex-1">{test.testName}</span>
+                      <Badge
+                        variant="outline"
+                        className={`ml-2 ${statusBadge.className}`}
+                        data-testid={`badge-status-${test.testId}`}
+                      >
+                        {statusBadge.label}
+                      </Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="text-xs text-muted-foreground mt-3 pt-3 border-t">
+        Última execução: {new Date(testResults[0]?.executedAt).toLocaleString('pt-BR')}
+      </div>
+    </div>
+  );
+}
+
 // Compact Threat Badges Component
 function CompactThreatBadges({ threats, hostId }: { threats: Threat[], hostId: string }) {
   const [, setLocation] = useLocation();
@@ -740,6 +888,9 @@ export default function Hosts() {
               
               {/* Risk History Chart */}
               <RiskHistoryChart hostId={selectedHost.id} />
+              
+              {/* AD Security Tests */}
+              <ADSecurityTests hostId={selectedHost.id} />
               
               {/* Compact Threat Badges */}
               {hostThreats && Array.isArray(hostThreats) && hostThreats.length > 0 && (
