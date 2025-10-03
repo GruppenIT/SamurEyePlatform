@@ -63,6 +63,15 @@ The application features a dark security-focused theme. The threat intelligence 
   - **OAuth2 for Microsoft 365**: Secure OAuth2 authentication with automatic token refresh using @azure/msal-node
   - All OAuth2 credentials (clientId, clientSecret, refreshToken, tenantId) are encrypted using the KEK/DEK pattern
   - Email settings support configurable SMTP hosts, ports, TLS/SSL, and customizable sender information
+- **AD Security Journey (Refactored)**: Complete rewrite of Active Directory security assessment using PowerShell Core via WinRM:
+  - **28 PowerShell-Based Tests**: Organized in 6 categories (Configurações Críticas, Gerenciamento de Contas, Kerberos e Delegação, Compartilhamentos e GPOs, Políticas e Configuração, Contas Inativas)
+  - **PowerShell Core (pwsh)**: Executes PowerShell commands remotely via WinRM, compatible with Linux/Windows environments
+  - **DC Failover Support**: Primary/secondary domain controller configuration with automatic failover
+  - **Category Toggles**: Independent enable/disable for each test category via UI checkboxes
+  - **Portuguese Keywords**: Enhanced credential scanning with Portuguese-specific patterns (senha, segredo, credencial)
+  - **Finding Types**: Maintains legacy `ad_hygiene` finding type for backward compatibility with existing data
+  - **Journey Type**: Renamed from `ad_hygiene` to `ad_security` across schema and UI
+  - **EDR/AV Integration**: AD-based workstation discovery intentionally removed; use Network-based mode with specific targets instead
 
 ## External Dependencies
 
