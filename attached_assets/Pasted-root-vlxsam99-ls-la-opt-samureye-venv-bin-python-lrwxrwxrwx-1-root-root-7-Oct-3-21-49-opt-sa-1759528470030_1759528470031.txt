@@ -1,0 +1,33 @@
+root@vlxsam99:~# ls -la /opt/samureye/venv/bin/python
+lrwxrwxrwx 1 root root 7 Oct  3 21:49 /opt/samureye/venv/bin/python -> python3
+root@vlxsam99:~# /opt/samureye/venv/bin/python -c "import winrm; print('pywinrm OK')"
+pywinrm OK
+root@vlxsam99:~# echo "aniversariosogipa2025." | /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py \
+  --host 192.168.100.43 \
+  --username "gruppen.com.br\rodrigo" \
+  --script "Get-Service -Name Spooler | Select-Object Name, Status | ConvertTo-Json" \
+  --timeout 30 \
+  --password-stdin
+{"stdout": "", "stderr": "", "exitCode": 1, "error": "read_timeout_sec must exceed operation_timeout_sec, and both must be non-zero"}
+root@vlxsam99:~# sudo systemctl status samureye-api.service | head -20
+● samureye-api.service - SamurEye API Server
+     Loaded: loaded (/etc/systemd/system/samureye-api.service; enabled; preset: enabled)
+     Active: active (running) since Fri 2025-10-03 21:49:31 UTC; 4min 53s ago
+   Main PID: 871394 (npm run start)
+      Tasks: 23 (limit: 9443)
+     Memory: 114.4M (peak: 150.3M)
+        CPU: 10.247s
+     CGroup: /system.slice/samureye-api.service
+             ├─871394 "npm run start"
+             ├─871406 sh -c "NODE_ENV=production node dist/index.js"
+             └─871407 node dist/index.js
+
+Oct 03 21:51:46 vlxsam99 npm[871407]: 🆕 CLOSURE_METRICS: First-run detected for journey 65079466-a0a8-4627-a32a-11ad6b64ebc0 - skipping auto-closure (previousJobsCount: 0, currentJobId: 345b7014-684b-4ae5-82a1-6dec62ec75ea)
+Oct 03 21:51:46 vlxsam99 npm[871407]: 🗑️  Job 345b7014-684b-4ae5-82a1-6dec62ec75ea removido dos jobs em execução
+Oct 03 21:51:47 vlxsam99 npm[871407]: 9:51:47 PM [express] GET /api/jobs 200 in 5ms :: [{"id":"345b7014-684b-4ae5-82a1-6dec62ec75ea","jour…
+Oct 03 21:51:48 vlxsam99 npm[871407]: 9:51:48 PM [express] GET /api/jobs/345b7014-684b-4ae5-82a1-6dec62ec75ea/result 200 in 4ms :: {"id":"…
+Oct 03 21:51:52 vlxsam99 npm[871407]: 9:51:52 PM [express] GET /api/jobs 304 in 4ms :: [{"id":"345b7014-684b-4ae5-82a1-6dec62ec75ea","jour…
+Oct 03 21:51:57 vlxsam99 npm[871407]: 9:51:57 PM [express] GET /api/jobs 304 in 4ms :: [{"id":"345b7014-684b-4ae5-82a1-6dec62ec75ea","jour…
+Oct 03 21:52:00 vlxsam99 npm[871407]: 9:52:00 PM [express] GET /api/hosts 200 in 7ms :: [{"id":"54404973-214a-4c3b-b7b3-7fb8899b8b17","nam…
+Oct 03 21:52:02 vlxsam99 npm[871407]: 9:52:02 PM [express] GET /api/threats 200 in 8ms :: []
+root@vlxsam99:~#
