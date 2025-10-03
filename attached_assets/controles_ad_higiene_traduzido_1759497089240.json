@@ -1,0 +1,289 @@
+[
+  {
+    "nome_ameaça": "Controlador de domínio com spooler de impressão ativado (PrintNightmare)",
+    "descrição": "Validar se o serviço está desativado, caso esteja ativo ambiente está vulnerável",
+    "modo_de_validação": "Get-Service -Name Spooler | Select-Object Name, Status",
+    "recomendação_para_correção": "Stop-Service -Name Spooler -Force\nSet-Service -Name Spooler -StartupType Disabled",
+    "severidade": "Very High"
+  },
+  {
+    "nome_ameaça": "Alterações de permissões padrão na partição do esquema",
+    "descrição": "Validar as permissões do Schema através do mmc, caso tenha permissões fora do padrão de Sistema o ambiente está vulnerável",
+    "modo_de_validação": "regsvr32 schmmgmt.dll",
+    "recomendação_para_correção": "Remover os usuários não privilegiados das propriedades",
+    "severidade": "Very High"
+  },
+  {
+    "nome_ameaça": "LDAP anônimo e sem assinatura permitido",
+    "descrição": "Validar se o atributo dSHeuristics está configurado.                                                                                                                                                                                                                                       ADSI Edit -> Configuration -> CN=Configuration -> CN=Services -> CN=Windows NT -> CN=Directory Service",
+    "modo_de_validação": "Get-ADObject -Identity \"CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,DC=seu_domínio,DC=com\" -Properties dSHeuristics | Select-Object -Property dSHeuristics",
+    "recomendação_para_correção": "Remover qualquer valor existente no atributo",
+    "severidade": "Very High"
+  },
+  {
+    "nome_ameaça": "Sessão SMBv1 fraca permitida",
+    "descrição": "Validar se o SMB1 está ativo",
+    "modo_de_validação": "Get-WindowsFeature -Name FS-SMB1, FS-SMB2",
+    "recomendação_para_correção": "Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart",
+    "severidade": "Very High"
+  },
+  {
+    "nome_ameaça": "Conta KRBTGT fraca (Golden Ticket)",
+    "descrição": "Validar a última alteração de senha do usuário krbtgt, senha mais antiga de 60 dias o ambiente está vulnerável (Mesmo com a conta desativada, senha precisa ser alterada.)",
+    "modo_de_validação": "Get-ADUser -Identity krbtgt -Property PasswordLastSet | Select-Object Name, PasswordLastSet",
+    "recomendação_para_correção": "Realizar o reset de senha da conta",
+    "severidade": "Very High"
+  },
+  {
+    "nome_ameaça": "Usuários privilegiados com Service Principal Names (SPN) definidos",
+    "descrição": "Validar o atributo servicePrincipalName de todos os usuários do Active Directory",
+    "modo_de_validação": "# Importar o módulo Active Directory\nImport-Module ActiveDirectory\n# Obter todos os usuários no domínio e exibir o atributo servicePrincipalName\nGet-ADUser -Filter * -Properties servicePrincipalName | \nSelect-Object Name, SamAccountName, servicePrincipalName",
+    "recomendação_para_correção": "Remover qualquer valor existente no atributo de ususários",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Contas com SID privilegiado oculto",
+    "descrição": "Validar se o ambiente possui SIDs privilegiados ocultos",
+    "modo_de_validação": "Identificar o SID:\nGet-ADGroup \"Domain Admins\" | Select-Object SID\n\nListar:\n# Lista de SIDs privilegiados conhecidos\n$privilegedSIDs = @(\n    \"S-1-5-32-544\",  # Administradores (local)\n    \"S-1-5-32-549\",  # Server Operators\n    \"S-1-5-32-551\",  # Backup Operators\n    \"S-1-5-21-4235040794-1994410417-3620783259-512\",  # Domain Admins (ajustar para seu domínio)\n    \"S-1-5-21-4235040794-1994410417-3620783259-519\"   # Enterprise Admins (ajustar para seu domínio)\n)\n\n# Obter os grupos do token do usuário atual\n$tokenGroups = whoami /groups | ForEach-Object {\n    if ($_ -match \"S-\\d-\\d+-(\\d+-?)+\") {\n        $matches[0]\n    }\n} | Sort-Object -Unique\n\n# Comparar com os SIDs privilegiados\n$hiddenPrivilegedSIDs = $tokenGroups | Where-Object { $privilegedSIDs -contains $_ }\n\nif ($hiddenPrivilegedSIDs.Count -gt 0) {\n    Write-Host \"⚠️ SIDs privilegiados ocultos detectados no token de segurança:\"\n    $hiddenPrivilegedSIDs | ForEach-Object { Write-Host \" - $_\" }\n} else {\n    Write-Host \"✅ Nenhum SID privilegiado oculto detectado no token.\" }",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Relações de confiança de alto risco",
+    "descrição": "Validar as relações de confiança do dominio, em casos do ambiente conter mais de um dominio ativo.",
+    "modo_de_validação": "Get-ADTrust -Filter * | Select-Object Name, TrustType, TrustDirection, ForestTransitive",
+    "recomendação_para_correção": "Investigar com o cliente no caso de existir configuração de relação de confiança",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Contas com pré-autenticação desativada",
+    "descrição": "Validar se a conta de pré autenticação esta desativada",
+    "modo_de_validação": "Get-ADUser -Filter * -Properties * | Where { $_.UserAccountControl -band 0x8000 }",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Coleta de credenciais a partir de compartilhamentos de domínio",
+    "descrição": "Validar as credenciais de compartilhamentos de domínio",
+    "modo_de_validação": "# Definir o caminho para os compartilhamentos Sysvol e Netlogon\n$paths = @(\"\\\\SeuDominio\\SYSVOL\", \"\\\\SeuDominio\\NETLOGON\")\n\n# Procurar por arquivos que contenham palavras-chave comuns de senha\nforeach ($path in $paths) {\n    Get-ChildItem -Path $path -Recurse -Include *.ps1, *.vbs, *.bat, *.xml | \n    Select-String -Pattern \"password\", \"pwd\", \"pass\" | \n    Select-Object Path, LineNumber, Line\n}",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Verificar objetos GPO sensíveis e permissões de arquivos",
+    "descrição": "Validar as permissões de compartilhamento do SYSVOL.                                                                                                                                                                                                                                                                Permissões padrões: Domain Admins (Full Control), Enterprise Admins (Full Control), Enterprise Domain Controllers (Read & Execute), Authenticated Users (Read & Execute)\nSYSTEM (Full Control), Administrators (Full Control), Server Operators (Read & Execute)",
+    "modo_de_validação": "# Definir o caminho para o compartilhamento SYSVOL\n$path = \"\\\\SeuDominio\\SYSVOL\"\n# Obter as permissões de NTFS do caminho especificado\n$acl = Get-Acl -Path $path\n# Exibir as permissões atuais\n$acl.Access | Select-Object IdentityReference, FileSystemRights, AccessControlType",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Contas com parâmetros de controle de conta de usuário arriscados",
+    "descrição": "Validar os parematros de acesso das contas de usuário, padrão identificado deve ser 512",
+    "modo_de_validação": "# Importa o módulo do Active Directory\nImport-Module ActiveDirectory\n\n# Obtém todos os usuários do Active Directory e seleciona os atributos desejados\nGet-ADUser -Filter * -Property userAccountControl | Select-Object Name, userAccountControl",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Conta KRBTGT com delegação restrita baseada em recursos (RBCD) habilitada",
+    "descrição": "Validar a delegação da conta Kerberos",
+    "modo_de_validação": "Get-ADUser -Identity \"krbtgt\" -Property MsDS-AllowedToDelegateTo | Select-Object SamAccountName, AllowedToDelegateTo, MsDS-AllowedToDelegateTo",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Usuários padrão com permissão para leitura de senha de GMSA",
+    "descrição": "Validar usuários padrão com permissão de leitura de senha GMSA",
+    "modo_de_validação": "Get-ADServiceAccount -Filter * | Select-Object Name",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Contas com senha sem expiração",
+    "descrição": "Validar quais usuarios que estão configurados para não expirar a senha",
+    "modo_de_validação": "Get-ADUser -Filter {PasswordNeverExpires -eq $true} -Property Name, PasswordNeverExpires | Select-Object Name, PasswordNeverExpires",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Conta de administrador padrão fraca",
+    "descrição": "Validar a segurança da conta Administrator:                                                                                                                                                                                                                                                                                                             Configure uma senha com pelo menos 15 caracteres.\nAltere regularmente a senha da conta padrão de Administrador.\nUse a conta de Administrador somente quando absolutamente necessário.\nNão permita o login com a conta de Administrador em estações de trabalho e laptops.",
+    "modo_de_validação": "Get-ADUser -Identity \"Administrator\" -Property PasswordLastSet, PasswordNeverExpires, UserAccountControl\nGet-ADUser -Identity Administrator -Properties LastLogonTimestamp | Select-Object Name,@{Name=\"LastLogon\";Expression={[DateTime]::FromFileTime($_.LastLogonTimestamp)}}",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Controladores de domínio com senha não alterada recentemente",
+    "descrição": "Validar controladores de domínio com senhas não alteradas recentemente.",
+    "modo_de_validação": "Get-ADDomainController -Filter * | ForEach-Object { Get-ADComputer -Identity $_.Name -Property \"PasswordLastSet\" | Select-Object Name, PasswordLastSet }",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Contas com ID de grupo primário (PrimaryGroupID) menor que 1000",
+    "descrição": "Validar os PrimaruGroupID dos usuários.",
+    "modo_de_validação": "Get-ADUser -Filter {primaryGroupId -lt 1000} -Property \"primaryGroupId\" | Select-Object Name, primaryGroupId",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Direitos de acesso perigosos na conta KDC do RODC",
+    "descrição": "Apenas para ambientes Read-only.",
+    "modo_de_validação": "Get-ADUser -Filter {admincount -gt 0} -Properties adminCount -ResultSetSize $null",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Atributo AdminCount definido para usuários padrão",
+    "descrição": "Validar os atritutos de quais usuários são ou já foram Domain Admins.",
+    "modo_de_validação": "Get-ADUser -Filter {admincount -gt 0} -Properties adminCount -ResultSetSize $null",
+    "recomendação_para_correção": "",
+    "severidade": "High"
+  },
+  {
+    "nome_ameaça": "Contas usando controle de acesso compatível com pré-Windows 2000",
+    "descrição": "Validar as permissões do Grupo Pre-Windows 2000 Compatible Access",
+    "modo_de_validação": "Get-ADGroupMember -Identity \"Pre-Windows 2000 Compatible Access\" -Recursive",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Contas privilegiadas inativas",
+    "descrição": "Validar contas privilegiadas sem acesso a mais de 90 dias.",
+    "modo_de_validação": "$DaysInactive = 90\n$InactiveDate = (Get-Date).AddDays(-$DaysInactive)\nGet-ADUser -Filter {Enabled -eq $True} -Properties LastLogonDate, MemberOf |\nWhere-Object {($_.LastLogonDate -lt $InactiveDate) -and ($_.MemberOf -match \"Admins\")} |\nSelect-Object Name, SamAccountName, LastLogonDate",
+    "recomendação_para_correção": "Disponibilizar resultado encontrado ao cliente para que o mesmo realize uma analise interna dos usuários encontrados.",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Contas desativadas em grupos privilegiados",
+    "descrição": "Validar a existência de usuarios desativados em grupos de privilegiados.",
+    "modo_de_validação": "Get-ADUser -Filter {Enabled -eq $false} -Properties MemberOf | \nWhere-Object {($_.MemberOf -match \"Admins\")} | \nSelect-Object Name, SamAccountName, MemberOf",
+    "recomendação_para_correção": "Disponibilizar resultado encontrado ao cliente para que o mesmo realize uma analise interna dos usuários encontrados.",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "ACE não canônico em objetos",
+    "descrição": "Verificar se tem ACEs não canônicas no Active Directory.",
+    "modo_de_validação": "Import-Module ActiveDirectory\n$objects = Get-ADObject -Filter * -Properties nTSecurityDescriptor\nforeach ($object in $objects) {\n    $acl = $object.nTSecurityDescriptor\n    if ($acl.AreAccessRulesCanonical -eq $false) {\n        Write-Output \"Objeto com ACEs não canônicas encontrado: $($object.DistinguishedName)\"\n    }\n}",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Contas gMSA com senha não alterada recentemente",
+    "descrição": "Validar de contas gMSA que não tiveram senhas alterada nos últimos 90 dias.",
+    "modo_de_validação": "$DaysThreshold = 90\n$ThresholdDate = (Get-Date).AddDays(-$DaysThreshold)\nGet-ADServiceAccount -Filter * -Properties whenChanged | \nWhere-Object { $_.whenChanged -lt $ThresholdDate } | \nSelect-Object Name, SamAccountName, whenChanged",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Contas krbtgt de RODC órfãs",
+    "descrição": "Validar a existência de contas krbtgt órfãs",
+    "modo_de_validação": "Get-ADObject -Filter { (objectclass -eq \"user\") -and (name -like \"krbtgt*\") } -Properties * | FT Name, msDS-KrbTgtLinkBl",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Contas de serviço inativas há mais de 60 dias",
+    "descrição": "Validar a existência de contas se serviços inativos a mais de 60 dias.",
+    "modo_de_validação": "# Define the número de dias\n$daysInactive = 60\n# Calcular a data limite\n$limitDate = (Get-Date).AddDays(-$daysInactive)\n# Obter usuários que não se logaram desde a data limite\nGet-ADUser -Filter {LastLogonDate -lt $limitDate} -Properties LastLogonDate | \nSelect-Object Name, LastLogonDate",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Não utilização de contas de serviço gerenciadas",
+    "descrição": "Validar a utilização de serviços gerenciados.",
+    "modo_de_validação": "Get-ADServiceAccount -Filter * | Select-Object Name, SamAccountName, Enabled",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Servidores com senhas não alteradas há mais de 60 dias",
+    "descrição": "Validar servidores com senhas inalteradas por mais de 60 dias",
+    "modo_de_validação": "# Obter todos os computadores no domínio\n$computers = Get-ADComputer -Filter {OperatingSystem -like \"*Windows Server*\"} -Properties PasswordLastSet\n# Filtrar computadores que não trocaram a senha nos últimos 60 dias (ou outro período que você desejar)\n$days = 60\n$limitDate = (Get-Date).AddDays(-$days)\n$computers | Where-Object { $_.PasswordLastSet -lt $limitDate } | Select-Object Name, PasswordLastSet",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Domínios com nível funcional desatualizado",
+    "descrição": "Validar se a arvore do AD está desatualizada",
+    "modo_de_validação": "Get-ADDomain | Select-Object DomainMode, DistinguishedName",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Domínio com configuração de compatibilidade retroativa perigosa",
+    "descrição": "Validar valor atual do dSHeuristics",
+    "modo_de_validação": "$dSHeuristics = (Get-ADObject -Identity \"CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,DC=SeuDominio,DC=com\" -Properties dSHeuristics).dSHeuristics\n# Exibir o valor atual\nWrite-Output \"dSHeuristics: $dSHeuristics\"",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Avaliação de vulnerabilidades do Kerberos",
+    "descrição": "Avaliação de vulnerabilidade Kerberos",
+    "modo_de_validação": "Get-ADUser -Filter * -Properties msDS-SupportedEncryptionTypes | Select-Object Name, SamAccountName, msDS-SupportedEncryptionTypes",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Comprometimento de conta de computador via delegação restrita baseada em recursos do Kerberos (RBCD)",
+    "descrição": "Avaliação de vulnerabilidade Kerberos",
+    "modo_de_validação": "Get-ADComputer -Filter * -Properties PrincipalsAllowedToDelegateToAccount | Select-Object Name, SamAccountName, PrincipalsAllowedToDelegateToAccount",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Solução LAPS não habilitada",
+    "descrição": "Validar se LAPS está instaldo no SO.",
+    "modo_de_validação": "Get-AdmPwdExtendedRights -Identity \"OU=Computers,DC=seu-dominio,DC=com\"",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Contas de usuário padrão como administradores DNS",
+    "descrição": "Validar usuario do grupo DNS Admins, caso algum grupo/usuário de uso diário esreja com permissão o ambiente está vulnerável.",
+    "modo_de_validação": "# Obter os membros do grupo DNS Admins\n$DNSAdmins = Get-ADGroupMember -Identity \"DNSAdmins\"\n# Filtrar membros que são usuários (não administradores)\n$StandardUsersInDNSAdmins = $DNSAdmins | Where-Object { $_.objectClass -eq \"user\" }\n# Exibir os resultados\n$StandardUsersInDNSAdmins | Select-Object Name, SamAccountName, DistinguishedName",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Senhas de contas de confiança não foram alteradas",
+    "descrição": "As senhas das contas de confiança não foram alteradas",
+    "modo_de_validação": "# Importar o módulo Active Directory\nImport-Module ActiveDirectory\n\n# Definir o período de tempo (em dias)\n$days = 30\n$limitDate = (Get-Date).AddDays(-$days)\n\n# Obter todos os computadores no domínio e verificar a última alteração de senha\nGet-ADComputer -Filter * -Properties PasswordLastSet | \nWhere-Object { $_.PasswordLastSet -lt $limitDate } | \nSelect-Object Name, PasswordLastSet",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Contas de computadores com senha não alterada recentemente",
+    "descrição": "Validar senhas de computadores que não foram alteradas recentemente",
+    "modo_de_validação": "# Importar o módulo Active Directory\nImport-Module ActiveDirectory\n# Definir o período de tempo (em dias)\n$days = 30\n$limitDate = (Get-Date).AddDays(-$days)\n# Obter todos os computadores no domínio e verificar a última alteração de senha\nGet-ADComputer -Filter * -Properties PasswordLastSet | \nWhere-Object { $_.PasswordLastSet -lt $limitDate } | \nSelect-Object Name, PasswordLastSet",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "ID de grupo primário do usuário",
+    "descrição": "Validar ID dos usuários.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         512 (Domain Admins): Este valor indica que o usuário é membro do grupo \"Domain Admins\", que tem permissões administrativas em todo o domínio.\n513 (Domain Users): Este é o valor padrão para a maioria dos usuários. Indica que o usuário é membro do grupo \"Domain Users\", que é o grupo padrão para todos os usuários no domínio.\n514 (Domain Guests): Este valor indica que o usuário é membro do grupo \"Domain Guests\", que geralmente tem permissões muito limitadas",
+    "modo_de_validação": "Get-ADUser -Filter * -Properties PrimaryGroupID | Select-Object Name, SamAccountName, PrimaryGroupID",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Assinatura SMB fraca",
+    "descrição": "Validar configuração da GPO default controlers.",
+    "modo_de_validação": "Computer Configuration > Policies > Windows Settings > Security Settings > Local Polices > Security Options. \nMicrosoft network server: Digitally sign communications (always): Enabled\nMicrosoft network server: Digitally sign communications (if client agrees): Enabled\nMicrosoft network client: Digitally sign communications (always): Enabled\nMicrosoft network client: Digitally sign communications (if server agrees): Enabled",
+    "recomendação_para_correção": "",
+    "severidade": "Medium"
+  },
+  {
+    "nome_ameaça": "Contas de usuário dormentes",
+    "descrição": "Validar se existe usuários que não se logam a mais de 30 dias no ambiente.",
+    "modo_de_validação": "# Define o número de dias\n$days = 30\n# Calcula a data limite\n$date = (Get-Date).AddDays(-$days)\n# Obtém os usuários que não se logam há mais de 30 dias\nGet-ADUser -Filter {LastLogonDate -lt $date} -Properties LastLogonDate | \nSelect-Object Name, LastLogonDate",
+    "recomendação_para_correção": "",
+    "severidade": "Low"
+  },
+  {
+    "nome_ameaça": "Habilitar a Lixeira do Active Directory",
+    "descrição": "Validar se a lixeira do AD está desativada, caso esteja o ambiente está vulnerável",
+    "modo_de_validação": "Get-ADOptionalFeature -Filter {Name -like \"Recycle Bin Feature\"} | Select-Object Name, EnabledScopes",
+    "recomendação_para_correção": "",
+    "severidade": "Low"
+  }
+]
