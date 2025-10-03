@@ -508,6 +508,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/hosts/:id/risk-history', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { limit } = req.query;
+      
+      const history = await storage.getHostRiskHistory(id, limit ? parseInt(limit as string) : undefined);
+      res.json(history);
+    } catch (error) {
+      console.error("Erro ao buscar histórico de risk score:", error);
+      res.status(500).json({ message: "Falha ao buscar histórico de risk score" });
+    }
+  });
+
   app.patch('/api/hosts/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;

@@ -39,11 +39,253 @@ import {
   Monitor,
   Filter,
   Eye,
-  AlertTriangle
+  AlertTriangle,
+  TrendingUp,
+  TrendingDown,
+  Minus
 } from "lucide-react";
-import { Host, Threat } from "@shared/schema";
+import { Host, Threat, HostRiskHistory } from "@shared/schema";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
-// Threat Summary Component
+// Helper function to get risk score color and label based on CVSS intervals
+function getRiskScoreInfo(score: number) {
+  if (score >= 90) return { 
+    color: 'rgb(239, 68, 68)', // red-500
+    bgColor: 'bg-red-500/10', 
+    borderColor: 'border-red-500/30',
+    label: 'CRÍTICO',
+    textColor: 'text-red-500'
+  };
+  if (score >= 70) return { 
+    color: 'rgb(249, 115, 22)', // orange-500
+    bgColor: 'bg-orange-500/10', 
+    borderColor: 'border-orange-500/30',
+    label: 'ALTO',
+    textColor: 'text-orange-500'
+  };
+  if (score >= 40) return { 
+    color: 'rgb(234, 179, 8)', // yellow-500
+    bgColor: 'bg-yellow-500/10', 
+    borderColor: 'border-yellow-500/30',
+    label: 'MÉDIO',
+    textColor: 'text-yellow-500'
+  };
+  if (score >= 10) return { 
+    color: 'rgb(34, 197, 94)', // green-500
+    bgColor: 'bg-green-500/10', 
+    borderColor: 'border-green-500/30',
+    label: 'BAIXO',
+    textColor: 'text-green-500'
+  };
+  return { 
+    color: 'rgb(148, 163, 184)', // slate-400
+    bgColor: 'bg-slate-500/10', 
+    borderColor: 'border-slate-500/30',
+    label: 'MÍNIMO',
+    textColor: 'text-slate-400'
+  };
+}
+
+// Risk Score Display Component
+function RiskScoreDisplay({ host }: { host: Host }) {
+  const riskInfo = getRiskScoreInfo(host.riskScore || 0);
+  
+  return (
+    <div className={`p-6 rounded-lg border ${riskInfo.bgColor} ${riskInfo.borderColor}`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-sm font-medium text-muted-foreground mb-1">Risk Score</div>
+          <div className={`text-4xl font-bold ${riskInfo.textColor}`} data-testid="text-risk-score">
+            {host.riskScore || 0}
+          </div>
+          <div className={`text-xs font-semibold mt-1 ${riskInfo.textColor}`}>
+            {riskInfo.label}
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-sm font-medium text-muted-foreground mb-1">Raw Score</div>
+          <div className="text-2xl font-semibold" data-testid="text-raw-score">
+            {host.rawScore || 0}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            CVSS Total
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Risk History Chart Component
+function RiskHistoryChart({ hostId }: { hostId: string }) {
+  const { data: history = [], isLoading } = useQuery<HostRiskHistory[]>({
+    queryKey: ['/api/hosts', hostId, 'risk-history'],
+    queryFn: async () => {
+      const res = await fetch(`/api/hosts/${hostId}/risk-history?limit=30`);
+      if (!res.ok) throw new Error('Failed to fetch risk history');
+      return res.json();
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="p-6 border rounded-lg bg-muted/30 animate-pulse">
+        <div className="text-sm text-muted-foreground text-center">
+          Carregando histórico...
+        </div>
+      </div>
+    );
+  }
+
+  if (!history || history.length === 0) {
+    return (
+      <div className="p-6 border rounded-lg bg-muted/30">
+        <div className="text-sm text-muted-foreground text-center">
+          Histórico de Risk Score não disponível
+        </div>
+      </div>
+    );
+  }
+
+  // Reverse to show oldest to newest
+  const chartData = [...history].reverse().map(h => ({
+    date: new Date(h.recordedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+    riskScore: h.riskScore,
+    rawScore: h.rawScore,
+    fullDate: new Date(h.recordedAt).toLocaleString('pt-BR'),
+  }));
+
+  // Calculate trend
+  const trend = history.length >= 2 
+    ? history[0].riskScore - history[1].riskScore 
+    : 0;
+
+  const TrendIcon = trend > 0 ? TrendingUp : trend < 0 ? TrendingDown : Minus;
+  const trendColor = trend > 0 ? 'text-red-500' : trend < 0 ? 'text-green-500' : 'text-muted-foreground';
+
+  return (
+    <div className="border rounded-lg p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold">Tendência de Risk Score</h3>
+        <div className={`flex items-center gap-1 text-sm ${trendColor}`}>
+          <TrendIcon className="h-4 w-4" />
+          {trend > 0 ? `+${trend}` : trend}
+        </div>
+      </div>
+      <ResponsiveContainer width="100%" height={200}>
+        <AreaChart data={chartData}>
+          <defs>
+            <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={getRiskScoreInfo(history[0]?.riskScore || 0).color} stopOpacity={0.3}/>
+              <stop offset="95%" stopColor={getRiskScoreInfo(history[0]?.riskScore || 0).color} stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+          <XAxis 
+            dataKey="date" 
+            tick={{ fontSize: 10 }}
+            stroke="currentColor"
+            className="text-muted-foreground"
+          />
+          <YAxis 
+            domain={[0, 100]}
+            tick={{ fontSize: 10 }}
+            stroke="currentColor"
+            className="text-muted-foreground"
+          />
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: 'hsl(var(--background))', 
+              border: '1px solid hsl(var(--border))',
+              borderRadius: '6px'
+            }}
+            labelStyle={{ color: 'hsl(var(--foreground))' }}
+            formatter={(value: any, name: string) => [
+              value,
+              name === 'riskScore' ? 'Risk Score' : 'Raw Score'
+            ]}
+          />
+          <Area 
+            type="monotone" 
+            dataKey="riskScore" 
+            stroke={getRiskScoreInfo(history[0]?.riskScore || 0).color}
+            strokeWidth={2}
+            fill="url(#colorRisk)" 
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// Compact Threat Badges Component
+function CompactThreatBadges({ threats, hostId }: { threats: Threat[], hostId: string }) {
+  const [, setLocation] = useLocation();
+  
+  const threatCounts = useMemo(() => {
+    return threats.reduce((counts, threat) => {
+      counts[threat.severity] = (counts[threat.severity] || 0) + 1;
+      return counts;
+    }, { critical: 0, high: 0, medium: 0, low: 0 } as Record<string, number>);
+  }, [threats]);
+
+  const handleClick = (severity: string) => {
+    const params = new URLSearchParams();
+    params.set('hostId', hostId);
+    if (severity !== 'all') {
+      params.set('severity', severity);
+    }
+    setLocation(`/threats?${params.toString()}`);
+  };
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="text-sm font-medium text-muted-foreground">Ameaças:</span>
+      
+      <Badge 
+        variant="outline"
+        className="bg-red-500/10 text-red-500 border-red-500/30 cursor-pointer hover:bg-red-500/20"
+        onClick={() => handleClick('critical')}
+        data-testid="badge-threats-critical"
+      >
+        <div className="w-2 h-2 bg-red-500 rounded-full mr-1.5"></div>
+        Crítica: {threatCounts.critical}
+      </Badge>
+      
+      <Badge 
+        variant="outline"
+        className="bg-orange-500/10 text-orange-500 border-orange-500/30 cursor-pointer hover:bg-orange-500/20"
+        onClick={() => handleClick('high')}
+        data-testid="badge-threats-high"
+      >
+        <div className="w-2 h-2 bg-orange-500 rounded-full mr-1.5"></div>
+        Alta: {threatCounts.high}
+      </Badge>
+      
+      <Badge 
+        variant="outline"
+        className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30 cursor-pointer hover:bg-yellow-500/20"
+        onClick={() => handleClick('medium')}
+        data-testid="badge-threats-medium"
+      >
+        <div className="w-2 h-2 bg-yellow-500 rounded-full mr-1.5"></div>
+        Média: {threatCounts.medium}
+      </Badge>
+      
+      <Badge 
+        variant="outline"
+        className="bg-green-500/10 text-green-600 border-green-500/30 cursor-pointer hover:bg-green-500/20"
+        onClick={() => handleClick('low')}
+        data-testid="badge-threats-low"
+      >
+        <div className="w-2 h-2 bg-green-600 rounded-full mr-1.5"></div>
+        Baixa: {threatCounts.low}
+      </Badge>
+    </div>
+  );
+}
+
+// Threat Summary Component (OLD - will be replaced)
 function ThreatSummarySection({ threats, hostId }: { threats: Threat[], hostId: string }) {
   const [, setLocation] = useLocation();
   
@@ -487,84 +729,83 @@ export default function Hosts() {
 
       {/* Host Details Dialog */}
       <Dialog open={!!selectedHost} onOpenChange={() => setSelectedHost(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalhes do Host</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">{selectedHost?.name}</DialogTitle>
           </DialogHeader>
           {selectedHost && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Nome</label>
-                  <div className="text-sm text-muted-foreground">{selectedHost.name}</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Tipo</label>
-                  <div className="text-sm text-muted-foreground">{selectedHost.type}</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Família</label>
-                  <div className="text-sm text-muted-foreground">{selectedHost.family || '—'}</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Sistema Operacional</label>
-                  <div className="text-sm text-muted-foreground">{selectedHost.operatingSystem || '—'}</div>
-                </div>
-              </div>
+            <div className="space-y-6">
+              {/* Risk Score Section - Highlighted at the top */}
+              <RiskScoreDisplay host={selectedHost} />
               
-              {selectedHost.description && (
-                <div>
-                  <label className="text-sm font-medium">Descrição</label>
-                  <div className="text-sm text-muted-foreground">{selectedHost.description}</div>
-                </div>
-              )}
+              {/* Risk History Chart */}
+              <RiskHistoryChart hostId={selectedHost.id} />
               
-              {selectedHost.ips && selectedHost.ips.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium">Endereços IP</label>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {selectedHost.ips.map((ip, index) => (
-                      <Badge key={index} variant="outline" className="font-mono">
-                        {ip}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              
-              {selectedHost.aliases && selectedHost.aliases.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium">Aliases</label>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {selectedHost.aliases.map((alias, index) => (
-                      <Badge key={index} variant="secondary">
-                        {alias}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                <div>
-                  <label className="text-sm font-medium">Descoberto em</label>
-                  <div className="text-sm text-muted-foreground">
-                    {new Date(selectedHost.discoveredAt).toLocaleString('pt-BR')}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Última atualização</label>
-                  <div className="text-sm text-muted-foreground">
-                    {new Date(selectedHost.updatedAt).toLocaleString('pt-BR')}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Resumo de Ameaças por Severidade */}
+              {/* Compact Threat Badges */}
               {hostThreats && Array.isArray(hostThreats) && hostThreats.length > 0 && (
-                <ThreatSummarySection threats={hostThreats} hostId={selectedHost.id} />
+                <div className="pt-4 border-t">
+                  <CompactThreatBadges threats={hostThreats} hostId={selectedHost.id} />
+                </div>
               )}
+              
+              {/* Host Information */}
+              <div className="pt-4 border-t space-y-4">
+                <h3 className="text-sm font-semibold">Informações do Host</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Tipo</label>
+                    <div className="text-sm mt-1">{selectedHost.type}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Família</label>
+                    <div className="text-sm mt-1">{selectedHost.family || '—'}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Sistema Operacional</label>
+                    <div className="text-sm mt-1">{selectedHost.operatingSystem || '—'}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Descoberto em</label>
+                    <div className="text-sm mt-1">
+                      {new Date(selectedHost.discoveredAt).toLocaleDateString('pt-BR')}
+                    </div>
+                  </div>
+                </div>
+                
+                {selectedHost.description && (
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Descrição</label>
+                    <div className="text-sm mt-1">{selectedHost.description}</div>
+                  </div>
+                )}
+                
+                {selectedHost.ips && selectedHost.ips.length > 0 && (
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Endereços IP</label>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {selectedHost.ips.map((ip, index) => (
+                        <Badge key={index} variant="outline" className="font-mono text-xs">
+                          {ip}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {selectedHost.aliases && selectedHost.aliases.length > 0 && (
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Aliases</label>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {selectedHost.aliases.map((alias, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {alias}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </DialogContent>
