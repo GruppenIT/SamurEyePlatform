@@ -521,6 +521,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/hosts/:id/ad-tests', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Check if host exists
+      const host = await storage.getHost(id);
+      if (!host) {
+        return res.status(404).json({ message: "Host não encontrado" });
+      }
+      
+      // Get AD Security test results for this host (latest results)
+      const testResults = await storage.getAdSecurityLatestTestResults(id);
+      res.json(testResults);
+    } catch (error) {
+      console.error("Erro ao buscar resultados dos testes AD Security:", error);
+      res.status(500).json({ message: "Falha ao buscar resultados dos testes AD Security" });
+    }
+  });
+
   app.patch('/api/hosts/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
