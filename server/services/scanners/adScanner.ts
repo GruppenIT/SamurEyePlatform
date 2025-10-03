@@ -1,8 +1,6 @@
-import { Client } from 'ldapts';
 import { spawn } from 'child_process';
 import dns from 'dns';
 import { promisify } from 'util';
-import { settingsService } from '../settingsService';
 
 const dnsResolve = promisify(dns.resolve);
 
@@ -11,1122 +9,867 @@ export interface ADFinding {
   target: string;
   name: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
-  category: 'users' | 'groups' | 'computers' | 'policies' | 'configuration';
+  category: 'users' | 'groups' | 'computers' | 'policies' | 'configuration' | 'kerberos' | 'shares' | 'inactive_accounts';
   description: string;
   evidence?: any;
   recommendation?: string;
 }
 
+interface PowerShellExecutionResult {
+  success: boolean;
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}
+
+interface ADSecurityTest {
+  id: string;
+  nome: string;
+  powershell: string;
+  severidade: 'critical' | 'high' | 'medium' | 'low';
+  description?: string;
+  recommendation?: string;
+}
+
+interface ADSecurityCategories {
+  configuracoes_criticas?: boolean;
+  gerenciamento_contas?: boolean;
+  kerberos_delegacao?: boolean;
+  compartilhamentos_gpos?: boolean;
+  politicas_configuracao?: boolean;
+  contas_inativas?: boolean;
+}
+
 export class ADScanner {
-  private client: Client | null = null;
-  private readonly commonDCPorts = [389, 636, 3268, 3269]; // LDAP, LDAPS, Global Catalog
+  private readonly commonDCPorts = [389, 636, 3268, 3269];
   private baseDN: string = '';
   private domain: string = '';
 
   /**
-   * Escaneia segurança do Active Directory
+   * Escaneia segurança do Active Directory usando PowerShell via WinRM
    */
-  async scanADHygiene(
+  async scanADSecurity(
     domain: string,
     username: string,
     password: string,
-    port?: number,
-    enabledAnalyses?: {
-      enableUsers?: boolean;
-      enableGroups?: boolean;
-      enableComputers?: boolean;
-      enablePolicies?: boolean;
-      enableConfiguration?: boolean;
-      enableDomainConfiguration?: boolean;
-    }
+    dcHost?: string,
+    enabledCategories?: ADSecurityCategories
   ): Promise<ADFinding[]> {
-    console.log(`Iniciando análise de segurança AD para domínio ${domain}`);
+    console.log(`🔍 Iniciando análise de segurança AD para domínio ${domain}`);
     
     const findings: ADFinding[] = [];
+    this.domain = domain;
+    this.baseDN = this.buildBaseDN(domain);
 
     try {
-      // 1. Descobrir controladores de domínio
-      const domainControllers = await this.discoverDomainControllers(domain);
-      console.log(`Encontrados ${domainControllers.length} controladores de domínio`);
+      // 1. Descobrir DC se não especificado (com retry logic para DC secundário)
+      let targetDC = dcHost;
+      let dcList: string[] = [];
+      
+      if (!targetDC) {
+        const domainControllers = await this.discoverDomainControllers(domain);
+        console.log(`✅ Encontrados ${domainControllers.length} controladores de domínio via DNS`);
 
-      if (domainControllers.length === 0) {
-        findings.push({
-          type: 'ad_misconfiguration',
-          target: domain,
-          name: 'Nenhum Controlador de Domínio Encontrado',
-          severity: 'critical',
-          category: 'configuration',
-          description: 'Não foi possível localizar controladores de domínio para o domínio especificado',
-          recommendation: 'Verificar configuração DNS e conectividade de rede'
-        });
-        return findings;
+        if (domainControllers.length === 0) {
+          findings.push({
+            type: 'ad_misconfiguration',
+            target: domain,
+            name: 'Nenhum Controlador de Domínio Encontrado',
+            severity: 'critical',
+            category: 'configuration',
+            description: 'Não foi possível localizar controladores de domínio para o domínio especificado via DNS',
+            recommendation: 'Verificar configuração DNS e conectividade de rede. Especifique o IP do DC manualmente.'
+          });
+          return findings;
+        }
+        dcList = domainControllers;
+        targetDC = domainControllers[0];
+      } else {
+        // dcHost is guaranteed to be defined here since we're in the else block
+        dcList = [dcHost!];
       }
 
-      // 2. Conectar ao Active Directory
-      const dcHost = domainControllers[0];
-      this.domain = domain;
-      this.baseDN = this.buildBaseDN(domain);
-      console.log(`📍 Usando base DN: ${this.baseDN}`);
-      await this.connectToAD(dcHost, username, password, domain, port);
+      console.log(`🎯 Usando DC primário: ${targetDC}`);
 
-      // 3. Análises de segurança (execução sequencial para evitar problemas de concorrência LDAP)
-      console.log('📊 Iniciando análises de segurança AD...');
-      
-      // Valores padrão se não especificado - habilitar todas as análises
-      const analyses = {
-        enableUsers: true,
-        enableGroups: true,
-        enableComputers: true,
-        enablePolicies: true,
-        enableConfiguration: true,
-        enableDomainConfiguration: true,
-        ...enabledAnalyses
+      // 2. Categorias habilitadas (padrão: todas)
+      const categories: ADSecurityCategories = {
+        configuracoes_criticas: true,
+        gerenciamento_contas: true,
+        kerberos_delegacao: true,
+        compartilhamentos_gpos: true,
+        politicas_configuracao: true,
+        contas_inativas: true,
+        ...enabledCategories
       };
-      
-      if (analyses.enableUsers) {
-        const userAnalysis = await this.analyzeUsers();
-        console.log(`✅ Análise de usuários concluída: ${userAnalysis.length} achados`);
-        findings.push(...userAnalysis);
-      } else {
-        console.log('⏭️ Análise de usuários pulada (desabilitada)');
-      }
-      
-      if (analyses.enableGroups) {
-        const groupAnalysis = await this.analyzeGroups();
-        console.log(`✅ Análise de grupos concluída: ${groupAnalysis.length} achados`);
-        findings.push(...groupAnalysis);
-      } else {
-        console.log('⏭️ Análise de grupos pulada (desabilitada)');
-      }
-      
-      if (analyses.enableComputers) {
-        const computerAnalysis = await this.analyzeComputers();
-        console.log(`✅ Análise de computadores concluída: ${computerAnalysis.length} achados`);
-        findings.push(...computerAnalysis);
-      } else {
-        console.log('⏭️ Análise de computadores pulada (desabilitada)');
-      }
-      
-      if (analyses.enablePolicies) {
-        const policyAnalysis = await this.analyzePolicies();
-        console.log(`✅ Análise de políticas concluída: ${policyAnalysis.length} achados`);
-        findings.push(...policyAnalysis);
-      } else {
-        console.log('⏭️ Análise de políticas pulada (desabilitada)');
-      }
-      
-      if (analyses.enableConfiguration) {
-        const configAnalysis = await this.analyzeConfiguration();
-        console.log(`✅ Análise de configuração concluída: ${configAnalysis.length} achados`);
-        findings.push(...configAnalysis);
-      } else {
-        console.log('⏭️ Análise de configuração pulada (desabilitada)');
-      }
-      
-      if (analyses.enableDomainConfiguration) {
-        const domainConfigAnalysis = await this.analyzeDomainConfiguration();
-        console.log(`✅ Análise de configuração de domínio concluída: ${domainConfigAnalysis.length} achados`);
-        findings.push(...domainConfigAnalysis);
-      } else {
-        console.log('⏭️ Análise de configuração de domínio pulada (desabilitada)');
+
+      // 3. Executar testes por categoria
+      if (categories.configuracoes_criticas) {
+        console.log('🔴 Executando testes: Configurações Críticas...');
+        const criticalFindings = await this.testConfiguracoesCriticas(targetDC, domain, username, password);
+        findings.push(...criticalFindings);
+        console.log(`✅ Configurações Críticas: ${criticalFindings.length} achados`);
       }
 
-    } catch (error) {
-      console.error('Erro durante análise AD:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (categories.gerenciamento_contas) {
+        console.log('👥 Executando testes: Gerenciamento de Contas...');
+        const accountFindings = await this.testGerenciamentoContas(targetDC, domain, username, password);
+        findings.push(...accountFindings);
+        console.log(`✅ Gerenciamento de Contas: ${accountFindings.length} achados`);
+      }
+
+      if (categories.kerberos_delegacao) {
+        console.log('🎫 Executando testes: Kerberos e Delegação...');
+        const kerberosFindings = await this.testKerberosDelegacao(targetDC, domain, username, password);
+        findings.push(...kerberosFindings);
+        console.log(`✅ Kerberos e Delegação: ${kerberosFindings.length} achados`);
+      }
+
+      if (categories.compartilhamentos_gpos) {
+        console.log('📂 Executando testes: Compartilhamentos e GPOs...');
+        const shareFindings = await this.testCompartilhamentosGPOs(targetDC, domain, username, password);
+        findings.push(...shareFindings);
+        console.log(`✅ Compartilhamentos e GPOs: ${shareFindings.length} achados`);
+      }
+
+      if (categories.politicas_configuracao) {
+        console.log('⚙️  Executando testes: Políticas e Configuração...');
+        const policyFindings = await this.testPoliticasConfiguracao(targetDC, domain, username, password);
+        findings.push(...policyFindings);
+        console.log(`✅ Políticas e Configuração: ${policyFindings.length} achados`);
+      }
+
+      if (categories.contas_inativas) {
+        console.log('💤 Executando testes: Contas Inativas...');
+        const inactiveFindings = await this.testContasInativas(targetDC, domain, username, password);
+        findings.push(...inactiveFindings);
+        console.log(`✅ Contas Inativas: ${inactiveFindings.length} achados`);
+      }
+
+      console.log(`✅ Análise concluída: ${findings.length} achados totais`);
+      return findings;
+
+    } catch (error: any) {
+      console.error('❌ Erro na análise AD Security:', error);
       findings.push({
-        type: 'ad_vulnerability',
+        type: 'ad_misconfiguration',
         target: domain,
-        name: 'Falha na Conexão AD',
-        severity: 'high',
+        name: 'Erro na Execução da Análise',
+        severity: 'critical',
         category: 'configuration',
-        description: `Erro ao conectar ao Active Directory: ${errorMessage}`,
-        recommendation: 'Verificar credenciais, conectividade e configuração do domínio'
+        description: `Falha ao executar análise de segurança: ${error.message}`,
+        recommendation: 'Verificar credenciais, conectividade e permissões WinRM no controlador de domínio'
       });
-    } finally {
-      if (this.client) {
-        this.client.unbind();
-        this.client = null;
+      return findings;
+    }
+  }
+
+  /**
+   * Executa comando PowerShell remotamente via WinRM
+   */
+  private async executePowerShell(
+    dcHost: string,
+    domain: string,
+    username: string,
+    password: string,
+    script: string
+  ): Promise<PowerShellExecutionResult> {
+    return new Promise((resolve) => {
+      // Substituir placeholders no script
+      const processedScript = script
+        .replace(/\$baseDN/g, this.baseDN)
+        .replace(/\$domainName/g, domain);
+
+      // Construir comando PowerShell com credencial
+      const fullScript = `
+$securePassword = ConvertTo-SecureString '${password.replace(/'/g, "''")}' -AsPlainText -Force
+$credential = New-Object System.Management.Automation.PSCredential('${domain}\\${username}', $securePassword)
+Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
+  ${processedScript}
+}
+`;
+
+      // Executar PowerShell Core (pwsh) - funciona em Linux/Windows
+      const powershell = spawn('pwsh', [
+        '-NoProfile',
+        '-NonInteractive',
+        '-Command',
+        fullScript
+      ]);
+
+      let stdout = '';
+      let stderr = '';
+
+      powershell.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      powershell.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      powershell.on('close', (code) => {
+        resolve({
+          success: code === 0,
+          stdout,
+          stderr,
+          exitCode: code || 0
+        });
+      });
+
+      // Timeout de 5 minutos por comando
+      setTimeout(() => {
+        powershell.kill();
+        resolve({
+          success: false,
+          stdout,
+          stderr: stderr + '\nTimeout: Comando excedeu 5 minutos',
+          exitCode: -1
+        });
+      }, 300000);
+    });
+  }
+
+  /**
+   * Testes da Categoria: Configurações Críticas
+   */
+  private async testConfiguracoesCriticas(
+    dcHost: string,
+    domain: string,
+    username: string,
+    password: string
+  ): Promise<ADFinding[]> {
+    const findings: ADFinding[] = [];
+
+    const tests: ADSecurityTest[] = [
+      {
+        id: 'dc_print_spooler',
+        nome: 'Controlador de domínio com spooler de impressão ativado (PrintNightmare)',
+        powershell: 'Get-Service -Name Spooler | Select-Object Name, Status | ConvertTo-Json',
+        severidade: 'critical',
+        description: 'O serviço Print Spooler está ativo no controlador de domínio, tornando-o vulnerável ao ataque PrintNightmare (CVE-2021-34527)',
+        recommendation: 'Stop-Service -Name Spooler -Force; Set-Service -Name Spooler -StartupType Disabled'
+      },
+      {
+        id: 'ldap_anonymous',
+        nome: 'LDAP anônimo e sem assinatura permitido',
+        powershell: `Get-ADObject -Identity 'CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$baseDN' -Properties dSHeuristics | Select-Object -Property dSHeuristics | ConvertTo-Json`,
+        severidade: 'critical',
+        description: 'O atributo dSHeuristics está configurado, potencialmente permitindo LDAP anônimo ou sem assinatura',
+        recommendation: 'Remover o valor do atributo dSHeuristics via ADSI Edit'
+      },
+      {
+        id: 'smbv1_enabled',
+        nome: 'Sessão SMBv1 fraca permitida',
+        powershell: 'Get-WindowsFeature -Name FS-SMB1 | Select-Object Name, InstallState | ConvertTo-Json',
+        severidade: 'critical',
+        description: 'O protocolo SMBv1 está habilitado, permitindo ataques como EternalBlue e WannaCry',
+        recommendation: 'Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart'
+      },
+      {
+        id: 'krbtgt_weak',
+        nome: 'Conta KRBTGT fraca (Golden Ticket)',
+        powershell: 'Get-ADUser -Identity krbtgt -Property PasswordLastSet | Select-Object Name, PasswordLastSet | ConvertTo-Json',
+        severidade: 'critical',
+        description: 'A senha da conta KRBTGT não foi alterada recentemente, permitindo ataques Golden Ticket',
+        recommendation: 'Realizar reset de senha da conta KRBTGT usando script oficial da Microsoft'
+      },
+      {
+        id: 'schema_permissions',
+        nome: 'Alterações de permissões padrão na partição do esquema',
+        powershell: `(Get-Acl 'AD:CN=Schema,CN=Configuration,$baseDN').Access | Where-Object {$_.IdentityReference -notmatch 'SYSTEM|Administrators|Schema Admins|Enterprise Admins'} | Select-Object IdentityReference, ActiveDirectoryRights | ConvertTo-Json`,
+        severidade: 'critical',
+        description: 'Foram detectadas permissões não padrão na partição do esquema do Active Directory',
+        recommendation: 'Remover usuários/grupos não privilegiados das permissões do Schema via ADSI Edit'
+      }
+    ];
+
+    for (const test of tests) {
+      try {
+        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell);
+        
+        if (result.success && result.stdout.trim()) {
+          const hasIssue = this.analyzeTestResult(test.id, result.stdout);
+          
+          if (hasIssue) {
+            findings.push({
+              type: this.getTypeForTest(test.id),
+              target: domain,
+              name: test.nome,
+              severity: test.severidade,
+              category: 'configuration',
+              description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
+              recommendation: test.recommendation || 'Revisar configuração conforme documentação de segurança Microsoft',
+              evidence: {
+                testId: test.id,
+                output: result.stdout.substring(0, 1000) // Limitar tamanho
+              }
+            });
+          }
+        }
+      } catch (error: any) {
+        console.error(`❌ Erro no teste ${test.id}:`, error.message);
       }
     }
 
     return findings;
+  }
+
+  /**
+   * Testes da Categoria: Gerenciamento de Contas
+   */
+  private async testGerenciamentoContas(
+    dcHost: string,
+    domain: string,
+    username: string,
+    password: string
+  ): Promise<ADFinding[]> {
+    const findings: ADFinding[] = [];
+
+    const tests: ADSecurityTest[] = [
+      {
+        id: 'privileged_spn',
+        nome: 'Usuários privilegiados com Service Principal Names (SPN) definidos',
+        powershell: `Get-ADUser -Filter * -Properties servicePrincipalName, MemberOf | Where-Object {$_.servicePrincipalName -and ($_.MemberOf -match 'Admins')} | Select-Object Name, SamAccountName, servicePrincipalName | ConvertTo-Json`,
+        severidade: 'high',
+        description: 'Usuários com privilégios administrativos possuem SPNs configurados, vulneráveis a Kerberoasting',
+        recommendation: 'Remover SPNs de contas administrativas ou usar contas de serviço gerenciadas (gMSA)'
+      },
+      {
+        id: 'password_never_expires',
+        nome: 'Contas com senha sem expiração',
+        powershell: 'Get-ADUser -Filter {PasswordNeverExpires -eq $true} -Property Name, PasswordNeverExpires | Select-Object Name, PasswordNeverExpires | ConvertTo-Json',
+        severidade: 'high',
+        description: 'Foram identificadas contas com senha configurada para nunca expirar',
+        recommendation: 'Desabilitar a opção "Senha nunca expira" e implementar política de rotação de senhas'
+      },
+      {
+        id: 'preauth_disabled',
+        nome: 'Contas com pré-autenticação desativada',
+        powershell: 'Get-ADUser -Filter * -Properties UserAccountControl | Where-Object {$_.UserAccountControl -band 0x400000} | Select-Object Name, SamAccountName | ConvertTo-Json',
+        severidade: 'high',
+        description: 'Contas com pré-autenticação Kerberos desativada, vulneráveis a AS-REP Roasting',
+        recommendation: 'Habilitar pré-autenticação Kerberos para todas as contas'
+      },
+      {
+        id: 'admin_account_weak',
+        nome: 'Conta de administrador padrão fraca',
+        powershell: `Get-ADUser -Identity 'Administrator' -Property PasswordLastSet, PasswordNeverExpires, LastLogonTimestamp | Select-Object Name, PasswordLastSet, PasswordNeverExpires, @{Name='LastLogon';Expression={[DateTime]::FromFileTime($_.LastLogonTimestamp)}} | ConvertTo-Json`,
+        severidade: 'high',
+        description: 'A conta Administrator padrão apresenta configurações de segurança fracas',
+        recommendation: 'Configurar senha forte (15+ caracteres), alterar regularmente, e usar apenas quando necessário'
+      },
+      {
+        id: 'dc_password_old',
+        nome: 'Controladores de domínio com senha não alterada recentemente',
+        powershell: 'Get-ADDomainController -Filter * | ForEach-Object { Get-ADComputer -Identity $_.Name -Property PasswordLastSet | Select-Object Name, PasswordLastSet } | ConvertTo-Json',
+        severidade: 'high',
+        description: 'Controladores de domínio com senhas de conta de computador não alteradas recentemente',
+        recommendation: 'Investigar motivo da não rotação automática de senha e forçar reset se necessário'
+      },
+      {
+        id: 'low_primary_group_id',
+        nome: 'Contas com ID de grupo primário (PrimaryGroupID) menor que 1000',
+        powershell: 'Get-ADUser -Filter {primaryGroupId -lt 1000} -Property primaryGroupId | Select-Object Name, primaryGroupId | ConvertTo-Json',
+        severidade: 'high',
+        description: 'Usuários com PrimaryGroupID baixo podem ter privilégios ocultos ou pertencer a grupos críticos',
+        recommendation: 'Revisar contas identificadas e validar se a configuração é intencional'
+      },
+      {
+        id: 'admin_count_set',
+        nome: 'Atributo AdminCount definido para usuários padrão',
+        powershell: 'Get-ADUser -Filter {admincount -gt 0} -Properties adminCount, MemberOf | Where-Object {-not ($_.MemberOf -match "Admins")} | Select-Object Name, SamAccountName, adminCount | ConvertTo-Json',
+        severidade: 'high',
+        description: 'Usuários não-admin com AdminCount=1 podem ter sido admins no passado e manter permissões residuais',
+        recommendation: 'Revisar e remover AdminCount de usuários que não são mais administradores'
+      },
+      {
+        id: 'trust_relationships',
+        nome: 'Relações de confiança de alto risco',
+        powershell: 'Get-ADTrust -Filter * | Select-Object Name, TrustType, TrustDirection, ForestTransitive | ConvertTo-Json',
+        severidade: 'high',
+        description: 'Foram identificadas relações de confiança de domínio que podem representar riscos de segurança',
+        recommendation: 'Revisar necessidade de cada trust e remover os desnecessários ou não documentados'
+      },
+      {
+        id: 'hidden_privileged_sid',
+        nome: 'Contas com SID privilegiado oculto',
+        powershell: 'Get-ADUser -Filter {admincount -gt 0} -Properties adminCount, sidHistory | Where-Object {$_.sidHistory} | Select-Object Name, SamAccountName, adminCount, sidHistory | ConvertTo-Json',
+        severidade: 'high',
+        description: 'Contas com SIDs privilegiados no atributo sidHistory podem ter privilégios ocultos',
+        recommendation: 'Investigar e remover sidHistory não autorizado'
+      },
+      {
+        id: 'pre_win2000_access',
+        nome: 'Contas usando controle de acesso compatível com pré-Windows 2000',
+        powershell: `Get-ADGroupMember -Identity 'Pre-Windows 2000 Compatible Access' -Recursive | Select-Object Name, SamAccountName | ConvertTo-Json`,
+        severidade: 'medium',
+        description: 'O grupo "Pre-Windows 2000 Compatible Access" contém membros, permitindo autenticação legada insegura',
+        recommendation: 'Remover membros do grupo se não houver sistemas legados que dependam dele'
+      }
+    ];
+
+    for (const test of tests) {
+      try {
+        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell);
+        
+        if (result.success && result.stdout.trim()) {
+          const hasIssue = this.analyzeTestResult(test.id, result.stdout);
+          
+          if (hasIssue) {
+            findings.push({
+              type: this.getTypeForTest(test.id),
+              target: domain,
+              name: test.nome,
+              severity: test.severidade,
+              category: 'users',
+              description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
+              recommendation: test.recommendation || 'Revisar configuração conforme melhores práticas de segurança',
+              evidence: {
+                testId: test.id,
+                output: result.stdout.substring(0, 1000)
+              }
+            });
+          }
+        }
+      } catch (error: any) {
+        console.error(`❌ Erro no teste ${test.id}:`, error.message);
+      }
+    }
+
+    return findings;
+  }
+
+  /**
+   * Testes da Categoria: Kerberos e Delegação
+   */
+  private async testKerberosDelegacao(
+    dcHost: string,
+    domain: string,
+    username: string,
+    password: string
+  ): Promise<ADFinding[]> {
+    const findings: ADFinding[] = [];
+
+    const tests: ADSecurityTest[] = [
+      {
+        id: 'krbtgt_rbcd',
+        nome: 'Conta KRBTGT com delegação restrita baseada em recursos (RBCD) habilitada',
+        powershell: `Get-ADUser -Identity 'krbtgt' -Property 'msDS-AllowedToDelegateTo' | Select-Object SamAccountName, 'msDS-AllowedToDelegateTo' | ConvertTo-Json`,
+        severidade: 'high',
+        description: 'A conta KRBTGT possui delegação configurada, o que nunca deveria ocorrer',
+        recommendation: 'Remover imediatamente qualquer configuração de delegação da conta KRBTGT'
+      },
+      {
+        id: 'gmsa_read_permissions',
+        nome: 'Usuários padrão com permissão para leitura de senha de GMSA',
+        powershell: 'Get-ADServiceAccount -Filter * -Properties PrincipalsAllowedToRetrieveManagedPassword | Where-Object {$_.PrincipalsAllowedToRetrieveManagedPassword} | Select-Object Name, PrincipalsAllowedToRetrieveManagedPassword | ConvertTo-Json',
+        severidade: 'high',
+        description: 'Usuários não-autorizados têm permissão para ler senhas de contas de serviço gerenciadas (gMSA)',
+        recommendation: 'Restringir PrincipalsAllowedToRetrieveManagedPassword apenas aos sistemas necessários'
+      },
+      {
+        id: 'kerberos_vulnerabilities',
+        nome: 'Avaliação de vulnerabilidades do Kerberos',
+        powershell: `Get-ADUser -Filter * -Properties 'msDS-SupportedEncryptionTypes' | Where-Object {$_.'msDS-SupportedEncryptionTypes' -lt 16} | Select-Object Name, SamAccountName, 'msDS-SupportedEncryptionTypes' | ConvertTo-Json`,
+        severidade: 'medium',
+        description: 'Contas configuradas com tipos de criptografia Kerberos fracos (DES, RC4)',
+        recommendation: 'Configurar suporte apenas para AES128 e AES256 (msDS-SupportedEncryptionTypes = 24 ou 28)'
+      },
+      {
+        id: 'kerberos_rbcd_computers',
+        nome: 'Comprometimento de conta de computador via delegação restrita baseada em recursos do Kerberos (RBCD)',
+        powershell: 'Get-ADComputer -Filter * -Properties PrincipalsAllowedToDelegateToAccount | Where-Object {$_.PrincipalsAllowedToDelegateToAccount} | Select-Object Name, SamAccountName, PrincipalsAllowedToDelegateToAccount | ConvertTo-Json',
+        severidade: 'medium',
+        description: 'Computadores com delegação RBCD configurada podem ser comprometidos para obter acesso a outros sistemas',
+        recommendation: 'Revisar e remover delegações desnecessárias, usar delegação restrita quando possível'
+      },
+      {
+        id: 'rodc_kdc_access',
+        nome: 'Direitos de acesso perigosos na conta KDC do RODC',
+        powershell: `Get-ADDomainController -Filter {IsReadOnly -eq $true} | ForEach-Object { Get-ADComputer -Identity $_.Name -Properties 'msDS-RevealedUsers' | Select-Object Name, 'msDS-RevealedUsers' } | ConvertTo-Json`,
+        severidade: 'high',
+        description: 'Read-Only Domain Controllers com configurações de segurança inadequadas',
+        recommendation: 'Revisar políticas de cache de credenciais e grupo "Allowed RODC Password Replication Group"'
+      }
+    ];
+
+    for (const test of tests) {
+      try {
+        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell);
+        
+        if (result.success && result.stdout.trim()) {
+          const hasIssue = this.analyzeTestResult(test.id, result.stdout);
+          
+          if (hasIssue) {
+            findings.push({
+              type: this.getTypeForTest(test.id),
+              target: domain,
+              name: test.nome,
+              severity: test.severidade,
+              category: 'configuration',
+              description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
+              recommendation: test.recommendation || 'Revisar configuração de Kerberos conforme melhores práticas',
+              evidence: {
+                testId: test.id,
+                output: result.stdout.substring(0, 1000)
+              }
+            });
+          }
+        }
+      } catch (error: any) {
+        console.error(`❌ Erro no teste ${test.id}:`, error.message);
+      }
+    }
+
+    return findings;
+  }
+
+  /**
+   * Testes da Categoria: Compartilhamentos e GPOs
+   */
+  private async testCompartilhamentosGPOs(
+    dcHost: string,
+    domain: string,
+    username: string,
+    password: string
+  ): Promise<ADFinding[]> {
+    const findings: ADFinding[] = [];
+
+    const tests: ADSecurityTest[] = [
+      {
+        id: 'credentials_in_shares',
+        nome: 'Coleta de credenciais a partir de compartilhamentos de domínio',
+        powershell: `$paths = @('\\\\$domainName\\SYSVOL', '\\\\$domainName\\NETLOGON'); foreach ($path in $paths) { Get-ChildItem -Path $path -Recurse -Include *.ps1, *.vbs, *.bat, *.xml -ErrorAction SilentlyContinue | Select-String -Pattern 'password', 'pwd', 'pass', 'senha', 'segredo', 'credencial' -ErrorAction SilentlyContinue | Select-Object Path, LineNumber, Line } | ConvertTo-Json`,
+        severidade: 'high',
+        description: 'Foram encontradas credenciais ou palavras-chave relacionadas em arquivos nos compartilhamentos SYSVOL/NETLOGON',
+        recommendation: 'Remover credenciais hard-coded de scripts. Usar credenciais gerenciadas ou Group Policy Preferences com criptografia AES256'
+      },
+      {
+        id: 'sysvol_permissions',
+        nome: 'Verificar objetos GPO sensíveis e permissões de arquivos',
+        powershell: `$path = '\\\\$domainName\\SYSVOL'; $acl = Get-Acl -Path $path; $acl.Access | Where-Object {$_.IdentityReference -notmatch 'Domain Admins|Enterprise Admins|SYSTEM|Administrators|Authenticated Users|Server Operators|Enterprise Domain Controllers'} | Select-Object IdentityReference, FileSystemRights, AccessControlType | ConvertTo-Json`,
+        severidade: 'high',
+        description: 'Permissões não-padrão detectadas no compartilhamento SYSVOL',
+        recommendation: 'Revisar e remover permissões excessivas. Manter apenas: Domain Admins, Enterprise Admins, SYSTEM, Authenticated Users (Read)'
+      },
+      {
+        id: 'smb_signing_weak',
+        nome: 'Assinatura SMB fraca',
+        powershell: 'Get-SmbServerConfiguration | Select-Object RequireSecuritySignature, EnableSecuritySignature | ConvertTo-Json',
+        severidade: 'medium',
+        description: 'Assinatura SMB não está configurada como obrigatória, permitindo ataques man-in-the-middle',
+        recommendation: 'Habilitar "RequireSecuritySignature=True" via GPO: Computer Configuration > Policies > Windows Settings > Security Settings > Local Policies > Security Options'
+      }
+    ];
+
+    for (const test of tests) {
+      try {
+        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell);
+        
+        if (result.success && result.stdout.trim()) {
+          const hasIssue = this.analyzeTestResult(test.id, result.stdout);
+          
+          if (hasIssue) {
+            findings.push({
+              type: this.getTypeForTest(test.id),
+              target: domain,
+              name: test.nome,
+              severity: test.severidade,
+              category: 'policies',
+              description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
+              recommendation: test.recommendation || 'Revisar permissões e configurações de compartilhamento',
+              evidence: {
+                testId: test.id,
+                output: result.stdout.substring(0, 1000)
+              }
+            });
+          }
+        }
+      } catch (error: any) {
+        console.error(`❌ Erro no teste ${test.id}:`, error.message);
+      }
+    }
+
+    return findings;
+  }
+
+  /**
+   * Testes da Categoria: Políticas e Configuração
+   */
+  private async testPoliticasConfiguracao(
+    dcHost: string,
+    domain: string,
+    username: string,
+    password: string
+  ): Promise<ADFinding[]> {
+    const findings: ADFinding[] = [];
+
+    const tests: ADSecurityTest[] = [
+      {
+        id: 'risky_uac_params',
+        nome: 'Contas com parâmetros de controle de conta de usuário arriscados',
+        powershell: 'Get-ADUser -Filter * -Property userAccountControl | Where-Object {($_.userAccountControl -band 0x10000) -or ($_.userAccountControl -band 0x80000)} | Select-Object Name, userAccountControl | ConvertTo-Json',
+        severidade: 'high',
+        description: 'Contas com flags UserAccountControl arriscadas (DONT_EXPIRE_PASSWORD, ENCRYPTED_TEXT_PWD_ALLOWED)',
+        recommendation: 'Revisar e corrigir UserAccountControl. Valor padrão recomendado: 512'
+      },
+      {
+        id: 'domain_functional_level',
+        nome: 'Domínios com nível funcional desatualizado',
+        powershell: 'Get-ADDomain | Select-Object DomainMode, DistinguishedName | ConvertTo-Json',
+        severidade: 'medium',
+        description: 'Nível funcional do domínio está desatualizado, perdendo recursos de segurança modernos',
+        recommendation: 'Elevar nível funcional do domínio para a versão mais recente suportada'
+      },
+      {
+        id: 'laps_not_enabled',
+        nome: 'Solução LAPS não habilitada',
+        powershell: `Get-ADComputer -Filter * -Properties 'ms-Mcs-AdmPwd' -ResultSetSize 100 | Where-Object {$_.'ms-Mcs-AdmPwd' -eq $null} | Measure-Object | Select-Object Count | ConvertTo-Json`,
+        severidade: 'medium',
+        description: 'Microsoft LAPS não está configurado para gerenciar senhas de administrador local',
+        recommendation: 'Implementar LAPS para rotação automática de senhas de administrador local'
+      },
+      {
+        id: 'dns_admins_standard_users',
+        nome: 'Contas de usuário padrão como administradores DNS',
+        powershell: `Get-ADGroupMember -Identity 'DnsAdmins' -Recursive | Where-Object {$_.objectClass -eq 'user'} | Select-Object Name, SamAccountName | ConvertTo-Json`,
+        severidade: 'medium',
+        description: 'Usuários padrão são membros do grupo DnsAdmins, que tem privilégios elevados',
+        recommendation: 'Remover usuários não-admin do grupo DnsAdmins'
+      },
+      {
+        id: 'non_canonical_ace',
+        nome: 'ACE não canônico em objetos',
+        powershell: `$objects = Get-ADObject -Filter * -Properties nTSecurityDescriptor -ResultSetSize 1000; $nonCanonical = $objects | Where-Object {$_.nTSecurityDescriptor.AreAccessRulesCanonical -eq $false}; $nonCanonical | Select-Object DistinguishedName | ConvertTo-Json`,
+        severidade: 'medium',
+        description: 'Objetos com ACEs (Access Control Entries) em ordem não-canônica detectados',
+        recommendation: 'Corrigir ordem das ACEs usando ferramentas administrativas ou scripts especializados'
+      },
+      {
+        id: 'orphan_krbtgt_rodc',
+        nome: 'Contas krbtgt de RODC órfãs',
+        powershell: `Get-ADObject -Filter {(objectclass -eq 'user') -and (name -like 'krbtgt*')} -Properties 'msDS-KrbTgtLinkBl' | Where-Object {-not $_.'msDS-KrbTgtLinkBl'} | Select-Object Name, 'msDS-KrbTgtLinkBl' | ConvertTo-Json`,
+        severidade: 'medium',
+        description: 'Contas krbtgt órfãs de RODCs removidos permaneceram no domínio',
+        recommendation: 'Remover contas krbtgt órfãs de RODCs que não existem mais'
+      },
+      {
+        id: 'dsheuristics_dangerous',
+        nome: 'Domínio com configuração de compatibilidade retroativa perigosa',
+        powershell: `Get-ADObject -Identity 'CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$baseDN' -Properties dSHeuristics | Where-Object {$_.dSHeuristics} | Select-Object -ExpandProperty dSHeuristics | ConvertTo-Json`,
+        severidade: 'medium',
+        description: 'Atributo dSHeuristics configurado, potencialmente habilitando comportamentos legados inseguros',
+        recommendation: 'Remover valor de dSHeuristics a menos que seja absolutamente necessário'
+      }
+    ];
+
+    for (const test of tests) {
+      try {
+        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell);
+        
+        if (result.success && result.stdout.trim()) {
+          const hasIssue = this.analyzeTestResult(test.id, result.stdout);
+          
+          if (hasIssue) {
+            findings.push({
+              type: this.getTypeForTest(test.id),
+              target: domain,
+              name: test.nome,
+              severity: test.severidade,
+              category: 'configuration',
+              description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
+              recommendation: test.recommendation || 'Revisar e corrigir configuração do domínio',
+              evidence: {
+                testId: test.id,
+                output: result.stdout.substring(0, 1000)
+              }
+            });
+          }
+        }
+      } catch (error: any) {
+        console.error(`❌ Erro no teste ${test.id}:`, error.message);
+      }
+    }
+
+    return findings;
+  }
+
+  /**
+   * Testes da Categoria: Contas Inativas
+   */
+  private async testContasInativas(
+    dcHost: string,
+    domain: string,
+    username: string,
+    password: string
+  ): Promise<ADFinding[]> {
+    const findings: ADFinding[] = [];
+
+    const tests: ADSecurityTest[] = [
+      {
+        id: 'privileged_inactive',
+        nome: 'Contas privilegiadas inativas',
+        powershell: `$DaysInactive = 90; $InactiveDate = (Get-Date).AddDays(-$DaysInactive); Get-ADUser -Filter {Enabled -eq $True} -Properties LastLogonDate, MemberOf | Where-Object {($_.LastLogonDate -lt $InactiveDate) -and ($_.MemberOf -match 'Admins')} | Select-Object Name, SamAccountName, LastLogonDate | ConvertTo-Json`,
+        severidade: 'medium',
+        description: 'Contas com privilégios administrativos não utilizadas há mais de 90 dias',
+        recommendation: 'Desabilitar ou remover contas privilegiadas inativas após aprovação'
+      },
+      {
+        id: 'disabled_in_privileged_groups',
+        nome: 'Contas desativadas em grupos privilegiados',
+        powershell: `Get-ADUser -Filter {Enabled -eq $false} -Properties MemberOf | Where-Object {$_.MemberOf -match 'Admins'} | Select-Object Name, SamAccountName | ConvertTo-Json`,
+        severidade: 'medium',
+        description: 'Contas desabilitadas ainda são membros de grupos privilegiados',
+        recommendation: 'Remover contas desabilitadas de grupos administrativos'
+      },
+      {
+        id: 'gmsa_password_old',
+        nome: 'Contas gMSA com senha não alterada recentemente',
+        powershell: `$DaysThreshold = 90; $ThresholdDate = (Get-Date).AddDays(-$DaysThreshold); Get-ADServiceAccount -Filter * -Properties whenChanged | Where-Object {$_.whenChanged -lt $ThresholdDate} | Select-Object Name, SamAccountName, whenChanged | ConvertTo-Json`,
+        severidade: 'medium',
+        description: 'Contas de serviço gerenciadas (gMSA) sem alteração há mais de 90 dias',
+        recommendation: 'Investigar motivo da ausência de rotação automática de senha'
+      },
+      {
+        id: 'service_accounts_inactive',
+        nome: 'Contas de serviço inativas há mais de 60 dias',
+        powershell: `$daysInactive = 60; $limitDate = (Get-Date).AddDays(-$daysInactive); Get-ADUser -Filter {(servicePrincipalName -like '*') -and (LastLogonDate -lt $limitDate)} -Properties LastLogonDate, servicePrincipalName | Select-Object Name, LastLogonDate | ConvertTo-Json`,
+        severidade: 'medium',
+        description: 'Contas de serviço não utilizadas há mais de 60 dias',
+        recommendation: 'Desabilitar contas de serviço inativas após validação com proprietários'
+      },
+      {
+        id: 'servers_password_old',
+        nome: 'Servidores com senhas não alteradas há mais de 60 dias',
+        powershell: `$days = 60; $limitDate = (Get-Date).AddDays(-$days); Get-ADComputer -Filter {OperatingSystem -like '*Windows Server*'} -Properties PasswordLastSet | Where-Object {$_.PasswordLastSet -lt $limitDate} | Select-Object Name, PasswordLastSet | ConvertTo-Json`,
+        severidade: 'medium',
+        description: 'Servidores com senha de conta de computador não rotacionada há mais de 60 dias',
+        recommendation: 'Investigar servidores inativos ou com problemas de comunicação com o DC'
+      },
+      {
+        id: 'dormant_users',
+        nome: 'Contas de usuário dormentes',
+        powershell: `$days = 90; $date = (Get-Date).AddDays(-$days); Get-ADUser -Filter {(Enabled -eq $true) -and (LastLogonDate -lt $date)} -Properties LastLogonDate -ResultSetSize 100 | Select-Object Name, LastLogonDate | ConvertTo-Json`,
+        severidade: 'low',
+        description: 'Contas de usuário habilitadas sem login há mais de 90 dias',
+        recommendation: 'Desabilitar contas dormentes após validação com gestores'
+      }
+    ];
+
+    for (const test of tests) {
+      try {
+        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell);
+        
+        if (result.success && result.stdout.trim()) {
+          const hasIssue = this.analyzeTestResult(test.id, result.stdout);
+          
+          if (hasIssue) {
+            findings.push({
+              type: this.getTypeForTest(test.id),
+              target: domain,
+              name: test.nome,
+              severity: test.severidade,
+              category: 'users',
+              description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
+              recommendation: test.recommendation || 'Revisar e desabilitar contas inativas',
+              evidence: {
+                testId: test.id,
+                output: result.stdout.substring(0, 1000)
+              }
+            });
+          }
+        }
+      } catch (error: any) {
+        console.error(`❌ Erro no teste ${test.id}:`, error.message);
+      }
+    }
+
+    return findings;
+  }
+
+  /**
+   * Analisa resultado do teste PowerShell para determinar se há problema
+   */
+  private analyzeTestResult(testId: string, output: string): boolean {
+    try {
+      // Parse JSON output
+      const data = JSON.parse(output);
+      
+      // Se não há dados, não há problema
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        return false;
+      }
+
+      // Lógica específica por teste
+      switch (testId) {
+        case 'dc_print_spooler':
+          return data.Status === 'Running';
+        
+        case 'smbv1_enabled':
+          return data.InstallState === 'Installed';
+        
+        case 'krbtgt_weak':
+          const passwordAge = Date.now() - new Date(data.PasswordLastSet).getTime();
+          return passwordAge > (60 * 24 * 60 * 60 * 1000); // > 60 dias
+        
+        case 'ldap_anonymous':
+        case 'dsheuristics_dangerous':
+          return data && data.dSHeuristics;
+        
+        case 'laps_not_enabled':
+          return data.Count && data.Count > 0;
+        
+        // Para a maioria dos testes, qualquer resultado indica problema
+        default:
+          return Array.isArray(data) ? data.length > 0 : !!data;
+      }
+    } catch (error) {
+      // Se não é JSON ou há erro, assumir que há output = há problema
+      return output.trim().length > 0 && !output.includes('[]') && !output.includes('null');
+    }
+  }
+
+  /**
+   * Mapeia ID do teste para tipo de finding apropriado
+   */
+  private getTypeForTest(testId: string): 'ad_hygiene' | 'ad_vulnerability' | 'ad_misconfiguration' {
+    const criticalTests = ['dc_print_spooler', 'ldap_anonymous', 'smbv1_enabled', 'krbtgt_weak'];
+    const vulnerabilityTests = ['privileged_spn', 'preauth_disabled', 'kerberos_vulnerabilities', 'credentials_in_shares'];
+    
+    if (criticalTests.includes(testId)) {
+      return 'ad_misconfiguration';
+    } else if (vulnerabilityTests.includes(testId)) {
+      return 'ad_vulnerability';
+    } else {
+      return 'ad_hygiene';
+    }
   }
 
   /**
    * Descobre controladores de domínio via DNS
    */
   private async discoverDomainControllers(domain: string): Promise<string[]> {
-    const controllers: string[] = [];
-
     try {
-      // Tentar SRV record para localizar DCs
-      const srvRecord = `_ldap._tcp.${domain}`;
-      const records = await dnsResolve(srvRecord, 'SRV') as any[];
+      const srvRecord = `_ldap._tcp.dc._msdcs.${domain}`;
+      const records = await dnsResolve(srvRecord, 'SRV');
       
-      for (const record of records) {
-        controllers.push(record.name);
-      }
-    } catch (error) {
-      console.log('SRV lookup falhou, tentando método alternativo');
-    }
-
-    // Fallback: testar hosts comuns
-    if (controllers.length === 0) {
-      const commonNames = [`dc.${domain}`, `dc01.${domain}`, `dc1.${domain}`, domain];
-      
-      for (const hostname of commonNames) {
-        try {
-          await dnsResolve(hostname, 'A');
-          controllers.push(hostname);
-        } catch {
-          // Host não encontrado, continuar
-        }
-      }
-    }
-
-    return controllers;
-  }
-
-  /**
-   * Mapeia códigos de erro específicos do AD
-   */
-  private mapADError(error: Error): { message: string; isCredentialError: boolean } {
-    const errorStr = error.message;
-    
-    // Extrair código de dados do erro AD (formato: "data 532" ou "data 52e")
-    const dataMatch = errorStr.match(/data\s+(\w+)/i);
-    if (!dataMatch) {
-      return { message: errorStr, isCredentialError: false };
-    }
-    
-    const code = dataMatch[1].toLowerCase();
-    const codeInt = parseInt(code, 16) || parseInt(code, 10);
-    
-    switch (codeInt) {
-      case 525:
-      case 0x525:
-        return {
-          message: "Usuário não encontrado no AD - verifique o nome de usuário",
-          isCredentialError: true
-        };
-      case 0x52e:
-        return {
-          message: "Credenciais inválidas (usuário/senha incorretos) - verifique usuário e senha",
-          isCredentialError: true
-        };
-      case 530:
-      case 0x530:
-        return {
-          message: "Conta não permitida para login neste horário",
-          isCredentialError: true
-        };
-      case 531:
-      case 0x531:
-        return {
-          message: "Conta não permitida para login nesta estação de trabalho",
-          isCredentialError: true
-        };
-      case 532:
-      case 0x532:
-        return {
-          message: "SENHA EXPIRADA - A senha da conta precisa ser alterada no AD. Use uma conta de serviço com 'senha nunca expira' ou atualize a senha desta conta.",
-          isCredentialError: true
-        };
-      case 533:
-      case 0x533:
-        return {
-          message: "Conta desabilitada - habilite a conta no AD ou use uma conta ativa",
-          isCredentialError: true
-        };
-      case 701:
-      case 0x701:
-        return {
-          message: "Conta expirada - a conta passou da data de expiração configurada no AD",
-          isCredentialError: true
-        };
-      case 773:
-      case 0x773:
-        return {
-          message: "RESET DE SENHA OBRIGATÓRIO - O administrador marcou que a senha deve ser alterada no próximo login. Altere a senha no AD.",
-          isCredentialError: true
-        };
-      case 775:
-      case 0x775:
-        return {
-          message: "Conta bloqueada - desbloquear a conta no AD antes de tentar novamente",
-          isCredentialError: true
-        };
-      default:
-        return {
-          message: `Erro de autenticação AD (código ${code}): ${errorStr}`,
-          isCredentialError: true
-        };
-    }
-  }
-
-  /**
-   * Gera diferentes formatos de bind para tentar autenticação
-   */
-  private generateBindFormats(username: string, domain: string): string[] {
-    const formats: string[] = [];
-    
-    // Se já contém @, usar como está primeiro
-    if (username.includes('@')) {
-      formats.push(username);
-    }
-    
-    // Tentar UPN (User Principal Name)
-    if (!username.includes('@')) {
-      formats.push(`${username}@${domain}`);
-    }
-    
-    // Tentar Down-Level Logon Name (DOMAIN\user)
-    const netbiosDomain = domain.split('.')[0].toUpperCase();
-    const downLevelFormat = `${netbiosDomain}\\${username.replace(/@.*$/, '')}`;
-    if (!formats.includes(downLevelFormat)) {
-      formats.push(downLevelFormat);
-    }
-    
-    // Tentar apenas o nome de usuário (para alguns cenários)
-    const plainUsername = username.replace(/@.*$/, '');
-    if (!formats.includes(plainUsername)) {
-      formats.push(plainUsername);
-    }
-    
-    return formats;
-  }
-
-  /**
-   * Conecta ao Active Directory
-   */
-  private async connectToAD(
-    dcHost: string,
-    username: string,
-    password: string,
-    domain: string,
-    port?: number
-  ): Promise<void> {
-    let urls: string[];
-    
-    // Se uma porta específica foi fornecida, usar apenas ela
-    if (port) {
-      if (port === 389) {
-        // Porta 389 = LDAP simples conforme solicitado pelo usuário
-        urls = [`ldap://${dcHost}:389`];
-        console.log('🔧 Usando protocolo LDAP na porta 389 conforme especificado');
-      } else if (port === 636) {
-        // Porta 636 = LDAPS
-        urls = [`ldaps://${dcHost}:636`];
-      } else {
-        // Porta customizada - tentar LDAP simples
-        urls = [`ldap://${dcHost}:${port}`];
-      }
-    } else {
-      // Comportamento padrão: priorizar LDAPS por segurança
-      urls = [
-        `ldaps://${dcHost}:636`,
-        `ldap://${dcHost}:389`
-      ];
-    }
-
-    let lastError: Error | null = null;
-    const allowInsecure = process.env.NODE_ENV === 'development';
-
-    for (const url of urls) {
-      // Permitir LDAP quando especificamente solicitado pelo usuário
-      const isLdapExplicitlyRequested = port && url.startsWith('ldap://');
-      
-      // Em produção, bloquear LDAP não criptografado APENAS quando não foi explicitamente solicitado
-      if (!allowInsecure && url.startsWith('ldap://') && !isLdapExplicitlyRequested) {
-        console.warn('Conexão LDAP não criptografada bloqueada em ambiente de produção (não foi explicitamente solicitada)');
-        continue;
-      }
-      
-      // Avisar sobre uso de LDAP não criptografado
-      if (url.startsWith('ldap://') && port === 389) {
-        console.log('⚠️  Usando protocolo LDAP não criptografado na porta 389 conforme especificado');
+      if (!records || records.length === 0) {
+        console.log(`⚠️  Nenhum registro SRV encontrado para ${srvRecord}`);
+        return [];
       }
 
-      try {
-        console.log(`Tentando conectar via ${url}`);
-        
-        this.client = new Client({
-          url,
-          timeout: 10000,
-          connectTimeout: 10000,
-          // Habilitar validação de certificado em produção
-          tlsOptions: url.startsWith('ldaps://') ? {
-            rejectUnauthorized: process.env.NODE_ENV === 'production',
-            minVersion: 'TLSv1.2',
-          } : undefined,
-        });
-
-        // Tentar diferentes formatos de bind
-        const bindFormats = this.generateBindFormats(username, domain);
-        let bindError: Error | null = null;
-        let successfulFormat = '';
-        
-        for (const bindDN of bindFormats) {
-          try {
-            console.log(`Tentando bind com formato: ${bindDN.includes('\\') ? bindDN.replace(/\\/g, '\\') : bindDN}`);
-            await this.client.bind(bindDN, password);
-            successfulFormat = bindDN;
-            console.log(`✅ Conectado com sucesso via ${url} usando formato: ${bindDN.includes('\\') ? bindDN.replace(/\\/g, '\\') : bindDN}`);
-            break;
-          } catch (err) {
-            bindError = err instanceof Error ? err : new Error(String(err));
-            console.log(`Bind falhou para ${bindDN}: ${bindError.message}`);
-          }
-        }
-        
-        // Se todos os formatos falharam, lançar erro detalhado
-        if (!successfulFormat && bindError) {
-          const { message: detailedMessage, isCredentialError } = this.mapADError(bindError);
-          throw new Error(`Falha na autenticação AD: ${detailedMessage}`);
-        }
-        
-        // Avisar sobre conexão insegura
-        if (url.startsWith('ldap://')) {
-          console.warn('⚠️  ATENÇÃO: Conexão LDAP não criptografada em uso - não recomendado para produção');
-        }
-        
-        return;
-        
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
-        console.log(`Bind falhou em ${url}: ${lastError.message}`);
-        
-        if (this.client) {
-          try {
-            await this.client.unbind();
-          } catch {
-            // Ignorar erros de unbind
-          }
-          this.client = null;
-        }
-      }
-    }
-
-    throw new Error(`Falha ao conectar em todas as URLs LDAP tentadas. Último erro: ${lastError?.message}`);
-  }
-
-  /**
-   * Analisa usuários do AD
-   */
-  private async analyzeUsers(): Promise<ADFinding[]> {
-    const findings: ADFinding[] = [];
-
-    if (!this.client) return findings;
-
-    try {
-      // Obter configurações do sistema
-      const settings = await settingsService.getADHygieneSettings();
-      
-      // Buscar usuários com problemas de segurança
-      const searchResults = await this.searchLDAP('(objectClass=user)', [
-        'cn', 'sAMAccountName', 'userAccountControl', 'pwdLastSet',
-        'lastLogon', 'adminCount', 'memberOf'
-      ]);
-
-      let usersWithPasswordNeverExpires = 0;
-      let inactiveUsers = 0;
-      let adminUsers = 0;
-      let usersWithOldPasswords = 0;
-      const domainAdminsWithOldPasswords: any[] = [];
-      const specificInactiveUsers: any[] = [];
-
-      const now = Date.now();
-      const inactiveLimitMs = now - (settings.adInactiveUserLimitDays * 24 * 60 * 60 * 1000);
-      const passwordAgeLimitMs = settings.adPasswordAgeLimitDays * 24 * 60 * 60 * 1000;
-
-      // Primeiro, obter membros do grupo Domain Admins
-      const domainAdminMembers = await this.getGroupMembers('Domain Admins');
-
-      for (const user of searchResults) {
-        const userAccountControl = parseInt(user.userAccountControl?.[0] || '0');
-        const pwdLastSet = this.convertFileTimeToDate(user.pwdLastSet?.[0]);
-        const lastLogon = this.convertFileTimeToDate(user.lastLogon?.[0]);
-        const username = user.sAMAccountName?.[0] || user.cn?.[0] || 'Unknown';
-        
-        // Verificar se usuário está habilitado (bit 2 = ACCOUNTDISABLE)
-        const isEnabled = !(userAccountControl & 0x0002);
-        
-        // Verificar se é Domain Admin
-        const isDomainAdmin = domainAdminMembers.some(dn => 
-          dn.toLowerCase().includes(`cn=${username.toLowerCase()}`)
-        );
-
-        // Senha nunca expira
-        if (userAccountControl & 0x10000) {
-          usersWithPasswordNeverExpires++;
-        }
-
-        // Usuários inativos - usando configuração do sistema  
-        // Excluir testes específicos conforme solicitado
-        if (lastLogon && lastLogon.getTime() < inactiveLimitMs && isEnabled && 
-            username !== 'gruppen.com.br' && 
-            username !== 'HealthMailbox6fb5d68') {
-          inactiveUsers++;
-          specificInactiveUsers.push({
-            username,
-            lastLogon: lastLogon.toISOString(),
-            daysSinceLastLogon: Math.floor((now - lastLogon.getTime()) / (24 * 60 * 60 * 1000))
-          });
-        }
-
-        // Usuários administrativos
-        if (user.adminCount && parseInt(user.adminCount[0]) > 0) {
-          adminUsers++;
-        }
-
-        // Senhas antigas - usando configuração do sistema
-        if (pwdLastSet && (now - pwdLastSet.getTime()) > passwordAgeLimitMs) {
-          usersWithOldPasswords++;
-          
-          // Verificação específica para Domain Admins - AMEAÇA CRÍTICA
-          if (isDomainAdmin && isEnabled) {
-            const daysSincePasswordChange = Math.floor((now - pwdLastSet.getTime()) / (24 * 60 * 60 * 1000));
-            domainAdminsWithOldPasswords.push({
-              username,
-              daysSincePasswordChange,
-              lastPasswordSet: pwdLastSet.toISOString(),
-              lastLogon: lastLogon?.toISOString() || 'Never'
-            });
-          }
-        }
-      }
-
-      // Gerar ameaças específicas para Domain Admins com senhas antigas
-      for (const admin of domainAdminsWithOldPasswords) {
-        findings.push({
-          type: 'ad_vulnerability',
-          target: this.domain, // Use domain as target for all AD findings
-          name: 'Domain Admin com Senha Crítica Expirada',
-          severity: 'critical',
-          category: 'users',
-          description: `Domain Admin "${admin.username}" não troca a senha há ${admin.daysSincePasswordChange} dias (limite: ${settings.adPasswordAgeLimitDays} dias)`,
-          evidence: {
-            username: admin.username,
-            daysSincePasswordChange: admin.daysSincePasswordChange,
-            lastPasswordSet: admin.lastPasswordSet,
-            lastLogon: admin.lastLogon,
-            passwordAgeLimit: settings.adPasswordAgeLimitDays,
-            groupMembership: 'Domain Admins'
-          },
-          recommendation: 'Forçar troca imediata de senha para conta Domain Admin'
-        });
-      }
-
-      // Gerar ameaças específicas para usuários inativos
-      for (const inactiveUser of specificInactiveUsers) {
-        findings.push({
-          type: 'ad_hygiene',
-          target: this.domain, // Use domain as target for all AD findings
-          name: 'Usuário Inativo Detectado',
-          severity: 'low',
-          category: 'users',
-          description: `Usuário "${inactiveUser.username}" inativo há ${inactiveUser.daysSinceLastLogon} dias (limite: ${settings.adInactiveUserLimitDays} dias)`,
-          evidence: {
-            username: inactiveUser.username,
-            daysSinceLastLogon: inactiveUser.daysSinceLastLogon,
-            lastLogon: inactiveUser.lastLogon,
-            inactiveUserLimit: settings.adInactiveUserLimitDays
-          },
-          recommendation: 'Revisar e considerar desabilitar conta inativa'
-        });
-      }
-
-      // Gerar findings baseados na análise
-      if (usersWithPasswordNeverExpires > 0) {
-        findings.push({
-          type: 'ad_misconfiguration',
-          target: this.domain, // Use domain as target for all AD findings
-          name: 'Usuários com Senhas que Nunca Expiram',
-          severity: 'medium',
-          category: 'users',
-          description: `${usersWithPasswordNeverExpires} usuários configurados com senhas que nunca expiram`,
-          evidence: { count: usersWithPasswordNeverExpires },
-          recommendation: 'Configurar política de expiração de senhas para todos os usuários'
-        });
-      }
-
-      // Remover finding consolidado conforme solicitado - manter apenas ameaças individuais
-      // (As ameaças individuais já são criadas no loop acima para cada usuário inativo)
-
-      if (usersWithOldPasswords > 0) {
-        findings.push({
-          type: 'ad_vulnerability',
-          target: this.domain, // Use domain as target for all AD findings
-          name: 'Usuários com Senhas Antigas',
-          severity: 'medium',
-          category: 'users',
-          description: `${usersWithOldPasswords} usuários com senhas não alteradas há mais de 90 dias`,
-          evidence: { count: usersWithOldPasswords },
-          recommendation: 'Forçar troca de senhas antigas e implementar política de rotação'
-        });
-      }
-
-    } catch (error) {
-      console.error('Erro ao analisar usuários:', error);
-    }
-
-    return findings;
-  }
-
-  /**
-   * Analisa grupos do AD
-   */
-  private async analyzeGroups(): Promise<ADFinding[]> {
-    const findings: ADFinding[] = [];
-
-    if (!this.client) return findings;
-
-    try {
-      // Buscar grupos administrativos críticos para detecção de novos membros
-      const criticalGroups = [
-        'Domain Admins',
-        'Enterprise Admins', 
-        'Schema Admins'
-      ];
-
-      for (const groupName of criticalGroups) {
-        const memberDNs = await this.getGroupMembers(groupName);
-        
-        // Para cada membro, criar uma ameaça individual de "Nova conta com acesso privilegiado"
-        for (const memberDN of memberDNs) {
-          // Extrair username do DN (formato: CN=username,OU=...,DC=...)
-          const cnMatch = memberDN.match(/CN=([^,]+)/);
-          const username = cnMatch ? cnMatch[1] : memberDN;
-          
-          findings.push({
-            type: 'ad_misconfiguration',
-            target: this.domain,
-            name: 'Nova Conta com Acesso Privilegiado',
-            severity: 'high',
-            category: 'groups',
-            description: `Conta "${username}" é membro do grupo administrativo crítico "${groupName}"`,
-            evidence: {
-              username,
-              groupName,
-              memberDN,
-              requiresApproval: true
-            },
-            recommendation: 'Verificar se esta conta realmente necessita acesso privilegiado e alterar status para "Risco Aceito" após aprovação'
-          });
-        }
-      }
-
-    } catch (error) {
-      console.error('Erro ao analisar grupos:', error);
-    }
-
-    return findings;
-  }
-
-  /**
-   * Analisa computadores do AD
-   */
-  private async analyzeComputers(): Promise<ADFinding[]> {
-    const findings: ADFinding[] = [];
-
-    if (!this.client) return findings;
-
-    try {
-      // Obter configurações do sistema
-      const settings = await settingsService.getADHygieneSettings();
-      
-      const searchResults = await this.searchLDAP('(objectClass=computer)', [
-        'cn', 'operatingSystem', 'operatingSystemVersion', 'lastLogon', 'dNSHostName'
-      ]);
-
-      let oldSystems = 0;
-      let inactiveComputers = 0;
-      const specificInactiveComputers: any[] = [];
-      const specificObsoleteComputers: any[] = [];
-      
-      const now = Date.now();
-      const inactiveLimitMs = now - (settings.adComputerInactiveDays * 24 * 60 * 60 * 1000);
-
-      for (const computer of searchResults) {
-        const os = computer.operatingSystem?.[0] || '';
-        const lastLogon = this.convertFileTimeToDate(computer.lastLogon?.[0]);
-        const computerName = computer.cn?.[0] || computer.dNSHostName?.[0] || 'Unknown';
-
-        // Sistemas operacionais antigos
-        if (os.includes('Windows 7') || os.includes('Windows XP') || os.includes('Server 2008') || os.includes('Server 2003')) {
-          oldSystems++;
-          specificObsoleteComputers.push({
-            computerName,
-            operatingSystem: os,
-            osVersion: computer.operatingSystemVersion?.[0] || 'Unknown'
-          });
-        }
-
-        // Computadores inativos - usando configuração do sistema
-        if (lastLogon && lastLogon.getTime() < inactiveLimitMs) {
-          inactiveComputers++;
-          const daysSinceLastLogon = Math.floor((now - lastLogon.getTime()) / (24 * 60 * 60 * 1000));
-          specificInactiveComputers.push({
-            computerName,
-            lastLogon: lastLogon.toISOString(),
-            daysSinceLastLogon
-          });
-        }
-      }
-
-      // Gerar ameaças específicas para computadores inativos
-      for (const inactiveComp of specificInactiveComputers) {
-        findings.push({
-          type: 'ad_hygiene',
-          target: this.domain, // Use domain as target for all AD findings
-          name: 'Computador Inativo no Domínio',
-          severity: 'low',
-          category: 'computers',
-          description: `Computador "${inactiveComp.computerName}" inativo há ${inactiveComp.daysSinceLastLogon} dias (limite: ${settings.adComputerInactiveDays} dias)`,
-          evidence: {
-            computerName: inactiveComp.computerName,
-            daysSinceLastLogon: inactiveComp.daysSinceLastLogon,
-            lastLogon: inactiveComp.lastLogon,
-            inactiveComputerLimit: settings.adComputerInactiveDays
-          },
-          recommendation: 'Revisar e considerar remover computador inativo do domínio'
-        });
-      }
-
-      // Gerar ameaças específicas para sistemas obsoletos
-      for (const obsoleteComp of specificObsoleteComputers) {
-        findings.push({
-          type: 'ad_vulnerability',
-          target: this.domain, // Use domain as target for all AD findings
-          name: 'Sistema Operacional Obsoleto',
-          severity: 'medium',
-          category: 'computers',
-          description: `Computador "${obsoleteComp.computerName}" executa SO obsoleto: ${obsoleteComp.operatingSystem}`,
-          evidence: {
-            computerName: obsoleteComp.computerName,
-            operatingSystem: obsoleteComp.operatingSystem,
-            osVersion: obsoleteComp.osVersion
-          },
-          recommendation: 'Atualizar sistema operacional para versão suportada'
-        });
-      }
-
-      // Remover finding consolidado conforme solicitado - manter apenas ameaças individuais por computador
-      // (As ameaças individuais já são criadas no loop acima para cada computador com SO obsoleto)
-
-      // Remover finding consolidado conforme solicitado - manter apenas ameaças individuais por computador
-      // (As ameaças individuais já são criadas no loop acima para cada computador inativo)
-
-    } catch (error) {
-      console.error('Erro ao analisar computadores:', error);
-    }
-
-    return findings;
-  }
-
-  /**
-   * Descobre workstations do domínio para teste EDR/AV
-   */
-  async discoverWorkstations(domain: string, username: string, password: string, port?: number): Promise<string[]> {
-    console.log(`Descobrindo workstations do domínio ${domain} para teste EDR/AV`);
-    
-    const workstations: string[] = [];
-
-    try {
-      // 1. Descobrir controladores de domínio
-      const domainControllers = await this.discoverDomainControllers(domain);
-      console.log(`Encontrados ${domainControllers.length} controladores de domínio`);
-
-      if (domainControllers.length === 0) {
-        console.error('Nenhum controlador de domínio encontrado');
-        return workstations;
-      }
-
-      // 2. Conectar ao Active Directory
-      const dcHost = domainControllers[0];
-      this.domain = domain;
-      this.baseDN = this.buildBaseDN(domain);
-      console.log(`📍 Usando base DN: ${this.baseDN}`);
-      await this.connectToAD(dcHost, username, password, domain, port);
-
-      if (!this.client) {
-        console.error('Falha ao conectar ao Active Directory');
-        return workstations;
-      }
-
-      // 3. Buscar contas de computador ativas
-      console.log('🔍 Buscando contas de computador no domínio...');
-      
-      // Filtro para buscar computadores ativos (não desabilitados)
-      // userAccountControl & 2 = 0 significa que a conta não está desabilitada
-      const filter = '(&(objectClass=computer)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))';
-      
-      const computers = await this.searchLDAP(filter, [
-        'cn',
-        'dNSHostName',
-        'operatingSystem',
-        'operatingSystemVersion',
-        'lastLogonTimestamp',
-        'userAccountControl'
-      ]);
-
-      console.log(`Encontrados ${computers.length} computadores no domínio`);
-
-      for (const computer of computers) {
-        const computerName = computer.cn?.[0];
-        const dnsHostName = computer.dNSHostName?.[0];
-        const operatingSystem = computer.operatingSystem?.[0] || '';
-        const lastLogonTimestamp = computer.lastLogonTimestamp?.[0];
-
-        // Incluir tanto workstations quanto servidores para teste EDR/AV
-        const isServer = operatingSystem.toLowerCase().includes('server');
-        if (isServer) {
-          console.log(`✅ Servidor encontrado: ${computerName} (${operatingSystem})`);
-        }
-
-        // Verificar se teve logon recente (últimos 30 dias)
-        let isActive = true;
-        if (lastLogonTimestamp) {
-          const lastLogon = this.convertFileTimeToDate(lastLogonTimestamp);
-          if (lastLogon) {
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            isActive = lastLogon > thirtyDaysAgo;
-          }
-        }
-
-        if (!isActive) {
-          console.log(`Pulando workstation inativa: ${computerName}`);
-          continue;
-        }
-
-        // Usar dNSHostName se disponível, senão usar cn
-        const hostName = dnsHostName || computerName;
-        if (hostName) {
-          workstations.push(hostName);
-          if (!isServer) {
-            console.log(`✅ Workstation encontrada: ${hostName} (${operatingSystem})`);
-          }
-        }
-      }
-
-      console.log(`Total de computadores descobertos: ${workstations.length} (workstations + servidores)`);
-
-      // Se não encontrou computadores, log detalhado para troubleshooting
-      if (workstations.length === 0) {
-        console.warn(`⚠️ Nenhum computador ativo encontrado no domínio ${domain}`);
-        console.warn('Verifique: 1) Conectividade LDAP, 2) Permissões da credencial, 3) Computadores ativos no domínio');
-      }
-
-    } catch (error) {
-      console.error('Erro ao descobrir workstations:', error);
-    } finally {
-      // Desconectar do LDAP
-      if (this.client) {
-        try {
-          await this.client.unbind();
-          this.client = null;
-        } catch (unbindError) {
-          console.error('Erro ao desconectar do LDAP:', unbindError);
-        }
-      }
-    }
-
-    return workstations;
-  }
-
-  /**
-   * Analisa políticas do AD
-   */
-  private async analyzePolicies(): Promise<ADFinding[]> {
-    const findings: ADFinding[] = [];
-
-    // Esta é uma implementação básica - em ambiente real seria necessário
-    // acessar as GPOs e analisar configurações específicas
-    findings.push({
-      type: 'ad_hygiene',
-      target: this.domain, // Use domain as target for all AD findings
-      name: 'Análise de Políticas Limitada',
-      severity: 'low',
-      category: 'policies',
-      description: 'Análise básica de políticas implementada. Análise completa requer ferramentas específicas',
-      recommendation: 'Implementar análise detalhada de GPOs com ferramentas especializadas'
-    });
-
-    return findings;
-  }
-
-  /**
-   * Analisa configuração geral do AD
-   */
-  private async analyzeConfiguration(): Promise<ADFinding[]> {
-    const findings: ADFinding[] = [];
-
-    if (!this.client) return findings;
-
-    try {
-      // Verificar configuração do domínio
-      const domainConfig = await this.searchLDAP('(objectClass=domain)', [
-        'lockoutDuration', 'lockoutThreshold', 'maxPwdAge', 'minPwdAge', 'minPwdLength'
-      ]);
-
-      if (domainConfig.length > 0) {
-        const config = domainConfig[0];
-        
-        // Verificar política de senhas
-        const minPwdLength = parseInt(config.minPwdLength?.[0] || '0');
-        if (minPwdLength < 8) {
-          findings.push({
-            type: 'ad_vulnerability',
-            target: this.domain, // Use domain as target for all AD findings
-            name: 'Política de Senha Fraca',
-            severity: 'medium',
-            category: 'configuration',
-            description: `Comprimento mínimo de senha configurado para ${minPwdLength} caracteres (recomendado: 8+)`,
-            evidence: { currentMinLength: minPwdLength },
-            recommendation: 'Configurar comprimento mínimo de senha para pelo menos 8 caracteres'
-          });
-        }
-
-        // Verificar política de bloqueio
-        const lockoutThreshold = parseInt(config.lockoutThreshold?.[0] || '0');
-        if (lockoutThreshold === 0) {
-          findings.push({
-            type: 'ad_vulnerability',
-            target: this.domain, // Use domain as target for all AD findings
-            name: 'Política de Bloqueio Desabilitada',
-            severity: 'medium',
-            category: 'configuration',
-            description: 'Política de bloqueio de conta não está configurada',
-            recommendation: 'Configurar política de bloqueio após tentativas de login falhadas'
-          });
-        }
-      }
-
-    } catch (error) {
-      console.error('Erro ao analisar configuração:', error);
-    }
-
-    return findings;
-  }
-
-  /**
-   * Analisa configuração específica do domínio
-   */
-  private async analyzeDomainConfiguration(): Promise<ADFinding[]> {
-    const findings: ADFinding[] = [];
-
-    if (!this.client) return findings;
-
-    try {
-      // Obter configurações do sistema
-      const settings = await settingsService.getADHygieneSettings();
-      
-      // Análise de grupos privilegiados com muitos membros
-      const privilegedGroups = ['Domain Admins', 'Enterprise Admins', 'Schema Admins', 'Administrators'];
-      
-      for (const groupName of privilegedGroups) {
-        try {
-          const members = await this.getGroupMembers(groupName);
-          
-          if (members.length > settings.adMaxPrivilegedGroupMembers) {
-            findings.push({
-              type: 'ad_vulnerability',
-              target: this.domain, // Use domain as target for all AD findings
-              name: 'Grupo Privilegiado com Muitos Membros',
-              severity: 'medium',
-              category: 'groups',
-              description: `Grupo "${groupName}" possui ${members.length} membros (limite recomendado: ${settings.adMaxPrivilegedGroupMembers})`,
-              evidence: {
-                groupName,
-                memberCount: members.length,
-                maxRecommendedMembers: settings.adMaxPrivilegedGroupMembers,
-                members: members.slice(0, 10) // Primeiros 10 membros para evidência
-              },
-              recommendation: 'Revisar necessidade de todos os membros em grupos privilegiados'
-            });
-          }
-        } catch (error) {
-          console.error(`Erro ao analisar grupo ${groupName}:`, error);
-        }
-      }
-
-      // Verificar configurações de domínio avançadas
-      const domainRoot = await this.searchLDAP('(objectClass=domain)', [
-        'distinguishedName', 'lockoutDuration', 'lockoutThreshold', 'maxPwdAge', 
-        'minPwdAge', 'minPwdLength', 'pwdHistoryLength', 'pwdProperties'
-      ]);
-
-      if (domainRoot.length > 0) {
-        const config = domainRoot[0];
-
-        // Verificar histórico de senhas
-        const pwdHistoryLength = parseInt(config.pwdHistoryLength?.[0] || '0');
-        if (pwdHistoryLength < 12) {
-          findings.push({
-            type: 'ad_vulnerability',
-            target: this.domain, // Use domain as target for all AD findings
-            name: 'Histórico de Senhas Insuficiente',
-            severity: 'high',
-            category: 'configuration',
-            description: `Histórico de senhas configurado para ${pwdHistoryLength} senhas (recomendado: 12+)`,
-            evidence: { currentHistoryLength: pwdHistoryLength },
-            recommendation: 'Configurar histórico de senhas para pelo menos 12 senhas anteriores'
-          });
-        }
-
-        // Verificar complexidade de senhas
-        const pwdProperties = parseInt(config.pwdProperties?.[0] || '0');
-        const complexityEnabled = (pwdProperties & 0x1) !== 0;
-        
-        if (!complexityEnabled) {
-          findings.push({
-            type: 'ad_vulnerability',
-            target: this.domain, // Use domain as target for all AD findings
-            name: 'Complexidade de Senha Desabilitada',
-            severity: 'high',
-            category: 'configuration',
-            description: 'Política de complexidade de senhas não está habilitada',
-            evidence: { pwdProperties, complexityEnabled },
-            recommendation: 'Habilitar política de complexidade de senhas no domínio'
-          });
-        }
-
-        // Verificar idade máxima das senhas
-        const maxPwdAge = parseInt(config.maxPwdAge?.[0] || '0');
-        if (maxPwdAge === 0) {
-          findings.push({
-            type: 'ad_vulnerability',
-            target: this.domain, // Use domain as target for all AD findings
-            name: 'Senhas Sem Expiração',
-            severity: 'medium',
-            category: 'configuration',
-            description: 'Senhas do domínio configuradas para nunca expirar',
-            evidence: { maxPwdAge },
-            recommendation: 'Configurar idade máxima para senhas (recomendado: 90 dias)'
-          });
-        }
-      }
-
-      // Verificar Trusts de domínio (se aplicável)
-      try {
-        const trusts = await this.searchLDAP('(objectClass=trustedDomain)', [
-          'cn', 'trustDirection', 'trustType', 'trustAttributes'
-        ]);
-
-        for (const trust of trusts) {
-          const trustName = trust.cn?.[0] || 'Unknown Trust';
-          const trustDirection = parseInt(trust.trustDirection?.[0] || '0');
-          
-          // Trust bidirecional pode representar maior risco
-          if (trustDirection === 3) { // Bidirectional trust
-            findings.push({
-              type: 'ad_hygiene',
-              target: this.domain, // Use domain as target for all AD findings
-              name: 'Trust Bidirecional Detectado',
-              severity: 'low',
-              category: 'configuration',
-              description: `Trust bidirecional configurado com domínio "${trustName}"`,
-              evidence: {
-                trustName,
-                trustDirection,
-                trustType: trust.trustType?.[0],
-                trustAttributes: trust.trustAttributes?.[0]
-              },
-              recommendation: 'Revisar necessidade de trusts bidirecionais e considerar torná-los unidirecionais'
-            });
-          }
-        }
-      } catch (error) {
-        // Trusts podem não estar acessíveis dependendo dos privilégios
-        console.log('Informações de trust não disponíveis com as credenciais atuais');
-      }
-
-    } catch (error) {
-      console.error('Erro na análise de configuração do domínio:', error);
-    }
-
-    return findings;
-  }
-
-  /**
-   * Constrói o DN base a partir do domínio
-   */
-  private buildBaseDN(domain: string): string {
-    // Converter "gruppen.com.br" para "DC=gruppen,DC=com,DC=br"
-    return domain.split('.').map(part => `DC=${part}`).join(',');
-  }
-
-  /**
-   * Executa busca LDAP
-   */
-  private async searchLDAP(filter: string, attributes: string[], customBaseDN?: string): Promise<any[]> {
-    if (!this.client) return [];
-
-    const searchBase = customBaseDN || this.baseDN;
-    console.log(`🔍 Buscando em: ${searchBase} com filtro: ${filter}`);
-
-    try {
-      const { searchEntries } = await this.client.search(searchBase, {
-        filter,
-        scope: 'sub',
-        attributes
-      });
-
-      // Converter formato dos resultados para manter compatibilidade
-      return searchEntries.map(entry => {
-        const attributes: any = {};
-        for (const [key, value] of Object.entries(entry)) {
-          if (key !== 'dn' && key !== 'controls') {
-            attributes[key] = Array.isArray(value) ? value : [value];
-          }
-        }
-        return attributes;
-      });
-      
-    } catch (error) {
-      console.error('Erro na busca LDAP:', error);
+      const dcHosts = records.map((record: any) => record.name);
+      return dcHosts;
+    } catch (error: any) {
+      console.error(`❌ Erro ao descobrir DCs via DNS: ${error.message}`);
       return [];
     }
   }
 
   /**
-   * Obtém membros de um grupo
+   * Constrói Base DN a partir do nome de domínio
    */
-  private async getGroupMembers(groupName: string): Promise<string[]> {
-    try {
-      const results = await this.searchLDAP(`(cn=${groupName})`, ['member']);
-      
-      if (results.length > 0 && results[0].member) {
-        return results[0].member;
-      }
-    } catch (error) {
-      console.error(`Erro ao buscar membros do grupo ${groupName}:`, error);
-    }
-
-    return [];
-  }
-
-  /**
-   * Converte FileTime do Windows para Date
-   */
-  private convertFileTimeToDate(fileTimeString?: string): Date | null {
-    if (!fileTimeString) return null;
-
-    try {
-      const fileTime = parseInt(fileTimeString);
-      if (fileTime === 0) return null;
-
-      // FileTime é o número de intervalos de 100 nanossegundos desde 1º janeiro de 1601
-      const windowsEpoch = new Date('1601-01-01T00:00:00Z').getTime();
-      const unixTime = windowsEpoch + (fileTime / 10000);
-      
-      return new Date(unixTime);
-    } catch {
-      return null;
-    }
+  private buildBaseDN(domain: string): string {
+    return domain.split('.').map(part => `DC=${part}`).join(',');
   }
 }
-
-export const adScanner = new ADScanner();

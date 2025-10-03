@@ -3,11 +3,13 @@ import { threatEngine } from './threatEngine';
 import { encryptionService } from './encryption';
 import { networkScanner } from './scanners/networkScanner';
 import { vulnScanner } from './scanners/vulnScanner';
-import { adScanner } from './scanners/adScanner';
+import { ADScanner } from './scanners/adScanner';
 import { EDRAVScanner } from './scanners/edrAvScanner';
 import { jobQueue } from './jobQueue';
 import { hostService } from './hostService';
 import { type Journey, type Job } from '@shared/schema';
+
+const adScanner = new ADScanner();
 
 export interface JourneyProgress {
   status: Job['status'];
@@ -286,25 +288,29 @@ class JourneyExecutorService {
         // Continue execution even if domain host creation fails
       }
 
-      onProgress({ status: 'running', progress: 50, currentTask: 'Executando análise AD' });
+      onProgress({ status: 'running', progress: 50, currentTask: 'Executando testes de segurança AD' });
 
-      // Extract enabled analyses from journey params
-      const enabledAnalyses = {
-        enableUsers: params.enableUsers !== false,          // default true
-        enableGroups: params.enableGroups !== false,        // default true
-        enableComputers: params.enableComputers !== false,  // default true
-        enablePolicies: params.enablePolicies !== false,    // default true
-        enableConfiguration: params.enableConfiguration !== false, // default true
-        enableDomainConfiguration: params.enableDomainConfiguration !== false // default true
+      // Extract enabled categories from journey params (default all enabled)
+      const enabledCategories = params.enabledCategories || {
+        configuracoes_criticas: true,
+        gerenciamento_contas: true,
+        kerberos_delegacao: true,
+        compartilhamentos_gpos: true,
+        politicas_configuracao: true,
+        contas_inativas: true,
       };
 
-      // Real AD hygiene scan using adScanner - PASS DOMAIN for target field
-      const findings = await adScanner.scanADHygiene(
+      // Get DC host - prefer primary, fallback to secondary if provided
+      // Note: Scanner will handle fallback internally if connection fails
+      const dcHost = params.primaryDC || params.secondaryDC || undefined;
+
+      // Execute AD Security scan using PowerShell via WinRM
+      const findings = await adScanner.scanADSecurity(
         domain,
         credential.username,
         decryptedPassword,
-        credential.port || undefined,
-        enabledAnalyses
+        dcHost,
+        enabledCategories
       );
 
       onProgress({ status: 'running', progress: 80, currentTask: 'Processando resultados' });
@@ -397,15 +403,23 @@ class JourneyExecutorService {
           throw new Error('Nome do domínio não especificado para jornada AD Based');
         }
 
-        // Usar novo método de descoberta de workstations
-        workstationTargets = await adScanner.discoverWorkstations(
-          domainName,
-          credential.username,
-          decryptedPassword,
-          credential.port || undefined
-        );
-
-        console.log(`Descobertas ${workstationTargets.length} workstations via LDAP`);
+        /**
+         * IMPORTANTE: Modo AD-based foi removido na refatoração do AD Security
+         * 
+         * Razão: O AD Security scanner foi refatorado para usar PowerShell via WinRM com 28 novos
+         * testes organizados em categorias. O método legado `discoverWorkstations()` que usava
+         * LDAP para descobrir workstations foi removido nessa refatoração.
+         * 
+         * Alternativa: Use o modo "Network Based" do EDR/AV, que permite selecionar alvos
+         * específicos (hosts ou ranges) de forma mais controlada e previsível.
+         * 
+         * Se descoberta automática via AD for necessária no futuro, será preciso reimplementar
+         * um método de descoberta compatível com o novo scanner PowerShell.
+         */
+        console.log('⚠️ Modo AD-based removido na refatoração do AD Security scanner');
+        console.log('💡 Use o modo Network Based com alvos específicos ao invés de AD Based');
+        
+        throw new Error('Modo AD Based não suportado após refatoração do AD Security. Use Network Based com alvos específicos.');
 
       } else if (edrAvType === 'network_based') {
         // Modo Network Based: Usar ativos específicos

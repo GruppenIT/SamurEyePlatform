@@ -529,6 +529,29 @@ export const attackSurfaceParamsSchema = z.object({
   processTimeout: z.number().min(5).max(180).default(60), // Timeout por processo em minutos (5-180min)
 });
 
+// Schema de validação para parâmetros de jornada AD Security
+export const adSecurityParamsSchema = z.object({
+  domain: z.string().min(1, "Domínio é obrigatório"),
+  credentialId: z.string().min(1, "Credencial é obrigatória"),
+  primaryDC: z.string().ip("IP do DC primário inválido").optional(),
+  secondaryDC: z.string().ip("IP do DC secundário inválido").optional(),
+  enabledCategories: z.object({
+    configuracoes_criticas: z.boolean().default(true),
+    gerenciamento_contas: z.boolean().default(true),
+    kerberos_delegacao: z.boolean().default(true),
+    compartilhamentos_gpos: z.boolean().default(true),
+    politicas_configuracao: z.boolean().default(true),
+    contas_inativas: z.boolean().default(true),
+  }).default({
+    configuracoes_criticas: true,
+    gerenciamento_contas: true,
+    kerberos_delegacao: true,
+    compartilhamentos_gpos: true,
+    politicas_configuracao: true,
+    contas_inativas: true,
+  }),
+});
+
 export const insertJourneySchema = createInsertSchema(journeys).omit({
   id: true,
   createdAt: true,

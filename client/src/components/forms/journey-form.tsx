@@ -97,13 +97,17 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
       case 'ad_security':
         params.domain = form.getValues('params.domain');
         params.credentialId = form.getValues('params.credentialId');
-        // Incluir configurações de análises habilitadas
-        params.enableUsers = form.getValues('params.enableUsers') ?? true;
-        params.enableGroups = form.getValues('params.enableGroups') ?? true;
-        params.enableComputers = form.getValues('params.enableComputers') ?? true;
-        params.enablePolicies = form.getValues('params.enablePolicies') ?? true;
-        params.enableConfiguration = form.getValues('params.enableConfiguration') ?? true;
-        params.enableDomainConfiguration = form.getValues('params.enableDomainConfiguration') ?? true;
+        params.primaryDC = form.getValues('params.primaryDC');
+        params.secondaryDC = form.getValues('params.secondaryDC');
+        // Categorias de testes habilitadas (padrão: todas)
+        params.enabledCategories = {
+          configuracoes_criticas: form.getValues('params.enabledCategories.configuracoes_criticas') ?? true,
+          gerenciamento_contas: form.getValues('params.enabledCategories.gerenciamento_contas') ?? true,
+          kerberos_delegacao: form.getValues('params.enabledCategories.kerberos_delegacao') ?? true,
+          compartilhamentos_gpos: form.getValues('params.enabledCategories.compartilhamentos_gpos') ?? true,
+          politicas_configuracao: form.getValues('params.enabledCategories.politicas_configuracao') ?? true,
+          contas_inativas: form.getValues('params.enabledCategories.contas_inativas') ?? true,
+        };
         break;
       case 'edr_av':
         params.edrAvType = form.getValues('params.edrAvType') || 'network_based';
@@ -318,107 +322,186 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
               )}
             />
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="params.primaryDC"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>DC Primário (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ex: 192.168.1.10"
+                        {...field}
+                        data-testid="input-primary-dc"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      IP do DC primário (autodescoberta se vazio)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="params.secondaryDC"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>DC Secundário (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ex: 192.168.1.11"
+                        {...field}
+                        data-testid="input-secondary-dc"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      IP do DC secundário (fallback)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <div>
-              <FormLabel>Verificações de Segurança AD</FormLabel>
+              <FormLabel>Categorias de Testes de Segurança AD</FormLabel>
               <div className="mt-3 space-y-3 border rounded-md p-4 bg-muted/10">
                 <div className="text-sm font-medium text-foreground mb-2">
-                  Selecione os testes para executar:
+                  Selecione as categorias para executar (28 testes organizados):
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                   <FormField
                     control={form.control}
-                    name="params.enableUsers"
+                    name="params.enabledCategories.configuracoes_criticas"
                     render={({ field }) => (
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-start space-x-2">
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          data-testid="checkbox-ad-users"
+                          data-testid="checkbox-cat-critical"
                         />
-                        <label className="text-sm font-medium">
-                          Análise de Usuários
-                        </label>
+                        <div>
+                          <label className="text-sm font-medium text-red-600 dark:text-red-400">
+                            🔴 Configurações Críticas
+                          </label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            PrintNightmare, LDAP anônimo, SMBv1, KRBTGT fraca, Schema
+                          </p>
+                        </div>
                       </div>
                     )}
                   />
+                  
                   <FormField
                     control={form.control}
-                    name="params.enableGroups"
+                    name="params.enabledCategories.gerenciamento_contas"
                     render={({ field }) => (
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-start space-x-2">
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          data-testid="checkbox-ad-groups"
+                          data-testid="checkbox-cat-accounts"
                         />
-                        <label className="text-sm font-medium">
-                          Análise de Grupos Privilegiados
-                        </label>
+                        <div>
+                          <label className="text-sm font-medium text-orange-600 dark:text-orange-400">
+                            👥 Gerenciamento de Contas
+                          </label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            SPNs privilegiados, pré-auth, senhas, AdminCount, Trusts
+                          </p>
+                        </div>
                       </div>
                     )}
                   />
+                  
                   <FormField
                     control={form.control}
-                    name="params.enableComputers"
+                    name="params.enabledCategories.kerberos_delegacao"
                     render={({ field }) => (
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-start space-x-2">
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          data-testid="checkbox-ad-computers"
+                          data-testid="checkbox-cat-kerberos"
                         />
-                        <label className="text-sm font-medium">
-                          Análise de Computadores
-                        </label>
+                        <div>
+                          <label className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                            🎫 Kerberos e Delegação
+                          </label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            RBCD, gMSA, criptografia, RODC
+                          </p>
+                        </div>
                       </div>
                     )}
                   />
+                  
                   <FormField
                     control={form.control}
-                    name="params.enablePolicies"
+                    name="params.enabledCategories.compartilhamentos_gpos"
                     render={({ field }) => (
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-start space-x-2">
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          data-testid="checkbox-ad-policies"
+                          data-testid="checkbox-cat-shares"
                         />
-                        <label className="text-sm font-medium">
-                          Análise de Políticas
-                        </label>
+                        <div>
+                          <label className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                            📂 Compartilhamentos e GPOs
+                          </label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Credenciais em SYSVOL/NETLOGON, permissões, SMB signing
+                          </p>
+                        </div>
                       </div>
                     )}
                   />
+                  
                   <FormField
                     control={form.control}
-                    name="params.enableConfiguration"
+                    name="params.enabledCategories.politicas_configuracao"
                     render={({ field }) => (
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-start space-x-2">
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          data-testid="checkbox-ad-configuration"
+                          data-testid="checkbox-cat-policies"
                         />
-                        <label className="text-sm font-medium">
-                          Configurações de Domínio
-                        </label>
+                        <div>
+                          <label className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                            ⚙️ Políticas e Configuração
+                          </label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            UAC, ACEs, nível funcional, LAPS, DNS Admins
+                          </p>
+                        </div>
                       </div>
                     )}
                   />
+                  
                   <FormField
                     control={form.control}
-                    name="params.enableDomainConfiguration"
+                    name="params.enabledCategories.contas_inativas"
                     render={({ field }) => (
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-start space-x-2">
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          data-testid="checkbox-ad-domain-config"
+                          data-testid="checkbox-cat-inactive"
                         />
-                        <label className="text-sm font-medium">
-                          Análise Avançada de Domínio
-                        </label>
+                        <div>
+                          <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            💤 Contas Inativas
+                          </label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Privilegiadas inativas, desabilitadas, serviços, dormentes
+                          </p>
+                        </div>
                       </div>
                     )}
                   />
@@ -426,21 +509,18 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
 
                 <div className="mt-4 pt-3 border-t">
                   <div className="text-sm font-medium text-foreground mb-2">
-                    Verificações incluídas quando habilitadas:
+                    Total: 28 testes de segurança AD organizados em 6 categorias
                   </div>
                   <div className="grid grid-cols-1 gap-1 text-xs">
                     <div className="text-red-600 dark:text-red-400">
-                      🚨 Domain Admins com senhas antigas (Severidade: CRÍTICA)
+                      🔴 5 testes críticos: PrintNightmare, KRBTGT, SMBv1, LDAP, Schema
+                    </div>
+                    <div className="text-orange-600 dark:text-orange-400">
+                      🟠 10 testes de contas: SPNs, senhas, privilégios, trusts
                     </div>
                     <div className="text-blue-600 dark:text-blue-400">
-                      ℹ️ Usuários inativos por período configurado (Severidade: BAIXA)
+                      🔵 13 testes de configuração, Kerberos, GPOs e contas inativas
                     </div>
-                    <div>• Usuários com senhas que nunca expiram</div>
-                    <div>• Grupos privilegiados com muitos membros</div>
-                    <div>• Sistemas operacionais obsoletos</div>
-                    <div>• Computadores inativos no domínio</div>
-                    <div>• Políticas de senha fracas</div>
-                    <div>• Trusts bidirecionais de domínio</div>
                   </div>
                 </div>
               </div>
