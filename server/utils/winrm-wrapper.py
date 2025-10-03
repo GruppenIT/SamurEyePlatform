@@ -44,8 +44,14 @@ def execute_winrm_command(host, username, password, script, timeout=30):
         )
         
         # Execute PowerShell command
+        # Use powershell.exe with -EncodedCommand to avoid quoting issues
+        import base64
+        
+        # Encode script to Base64 (UTF-16LE for PowerShell)
+        encoded_script = base64.b64encode(script.encode('utf-16le')).decode('ascii')
+        
         shell_id = protocol.open_shell()
-        command_id = protocol.run_command(shell_id, 'powershell', ['-Command', script])
+        command_id = protocol.run_command(shell_id, 'powershell.exe', ['-NoProfile', '-EncodedCommand', encoded_script])
         
         # Get output
         stdout, stderr, status_code = protocol.get_command_output(shell_id, command_id)
