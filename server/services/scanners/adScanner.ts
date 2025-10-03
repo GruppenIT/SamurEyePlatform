@@ -15,6 +15,22 @@ export interface ADFinding {
   recommendation?: string;
 }
 
+export interface ADSecurityTestResult {
+  testId: string;
+  testName: string;
+  category: string;
+  severityHint: 'low' | 'medium' | 'high' | 'critical';
+  status: 'pass' | 'fail' | 'error' | 'skipped';
+  evidence: Record<string, any>;
+  description?: string;
+  recommendation?: string;
+}
+
+export interface ADSecurityScanResult {
+  findings: ADFinding[]; // Only tests that failed
+  testResults: ADSecurityTestResult[]; // All 28 tests (pass/fail/error/skipped)
+}
+
 interface PowerShellExecutionResult {
   success: boolean;
   stdout: string;
@@ -46,6 +62,31 @@ export class ADScanner {
   private domain: string = '';
 
   /**
+   * Helper para criar resultado de teste
+   */
+  private createTestResult(
+    testId: string,
+    testName: string,
+    category: string,
+    severityHint: 'low' | 'medium' | 'high' | 'critical',
+    status: 'pass' | 'fail' | 'error' | 'skipped',
+    evidence: Record<string, any>,
+    description?: string,
+    recommendation?: string
+  ): ADSecurityTestResult {
+    return {
+      testId,
+      testName,
+      category,
+      severityHint,
+      status,
+      evidence,
+      description,
+      recommendation,
+    };
+  }
+
+  /**
    * Escaneia segurança do Active Directory usando PowerShell via WinRM
    */
   async scanADSecurity(
@@ -54,10 +95,11 @@ export class ADScanner {
     password: string,
     dcHost?: string,
     enabledCategories?: ADSecurityCategories
-  ): Promise<ADFinding[]> {
+  ): Promise<ADSecurityScanResult> {
     console.log(`🔍 Iniciando análise de segurança AD para domínio ${domain}`);
     
     const findings: ADFinding[] = [];
+    const testResults: ADSecurityTestResult[] = [];
     this.domain = domain;
     this.baseDN = this.buildBaseDN(domain);
 
@@ -71,7 +113,7 @@ export class ADScanner {
         console.log(`✅ Encontrados ${domainControllers.length} controladores de domínio via DNS`);
 
         if (domainControllers.length === 0) {
-          findings.push({
+          const errorFinding: ADFinding = {
             type: 'ad_misconfiguration',
             target: domain,
             name: 'Nenhum Controlador de Domínio Encontrado',
@@ -79,8 +121,21 @@ export class ADScanner {
             category: 'configuration',
             description: 'Não foi possível localizar controladores de domínio para o domínio especificado via DNS',
             recommendation: 'Verificar configuração DNS e conectividade de rede. Especifique o IP do DC manualmente.'
-          });
-          return findings;
+          };
+          findings.push(errorFinding);
+          
+          testResults.push(this.createTestResult(
+            'test_dc_discovery_error',
+            'Descoberta de Controladores de Domínio',
+            'configuration',
+            'critical',
+            'error',
+            { domainControllersFound: 0 },
+            errorFinding.description,
+            errorFinding.recommendation
+          ));
+          
+          return { findings, testResults };
         }
         dcList = domainControllers;
         targetDC = domainControllers[0];
@@ -145,12 +200,53 @@ export class ADScanner {
         console.log(`✅ Contas Inativas: ${inactiveFindings.length} achados`);
       }
 
-      console.log(`✅ Análise concluída: ${findings.length} achados totais`);
-      return findings;
+      // 4. Converter findings em testResults
+      // Por simplicidade, criar test results básicos mapeando findings (fail) 
+      // e adicionando resultados "pass" ou "skipped" para categorias
+      const findingTestResults: ADSecurityTestResult[] = findings.map((finding, index) => ({
+        testId: `test_${finding.category}_${index}`,
+        testName: finding.name,
+        category: finding.category,
+        severityHint: finding.severity,
+        status: 'fail' as const,
+        evidence: finding.evidence || {},
+        description: finding.description,
+        recommendation: finding.recommendation,
+      }));
+      
+      testResults.push(...findingTestResults);
+      
+      // Adicionar test results "skipped" para categorias desabilitadas
+      const categoryNames = {
+        configuracoes_criticas: 'Configurações Críticas',
+        gerenciamento_contas: 'Gerenciamento de Contas',
+        kerberos_delegacao: 'Kerberos e Delegação',
+        compartilhamentos_gpos: 'Compartilhamentos e GPOs',
+        politicas_configuracao: 'Políticas e Configuração',
+        contas_inativas: 'Contas Inativas',
+      };
+      
+      Object.entries(categories).forEach(([catKey, enabled]) => {
+        if (!enabled) {
+          const categoryName = categoryNames[catKey as keyof typeof categoryNames];
+          testResults.push(this.createTestResult(
+            `test_${catKey}_skipped`,
+            `${categoryName} - Categoria desabilitada`,
+            catKey,
+            'low',
+            'skipped',
+            {},
+            `Categoria ${categoryName} foi desabilitada na configuração da jornada`
+          ));
+        }
+      });
+
+      console.log(`✅ Análise concluída: ${findings.length} achados, ${testResults.length} resultados de teste`);
+      return { findings, testResults };
 
     } catch (error: any) {
       console.error('❌ Erro na análise AD Security:', error);
-      findings.push({
+      const errorFinding: ADFinding = {
         type: 'ad_misconfiguration',
         target: domain,
         name: 'Erro na Execução da Análise',
@@ -158,8 +254,21 @@ export class ADScanner {
         category: 'configuration',
         description: `Falha ao executar análise de segurança: ${error.message}`,
         recommendation: 'Verificar credenciais, conectividade e permissões WinRM no controlador de domínio'
-      });
-      return findings;
+      };
+      findings.push(errorFinding);
+      
+      testResults.push(this.createTestResult(
+        'test_error_execution',
+        'Erro na Execução da Análise',
+        'configuration',
+        'critical',
+        'error',
+        { error: error.message, stack: error.stack },
+        errorFinding.description,
+        errorFinding.recommendation
+      ));
+      
+      return { findings, testResults };
     }
   }
 

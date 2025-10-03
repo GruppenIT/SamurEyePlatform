@@ -305,7 +305,7 @@ class JourneyExecutorService {
       const dcHost = params.primaryDC || params.secondaryDC || undefined;
 
       // Execute AD Security scan using PowerShell via WinRM
-      const findings = await adScanner.scanADSecurity(
+      const scanResult = await adScanner.scanADSecurity(
         domain,
         credential.username,
         decryptedPassword,
@@ -313,18 +313,45 @@ class JourneyExecutorService {
         enabledCategories
       );
 
+      const { findings, testResults } = scanResult;
+
+      onProgress({ status: 'running', progress: 70, currentTask: 'Salvando resultados dos testes' });
+
+      // Save test results to database (linked to domain host)
+      if (testResults.length > 0 && domainHost) {
+        try {
+          const testResultsToInsert = testResults.map(result => ({
+            jobId,
+            hostId: domainHost.id,
+            testId: result.testId,
+            testName: result.testName,
+            category: result.category,
+            severityHint: result.severityHint,
+            status: result.status,
+            evidence: result.evidence,
+          }));
+          
+          await storage.createAdSecurityTestResults(testResultsToInsert);
+          console.log(`✅ Salvos ${testResults.length} resultados de testes AD Security`);
+        } catch (error) {
+          console.error('❌ Erro ao salvar resultados dos testes:', error);
+        }
+      }
+
       onProgress({ status: 'running', progress: 80, currentTask: 'Processando resultados' });
 
       // Store results
       await storage.createJobResult({
         jobId,
-        stdout: `Análise AD concluída para domínio ${domain}. ${findings.length} achados identificados.`,
+        stdout: `Análise AD concluída para domínio ${domain}. ${findings.length} achados identificados, ${testResults.length} testes executados.`,
         stderr: '',
         artifacts: {
           findings,
+          testResults,
           summary: {
             domain,
             totalFindings: findings.length,
+            totalTests: testResults.length,
             findingsByCategory: this.groupFindingsByCategory(findings),
             findingsBySeverity: this.groupFindingsBySeverity(findings),
             scanDuration: new Date().toISOString(),
