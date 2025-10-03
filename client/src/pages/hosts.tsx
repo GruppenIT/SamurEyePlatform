@@ -233,6 +233,8 @@ interface AdSecurityTestResult {
 }
 
 function ADSecurityTests({ hostId }: { hostId: string }) {
+  const [selectedTest, setSelectedTest] = useState<AdSecurityTestResult | null>(null);
+  
   const { data: testResults = [], isLoading } = useQuery<AdSecurityTestResult[]>({
     queryKey: ['/api/hosts', hostId, 'ad-tests'],
     queryFn: async () => {
@@ -345,7 +347,8 @@ function ADSecurityTests({ hostId }: { hostId: string }) {
                       <span className="text-foreground/90 flex-1">{test.testName}</span>
                       <Badge
                         variant="outline"
-                        className={`ml-2 ${statusBadge.className}`}
+                        className={`ml-2 cursor-pointer hover:opacity-80 ${statusBadge.className}`}
+                        onClick={() => setSelectedTest(test)}
                         data-testid={`badge-status-${test.testId}`}
                       >
                         {statusBadge.label}
@@ -362,6 +365,95 @@ function ADSecurityTests({ hostId }: { hostId: string }) {
       <div className="text-xs text-muted-foreground mt-3 pt-3 border-t">
         Última execução: {new Date(testResults[0]?.executedAt).toLocaleString('pt-BR')}
       </div>
+
+      {/* Evidence Dialog */}
+      <Dialog open={!!selectedTest} onOpenChange={() => setSelectedTest(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">
+              {selectedTest?.testName}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedTest && (
+            <div className="space-y-4">
+              {/* Status */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Status</label>
+                <div className="mt-1">
+                  <Badge
+                    variant="outline"
+                    className={getStatusBadge(selectedTest.status).className}
+                  >
+                    {getStatusBadge(selectedTest.status).label}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Comando PowerShell */}
+              {selectedTest.evidence?.command && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Comando PowerShell Executado
+                  </label>
+                  <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-x-auto font-mono">
+                    {selectedTest.evidence.command}
+                  </pre>
+                </div>
+              )}
+
+              {/* Output (stdout) */}
+              {selectedTest.evidence?.stdout && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Output (stdout)
+                  </label>
+                  <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-x-auto max-h-60 font-mono">
+                    {selectedTest.evidence.stdout}
+                  </pre>
+                </div>
+              )}
+
+              {/* Errors (stderr) */}
+              {selectedTest.evidence?.stderr && selectedTest.evidence.stderr.length > 0 && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground text-orange-500">
+                    Errors (stderr)
+                  </label>
+                  <pre className="mt-1 p-3 bg-orange-500/10 border border-orange-500/30 rounded-md text-xs overflow-x-auto max-h-40 font-mono text-orange-500">
+                    {selectedTest.evidence.stderr}
+                  </pre>
+                </div>
+              )}
+
+              {/* Exit Code */}
+              {selectedTest.evidence?.exitCode !== undefined && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Exit Code</label>
+                  <div className="mt-1 text-sm font-mono">
+                    {selectedTest.evidence.exitCode}
+                  </div>
+                </div>
+              )}
+
+              {/* Test ID */}
+              <div className="pt-3 border-t">
+                <label className="text-xs font-medium text-muted-foreground">Test ID</label>
+                <div className="mt-1 text-xs font-mono">{selectedTest.testId}</div>
+              </div>
+
+              {/* Execution Time */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">
+                  Data de Execução
+                </label>
+                <div className="mt-1 text-xs">
+                  {new Date(selectedTest.executedAt).toLocaleString('pt-BR')}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
