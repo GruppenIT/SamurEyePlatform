@@ -887,6 +887,14 @@ class ThreatEngineService {
           threats.push(threat);
           console.log(`🔄 Threat upserted: ${threat.title} (Category: ${threat.category}, HostId: ${threat.hostId}, Key: ${correlationKey}, isNew: ${isNew})`);
           
+          // Recalculate host risk score if threat is linked to a host
+          if (threat.hostId) {
+            console.log(`🔢 Recalculando risk score para host ${threat.hostId}...`);
+            await this.recalculateHostRiskScore(threat.hostId).catch(err => 
+              console.error(`⚠️ Erro ao recalcular escore de risco do host ${threat.hostId}:`, err)
+            );
+          }
+          
           // Send email notification if this is a new threat
           if (isNew) {
             console.log(`📧 Sending notification for new threat: ${threat.id}`);
