@@ -1,0 +1,42 @@
+root@vlxsam99:~# journalctl -u samureye-api.service -f
+Oct 03 20:27:05 vlxsam99 npm[843574]: 8:27:05 PM [express] GET /api/dashboard/recent-threats 304 in 27ms :: []
+Oct 03 20:27:05 vlxsam99 npm[843574]: 8:27:05 PM [express] GET /api/dashboard/metrics 304 in 39ms :: {"activeAssets":0,"criticalThreats":0…
+Oct 03 20:27:05 vlxsam99 npm[843574]: 8:27:05 PM [express] GET /api/system/metrics 304 in 37ms :: {"cpu":0,"memory":11,"services":[{"name"…
+Oct 03 20:27:07 vlxsam99 npm[843574]: 8:27:07 PM [express] GET /api/credentials 200 in 4ms :: []
+Oct 03 20:27:24 vlxsam99 npm[843574]: 8:27:24 PM [express] POST /api/credentials 201 in 23ms :: {"id":"6e09cd71-eda6-4b2e-84b9-8e698fdf118…
+Oct 03 20:27:24 vlxsam99 npm[843574]: 8:27:24 PM [express] GET /api/credentials 200 in 5ms :: [{"id":"6e09cd71-eda6-4b2e-84b9-8e698fdf118e…
+Oct 03 20:27:26 vlxsam99 npm[843574]: 8:27:26 PM [express] GET /api/journeys 200 in 4ms :: []
+Oct 03 20:27:27 vlxsam99 npm[843574]: 8:27:27 PM [express] GET /api/assets 304 in 4ms :: []
+Oct 03 20:27:43 vlxsam99 npm[843574]: 8:27:43 PM [express] POST /api/journeys 201 in 29ms :: {"id":"aba8cac7-ca36-4584-80fe-6752439a8807",…
+Oct 03 20:27:43 vlxsam99 npm[843574]: 8:27:43 PM [express] GET /api/journeys 200 in 5ms :: [{"id":"aba8cac7-ca36-4584-80fe-6752439a8807","…
+Oct 03 20:27:49 vlxsam99 npm[843574]: 8:27:49 PM [express] POST /api/jobs/execute 201 in 24ms :: {"id":"18c56661-f859-4bd4-8d89-13d3bce7c9…
+Oct 03 20:27:49 vlxsam99 npm[843574]: 🏠 Host de domínio criado/atualizado: gruppen.com.br
+Oct 03 20:27:49 vlxsam99 npm[843574]: 🏠 AD Hygiene: Host de domínio criado: gruppen.com.br
+Oct 03 20:27:49 vlxsam99 npm[843574]: 🔍 Iniciando análise de segurança AD para domínio gruppen.com.br
+Oct 03 20:27:49 vlxsam99 npm[843574]: 🎯 Usando DC primário: 192.168.100.43
+Oct 03 20:27:49 vlxsam99 npm[843574]: 🔴 Executando testes: Configurações Críticas...
+Oct 03 20:27:49 vlxsam99 npm[843574]: ✅ Configurações Críticas: 0 achados
+Oct 03 20:27:49 vlxsam99 npm[843574]: 👥 Executando testes: Gerenciamento de Contas...
+Oct 03 20:27:50 vlxsam99 npm[843574]: ✅ Gerenciamento de Contas: 0 achados
+Oct 03 20:27:50 vlxsam99 npm[843574]: 🎫 Executando testes: Kerberos e Delegação...
+Oct 03 20:27:50 vlxsam99 npm[843574]: ✅ Kerberos e Delegação: 0 achados
+Oct 03 20:27:50 vlxsam99 npm[843574]: 📂 Executando testes: Compartilhamentos e GPOs...
+Oct 03 20:27:51 vlxsam99 npm[843574]: ✅ Compartilhamentos e GPOs: 0 achados
+Oct 03 20:27:51 vlxsam99 npm[843574]: ⚙️  Executando testes: Políticas e Configuração...
+Oct 03 20:27:51 vlxsam99 npm[843574]: ✅ Políticas e Configuração: 0 achados
+Oct 03 20:27:51 vlxsam99 npm[843574]: 💤 Executando testes: Contas Inativas...
+Oct 03 20:27:51 vlxsam99 npm[843574]: ✅ Contas Inativas: 0 achados
+Oct 03 20:27:51 vlxsam99 npm[843574]: ✅ Análise concluída: 0 achados, 28 resultados de teste
+Oct 03 20:27:51 vlxsam99 npm[843574]: ✅ Salvos 28 resultados de testes AD Security
+Oct 03 20:27:51 vlxsam99 npm[843574]: 🔍 PROCESS_JOB_RESULTS: Starting with jobId: 18c56661-f859-4bd4-8d89-13d3bce7c9fd
+Oct 03 20:27:51 vlxsam99 npm[843574]: 🔍 PROCESS_JOB_RESULTS: Journey aba8cac7-ca36-4584-80fe-6752439a8807, Type: ad_security, JobId: 18c56661-f859-4bd4-8d89-13d3bce7c9fd
+Oct 03 20:27:51 vlxsam99 npm[843574]: 🔍 ThreatEngine.analyzeWithLifecycle: Analisando 0 findings para journeyType 'ad_security' (jobId: 18c56661-f859-4bd4-8d89-13d3bce7c9fd)
+Oct 03 20:27:51 vlxsam99 npm[843574]: 🎯 ThreatEngine.analyzeWithLifecycle: Criou 0 ameaças de 0 findings para journeyType 'ad_security'
+Oct 03 20:27:51 vlxsam99 npm[843574]: 🔍 PROCESS_JOB_RESULTS: About to run post-processing with jobId: 18c56661-f859-4bd4-8d89-13d3bce7c9fd
+Oct 03 20:27:51 vlxsam99 npm[843574]: 🔍 AD_SECURITY_CLOSURES: Starting with journeyId: aba8cac7-ca36-4584-80fe-6752439a8807, jobId: 18c56661-f859-4bd4-8d89-13d3bce7c9fd
+Oct 03 20:27:51 vlxsam99 npm[843574]: 📊 AD_SECURITY_METRICS: Starting analysis - observedKeys: 0, openThreats: 0, currentJobId: 18c56661-f859-4bd4-8d89-13d3bce7c9fd
+Oct 03 20:27:51 vlxsam99 npm[843574]: ✅ AD_SECURITY_METRICS: Completed - skippedCurrentJob: 0, closed: 0, keptOpen: 0, noCorrelationKey: 0, total: 0
+Oct 03 20:27:51 vlxsam99 npm[843574]: 🔄 Processing journey completion for job 18c56661-f859-4bd4-8d89-13d3bce7c9fd
+Oct 03 20:27:51 vlxsam99 npm[843574]: 🆕 CLOSURE_METRICS: First-run detected for journey aba8cac7-ca36-4584-80fe-6752439a8807 - skipping auto-closure (previousJobsCount: 0, currentJobId: 18c56661-f859-4bd4-8d89-13d3bce7c9fd)
+Oct 03 20:27:51 vlxsam99 npm[843574]: 🗑️  Job 18c56661-f859-4bd4-8d89-13d3bce7c9fd removido dos jobs em execução
+Oct 03 20:28:01 vlxsam99 npm[843574]: 8:28:01 PM [express] GET /api/hosts 200 in 15ms :: [{"id":"01619105-5db9-4009-babd-0868256ee459","na…
