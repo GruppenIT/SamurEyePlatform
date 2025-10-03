@@ -1,0 +1,66 @@
+root@vlxsam99:~# journalctl -u samureye-api.service -f
+Oct 03 19:53:22 vlxsam99 npm[835575]: 7:53:22 PM [express] GET /api/dashboard/me                                                                                                                                    trics 304 in 28ms :: {"activeAssets":0,"criticalThreats":0…
+Oct 03 19:53:22 vlxsam99 npm[835575]: 7:53:22 PM [express] GET /api/system/metri                                                                                                                                    cs 304 in 25ms :: {"cpu":0,"memory":11,"services":[{"name"…
+Oct 03 19:53:22 vlxsam99 npm[835575]: 7:53:22 PM [express] GET /api/schedules 30                                                                                                                                    4 in 6ms :: []
+Oct 03 19:53:25 vlxsam99 npm[835575]: 7:53:25 PM [express] GET /api/credentials                                                                                                                                     200 in 5ms :: []
+Oct 03 19:53:43 vlxsam99 npm[835575]: 7:53:43 PM [express] POST /api/credentials                                                                                                                                     201 in 29ms :: {"id":"e7fa70ef-bc83-43df-a3da-2f431614f19…
+Oct 03 19:53:43 vlxsam99 npm[835575]: 7:53:43 PM [express] GET /api/credentials                                                                                                                                     200 in 4ms :: [{"id":"e7fa70ef-bc83-43df-a3da-2f431614f19e…
+Oct 03 19:53:44 vlxsam99 npm[835575]: 7:53:44 PM [express] GET /api/journeys 200                                                                                                                                     in 5ms :: []
+Oct 03 19:53:45 vlxsam99 npm[835575]: 7:53:45 PM [express] GET /api/assets 304 i                                                                                                                                    n 6ms :: []
+Oct 03 19:54:43 vlxsam99 npm[835575]: 7:54:43 PM [express] POST /api/journeys 20                                                                                                                                    1 in 23ms :: {"id":"fa2dc38d-3bd4-46bf-a87c-510a4473be2e",…
+Oct 03 19:54:43 vlxsam99 npm[835575]: 7:54:43 PM [express] GET /api/journeys 200                                                                                                                                     in 4ms :: [{"id":"fa2dc38d-3bd4-46bf-a87c-510a4473be2e","…
+Oct 03 19:54:52 vlxsam99 npm[835575]: 7:54:52 PM [express] POST /api/jobs/execute 201 in 24ms :: {"id":"81cfc210-e8bd-4836-a3bc-78cab5591f…
+Oct 03 19:54:52 vlxsam99 npm[835575]: 🏠 Host de domínio criado/atualizado: gruppen.com.br
+Oct 03 19:54:52 vlxsam99 npm[835575]: 🏠 AD Hygiene: Host de domínio criado: gruppen.com.br
+Oct 03 19:54:52 vlxsam99 npm[835575]: 🔍 Iniciando análise de segurança AD para domínio gruppen.com.br
+Oct 03 19:54:52 vlxsam99 npm[835575]: 🎯 Usando DC primário: 192.168.100.43
+Oct 03 19:54:52 vlxsam99 npm[835575]: 🔴 Executando testes: Configurações Críticas...
+Oct 03 19:54:52 vlxsam99 npm[835575]: 7:54:52 PM [express] Uncaught exception: Error: spawn pwsh ENOENT
+Oct 03 19:54:52 vlxsam99 npm[835575]: 7:54:52 PM [express] uncaughtException received. Shutting down gracefully...
+Oct 03 19:54:52 vlxsam99 npm[835575]: 7:54:52 PM [express] HTTP server stopped accepting new connections
+Oct 03 19:54:52 vlxsam99 npm[835575]: 7:54:52 PM [express] WebSocket server closed
+Oct 03 19:54:52 vlxsam99 npm[835575]: 🛑 Serviço de agendamento parado
+Oct 03 19:54:52 vlxsam99 npm[835575]: 7:54:52 PM [express] Scheduler service stopped
+Oct 03 19:54:52 vlxsam99 npm[835575]: 7:54:52 PM [express] PostgreSQL pool closed
+Oct 03 19:54:52 vlxsam99 npm[835575]: 7:54:52 PM [express] Shutdown completed successfully
+Oct 03 19:54:52 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Oct 03 19:54:52 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Oct 03 19:54:52 vlxsam99 systemd[1]: samureye-api.service: Consumed 3.109s CPU time.
+Oct 03 19:55:02 vlxsam99 systemd[1]: samureye-api.service: Scheduled restart job, restart counter is at 1.
+Oct 03 19:55:02 vlxsam99 systemd[1]: Started samureye-api.service - SamurEye API Server.
+Oct 03 19:55:02 vlxsam99 npm[835653]: > rest-express@1.0.0 start
+Oct 03 19:55:02 vlxsam99 npm[835653]: > NODE_ENV=production node dist/index.js
+Oct 03 19:55:03 vlxsam99 npm[835665]: 🔧 Inicializando configurações padrão do sistema...
+Oct 03 19:55:03 vlxsam99 npm[835665]: 🔧 Inicializando configurações padrão do sistema...
+Oct 03 19:55:03 vlxsam99 npm[835665]: ✅ Configurações padrão inicializadas com sucesso
+Oct 03 19:55:03 vlxsam99 npm[835665]: ✅ Configurações padrão inicializadas com sucesso
+Oct 03 19:55:03 vlxsam99 npm[835665]: 🔧 Verificando estrutura do banco de dados...
+Oct 03 19:55:03 vlxsam99 npm[835665]: ✅ Usuário sistema já existe
+Oct 03 19:55:03 vlxsam99 npm[835665]: 🔍 Índice único de correlation_key: EXISTE
+Oct 03 19:55:03 vlxsam99 npm[835665]: ✅ Estrutura do banco de dados já está atualizada
+Oct 03 19:55:03 vlxsam99 npm[835665]: 🕒 Iniciando monitor de ameaças hibernadas...
+Oct 03 19:55:03 vlxsam99 npm[835665]: 🕒 Checking for hibernated threats to activate
+Oct 03 19:55:03 vlxsam99 npm[835665]: 📊 Found 0 hibernated threats to activate
+Oct 03 19:55:03 vlxsam99 npm[835665]: 🕐 Iniciando serviço de agendamento...
+Oct 03 19:55:03 vlxsam99 npm[835665]: ✅ Serviço de agendamento iniciado com sucesso
+Oct 03 19:55:03 vlxsam99 npm[835665]: 7:55:03 PM [express] serving on port 5000
+Oct 03 19:55:10 vlxsam99 npm[835665]: 7:55:10 PM [express] GET /api/auth/user 304 in 6ms :: {"id":"5c5b5552-d83a-43fb-b07a-d221e62fd0ad","…
+Oct 03 19:55:10 vlxsam99 npm[835665]: 7:55:10 PM [express] GET /api/threats 304 in 7ms :: []
+Oct 03 19:55:10 vlxsam99 npm[835665]: 7:55:10 PM [express] GET /api/journeys 304 in 13ms :: [{"id":"fa2dc38d-3bd4-46bf-a87c-510a4473be2e",…
+Oct 03 19:55:19 vlxsam99 npm[835665]: 7:55:19 PM [express] POST /api/jobs/execute 201 in 22ms :: {"id":"e401ff08-886f-468a-9970-db917040a6…
+Oct 03 19:55:19 vlxsam99 npm[835665]: 🏠 Host de domínio criado/atualizado: gruppen.com.br
+Oct 03 19:55:19 vlxsam99 npm[835665]: 🏠 AD Hygiene: Host de domínio criado: gruppen.com.br
+Oct 03 19:55:19 vlxsam99 npm[835665]: 🔍 Iniciando análise de segurança AD para domínio gruppen.com.br
+Oct 03 19:55:19 vlxsam99 npm[835665]: 🎯 Usando DC primário: 192.168.100.43
+Oct 03 19:55:19 vlxsam99 npm[835665]: 🔴 Executando testes: Configurações Críticas...
+Oct 03 19:55:19 vlxsam99 npm[835665]: 7:55:19 PM [express] Uncaught exception: Error: spawn pwsh ENOENT
+Oct 03 19:55:19 vlxsam99 npm[835665]: 7:55:19 PM [express] uncaughtException received. Shutting down gracefully...
+Oct 03 19:55:19 vlxsam99 npm[835665]: 7:55:19 PM [express] HTTP server stopped accepting new connections
+Oct 03 19:55:19 vlxsam99 npm[835665]: 7:55:19 PM [express] WebSocket server closed
+Oct 03 19:55:19 vlxsam99 npm[835665]: 🛑 Serviço de agendamento parado
+Oct 03 19:55:19 vlxsam99 npm[835665]: 7:55:19 PM [express] Scheduler service stopped
+Oct 03 19:55:19 vlxsam99 npm[835665]: 7:55:19 PM [express] PostgreSQL pool closed
+Oct 03 19:55:19 vlxsam99 npm[835665]: 7:55:19 PM [express] Shutdown completed successfully
+Oct 03 19:55:19 vlxsam99 systemd[1]: samureye-api.service: Main process exited, code=exited, status=1/FAILURE
+Oct 03 19:55:19 vlxsam99 systemd[1]: samureye-api.service: Failed with result 'exit-code'.
+Oct 03 19:55:19 vlxsam99 systemd[1]: samureye-api.service: Consumed 1.872s CPU time.

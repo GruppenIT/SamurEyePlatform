@@ -53,10 +53,11 @@ SamurEye é uma plataforma empresarial de cibersegurança projetada para valida�
 - SSL/TLS certificates (recomendado Let's Encrypt)
 
 ### Ferramentas de Segurança
-- nmap
-- nuclei
-- smbclient
-- openldap-utils
+- nmap (escaneamento de portas e vulnerabilidades)
+- nuclei (detecção de vulnerabilidades web)
+- smbclient (testes EDR/AV)
+- ldap-utils (análise de Active Directory)
+- **PowerShell Core (pwsh)** - **OBRIGATÓRIO** para jornada AD Security via WinRM
 
 ## 🚀 Instalação Rápida
 
@@ -86,7 +87,16 @@ curl -fsSL https://raw.githubusercontent.com/GruppenIT/SamurEyePlatform/main/ins
    ```bash
    sudo apt update && sudo apt upgrade -y
    sudo apt install -y nodejs npm postgresql postgresql-contrib nginx git
-   sudo apt install -y nmap nuclei smbclient ldap-utils
+   sudo apt install -y nmap smbclient ldap-utils
+   
+   # Instalar PowerShell Core (OBRIGATÓRIO para AD Security)
+   sudo snap install powershell --classic
+   sudo ln -sf /snap/bin/pwsh /usr/bin/pwsh
+   
+   # Instalar nuclei via Go
+   sudo apt install -y golang-go
+   go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
+   sudo mv ~/go/bin/nuclei /usr/local/bin/
    ```
 
 3. **Configure o Node.js**

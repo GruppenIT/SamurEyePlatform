@@ -278,6 +278,51 @@ install_security_tools() {
     # Instala smbclient e ferramentas LDAP
     apt install -y smbclient ldap-utils
     
+    # Instala PowerShell Core (necessário para AD Security via WinRM)
+    if ! command -v pwsh &> /dev/null; then
+        log "Instalando PowerShell Core..."
+        
+        # Detecta versão do Ubuntu
+        UBUNTU_VERSION=$(lsb_release -rs)
+        UBUNTU_CODENAME=$(lsb_release -cs)
+        
+        # Tenta instalação via snap primeiro (mais simples e cross-version)
+        if command -v snap &> /dev/null; then
+            log "Instalando PowerShell via snap..."
+            snap install powershell --classic
+            
+            # Cria link simbólico para pwsh se necessário
+            if [[ ! -f /usr/bin/pwsh ]] && [[ -f /snap/bin/pwsh ]]; then
+                ln -sf /snap/bin/pwsh /usr/bin/pwsh
+            fi
+        else
+            # Fallback: instalação via repositório oficial da Microsoft
+            log "Snapd não disponível, instalando PowerShell via repositório Microsoft..."
+            
+            # Download e instalação do pacote Microsoft
+            wget -q https://packages.microsoft.com/config/ubuntu/${UBUNTU_VERSION}/packages-microsoft-prod.deb
+            dpkg -i packages-microsoft-prod.deb
+            rm packages-microsoft-prod.deb
+            
+            # Atualiza repositórios e instala PowerShell
+            apt update
+            apt install -y powershell
+        fi
+        
+        # Verifica se PowerShell foi instalado corretamente
+        if command -v pwsh &> /dev/null; then
+            PWSH_VERSION=$(pwsh --version)
+            log "✅ PowerShell instalado com sucesso: $PWSH_VERSION"
+        else
+            warn "⚠️ Falha ao instalar PowerShell Core"
+            warn "⚠️ A jornada AD Security não funcionará sem PowerShell"
+            warn "⚠️ Instale manualmente: https://learn.microsoft.com/powershell/scripting/install/install-ubuntu"
+        fi
+    else
+        PWSH_VERSION=$(pwsh --version)
+        log "PowerShell já instalado: $PWSH_VERSION"
+    fi
+    
     log "Ferramentas de segurança instaladas com sucesso"
 }
 
