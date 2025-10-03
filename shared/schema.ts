@@ -11,6 +11,7 @@ import {
   integer,
   boolean,
   pgEnum,
+  real,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -257,6 +258,22 @@ export const auditLog = pgTable("audit_log", {
   after: jsonb("after").$type<Record<string, any>>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Host risk score history table - tracks risk score changes over time
+export const hostRiskHistory = pgTable("host_risk_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  hostId: varchar("host_id").references(() => hosts.id).notNull(),
+  riskScore: integer("risk_score").notNull().default(0),
+  rawScore: real("raw_score").notNull().default(0),
+  criticalCount: integer("critical_count").notNull().default(0),
+  highCount: integer("high_count").notNull().default(0),
+  mediumCount: integer("medium_count").notNull().default(0),
+  lowCount: integer("low_count").notNull().default(0),
+  recordedAt: timestamp("recorded_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_host_risk_history_host_id").on(table.hostId),
+  index("IDX_host_risk_history_recorded_at").on(table.recordedAt),
+]);
 
 // Email settings table
 export const emailSettings = pgTable("email_settings", {
@@ -584,6 +601,11 @@ export const insertHostSchema = createInsertSchema(hosts).omit({
   updatedAt: true,
 });
 
+export const insertHostRiskHistorySchema = createInsertSchema(hostRiskHistory).omit({
+  id: true,
+  recordedAt: true,
+});
+
 export const insertThreatSchema = createInsertSchema(threats).omit({
   id: true,
   createdAt: true,
@@ -672,6 +694,8 @@ export type InsertJob = z.infer<typeof insertJobSchema>;
 export type JobResult = typeof jobResults.$inferSelect;
 export type Host = typeof hosts.$inferSelect;
 export type InsertHost = z.infer<typeof insertHostSchema>;
+export type HostRiskHistory = typeof hostRiskHistory.$inferSelect;
+export type InsertHostRiskHistory = z.infer<typeof insertHostRiskHistorySchema>;
 export type Threat = typeof threats.$inferSelect;
 export type InsertThreat = z.infer<typeof insertThreatSchema>;
 export type Setting = typeof settings.$inferSelect;
