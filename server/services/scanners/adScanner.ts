@@ -619,7 +619,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
 
     for (const test of tests) {
       try {
-        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell);
+        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
         if (result.success && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
@@ -635,7 +635,10 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
               recommendation: test.recommendation || 'Revisar configuração conforme melhores práticas de segurança',
               evidence: {
                 testId: test.id,
-                output: result.stdout.substring(0, 1000)
+                command: result.command || test.powershell,
+                stdout: result.stdout.substring(0, 2000),
+                stderr: result.stderr.substring(0, 500),
+                exitCode: result.exitCode,
               }
             });
           }
@@ -704,7 +707,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
 
     for (const test of tests) {
       try {
-        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell);
+        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
         if (result.success && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
@@ -720,7 +723,10 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
               recommendation: test.recommendation || 'Revisar configuração de Kerberos conforme melhores práticas',
               evidence: {
                 testId: test.id,
-                output: result.stdout.substring(0, 1000)
+                command: result.command || test.powershell,
+                stdout: result.stdout.substring(0, 2000),
+                stderr: result.stderr.substring(0, 500),
+                exitCode: result.exitCode,
               }
             });
           }
@@ -773,7 +779,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
 
     for (const test of tests) {
       try {
-        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell);
+        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
         if (result.success && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
@@ -789,7 +795,10 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
               recommendation: test.recommendation || 'Revisar permissões e configurações de compartilhamento',
               evidence: {
                 testId: test.id,
-                output: result.stdout.substring(0, 1000)
+                command: result.command || test.powershell,
+                stdout: result.stdout.substring(0, 2000),
+                stderr: result.stderr.substring(0, 500),
+                exitCode: result.exitCode,
               }
             });
           }
@@ -874,7 +883,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
 
     for (const test of tests) {
       try {
-        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell);
+        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
         if (result.success && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
@@ -890,7 +899,10 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
               recommendation: test.recommendation || 'Revisar e corrigir configuração do domínio',
               evidence: {
                 testId: test.id,
-                output: result.stdout.substring(0, 1000)
+                command: result.command || test.powershell,
+                stdout: result.stdout.substring(0, 2000),
+                stderr: result.stderr.substring(0, 500),
+                exitCode: result.exitCode,
               }
             });
           }
@@ -967,7 +979,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
 
     for (const test of tests) {
       try {
-        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell);
+        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
         if (result.success && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
@@ -983,7 +995,10 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
               recommendation: test.recommendation || 'Revisar e desabilitar contas inativas',
               evidence: {
                 testId: test.id,
-                output: result.stdout.substring(0, 1000)
+                command: result.command || test.powershell,
+                stdout: result.stdout.substring(0, 2000),
+                stderr: result.stderr.substring(0, 500),
+                exitCode: result.exitCode,
               }
             });
           }
