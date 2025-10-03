@@ -403,23 +403,15 @@ class JourneyExecutorService {
           throw new Error('Nome do domínio não especificado para jornada AD Based');
         }
 
-        /**
-         * IMPORTANTE: Modo AD-based foi removido na refatoração do AD Security
-         * 
-         * Razão: O AD Security scanner foi refatorado para usar PowerShell via WinRM com 28 novos
-         * testes organizados em categorias. O método legado `discoverWorkstations()` que usava
-         * LDAP para descobrir workstations foi removido nessa refatoração.
-         * 
-         * Alternativa: Use o modo "Network Based" do EDR/AV, que permite selecionar alvos
-         * específicos (hosts ou ranges) de forma mais controlada e previsível.
-         * 
-         * Se descoberta automática via AD for necessária no futuro, será preciso reimplementar
-         * um método de descoberta compatível com o novo scanner PowerShell.
-         */
-        console.log('⚠️ Modo AD-based removido na refatoração do AD Security scanner');
-        console.log('💡 Use o modo Network Based com alvos específicos ao invés de AD Based');
-        
-        throw new Error('Modo AD Based não suportado após refatoração do AD Security. Use Network Based com alvos específicos.');
+        // Descobrir workstations via LDAP (usa método separado, não conflita com AD Security)
+        workstationTargets = await adScanner.discoverWorkstations(
+          domainName,
+          credential.username,
+          decryptedPassword,
+          credential.port || undefined
+        );
+
+        console.log(`✅ Descobertas ${workstationTargets.length} workstations via LDAP`);
 
       } else if (edrAvType === 'network_based') {
         // Modo Network Based: Usar ativos específicos
