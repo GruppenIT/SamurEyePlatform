@@ -1,7 +1,6 @@
 import { spawn } from 'child_process';
 import dns from 'dns';
 import { promisify } from 'util';
-import { Client } from 'ldapts';
 
 const dnsResolve = promisify(dns.resolve);
 
@@ -45,7 +44,6 @@ export class ADScanner {
   private readonly commonDCPorts = [389, 636, 3268, 3269];
   private baseDN: string = '';
   private domain: string = '';
-  private client: Client | null = null;
 
   /**
    * Escaneia segurança do Active Directory usando PowerShell via WinRM
@@ -865,187 +863,6 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
     } catch (error: any) {
       console.error(`❌ Erro ao descobrir DCs via DNS: ${error.message}`);
       return [];
-    }
-  }
-
-  /**
-   * Descobre workstations do domínio via LDAP para teste EDR/AV
-   */
-  async discoverWorkstations(domain: string, username: string, password: string, port?: number): Promise<string[]> {
-    console.log(`🔍 Descobrindo workstations do domínio ${domain} para teste EDR/AV`);
-    
-    const workstations: string[] = [];
-
-    try {
-      // 1. Descobrir controladores de domínio
-      const domainControllers = await this.discoverDomainControllers(domain);
-      console.log(`✅ Encontrados ${domainControllers.length} controladores de domínio`);
-
-      if (domainControllers.length === 0) {
-        console.error('❌ Nenhum controlador de domínio encontrado');
-        return workstations;
-      }
-
-      // 2. Conectar ao Active Directory
-      const dcHost = domainControllers[0];
-      this.domain = domain;
-      this.baseDN = this.buildBaseDN(domain);
-      console.log(`📍 Usando base DN: ${this.baseDN}`);
-      await this.connectToAD(dcHost, username, password, domain, port);
-
-      if (!this.client) {
-        console.error('❌ Falha ao conectar ao Active Directory');
-        return workstations;
-      }
-
-      // 3. Buscar contas de computador ativas
-      console.log('🔍 Buscando contas de computador no domínio...');
-      
-      // Filtro para buscar computadores ativos (não desabilitados)
-      // userAccountControl & 2 = 0 significa que a conta não está desabilitada
-      const filter = '(&(objectClass=computer)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))';
-      
-      const computers = await this.searchLDAP(filter, [
-        'cn',
-        'dNSHostName',
-        'operatingSystem',
-        'operatingSystemVersion',
-        'lastLogonTimestamp',
-        'userAccountControl'
-      ]);
-
-      console.log(`✅ Encontrados ${computers.length} computadores no domínio`);
-
-      for (const computer of computers) {
-        const computerName = computer.cn?.[0];
-        const dnsHostName = computer.dNSHostName?.[0];
-        const operatingSystem = computer.operatingSystem?.[0] || '';
-        const lastLogonTimestamp = computer.lastLogonTimestamp?.[0];
-
-        // Filtrar apenas workstations (excluir servidores)
-        const isServer = operatingSystem.toLowerCase().includes('server');
-        if (isServer) {
-          console.log(`⏭️  Pulando servidor: ${computerName} (${operatingSystem})`);
-          continue;
-        }
-
-        // Verificar se teve logon recente (últimos 30 dias)
-        let isActive = true;
-        if (lastLogonTimestamp) {
-          const lastLogon = this.convertFileTimeToDate(lastLogonTimestamp);
-          if (lastLogon) {
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            isActive = lastLogon > thirtyDaysAgo;
-          }
-        }
-
-        if (!isActive) {
-          console.log(`⏭️  Pulando workstation inativa: ${computerName}`);
-          continue;
-        }
-
-        // Usar dNSHostName se disponível, senão usar cn
-        const hostName = dnsHostName || computerName;
-        if (hostName) {
-          workstations.push(hostName);
-          console.log(`✅ Workstation encontrada: ${hostName} (${operatingSystem})`);
-        }
-      }
-
-      console.log(`📊 Total de workstations descobertas: ${workstations.length}`);
-
-    } catch (error) {
-      console.error('❌ Erro ao descobrir workstations:', error);
-    } finally {
-      // Desconectar do LDAP
-      if (this.client) {
-        try {
-          await this.client.unbind();
-          this.client = null;
-        } catch (unbindError) {
-          console.error('❌ Erro ao desconectar do LDAP:', unbindError);
-        }
-      }
-    }
-
-    return workstations;
-  }
-
-  /**
-   * Conecta ao Active Directory via LDAP
-   */
-  private async connectToAD(
-    dcHost: string,
-    username: string,
-    password: string,
-    domain: string,
-    port?: number
-  ): Promise<void> {
-    const ldapPort = port || 389;
-    const url = `ldap://${dcHost}:${ldapPort}`;
-    
-    console.log(`🔌 Conectando ao AD em ${url}...`);
-    
-    this.client = new Client({
-      url,
-      timeout: 10000,
-      connectTimeout: 10000,
-    });
-
-    try {
-      // Formato da credencial: DOMAIN\username ou username@domain.com
-      const bindDN = username.includes('@') || username.includes('\\')
-        ? username
-        : `${domain}\\${username}`;
-      
-      await this.client.bind(bindDN, password);
-      console.log('✅ Conectado ao Active Directory com sucesso');
-    } catch (error: any) {
-      console.error(`❌ Erro ao autenticar no AD: ${error.message}`);
-      this.client = null;
-      throw error;
-    }
-  }
-
-  /**
-   * Executa busca LDAP
-   */
-  private async searchLDAP(filter: string, attributes: string[]): Promise<any[]> {
-    if (!this.client) {
-      throw new Error('Cliente LDAP não conectado');
-    }
-
-    try {
-      const searchResult = await this.client.search(this.baseDN, {
-        filter,
-        attributes,
-        scope: 'sub',
-      });
-
-      return searchResult.searchEntries;
-    } catch (error: any) {
-      console.error(`❌ Erro na busca LDAP: ${error.message}`);
-      throw error;
-    }
-  }
-
-  /**
-   * Converte FileTime do AD para Date do JavaScript
-   */
-  private convertFileTimeToDate(fileTime: string | number): Date | null {
-    try {
-      const fileTimeNum = typeof fileTime === 'string' ? parseInt(fileTime, 10) : fileTime;
-      
-      // FileTime é em 100-nanosecond intervals desde 1601-01-01
-      // Converter para milissegundos desde Unix epoch (1970-01-01)
-      const MILLISECONDS_BETWEEN_1601_AND_1970 = 11644473600000;
-      const milliseconds = (fileTimeNum / 10000) - MILLISECONDS_BETWEEN_1601_AND_1970;
-      
-      return new Date(milliseconds);
-    } catch (error) {
-      console.error('❌ Erro ao converter FileTime:', error);
-      return null;
     }
   }
 

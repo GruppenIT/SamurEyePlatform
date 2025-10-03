@@ -71,7 +71,7 @@ The application features a dark security-focused theme. The threat intelligence 
   - **Portuguese Keywords**: Enhanced credential scanning with Portuguese-specific patterns (senha, segredo, credencial)
   - **Finding Types**: Maintains legacy `ad_hygiene` finding type for backward compatibility with existing data
   - **Journey Type**: Renamed from `ad_hygiene` to `ad_security` across schema and UI
-  - **EDR/AV Integration**: Supports both AD-based (automatic workstation discovery via LDAP) and Network-based (manual target selection) modes
+  - **EDR/AV Integration**: AD-based workstation discovery intentionally removed; use Network-based mode with specific targets instead
 
 ## External Dependencies
 
