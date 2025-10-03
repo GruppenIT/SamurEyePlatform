@@ -31,6 +31,7 @@ def execute_winrm_command(host, username, password, script, timeout=30):
     """
     try:
         # Create WinRM protocol instance
+        # read_timeout_sec must be greater than operation_timeout_sec
         endpoint = f'http://{host}:5985/wsman'
         protocol = Protocol(
             endpoint=endpoint,
@@ -38,7 +39,7 @@ def execute_winrm_command(host, username, password, script, timeout=30):
             username=username,
             password=password,
             server_cert_validation='ignore',
-            read_timeout_sec=timeout,
+            read_timeout_sec=timeout + 10,  # Adiciona margem de 10 segundos
             operation_timeout_sec=timeout
         )
         
