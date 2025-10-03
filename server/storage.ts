@@ -9,6 +9,7 @@ import {
   threats,
   hosts,
   hostRiskHistory,
+  adSecurityTestResults,
   settings,
   auditLog,
   threatStatusHistory,
@@ -32,6 +33,8 @@ import {
   type InsertHost,
   type HostRiskHistory,
   type InsertHostRiskHistory,
+  type AdSecurityTestResult,
+  type InsertAdSecurityTestResult,
   type Threat,
   type InsertThreat,
   type Setting,
@@ -208,6 +211,15 @@ export interface IStorage {
   // Notification log operations
   createNotificationLog(log: InsertNotificationLog): Promise<NotificationLog>;
   getNotificationLogs(limit?: number): Promise<NotificationLog[]>;
+
+  // Host risk history operations
+  createHostRiskHistory(history: InsertHostRiskHistory): Promise<HostRiskHistory>;
+  getHostRiskHistory(hostId: string, limit?: number): Promise<HostRiskHistory[]>;
+
+  // AD Security test results operations
+  createAdSecurityTestResults(results: InsertAdSecurityTestResult[]): Promise<AdSecurityTestResult[]>;
+  getAdSecurityTestResults(hostId: string, jobId?: string): Promise<AdSecurityTestResult[]>;
+  getAdSecurityLatestTestResults(hostId: string): Promise<AdSecurityTestResult[]>;
 
   // Dashboard operations
   getDashboardMetrics(): Promise<{
@@ -1029,6 +1041,60 @@ export class DatabaseStorage implements IStorage {
       return await query.limit(limit);
     }
     return await query;
+  }
+
+  // AD Security test results operations
+  async createAdSecurityTestResults(results: InsertAdSecurityTestResult[]): Promise<AdSecurityTestResult[]> {
+    if (results.length === 0) return [];
+    
+    const inserted = await db
+      .insert(adSecurityTestResults)
+      .values(results)
+      .returning();
+    return inserted;
+  }
+
+  async getAdSecurityTestResults(hostId: string, jobId?: string): Promise<AdSecurityTestResult[]> {
+    const conditions = [eq(adSecurityTestResults.hostId, hostId)];
+    if (jobId) {
+      conditions.push(eq(adSecurityTestResults.jobId, jobId));
+    }
+    
+    const results = await db
+      .select()
+      .from(adSecurityTestResults)
+      .where(and(...conditions))
+      .orderBy(desc(adSecurityTestResults.executedAt));
+    
+    return results;
+  }
+
+  async getAdSecurityLatestTestResults(hostId: string): Promise<AdSecurityTestResult[]> {
+    // Get the latest job ID for this host
+    const latestJobResult = await db
+      .select({ jobId: adSecurityTestResults.jobId })
+      .from(adSecurityTestResults)
+      .where(eq(adSecurityTestResults.hostId, hostId))
+      .orderBy(desc(adSecurityTestResults.executedAt))
+      .limit(1);
+    
+    if (latestJobResult.length === 0) return [];
+    
+    const latestJobId = latestJobResult[0].jobId;
+    
+    // Get all results from the latest job
+    const results = await db
+      .select()
+      .from(adSecurityTestResults)
+      .where(
+        and(
+          eq(adSecurityTestResults.hostId, hostId),
+          eq(adSecurityTestResults.jobId, latestJobId)
+        )
+      )
+      .orderBy(adSecurityTestResults.category, adSecurityTestResults.testName);
+    
+    return results;
   }
 
   // Host operations

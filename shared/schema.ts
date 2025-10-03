@@ -66,6 +66,9 @@ export const hostTypeEnum = pgEnum('host_type', ['server', 'desktop', 'firewall'
 // Host families enum  
 export const hostFamilyEnum = pgEnum('host_family', ['linux', 'windows_server', 'windows_desktop', 'fortios', 'network_os', 'other']);
 
+// AD Security test status enum
+export const adSecurityTestStatusEnum = pgEnum('ad_security_test_status', ['pass', 'fail', 'error', 'skipped']);
+
 // Users table
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -273,6 +276,24 @@ export const hostRiskHistory = pgTable("host_risk_history", {
 }, (table) => [
   index("IDX_host_risk_history_host_id").on(table.hostId),
   index("IDX_host_risk_history_recorded_at").on(table.recordedAt),
+]);
+
+// AD Security test results table - stores all test executions (pass/fail) for audit
+export const adSecurityTestResults = pgTable("ad_security_test_results", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  jobId: varchar("job_id").references(() => jobs.id).notNull(), // Which job execution
+  hostId: varchar("host_id").references(() => hosts.id).notNull(), // Which domain/host
+  testId: text("test_id").notNull(), // Unique test identifier (e.g., "test_001_admin_count")
+  testName: text("test_name").notNull(), // Display name in Portuguese
+  category: text("category").notNull(), // Test category (configuracoes_criticas, etc.)
+  severityHint: threatSeverityEnum("severity_hint").notNull(), // Potential severity if fails
+  status: adSecurityTestStatusEnum("status").notNull(), // pass/fail/error/skipped
+  evidence: jsonb("evidence").$type<Record<string, any>>().default({}).notNull(), // Raw data captured
+  executedAt: timestamp("executed_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_ad_test_results_job_id").on(table.jobId),
+  index("IDX_ad_test_results_host_id").on(table.hostId),
+  index("IDX_ad_test_results_executed_at").on(table.executedAt),
 ]);
 
 // Email settings table
@@ -629,6 +650,11 @@ export const insertHostRiskHistorySchema = createInsertSchema(hostRiskHistory).o
   recordedAt: true,
 });
 
+export const insertAdSecurityTestResultSchema = createInsertSchema(adSecurityTestResults).omit({
+  id: true,
+  executedAt: true,
+});
+
 export const insertThreatSchema = createInsertSchema(threats).omit({
   id: true,
   createdAt: true,
@@ -733,3 +759,5 @@ export type NotificationPolicy = typeof notificationPolicies.$inferSelect;
 export type InsertNotificationPolicy = z.infer<typeof insertNotificationPolicySchema>;
 export type NotificationLog = typeof notificationLog.$inferSelect;
 export type InsertNotificationLog = z.infer<typeof insertNotificationLogSchema>;
+export type AdSecurityTestResult = typeof adSecurityTestResults.$inferSelect;
+export type InsertAdSecurityTestResult = z.infer<typeof insertAdSecurityTestResultSchema>;
