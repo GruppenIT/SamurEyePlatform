@@ -209,118 +209,43 @@ export class ADScanner {
         console.log(`✅ Contas Inativas: ${inactiveFindings.length} achados`);
       }
 
-      // 4. Definir todos os 28 testes organizados por categoria
-      const allTests = {
-        configuracoes_criticas: [
-          { id: 'ad_1', name: 'Contas com senha não expira', severity: 'high' as const },
-          { id: 'ad_2', name: 'Senhas vazias permitidas', severity: 'critical' as const },
-          { id: 'ad_3', name: 'Contas com senha nunca expira críticas', severity: 'critical' as const },
-          { id: 'ad_4', name: 'Descriptografia reversível habilitada', severity: 'high' as const },
-        ],
-        gerenciamento_contas: [
-          { id: 'ad_5', name: 'Usuários em grupos privilegiados', severity: 'high' as const },
-          { id: 'ad_6', name: 'Contas com SIDHistory', severity: 'medium' as const },
-          { id: 'ad_7', name: 'Usuários com AllExtendedRights', severity: 'high' as const },
-          { id: 'ad_8', name: 'Senhas em descrição de usuários', severity: 'critical' as const },
-          { id: 'ad_9', name: 'Senhas em scripts ou GPOs', severity: 'critical' as const },
-          { id: 'ad_10', name: 'AdminCount setado incorretamente', severity: 'medium' as const },
-        ],
-        kerberos_delegacao: [
-          { id: 'ad_11', name: 'Kerberos pré-autenticação desabilitada', severity: 'high' as const },
-          { id: 'ad_12', name: 'Delegação irrestrita configurada', severity: 'high' as const },
-          { id: 'ad_13', name: 'Delegação baseada em recursos', severity: 'medium' as const },
-          { id: 'ad_14', name: 'Contas com DES habilitado', severity: 'medium' as const },
-          { id: 'ad_15', name: 'Contas com RC4 apenas', severity: 'low' as const },
-          { id: 'ad_16', name: 'SPNs duplicados no domínio', severity: 'medium' as const },
-        ],
-        compartilhamentos_gpos: [
-          { id: 'ad_17', name: 'Compartilhamentos acessíveis anonimamente', severity: 'high' as const },
-          { id: 'ad_18', name: 'GPOs com permissões fracas', severity: 'high' as const },
-          { id: 'ad_19', name: 'SYSVOL com ACLs modificadas', severity: 'critical' as const },
-          { id: 'ad_20', name: 'Políticas de grupo órfãs', severity: 'low' as const },
-        ],
-        politicas_configuracao: [
-          { id: 'ad_21', name: 'Política de senha fraca', severity: 'high' as const },
-          { id: 'ad_22', name: 'Política de bloqueio de conta', severity: 'medium' as const },
-          { id: 'ad_23', name: 'Proteção de LDAP Signing não forçada', severity: 'high' as const },
-          { id: 'ad_24', name: 'SMB Signing não obrigatório', severity: 'medium' as const },
-          { id: 'ad_25', name: 'Nível funcional do domínio desatualizado', severity: 'low' as const },
-          { id: 'ad_26', name: 'LDAP Channel Binding não configurado', severity: 'medium' as const },
-        ],
-        contas_inativas: [
-          { id: 'ad_27', name: 'Contas de usuário inativas', severity: 'medium' as const },
-          { id: 'ad_28', name: 'Contas de computador inativas', severity: 'low' as const },
-        ],
-      };
-
-      // Assert: Verificar que temos exatamente 28 testes definidos
-      const totalTests = Object.values(allTests).flat().length;
-      if (totalTests !== 28) {
-        console.error(`⚠️ AVISO: Esperado 28 testes AD Security, mas encontrado ${totalTests}`);
-      }
-
-      // Mapear findings para test results com categoria corrigida
-      const findingsByTestName = new Map<string, ADFinding>();
+      // 4. Create test results from execution results  
+      const findingsByTestId = new Map<string, ADFinding>();
       findings.forEach(finding => {
-        findingsByTestName.set(finding.name, finding);
+        // Try to extract testId from evidence
+        if (finding.evidence && typeof finding.evidence === 'object' && 'testId' in finding.evidence) {
+          findingsByTestId.set(finding.evidence.testId as string, finding);
+        }
       });
 
-      // Para cada categoria habilitada, gerar todos os test results
-      Object.entries(allTests).forEach(([categoryKey, tests]) => {
-        const categoryEnabled = categories[categoryKey as keyof typeof categories];
+      // Create test results from all executed tests
+      executionResults.forEach((evidence, testId) => {
+        const finding = findingsByTestId.get(testId);
         
-        if (categoryEnabled) {
-          // Categoria habilitada: gerar resultados para todos os testes
-          tests.forEach(test => {
-            const finding = findingsByTestName.get(test.name);
-            const execEvidence = executionResults.get(test.name) || {};
-            
-            if (finding) {
-              // Test falhou - criar resultado "fail"
-              testResults.push(this.createTestResult(
-                test.id,
-                test.name,
-                categoryKey,
-                finding.severity,
-                'fail',
-                finding.evidence || execEvidence,
-                finding.description,
-                finding.recommendation
-              ));
-            } else {
-              // Test passou - criar resultado "pass" with execution evidence
-              testResults.push(this.createTestResult(
-                test.id,
-                test.name,
-                categoryKey,
-                test.severity,
-                'pass',
-                execEvidence,
-                `Teste ${test.name} passou com sucesso`,
-                undefined
-              ));
-            }
-          });
-        } else {
-          // Categoria desabilitada: criar um único resultado "skipped"
-          const categoryNames = {
-            configuracoes_criticas: 'Configurações Críticas',
-            gerenciamento_contas: 'Gerenciamento de Contas',
-            kerberos_delegacao: 'Kerberos e Delegação',
-            compartilhamentos_gpos: 'Compartilhamentos e GPOs',
-            politicas_configuracao: 'Políticas e Configuração',
-            contas_inativas: 'Contas Inativas',
-          };
-          
-          const categoryName = categoryNames[categoryKey as keyof typeof categoryNames];
+        if (finding) {
+          // Test failed - create "fail" result
           testResults.push(this.createTestResult(
-            `test_${categoryKey}_skipped`,
-            `${categoryName} - Categoria desabilitada`,
-            categoryKey,
-            'low',
-            'skipped',
-            {},
-            `Categoria ${categoryName} foi desabilitada na configuração da jornada`
+            testId,
+            finding.name,
+            this.getCategoryForTestId(testId),
+            finding.severity,
+            'fail',
+            evidence,
+            finding.description,
+            finding.recommendation
+          ));
+        } else {
+          // Test passed - create "pass" result
+          const testMetadata = this.getTestMetadata(testId);
+          testResults.push(this.createTestResult(
+            testId,
+            testMetadata.name,
+            testMetadata.category,
+            testMetadata.severity,
+            'pass',
+            evidence,
+            `Teste ${testMetadata.name} passou com sucesso`,
+            undefined
           ));
         }
       });
@@ -503,7 +428,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
-        // Always save execution results for auditability
+        // Always save execution results for auditability (index by testId for consistency)
         const evidence = {
           testId: test.id,
           command: result.command || test.powershell,
@@ -511,7 +436,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           stderr: result.stderr.substring(0, 500),
           exitCode: result.exitCode,
         };
-        executionResults.set(test.nome, evidence);
+        executionResults.set(test.id, evidence);
         
         if (result.success && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
@@ -532,7 +457,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       } catch (error: any) {
         console.error(`❌ Erro no teste ${test.id}:`, error.message);
         // Save error as evidence
-        executionResults.set(test.nome, {
+        executionResults.set(test.id, {
           testId: test.id,
           command: test.powershell,
           stdout: '',
@@ -644,7 +569,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
-        // Always save execution results for auditability
+        // Always save execution results for auditability (index by testId for consistency)
         const evidence = {
           testId: test.id,
           command: result.command || test.powershell,
@@ -652,7 +577,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           stderr: result.stderr.substring(0, 500),
           exitCode: result.exitCode,
         };
-        executionResults.set(test.nome, evidence);
+        executionResults.set(test.id, evidence);
         
         if (result.success && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
@@ -673,7 +598,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       } catch (error: any) {
         console.error(`❌ Erro no teste ${test.id}:`, error.message);
         // Save error as evidence
-        executionResults.set(test.nome, {
+        executionResults.set(test.id, {
           testId: test.id,
           command: test.powershell,
           stdout: '',
@@ -745,7 +670,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
-        // Always save execution results for auditability
+        // Always save execution results for auditability (index by testId for consistency)
         const evidence = {
           testId: test.id,
           command: result.command || test.powershell,
@@ -753,7 +678,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           stderr: result.stderr.substring(0, 500),
           exitCode: result.exitCode,
         };
-        executionResults.set(test.nome, evidence);
+        executionResults.set(test.id, evidence);
         
         if (result.success && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
@@ -774,7 +699,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       } catch (error: any) {
         console.error(`❌ Erro no teste ${test.id}:`, error.message);
         // Save error as evidence
-        executionResults.set(test.nome, {
+        executionResults.set(test.id, {
           testId: test.id,
           command: test.powershell,
           stdout: '',
@@ -1118,6 +1043,76 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
     } else {
       return 'ad_hygiene';
     }
+  }
+
+  /**
+   * Get category for a test ID
+   */
+  private getCategoryForTestId(testId: string): string {
+    const categoryMapping: Record<string, string> = {
+      // Configurações Críticas
+      'dc_print_spooler': 'configuracoes_criticas',
+      'ldap_anonymous': 'configuracoes_criticas',
+      'smbv1_enabled': 'configuracoes_criticas',
+      'krbtgt_weak': 'configuracoes_criticas',
+      'schema_permissions': 'configuracoes_criticas',
+      
+      // Gerenciamento de Contas
+      'privileged_spn': 'gerenciamento_contas',
+      'password_never_expires': 'gerenciamento_contas',
+      'preauth_disabled': 'gerenciamento_contas',
+      'admin_account_weak': 'gerenciamento_contas',
+      'dc_password_old': 'gerenciamento_contas',
+      'low_primary_group_id': 'gerenciamento_contas',
+      'admin_count_set': 'gerenciamento_contas',
+      'trust_relationships': 'gerenciamento_contas',
+      'hidden_privileged_sid': 'gerenciamento_contas',
+      'pre_win2000_access': 'gerenciamento_contas',
+      
+      // Kerberos e Delegação
+      'krbtgt_rbcd': 'kerberos_delegacao',
+      'unconstrained_delegation': 'kerberos_delegacao',
+      'rbcd_high_privilege': 'kerberos_delegacao',
+      'des_encryption': 'kerberos_delegacao',
+      'rc4_only_accounts': 'kerberos_delegacao',
+      'duplicate_spn': 'kerberos_delegacao',
+      
+      // Compartilhamentos e GPOs
+      'credentials_in_shares': 'compartilhamentos_gpos',
+      'sysvol_permissions': 'compartilhamentos_gpos',
+      'gpo_weak_permissions': 'compartilhamentos_gpos',
+      'orphaned_gpos': 'compartilhamentos_gpos',
+      
+      // Políticas e Configuração
+      'risky_uac_params': 'politicas_configuracao',
+      'domain_functional_level': 'politicas_configuracao',
+      'ldap_signing': 'politicas_configuracao',
+      'smb_signing_not_required': 'politicas_configuracao',
+      'password_policy_weak': 'politicas_configuracao',
+      'ldap_channel_binding': 'politicas_configuracao',
+      
+      // Contas Inativas
+      'privileged_inactive': 'contas_inativas',
+      'disabled_in_privileged_groups': 'contas_inativas',
+      'computers_old_password': 'contas_inativas',
+      'stale_computer_accounts': 'contas_inativas',
+    };
+    
+    return categoryMapping[testId] || 'configuracoes_criticas';
+  }
+
+  /**
+   * Get metadata for a test ID
+   */
+  private getTestMetadata(testId: string): { name: string; category: string; severity: 'low' | 'medium' | 'high' | 'critical' } {
+    // This would ideally come from a centralized test registry
+    // For now, return basic defaults based on category
+    const category = this.getCategoryForTestId(testId);
+    return {
+      name: testId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      category,
+      severity: 'medium'
+    };
   }
 
   /**
