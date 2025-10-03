@@ -487,7 +487,9 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         };
         executionResults.set(test.id, evidence);
         
-        if (result.success && result.stdout.trim()) {
+        // Process stdout regardless of exitCode (PowerShell may return 1 on success)
+        // Process stdout regardless of exitCode (PowerShell may return 1 on success)
+        if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
           
           if (hasIssue) {
@@ -628,7 +630,9 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         };
         executionResults.set(test.id, evidence);
         
-        if (result.success && result.stdout.trim()) {
+        // Process stdout regardless of exitCode (PowerShell may return 1 on success)
+        // Process stdout regardless of exitCode (PowerShell may return 1 on success)
+        if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
           
           if (hasIssue) {
@@ -729,7 +733,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         };
         executionResults.set(test.id, evidence);
         
-        if (result.success && result.stdout.trim()) {
+        // Process stdout regardless of exitCode (PowerShell may return 1 on success)
+        if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
           
           if (hasIssue) {
@@ -804,7 +809,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
-        if (result.success && result.stdout.trim()) {
+        // Process stdout regardless of exitCode (PowerShell may return 1 on success)
+        if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
           
           if (hasIssue) {
@@ -909,7 +915,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
-        if (result.success && result.stdout.trim()) {
+        // Process stdout regardless of exitCode (PowerShell may return 1 on success)
+        if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
           
           if (hasIssue) {
@@ -1006,7 +1013,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
-        if (result.success && result.stdout.trim()) {
+        // Process stdout regardless of exitCode (PowerShell may return 1 on success)
+        if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
           
           if (hasIssue) {
