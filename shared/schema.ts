@@ -37,7 +37,7 @@ export const assetTypeEnum = pgEnum('asset_type', ['host', 'range']);
 export const credentialTypeEnum = pgEnum('credential_type', ['ssh', 'wmi', 'omi', 'ad']);
 
 // Journey types enum
-export const journeyTypeEnum = pgEnum('journey_type', ['attack_surface', 'ad_hygiene', 'edr_av']);
+export const journeyTypeEnum = pgEnum('journey_type', ['attack_surface', 'ad_security', 'edr_av']);
 
 // Schedule kinds enum
 export const scheduleKindEnum = pgEnum('schedule_kind', ['on_demand', 'once', 'recurring']);

@@ -443,12 +443,12 @@ export default function Settings() {
                 </CardContent>
               </Card>
 
-              {/* AD Hygiene Settings */}
+              {/* AD Security Settings */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Clock className="h-5 w-5" />
-                    <span>Configurações Higiene AD</span>
+                    <span>Configurações AD Security</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">

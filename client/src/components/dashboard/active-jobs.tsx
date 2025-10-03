@@ -58,7 +58,7 @@ export default function ActiveJobs() {
     switch (journeyType) {
       case 'attack_surface':
         return Search;
-      case 'ad_hygiene':
+      case 'ad_security':
         return Users;
       case 'edr_av':
         return Worm;
@@ -71,7 +71,7 @@ export default function ActiveJobs() {
     switch (journeyType) {
       case 'attack_surface':
         return 'bg-primary/20';
-      case 'ad_hygiene':
+      case 'ad_security':
         return 'bg-accent/20';
       case 'edr_av':
         return 'bg-chart-5/20';
@@ -84,7 +84,7 @@ export default function ActiveJobs() {
     switch (journeyType) {
       case 'attack_surface':
         return 'text-primary';
-      case 'ad_hygiene':
+      case 'ad_security':
         return 'text-accent';
       case 'edr_av':
         return 'text-chart-5';

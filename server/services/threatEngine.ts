@@ -828,7 +828,7 @@ class ThreatEngineService {
         }
         break;
       
-      case 'ad_hygiene':
+      case 'ad_security':
         // For AD findings: ad:{ruleId}:{domainNetBIOS}:{objectId|distinguishedName|samAccountName}
         const domain = finding.evidence?.domain || finding.target?.split('.')[1]?.toUpperCase() || 'DOMAIN';
         const objectId = finding.evidence?.username || finding.evidence?.computerName || finding.evidence?.groupName || finding.target;
@@ -923,8 +923,8 @@ class ThreatEngineService {
         await this.processAttackSurfaceClosures(journeyId, jobId, findings);
         break;
       
-      case 'ad_hygiene':
-        await this.processAdHygieneClosures(journeyId, jobId, findings);
+      case 'ad_security':
+        await this.processAdSecurityClosures(journeyId, jobId, findings);
         break;
       
       case 'edr_av':
@@ -1000,27 +1000,27 @@ class ThreatEngineService {
   }
 
   /**
-   * Process AD Hygiene auto-closures
+   * Process AD Security auto-closures
    */
-  private async processAdHygieneClosures(journeyId: string, jobId: string, findings: any[]): Promise<void> {
-    console.log(`🔍 AD_HYGIENE_CLOSURES: Starting with journeyId: ${journeyId}, jobId: ${jobId}`);
+  private async processAdSecurityClosures(journeyId: string, jobId: string, findings: any[]): Promise<void> {
+    console.log(`🔍 AD_SECURITY_CLOSURES: Starting with journeyId: ${journeyId}, jobId: ${jobId}`);
     
     // Get observed correlation keys from this job
     const observedKeys = new Set<string>();
     findings.forEach(finding => {
-      const key = this.computeCorrelationKey(finding, 'ad_hygiene');
+      const key = this.computeCorrelationKey(finding, 'ad_security');
       observedKeys.add(key);
     });
 
     // Find all open AD threats from previous jobs of this journey
-    const openThreats = await storage.listOpenThreatsByJourney(journeyId, 'ad_hygiene');
+    const openThreats = await storage.listOpenThreatsByJourney(journeyId, 'ad_security');
     
     let skippedCurrentJobCount = 0;
     let closedCount = 0;
     let keptOpenCount = 0;
     let noCorrelationKeyCount = 0;
     
-    console.log(`📊 AD_HYGIENE_METRICS: Starting analysis - observedKeys: ${observedKeys.size}, openThreats: ${openThreats.length}, currentJobId: ${jobId}`);
+    console.log(`📊 AD_SECURITY_METRICS: Starting analysis - observedKeys: ${observedKeys.size}, openThreats: ${openThreats.length}, currentJobId: ${jobId}`);
     
     for (const threat of openThreats) {
       if (!threat.correlationKey) {
@@ -1047,7 +1047,7 @@ class ThreatEngineService {
       }
     }
     
-    console.log(`✅ AD_HYGIENE_METRICS: Completed - skippedCurrentJob: ${skippedCurrentJobCount}, closed: ${closedCount}, keptOpen: ${keptOpenCount}, noCorrelationKey: ${noCorrelationKeyCount}, total: ${openThreats.length}`);
+    console.log(`✅ AD_SECURITY_METRICS: Completed - skippedCurrentJob: ${skippedCurrentJobCount}, closed: ${closedCount}, keptOpen: ${keptOpenCount}, noCorrelationKey: ${noCorrelationKeyCount}, total: ${openThreats.length}`);
   }
 
   /**
@@ -1205,8 +1205,8 @@ class ThreatEngineService {
           }
           break;
 
-        case 'ad_hygiene':
-          // For AD Hygiene, find the domain host - ALL threats link to the SAME domain host
+        case 'ad_security':
+          // For AD Security, find the domain host - ALL threats link to the SAME domain host
           const domainHost = await this.findDomainHost(finding, jobId);
           if (domainHost) {
             console.log(`🔗 Linking AD threat to domain host: ${domainHost.name}`);
@@ -1232,7 +1232,7 @@ class ThreatEngineService {
                   }
                 }
               } catch (error) {
-                console.log(`⚠️  AD Hygiene: Erro ao buscar domínio das credenciais:`, error);
+                console.log(`⚠️  AD Security: Erro ao buscar domínio das credenciais:`, error);
               }
             }
             
@@ -1243,15 +1243,15 @@ class ThreatEngineService {
             
             if (targetDomain && targetDomain !== 'unknown') {
               try {
-                console.log(`🏠 AD Hygiene: Criando host de domínio via hostService para '${targetDomain}'`);
+                console.log(`🏠 AD Security: Criando host de domínio via hostService para '${targetDomain}'`);
                 const newDomainHost = await hostService.createDomainHost(targetDomain, jobId || 'unknown');
-                console.log(`✅ AD Hygiene: Host de domínio criado: ${newDomainHost.name}`);
+                console.log(`✅ AD Security: Host de domínio criado: ${newDomainHost.name}`);
                 return newDomainHost.id;
               } catch (error) {
-                console.error(`❌ AD Hygiene: Erro ao criar host de domínio:`, error);
+                console.error(`❌ AD Security: Erro ao criar host de domínio:`, error);
               }
             } else {
-              console.log(`⚠️  AD Hygiene: Não foi possível determinar o domínio para criar host`);
+              console.log(`⚠️  AD Security: Não foi possível determinar o domínio para criar host`);
             }
           }
           break;

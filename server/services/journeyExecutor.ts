@@ -32,8 +32,8 @@ class JourneyExecutorService {
       case 'attack_surface':
         await this.executeAttackSurface(journey, jobId, onProgress);
         break;
-      case 'ad_hygiene':
-        await this.executeADHygiene(journey, jobId, onProgress);
+      case 'ad_security':
+        await this.executeADSecurity(journey, jobId, onProgress);
         break;
       case 'edr_av':
         await this.executeEDRAV(journey, jobId, onProgress);
@@ -242,9 +242,9 @@ class JourneyExecutorService {
   }
 
   /**
-   * Executes AD Hygiene journey
+   * Executes AD Security journey
    */
-  private async executeADHygiene(
+  private async executeADSecurity(
     journey: Journey, 
     jobId: string, 
     onProgress: ProgressCallback

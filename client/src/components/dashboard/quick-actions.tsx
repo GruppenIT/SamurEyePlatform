@@ -59,15 +59,15 @@ export default function QuickActions() {
       },
     },
     {
-      title: "Higiene AD",
+      title: "AD Security",
       description: "Análise de Active Directory",
       icon: Users,
       iconBg: "bg-accent/20",
       iconColor: "text-accent",
       action: () => {
         toast({
-          title: "Higiene AD",
-          description: "Configurar jornada de Higiene AD primeiro em Jornadas",
+          title: "AD Security",
+          description: "Configurar jornada de AD Security primeiro em Jornadas",
           variant: "default",
         });
       },

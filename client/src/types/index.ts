@@ -44,7 +44,7 @@ export interface CredentialFormData {
 
 export interface JourneyFormData {
   name: string;
-  type: 'attack_surface' | 'ad_hygiene' | 'edr_av';
+  type: 'attack_surface' | 'ad_security' | 'edr_av';
   description?: string;
   params: Record<string, any>;
 }

@@ -81,13 +81,13 @@ export default function Landing() {
               </CardContent>
             </Card>
 
-            {/* AD Hygiene */}
+            {/* AD Security */}
             <Card className="bg-card border-border">
               <CardHeader>
                 <div className="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center mb-4">
                   <Users className="w-6 h-6 text-accent" />
                 </div>
-                <CardTitle className="text-foreground">Higiene AD</CardTitle>
+                <CardTitle className="text-foreground">AD Security</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">

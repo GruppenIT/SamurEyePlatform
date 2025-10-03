@@ -196,7 +196,7 @@ export default function Journeys() {
     switch (type) {
       case 'attack_surface':
         return SearchIcon;
-      case 'ad_hygiene':
+      case 'ad_security':
         return Users;
       case 'edr_av':
         return Worm;
@@ -209,8 +209,8 @@ export default function Journeys() {
     switch (type) {
       case 'attack_surface':
         return 'Attack Surface';
-      case 'ad_hygiene':
-        return 'Higiene AD';
+      case 'ad_security':
+        return 'AD Security';
       case 'edr_av':
         return 'Teste EDR/AV';
       default:
@@ -222,7 +222,7 @@ export default function Journeys() {
     switch (type) {
       case 'attack_surface':
         return 'bg-primary/20 text-primary';
-      case 'ad_hygiene':
+      case 'ad_security':
         return 'bg-accent/20 text-accent';
       case 'edr_av':
         return 'bg-chart-5/20 text-chart-5';

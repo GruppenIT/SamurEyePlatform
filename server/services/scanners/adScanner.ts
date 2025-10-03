@@ -24,7 +24,7 @@ export class ADScanner {
   private domain: string = '';
 
   /**
-   * Escaneia higiene do Active Directory
+   * Escaneia segurança do Active Directory
    */
   async scanADHygiene(
     domain: string,
@@ -40,7 +40,7 @@ export class ADScanner {
       enableDomainConfiguration?: boolean;
     }
   ): Promise<ADFinding[]> {
-    console.log(`Iniciando análise de higiene AD para domínio ${domain}`);
+    console.log(`Iniciando análise de segurança AD para domínio ${domain}`);
     
     const findings: ADFinding[] = [];
 
@@ -69,8 +69,8 @@ export class ADScanner {
       console.log(`📍 Usando base DN: ${this.baseDN}`);
       await this.connectToAD(dcHost, username, password, domain, port);
 
-      // 3. Análises de higiene (execução sequencial para evitar problemas de concorrência LDAP)
-      console.log('📊 Iniciando análises de higiene AD...');
+      // 3. Análises de segurança (execução sequencial para evitar problemas de concorrência LDAP)
+      console.log('📊 Iniciando análises de segurança AD...');
       
       // Valores padrão se não especificado - habilitar todas as análises
       const analyses = {

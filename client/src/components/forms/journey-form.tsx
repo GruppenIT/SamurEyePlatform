@@ -28,7 +28,7 @@ import { Asset, Credential } from "@shared/schema";
 
 const journeySchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
-  type: z.enum(['attack_surface', 'ad_hygiene', 'edr_av'], {
+  type: z.enum(['attack_surface', 'ad_security', 'edr_av'], {
     required_error: "Tipo de jornada é obrigatório",
   }),
   description: z.string().optional(),
@@ -94,7 +94,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         params.webScanEnabled = form.getValues('params.webScanEnabled') ?? false;
         params.processTimeout = parseInt(form.getValues('params.processTimeout')) || 60;
         break;
-      case 'ad_hygiene':
+      case 'ad_security':
         params.domain = form.getValues('params.domain');
         params.credentialId = form.getValues('params.credentialId');
         // Incluir configurações de análises habilitadas
@@ -264,7 +264,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
           </div>
         );
 
-      case 'ad_hygiene':
+      case 'ad_security':
         return (
           <div className="space-y-4">
             <FormField
@@ -319,7 +319,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
             />
 
             <div>
-              <FormLabel>Verificações de Higiene AD</FormLabel>
+              <FormLabel>Verificações de Segurança AD</FormLabel>
               <div className="mt-3 space-y-3 border rounded-md p-4 bg-muted/10">
                 <div className="text-sm font-medium text-foreground mb-2">
                   Selecione os testes para executar:
@@ -701,7 +701,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="attack_surface">Attack Surface</SelectItem>
-                  <SelectItem value="ad_hygiene">Higiene AD</SelectItem>
+                  <SelectItem value="ad_security">AD Security</SelectItem>
                   <SelectItem value="edr_av">Teste EDR/AV</SelectItem>
                 </SelectContent>
               </Select>
