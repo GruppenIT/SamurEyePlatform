@@ -36,6 +36,7 @@ interface PowerShellExecutionResult {
   stdout: string;
   stderr: string;
   exitCode: number;
+  command?: string; // Comando sanitizado (sem senha) para auditoria
 }
 
 interface ADSecurityTest {
@@ -354,13 +355,26 @@ export class ADScanner {
     domain: string,
     username: string,
     password: string,
-    script: string
+    script: string,
+    testName?: string
   ): Promise<PowerShellExecutionResult> {
     return new Promise((resolve) => {
       // Substituir placeholders no script
       const processedScript = script
         .replace(/\$baseDN/g, this.baseDN)
         .replace(/\$domainName/g, domain);
+
+      // Log do comando sendo executado (sem senha)
+      const sanitizedScript = `
+$credential = [PSCredential]::new('${domain}\\${username}', [SecureString]::new())
+Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
+  ${processedScript}
+}`;
+      
+      if (testName) {
+        console.log(`🔧 PowerShell [${testName}]: Executando comando via WinRM no DC ${dcHost}`);
+        console.log(`📝 Script:\n${processedScript.substring(0, 200)}...`);
+      }
 
       // Construir comando PowerShell com credencial
       const fullScript = `
@@ -391,22 +405,31 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       });
 
       powershell.on('close', (code) => {
+        if (testName) {
+          console.log(`✅ PowerShell [${testName}]: Concluído (exitCode: ${code}, stdout: ${stdout.length} chars, stderr: ${stderr.length} chars)`);
+        }
+        
         resolve({
           success: code === 0,
           stdout,
           stderr,
-          exitCode: code || 0
+          exitCode: code || 0,
+          command: sanitizedScript, // Incluir comando sanitizado no resultado
         });
       });
 
       // Timeout de 5 minutos por comando
       setTimeout(() => {
         powershell.kill();
+        if (testName) {
+          console.log(`⏱️  PowerShell [${testName}]: Timeout após 5 minutos`);
+        }
         resolve({
           success: false,
           stdout,
           stderr: stderr + '\nTimeout: Comando excedeu 5 minutos',
-          exitCode: -1
+          exitCode: -1,
+          command: sanitizedScript,
         });
       }, 300000);
     });
@@ -468,7 +491,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
 
     for (const test of tests) {
       try {
-        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell);
+        const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
         if (result.success && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
@@ -484,7 +507,10 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
               recommendation: test.recommendation || 'Revisar configuração conforme documentação de segurança Microsoft',
               evidence: {
                 testId: test.id,
-                output: result.stdout.substring(0, 1000) // Limitar tamanho
+                command: result.command || test.powershell,
+                stdout: result.stdout.substring(0, 2000), // Limitar tamanho
+                stderr: result.stderr.substring(0, 500),
+                exitCode: result.exitCode,
               }
             });
           }
