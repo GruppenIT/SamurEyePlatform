@@ -158,46 +158,54 @@ export class ADScanner {
         ...enabledCategories
       };
 
-      // 3. Executar testes por categoria
+      // 3. Executar testes por categoria e rastrear ALL execution results
+      const executionResults = new Map<string, any>(); // Map testName -> execution evidence
+      
       if (categories.configuracoes_criticas) {
         console.log('🔴 Executando testes: Configurações Críticas...');
-        const criticalFindings = await this.testConfiguracoesCriticas(targetDC, domain, username, password);
+        const { findings: criticalFindings, executionResults: execResults } = await this.testConfiguracoesCriticas(targetDC, domain, username, password);
         findings.push(...criticalFindings);
+        execResults.forEach((evidence, testName) => executionResults.set(testName, evidence));
         console.log(`✅ Configurações Críticas: ${criticalFindings.length} achados`);
       }
 
       if (categories.gerenciamento_contas) {
         console.log('👥 Executando testes: Gerenciamento de Contas...');
-        const accountFindings = await this.testGerenciamentoContas(targetDC, domain, username, password);
+        const { findings: accountFindings, executionResults: execResults } = await this.testGerenciamentoContas(targetDC, domain, username, password);
         findings.push(...accountFindings);
+        execResults.forEach((evidence, testName) => executionResults.set(testName, evidence));
         console.log(`✅ Gerenciamento de Contas: ${accountFindings.length} achados`);
       }
 
       if (categories.kerberos_delegacao) {
         console.log('🎫 Executando testes: Kerberos e Delegação...');
-        const kerberosFindings = await this.testKerberosDelegacao(targetDC, domain, username, password);
+        const { findings: kerberosFindings, executionResults: execResults } = await this.testKerberosDelegacao(targetDC, domain, username, password);
         findings.push(...kerberosFindings);
+        execResults.forEach((evidence, testName) => executionResults.set(testName, evidence));
         console.log(`✅ Kerberos e Delegação: ${kerberosFindings.length} achados`);
       }
 
       if (categories.compartilhamentos_gpos) {
         console.log('📂 Executando testes: Compartilhamentos e GPOs...');
-        const shareFindings = await this.testCompartilhamentosGPOs(targetDC, domain, username, password);
+        const { findings: shareFindings, executionResults: execResults } = await this.testCompartilhamentosGPOs(targetDC, domain, username, password);
         findings.push(...shareFindings);
+        execResults.forEach((evidence, testName) => executionResults.set(testName, evidence));
         console.log(`✅ Compartilhamentos e GPOs: ${shareFindings.length} achados`);
       }
 
       if (categories.politicas_configuracao) {
         console.log('⚙️  Executando testes: Políticas e Configuração...');
-        const policyFindings = await this.testPoliticasConfiguracao(targetDC, domain, username, password);
+        const { findings: policyFindings, executionResults: execResults } = await this.testPoliticasConfiguracao(targetDC, domain, username, password);
         findings.push(...policyFindings);
+        execResults.forEach((evidence, testName) => executionResults.set(testName, evidence));
         console.log(`✅ Políticas e Configuração: ${policyFindings.length} achados`);
       }
 
       if (categories.contas_inativas) {
         console.log('💤 Executando testes: Contas Inativas...');
-        const inactiveFindings = await this.testContasInativas(targetDC, domain, username, password);
+        const { findings: inactiveFindings, executionResults: execResults } = await this.testContasInativas(targetDC, domain, username, password);
         findings.push(...inactiveFindings);
+        execResults.forEach((evidence, testName) => executionResults.set(testName, evidence));
         console.log(`✅ Contas Inativas: ${inactiveFindings.length} achados`);
       }
 
@@ -265,6 +273,7 @@ export class ADScanner {
           // Categoria habilitada: gerar resultados para todos os testes
           tests.forEach(test => {
             const finding = findingsByTestName.get(test.name);
+            const execEvidence = executionResults.get(test.name) || {};
             
             if (finding) {
               // Test falhou - criar resultado "fail"
@@ -274,19 +283,19 @@ export class ADScanner {
                 categoryKey,
                 finding.severity,
                 'fail',
-                finding.evidence || {},
+                finding.evidence || execEvidence,
                 finding.description,
                 finding.recommendation
               ));
             } else {
-              // Test passou - criar resultado "pass"
+              // Test passou - criar resultado "pass" with execution evidence
               testResults.push(this.createTestResult(
                 test.id,
                 test.name,
                 categoryKey,
                 test.severity,
                 'pass',
-                {},
+                execEvidence,
                 `Teste ${test.name} passou com sucesso`,
                 undefined
               ));
@@ -443,8 +452,9 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
     domain: string,
     username: string,
     password: string
-  ): Promise<ADFinding[]> {
+  ): Promise<{ findings: ADFinding[], executionResults: Map<string, any> }> {
     const findings: ADFinding[] = [];
+    const executionResults = new Map<string, any>();
 
     const tests: ADSecurityTest[] = [
       {
@@ -493,6 +503,16 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
+        // Always save execution results for auditability
+        const evidence = {
+          testId: test.id,
+          command: result.command || test.powershell,
+          stdout: result.stdout.substring(0, 2000),
+          stderr: result.stderr.substring(0, 500),
+          exitCode: result.exitCode,
+        };
+        executionResults.set(test.nome, evidence);
+        
         if (result.success && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
           
@@ -505,22 +525,24 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
               category: 'configuration',
               description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
               recommendation: test.recommendation || 'Revisar configuração conforme documentação de segurança Microsoft',
-              evidence: {
-                testId: test.id,
-                command: result.command || test.powershell,
-                stdout: result.stdout.substring(0, 2000), // Limitar tamanho
-                stderr: result.stderr.substring(0, 500),
-                exitCode: result.exitCode,
-              }
+              evidence
             });
           }
         }
       } catch (error: any) {
         console.error(`❌ Erro no teste ${test.id}:`, error.message);
+        // Save error as evidence
+        executionResults.set(test.nome, {
+          testId: test.id,
+          command: test.powershell,
+          stdout: '',
+          stderr: error.message,
+          exitCode: -1,
+        });
       }
     }
 
-    return findings;
+    return { findings, executionResults };
   }
 
   /**
@@ -531,8 +553,9 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
     domain: string,
     username: string,
     password: string
-  ): Promise<ADFinding[]> {
+  ): Promise<{ findings: ADFinding[], executionResults: Map<string, any> }> {
     const findings: ADFinding[] = [];
+    const executionResults = new Map<string, any>();
 
     const tests: ADSecurityTest[] = [
       {
@@ -621,6 +644,16 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
+        // Always save execution results for auditability
+        const evidence = {
+          testId: test.id,
+          command: result.command || test.powershell,
+          stdout: result.stdout.substring(0, 2000),
+          stderr: result.stderr.substring(0, 500),
+          exitCode: result.exitCode,
+        };
+        executionResults.set(test.nome, evidence);
+        
         if (result.success && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
           
@@ -633,22 +666,24 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
               category: 'users',
               description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
               recommendation: test.recommendation || 'Revisar configuração conforme melhores práticas de segurança',
-              evidence: {
-                testId: test.id,
-                command: result.command || test.powershell,
-                stdout: result.stdout.substring(0, 2000),
-                stderr: result.stderr.substring(0, 500),
-                exitCode: result.exitCode,
-              }
+              evidence
             });
           }
         }
       } catch (error: any) {
         console.error(`❌ Erro no teste ${test.id}:`, error.message);
+        // Save error as evidence
+        executionResults.set(test.nome, {
+          testId: test.id,
+          command: test.powershell,
+          stdout: '',
+          stderr: error.message,
+          exitCode: -1,
+        });
       }
     }
 
-    return findings;
+    return { findings, executionResults };
   }
 
   /**
@@ -659,8 +694,9 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
     domain: string,
     username: string,
     password: string
-  ): Promise<ADFinding[]> {
+  ): Promise<{ findings: ADFinding[], executionResults: Map<string, any> }> {
     const findings: ADFinding[] = [];
+    const executionResults = new Map<string, any>();
 
     const tests: ADSecurityTest[] = [
       {
@@ -709,6 +745,16 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
+        // Always save execution results for auditability
+        const evidence = {
+          testId: test.id,
+          command: result.command || test.powershell,
+          stdout: result.stdout.substring(0, 2000),
+          stderr: result.stderr.substring(0, 500),
+          exitCode: result.exitCode,
+        };
+        executionResults.set(test.nome, evidence);
+        
         if (result.success && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
           
@@ -721,22 +767,24 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
               category: 'configuration',
               description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
               recommendation: test.recommendation || 'Revisar configuração de Kerberos conforme melhores práticas',
-              evidence: {
-                testId: test.id,
-                command: result.command || test.powershell,
-                stdout: result.stdout.substring(0, 2000),
-                stderr: result.stderr.substring(0, 500),
-                exitCode: result.exitCode,
-              }
+              evidence
             });
           }
         }
       } catch (error: any) {
         console.error(`❌ Erro no teste ${test.id}:`, error.message);
+        // Save error as evidence
+        executionResults.set(test.nome, {
+          testId: test.id,
+          command: test.powershell,
+          stdout: '',
+          stderr: error.message,
+          exitCode: -1,
+        });
       }
     }
 
-    return findings;
+    return { findings, executionResults };
   }
 
   /**
@@ -747,8 +795,9 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
     domain: string,
     username: string,
     password: string
-  ): Promise<ADFinding[]> {
+  ): Promise<{ findings: ADFinding[], executionResults: Map<string, any> }> {
     const findings: ADFinding[] = [];
+    const executionResults = new Map<string, any>();
 
     const tests: ADSecurityTest[] = [
       {
@@ -808,7 +857,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       }
     }
 
-    return findings;
+    return { findings, executionResults };
   }
 
   /**
@@ -819,8 +868,9 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
     domain: string,
     username: string,
     password: string
-  ): Promise<ADFinding[]> {
+  ): Promise<{ findings: ADFinding[], executionResults: Map<string, any> }> {
     const findings: ADFinding[] = [];
+    const executionResults = new Map<string, any>();
 
     const tests: ADSecurityTest[] = [
       {
@@ -912,7 +962,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       }
     }
 
-    return findings;
+    return { findings, executionResults };
   }
 
   /**
@@ -923,8 +973,9 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
     domain: string,
     username: string,
     password: string
-  ): Promise<ADFinding[]> {
+  ): Promise<{ findings: ADFinding[], executionResults: Map<string, any> }> {
     const findings: ADFinding[] = [];
+    const executionResults = new Map<string, any>();
 
     const tests: ADSecurityTest[] = [
       {
@@ -1008,7 +1059,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       }
     }
 
-    return findings;
+    return { findings, executionResults };
   }
 
   /**

@@ -75,9 +75,16 @@ The application features a dark security-focused theme. The threat intelligence 
   - **Complete Test Results Tracking**: Comprehensive auditability system that stores ALL test results (pass/fail/error/skipped):
     - `adSecurityTestResults` table stores every test execution with status, evidence, and timestamp
     - All 28 tests are tracked per job execution, including successful tests (not just failures)
+    - **Full Execution Evidence**: Every test result includes complete execution details:
+      - PowerShell command executed (sanitized with credentials redacted as [REDACTED])
+      - stdout output (up to 2000 chars)
+      - stderr output (up to 500 chars)
+      - exitCode (process exit status)
+    - PowerShell commands logged to journalctl for audit trail
     - Test results linked to both jobs and domain hosts for historical audit trail
     - API endpoint `GET /api/hosts/:id/ad-tests` retrieves latest test results for a host
-    - Host details dialog displays categorized test results with color-coded status badges
+    - **Clickable Evidence Badges**: Host details dialog displays categorized test results with color-coded status badges that open detailed evidence modal when clicked
+    - Evidence modal shows: Status, PowerShell command, stdout, stderr, exit code, test ID, and execution timestamp
     - Automatic test count validation ensures all 28 tests are executed and recorded
     - Portuguese category keys used throughout (configuracoes_criticas, gerenciamento_contas, etc.)
 

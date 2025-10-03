@@ -1,0 +1,265 @@
+{
+  "summary": {
+    "domain": "gruppen.com.br",
+    "totalTests": 28,
+    "scanDuration": "2025-10-03T20:57:01.586Z",
+    "totalFindings": 0,
+    "findingsByCategory": {},
+    "findingsBySeverity": {}
+  },
+  "findings": [],
+  "testResults": [
+    {
+      "status": "pass",
+      "testId": "ad_1",
+      "category": "configuracoes_criticas",
+      "evidence": {},
+      "testName": "Contas com senha não expira",
+      "description": "Teste Contas com senha não expira passou com sucesso",
+      "severityHint": "high"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_2",
+      "category": "configuracoes_criticas",
+      "evidence": {},
+      "testName": "Senhas vazias permitidas",
+      "description": "Teste Senhas vazias permitidas passou com sucesso",
+      "severityHint": "critical"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_3",
+      "category": "configuracoes_criticas",
+      "evidence": {},
+      "testName": "Contas com senha nunca expira críticas",
+      "description": "Teste Contas com senha nunca expira críticas passou com sucesso",
+      "severityHint": "critical"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_4",
+      "category": "configuracoes_criticas",
+      "evidence": {},
+      "testName": "Descriptografia reversível habilitada",
+      "description": "Teste Descriptografia reversível habilitada passou com sucesso",
+      "severityHint": "high"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_5",
+      "category": "gerenciamento_contas",
+      "evidence": {},
+      "testName": "Usuários em grupos privilegiados",
+      "description": "Teste Usuários em grupos privilegiados passou com sucesso",
+      "severityHint": "high"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_6",
+      "category": "gerenciamento_contas",
+      "evidence": {},
+      "testName": "Contas com SIDHistory",
+      "description": "Teste Contas com SIDHistory passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_7",
+      "category": "gerenciamento_contas",
+      "evidence": {},
+      "testName": "Usuários com AllExtendedRights",
+      "description": "Teste Usuários com AllExtendedRights passou com sucesso",
+      "severityHint": "high"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_8",
+      "category": "gerenciamento_contas",
+      "evidence": {},
+      "testName": "Senhas em descrição de usuários",
+      "description": "Teste Senhas em descrição de usuários passou com sucesso",
+      "severityHint": "critical"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_9",
+      "category": "gerenciamento_contas",
+      "evidence": {},
+      "testName": "Senhas em scripts ou GPOs",
+      "description": "Teste Senhas em scripts ou GPOs passou com sucesso",
+      "severityHint": "critical"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_10",
+      "category": "gerenciamento_contas",
+      "evidence": {},
+      "testName": "AdminCount setado incorretamente",
+      "description": "Teste AdminCount setado incorretamente passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_11",
+      "category": "kerberos_delegacao",
+      "evidence": {},
+      "testName": "Kerberos pré-autenticação desabilitada",
+      "description": "Teste Kerberos pré-autenticação desabilitada passou com sucesso",
+      "severityHint": "high"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_12",
+      "category": "kerberos_delegacao",
+      "evidence": {},
+      "testName": "Delegação irrestrita configurada",
+      "description": "Teste Delegação irrestrita configurada passou com sucesso",
+      "severityHint": "high"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_13",
+      "category": "kerberos_delegacao",
+      "evidence": {},
+      "testName": "Delegação baseada em recursos",
+      "description": "Teste Delegação baseada em recursos passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_14",
+      "category": "kerberos_delegacao",
+      "evidence": {},
+      "testName": "Contas com DES habilitado",
+      "description": "Teste Contas com DES habilitado passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_15",
+      "category": "kerberos_delegacao",
+      "evidence": {},
+      "testName": "Contas com RC4 apenas",
+      "description": "Teste Contas com RC4 apenas passou com sucesso",
+      "severityHint": "low"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_16",
+      "category": "kerberos_delegacao",
+      "evidence": {},
+      "testName": "SPNs duplicados no domínio",
+      "description": "Teste SPNs duplicados no domínio passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_17",
+      "category": "compartilhamentos_gpos",
+      "evidence": {},
+      "testName": "Compartilhamentos acessíveis anonimamente",
+      "description": "Teste Compartilhamentos acessíveis anonimamente passou com sucesso",
+      "severityHint": "high"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_18",
+      "category": "compartilhamentos_gpos",
+      "evidence": {},
+      "testName": "GPOs com permissões fracas",
+      "description": "Teste GPOs com permissões fracas passou com sucesso",
+      "severityHint": "high"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_19",
+      "category": "compartilhamentos_gpos",
+      "evidence": {},
+      "testName": "SYSVOL com ACLs modificadas",
+      "description": "Teste SYSVOL com ACLs modificadas passou com sucesso",
+      "severityHint": "critical"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_20",
+      "category": "compartilhamentos_gpos",
+      "evidence": {},
+      "testName": "Políticas de grupo órfãs",
+      "description": "Teste Políticas de grupo órfãs passou com sucesso",
+      "severityHint": "low"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_21",
+      "category": "politicas_configuracao",
+      "evidence": {},
+      "testName": "Política de senha fraca",
+      "description": "Teste Política de senha fraca passou com sucesso",
+      "severityHint": "high"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_22",
+      "category": "politicas_configuracao",
+      "evidence": {},
+      "testName": "Política de bloqueio de conta",
+      "description": "Teste Política de bloqueio de conta passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_23",
+      "category": "politicas_configuracao",
+      "evidence": {},
+      "testName": "Proteção de LDAP Signing não forçada",
+      "description": "Teste Proteção de LDAP Signing não forçada passou com sucesso",
+      "severityHint": "high"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_24",
+      "category": "politicas_configuracao",
+      "evidence": {},
+      "testName": "SMB Signing não obrigatório",
+      "description": "Teste SMB Signing não obrigatório passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_25",
+      "category": "politicas_configuracao",
+      "evidence": {},
+      "testName": "Nível funcional do domínio desatualizado",
+      "description": "Teste Nível funcional do domínio desatualizado passou com sucesso",
+      "severityHint": "low"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_26",
+      "category": "politicas_configuracao",
+      "evidence": {},
+      "testName": "LDAP Channel Binding não configurado",
+      "description": "Teste LDAP Channel Binding não configurado passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_27",
+      "category": "contas_inativas",
+      "evidence": {},
+      "testName": "Contas de usuário inativas",
+      "description": "Teste Contas de usuário inativas passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "ad_28",
+      "category": "contas_inativas",
+      "evidence": {},
+      "testName": "Contas de computador inativas",
+      "description": "Teste Contas de computador inativas passou com sucesso",
+      "severityHint": "low"
+    }
+  ]
+}
