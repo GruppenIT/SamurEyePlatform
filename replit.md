@@ -72,6 +72,14 @@ The application features a dark security-focused theme. The threat intelligence 
   - **Finding Types**: Maintains legacy `ad_hygiene` finding type for backward compatibility with existing data
   - **Journey Type**: Renamed from `ad_hygiene` to `ad_security` across schema and UI
   - **EDR/AV Integration**: AD-based workstation discovery intentionally removed; use Network-based mode with specific targets instead
+  - **Complete Test Results Tracking**: Comprehensive auditability system that stores ALL test results (pass/fail/error/skipped):
+    - `adSecurityTestResults` table stores every test execution with status, evidence, and timestamp
+    - All 28 tests are tracked per job execution, including successful tests (not just failures)
+    - Test results linked to both jobs and domain hosts for historical audit trail
+    - API endpoint `GET /api/hosts/:id/ad-tests` retrieves latest test results for a host
+    - Host details dialog displays categorized test results with color-coded status badges
+    - Automatic test count validation ensures all 28 tests are executed and recorded
+    - Portuguese category keys used throughout (configuracoes_criticas, gerenciamento_contas, etc.)
 
 ## External Dependencies
 
