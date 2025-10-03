@@ -265,6 +265,38 @@ class ThreatEngineService {
       },
 
       // AD Hygiene Rules - Regras para achados específicos do AD
+      
+      // Generic AD Security Rule - Captures ALL AD Security findings
+      {
+        id: 'ad-security-generic',
+        name: 'AD Security Finding',
+        description: 'Falha de segurança detectada no Active Directory',
+        severity: 'medium',
+        matcher: (finding) => 
+          finding.type === 'ad_misconfiguration' ||
+          finding.type === 'ad_vulnerability' ||
+          finding.type === 'ad_hygiene',
+        createThreat: (finding, assetId, jobId) => ({
+          title: finding.name,
+          description: finding.description || `Problema de segurança detectado: ${finding.name}`,
+          severity: finding.severity,
+          source: 'journey',
+          assetId,
+          jobId,
+          category: finding.type,
+          evidence: {
+            target: finding.target,
+            category: finding.category,
+            testId: finding.evidence?.testId,
+            command: finding.evidence?.command,
+            stdout: finding.evidence?.stdout,
+            stderr: finding.evidence?.stderr,
+            exitCode: finding.evidence?.exitCode,
+            recommendation: finding.recommendation,
+          },
+        }),
+      },
+      
       {
         id: 'ad-users-password-never-expires',
         name: 'Usuários com Senhas que Nunca Expiram',
