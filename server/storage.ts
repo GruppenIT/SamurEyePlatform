@@ -8,6 +8,7 @@ import {
   jobResults,
   threats,
   hosts,
+  hostRiskHistory,
   settings,
   auditLog,
   threatStatusHistory,
@@ -29,6 +30,8 @@ import {
   type JobResult,
   type Host,
   type InsertHost,
+  type HostRiskHistory,
+  type InsertHostRiskHistory,
   type Threat,
   type InsertThreat,
   type Setting,
@@ -1004,6 +1007,28 @@ export class DatabaseStorage implements IStorage {
       changedBy: row.changedBy,
       changedAt: row.changedAt,
     }));
+  }
+
+  // Host risk history operations
+  async createHostRiskHistory(history: InsertHostRiskHistory): Promise<HostRiskHistory> {
+    const [newHistory] = await db
+      .insert(hostRiskHistory)
+      .values(history)
+      .returning();
+    return newHistory;
+  }
+
+  async getHostRiskHistory(hostId: string, limit?: number): Promise<HostRiskHistory[]> {
+    const query = db
+      .select()
+      .from(hostRiskHistory)
+      .where(eq(hostRiskHistory.hostId, hostId))
+      .orderBy(desc(hostRiskHistory.recordedAt));
+    
+    if (limit) {
+      return await query.limit(limit);
+    }
+    return await query;
   }
 
   // Host operations

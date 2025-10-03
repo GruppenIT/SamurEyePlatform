@@ -1677,7 +1677,14 @@ class ThreatEngineService {
    * - riskScore: 0-100 classification based on highest severity
    * - rawScore: Sum of weighted threat scores (CVSS base values)
    */
-  async calculateHostRiskScore(hostId: string): Promise<{ riskScore: number; rawScore: number }> {
+  async calculateHostRiskScore(hostId: string): Promise<{ 
+    riskScore: number; 
+    rawScore: number;
+    criticalCount: number;
+    highCount: number;
+    mediumCount: number;
+    lowCount: number;
+  }> {
     try {
       // Get all threats for this host
       const threats = await storage.getThreats();
@@ -1727,10 +1734,17 @@ class ThreatEngineService {
         riskScore = 0;
       }
 
-      return { riskScore, rawScore };
+      return { 
+        riskScore, 
+        rawScore,
+        criticalCount: severityCounts.critical,
+        highCount: severityCounts.high,
+        mediumCount: severityCounts.medium,
+        lowCount: severityCounts.low,
+      };
     } catch (error) {
       console.error(`❌ Error calculating risk score for host ${hostId}:`, error);
-      return { riskScore: 0, rawScore: 0 };
+      return { riskScore: 0, rawScore: 0, criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0 };
     }
   }
 
@@ -1739,8 +1753,22 @@ class ThreatEngineService {
    */
   async recalculateHostRiskScore(hostId: string): Promise<void> {
     try {
-      const { riskScore, rawScore } = await this.calculateHostRiskScore(hostId);
+      const { riskScore, rawScore, criticalCount, highCount, mediumCount, lowCount } = await this.calculateHostRiskScore(hostId);
+      
+      // Update host risk scores
       await storage.updateHost(hostId, { riskScore, rawScore });
+      
+      // Save snapshot to history for trend analysis
+      await storage.createHostRiskHistory({
+        hostId,
+        riskScore,
+        rawScore,
+        criticalCount,
+        highCount,
+        mediumCount,
+        lowCount,
+      });
+      
       console.log(`✅ Updated risk scores for host ${hostId}: riskScore=${riskScore}, rawScore=${rawScore}`);
     } catch (error) {
       console.error(`❌ Error recalculating risk score for host ${hostId}:`, error);
