@@ -282,7 +282,7 @@ export class ADScanner {
   }
 
   /**
-   * Executa comando PowerShell remotamente via WinRM
+   * Executa comando PowerShell remotamente via WinRM usando wrapper Python (pywinrm)
    */
   private async executePowerShell(
     dcHost: string,
@@ -300,7 +300,7 @@ export class ADScanner {
 
       // Log do comando sendo executado (sem senha)
       const sanitizedScript = `
-$credential = [PSCredential]::new('${domain}\\${username}', [SecureString]::new())
+$credential = [PSCredential]::new('${domain}\\${username}', [REDACTED])
 Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
   ${processedScript}
 }`;
@@ -310,62 +310,111 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         console.log(`📝 Script:\n${processedScript.substring(0, 200)}...`);
       }
 
-      // Construir comando PowerShell com credencial
-      const fullScript = `
-$securePassword = ConvertTo-SecureString '${password.replace(/'/g, "''")}' -AsPlainText -Force
-$credential = New-Object System.Management.Automation.PSCredential('${domain}\\${username}', $securePassword)
-Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
-  ${processedScript}
-}
-`;
+      // Detectar caminhos dinamicamente para suportar qualquer ambiente
+      const installDir = process.env.INSTALL_DIR || process.cwd();
+      const venvPath = process.env.VENV_PATH || `${installDir}/venv`;
+      const pythonBin = `${venvPath}/bin/python`;
+      const wrapperPath = `${installDir}/server/utils/winrm-wrapper.py`;
 
-      // Executar PowerShell Core (pwsh) - funciona em Linux/Windows
-      const powershell = spawn('pwsh', [
-        '-NoProfile',
-        '-NonInteractive',
-        '-Command',
-        fullScript
+      // Executar wrapper Python via virtualenv (password via stdin para segurança)
+      const winrm = spawn(pythonBin, [
+        wrapperPath,
+        '--host', dcHost,
+        '--username', `${domain}\\${username}`,
+        '--script', processedScript,
+        '--timeout', '300', // 5 minutos
+        '--password-stdin'
       ]);
+
+      // Handler de erro para evitar crash se Python/wrapper não existir
+      winrm.on('error', (error) => {
+        console.error(`❌ Erro ao executar wrapper Python: ${error.message}`);
+        console.error(`Paths tentados: pythonBin=${pythonBin}, wrapper=${wrapperPath}`);
+        resolve({
+          success: false,
+          stdout: '',
+          stderr: `Erro ao executar wrapper WinRM: ${error.message}. Verifique se o virtualenv Python está configurado corretamente (execute install.sh).`,
+          exitCode: -1,
+          command: sanitizedScript,
+        });
+      });
+
+      // Enviar senha via stdin para evitar exposição em ps/proc
+      try {
+        winrm.stdin.write(password + '\n');
+        winrm.stdin.end();
+      } catch (e) {
+        console.error(`❌ Erro ao enviar senha via stdin: ${e}`);
+      }
 
       let stdout = '';
       let stderr = '';
 
-      powershell.stdout.on('data', (data) => {
+      winrm.stdout.on('data', (data) => {
         stdout += data.toString();
       });
 
-      powershell.stderr.on('data', (data) => {
+      winrm.stderr.on('data', (data) => {
         stderr += data.toString();
       });
 
-      powershell.on('close', (code) => {
+      winrm.on('close', (code) => {
+        clearTimeout(timeoutHandle); // Limpar timeout quando processo terminar
+        
         if (testName) {
           console.log(`✅ PowerShell [${testName}]: Concluído (exitCode: ${code}, stdout: ${stdout.length} chars, stderr: ${stderr.length} chars)`);
         }
         
-        resolve({
-          success: code === 0,
-          stdout,
-          stderr,
-          exitCode: code || 0,
-          command: sanitizedScript, // Incluir comando sanitizado no resultado
-        });
+        // Tentar parsear resposta JSON do wrapper
+        let result: PowerShellExecutionResult;
+        try {
+          if (stdout.trim()) {
+            const parsed = JSON.parse(stdout);
+            result = {
+              success: parsed.exitCode === 0,
+              stdout: parsed.stdout || '',
+              stderr: parsed.stderr || parsed.error || '',
+              exitCode: parsed.exitCode || 0,
+              command: sanitizedScript,
+            };
+          } else {
+            // Sem JSON - usar resposta raw
+            result = {
+              success: code === 0,
+              stdout: '',
+              stderr: stderr || 'Sem resposta do wrapper Python',
+              exitCode: code || 1,
+              command: sanitizedScript,
+            };
+          }
+        } catch (e) {
+          // Erro ao parsear JSON - usar resposta raw
+          result = {
+            success: false,
+            stdout: stdout,
+            stderr: stderr || `Erro ao parsear resposta JSON: ${e}`,
+            exitCode: code || 1,
+            command: sanitizedScript,
+          };
+        }
+        
+        resolve(result);
       });
 
-      // Timeout de 5 minutos por comando
-      setTimeout(() => {
-        powershell.kill();
+      // Timeout de 6 minutos (margem de segurança além do timeout interno)
+      const timeoutHandle = setTimeout(() => {
+        winrm.kill();
         if (testName) {
-          console.log(`⏱️  PowerShell [${testName}]: Timeout após 5 minutos`);
+          console.log(`⏱️  PowerShell [${testName}]: Timeout após 6 minutos`);
         }
         resolve({
           success: false,
-          stdout,
-          stderr: stderr + '\nTimeout: Comando excedeu 5 minutos',
+          stdout: '',
+          stderr: 'Timeout: Comando excedeu 6 minutos',
           exitCode: -1,
           command: sanitizedScript,
         });
-      }, 300000);
+      }, 360000);
     });
   }
 

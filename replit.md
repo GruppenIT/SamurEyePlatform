@@ -63,9 +63,10 @@ The application features a dark security-focused theme. The threat intelligence 
   - **OAuth2 for Microsoft 365**: Secure OAuth2 authentication with automatic token refresh using @azure/msal-node
   - All OAuth2 credentials (clientId, clientSecret, refreshToken, tenantId) are encrypted using the KEK/DEK pattern
   - Email settings support configurable SMTP hosts, ports, TLS/SSL, and customizable sender information
-- **AD Security Journey (Refactored)**: Complete rewrite of Active Directory security assessment using PowerShell Core via WinRM:
+- **AD Security Journey (Refactored)**: Complete rewrite of Active Directory security assessment using Python WinRM wrapper:
   - **28 PowerShell-Based Tests**: Organized in 6 categories (Configurações Críticas, Gerenciamento de Contas, Kerberos e Delegação, Compartilhamentos e GPOs, Políticas e Configuração, Contas Inativas)
-  - **PowerShell Core (pwsh)**: Executes PowerShell commands remotely via WinRM, compatible with Linux/Windows environments
+  - **pywinrm Integration**: Uses Python wrapper (`server/utils/winrm-wrapper.py`) with `pywinrm` library for WinRM connectivity, solving PowerShell Core's WSMan limitation on Linux
+  - **Python Virtual Environment**: Dedicated virtualenv at `/opt/samureye/venv` with `pywinrm`, `pywinrm[credssp]`, and `requests-ntlm` installed
   - **DC Failover Support**: Primary/secondary domain controller configuration with automatic failover
   - **Category Toggles**: Independent enable/disable for each test category via UI checkboxes
   - **Portuguese Keywords**: Enhanced credential scanning with Portuguese-specific patterns (senha, segredo, credencial)

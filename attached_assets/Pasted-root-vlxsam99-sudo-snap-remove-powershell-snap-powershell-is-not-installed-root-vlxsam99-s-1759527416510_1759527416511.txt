@@ -1,0 +1,65 @@
+root@vlxsam99:~# sudo snap remove powershell
+snap "powershell" is not installed
+root@vlxsam99:~# sudo apt-get update
+sudo apt-get install -y wget apt-transport-https software-properties-common
+Hit:1 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:3 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease
+Hit:4 https://deb.nodesource.com/node_20.x nodistro InRelease
+Hit:5 http://security.ubuntu.com/ubuntu noble-security InRelease
+Hit:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease
+Reading package lists... Done
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+wget is already the newest version (1.21.4-1ubuntu4.1).
+apt-transport-https is already the newest version (2.8.3).
+software-properties-common is already the newest version (0.99.49.3).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+root@vlxsam99:~# wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
+(Reading database ... 137355 files and directories currently installed.)
+Preparing to unpack packages-microsoft-prod.deb ...
+Unpacking packages-microsoft-prod (1.2-ubuntu24.04) over (1.2-ubuntu24.04) ...
+Setting up packages-microsoft-prod (1.2-ubuntu24.04) ...
+File /usr/share/keyrings/microsoft-prod.gpg is missing. Installing...
+root@vlxsam99:~# sudo apt-get update
+sudo apt-get install -y powershell
+Hit:1 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:3 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease
+Hit:4 https://deb.nodesource.com/node_20.x nodistro InRelease
+Hit:5 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease
+Hit:6 http://security.ubuntu.com/ubuntu noble-security InRelease
+Reading package lists... Done
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+powershell is already the newest version (7.5.3-1.deb).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+root@vlxsam99:~# sudo apt-get install -y libssl-dev libpam0g-dev
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+libssl-dev is already the newest version (3.0.13-0ubuntu3.6).
+libpam0g-dev is already the newest version (1.5.3-5ubuntu5.5).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+root@vlxsam99:~# pwsh --version
+PowerShell 7.5.3
+root@vlxsam99:~# which pwsh
+/usr/bin/pwsh
+root@vlxsam99:~# pwsh -NoProfile -Command "
+\$password = ConvertTo-SecureString 'aniversariosogipa2025.' -AsPlainText -Force;
+\$credential = New-Object System.Management.Automation.PSCredential('gruppen.com.br\rodrigo', \$password);
+Invoke-Command -ComputerName 192.168.100.43 -Credential \$credential -ScriptBlock {
+  Write-Host 'Conexão WinRM OK!';
+  Get-Service -Name Spooler | Select-Object Name, Status | ConvertTo-Json
+}
+"
+Invoke-Command:
+Line |
+   4 |  Invoke-Command -ComputerName 192.168.100.43 -Credential $credential - …
+     |  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | This parameter set requires WSMan, and no supported WSMan client library was found. WSMan is either not installed or unavailable for this system.
+root@vlxsam99:~#

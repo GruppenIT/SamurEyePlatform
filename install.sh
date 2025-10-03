@@ -108,6 +108,45 @@ install_system_deps() {
     log "Dependências básicas instaladas com sucesso"
 }
 
+# Função para configurar ambiente Python para WinRM
+setup_python_winrm() {
+    log "Configurando ambiente Python para WinRM..."
+    
+    # Instala Python e dependências
+    apt install -y python3 python3-pip python3-venv
+    
+    # Cria virtualenv para WinRM
+    VENV_PATH="$INSTALL_DIR/venv"
+    log "Criando virtualenv em $VENV_PATH..."
+    
+    # Remove virtualenv anterior se existir
+    rm -rf "$VENV_PATH" 2>/dev/null || true
+    
+    # Cria novo virtualenv
+    python3 -m venv "$VENV_PATH"
+    
+    # Instala pywinrm e dependências
+    log "Instalando pywinrm..."
+    "$VENV_PATH/bin/pip" install --upgrade pip
+    "$VENV_PATH/bin/pip" install pywinrm pywinrm[credssp] requests-ntlm
+    
+    # Verifica instalação
+    if "$VENV_PATH/bin/python" -c "import winrm" 2>/dev/null; then
+        log "✅ pywinrm instalado com sucesso no virtualenv"
+    else
+        error "❌ Falha ao instalar pywinrm"
+        exit 1
+    fi
+    
+    # Torna o wrapper executável
+    if [[ -f "$INSTALL_DIR/server/utils/winrm-wrapper.py" ]]; then
+        chmod +x "$INSTALL_DIR/server/utils/winrm-wrapper.py"
+        log "✅ Wrapper WinRM configurado"
+    fi
+    
+    log "Ambiente Python para WinRM configurado com sucesso"
+}
+
 # Função para instalar Node.js
 install_nodejs() {
     log "Instalando Node.js $NODE_VERSION..."
@@ -278,82 +317,9 @@ install_security_tools() {
     # Instala smbclient e ferramentas LDAP
     apt install -y smbclient ldap-utils
     
-    # Instala PowerShell Core (necessário para AD Security via WinRM)
-    log "Configurando PowerShell Core com suporte WSMan..."
-    
-    # Remove PowerShell via snap se existir (snap não inclui WSMan)
-    if snap list 2>/dev/null | grep -q powershell; then
-        warn "Removendo PowerShell instalado via snap (sem suporte WSMan)..."
-        snap remove powershell --purge || true
-        rm -f /usr/bin/pwsh 2>/dev/null || true
-    fi
-    
-    # Detecta versão do Ubuntu
-    UBUNTU_VERSION=$(lsb_release -rs)
-    UBUNTU_CODENAME=$(lsb_release -cs)
-    
-    # Instala PowerShell via repositório oficial da Microsoft (com WSMan)
-    if ! command -v pwsh &> /dev/null; then
-        log "Instalando PowerShell via repositório Microsoft..."
-        
-        # Instala dependências necessárias para WSMan
-        log "Instalando dependências WSMan..."
-        apt install -y libssl-dev libpam0g-dev
-        
-        # Download e instalação do pacote Microsoft
-        wget -q "https://packages.microsoft.com/config/ubuntu/${UBUNTU_VERSION}/packages-microsoft-prod.deb" -O /tmp/packages-microsoft-prod.deb
-        dpkg -i /tmp/packages-microsoft-prod.deb
-        rm -f /tmp/packages-microsoft-prod.deb
-        
-        # Atualiza repositórios e instala PowerShell
-        apt update
-        apt install -y powershell
-        
-        # Verifica se PowerShell foi instalado corretamente
-        if command -v pwsh &> /dev/null; then
-            PWSH_VERSION=$(pwsh --version)
-            log "✅ PowerShell instalado com sucesso: $PWSH_VERSION"
-            
-            # Testa suporte WSMan
-            log "Verificando suporte WSMan..."
-            WSMAN_TEST=$(pwsh -NoProfile -Command "Get-Command New-PSSession -ErrorAction SilentlyContinue" 2>&1 || echo "FAIL")
-            if [[ "$WSMAN_TEST" != "FAIL" ]]; then
-                log "✅ Suporte WSMan verificado com sucesso"
-            else
-                warn "⚠️ WSMan pode não estar disponível, mas prosseguindo..."
-            fi
-        else
-            error "❌ Falha ao instalar PowerShell Core"
-            error "❌ A jornada AD Security não funcionará sem PowerShell"
-            error "❌ Instale manualmente: https://learn.microsoft.com/powershell/scripting/install/install-ubuntu"
-            exit 1
-        fi
-    else
-        # PowerShell já instalado - verifica se é via snap
-        PWSH_PATH=$(which pwsh)
-        if [[ "$PWSH_PATH" == *"/snap/"* ]]; then
-            warn "PowerShell instalado via snap detectado - removendo para instalar versão com WSMan..."
-            snap remove powershell --purge || true
-            rm -f /usr/bin/pwsh 2>/dev/null || true
-            
-            # Reinstala via repositório Microsoft
-            log "Instalando dependências WSMan..."
-            apt install -y libssl-dev libpam0g-dev
-            
-            wget -q "https://packages.microsoft.com/config/ubuntu/${UBUNTU_VERSION}/packages-microsoft-prod.deb" -O /tmp/packages-microsoft-prod.deb
-            dpkg -i /tmp/packages-microsoft-prod.deb
-            rm -f /tmp/packages-microsoft-prod.deb
-            
-            apt update
-            apt install -y powershell
-            
-            PWSH_VERSION=$(pwsh --version)
-            log "✅ PowerShell reinstalado com sucesso: $PWSH_VERSION"
-        else
-            PWSH_VERSION=$(pwsh --version)
-            log "PowerShell já instalado (repositório Microsoft): $PWSH_VERSION"
-        fi
-    fi
+    # NOTA: PowerShell Core removido - WinRM agora usa pywinrm (Python)
+    # A jornada AD Security executa via wrapper Python em vez de pwsh
+    log "✅ WinRM será gerenciado via Python (pywinrm) - configurado em setup_python_winrm()"
     
     log "Ferramentas de segurança instaladas com sucesso"
 }
@@ -1261,6 +1227,7 @@ main() {
     create_system_user
     setup_firewall
     install_application
+    setup_python_winrm
     setup_environment
     run_migrations
     create_admin_user
