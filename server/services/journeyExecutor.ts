@@ -418,8 +418,8 @@ class JourneyExecutorService {
       const edrAvType = params.edrAvType || 'network_based'; // Default para compatibilidade
       
       if (edrAvType === 'ad_based') {
-        // Modo AD Based: Descobrir workstations via LDAP
-        console.log('🔍 Modo AD Based: Descobrindo workstations via LDAP...');
+        // Modo AD Based: Descobrir workstations via PowerShell/WinRM
+        console.log('🔍 Modo AD Based: Descobrindo workstations via PowerShell/WinRM...');
         
         if (credential.type !== 'ad') {
           throw new Error('Para jornada AD Based é necessário usar credencial do tipo AD/LDAP');
@@ -430,23 +430,17 @@ class JourneyExecutorService {
           throw new Error('Nome do domínio não especificado para jornada AD Based');
         }
 
-        /**
-         * IMPORTANTE: Modo AD-based foi removido na refatoração do AD Security
-         * 
-         * Razão: O AD Security scanner foi refatorado para usar PowerShell via WinRM com 28 novos
-         * testes organizados em categorias. O método legado `discoverWorkstations()` que usava
-         * LDAP para descobrir workstations foi removido nessa refatoração.
-         * 
-         * Alternativa: Use o modo "Network Based" do EDR/AV, que permite selecionar alvos
-         * específicos (hosts ou ranges) de forma mais controlada e previsível.
-         * 
-         * Se descoberta automática via AD for necessária no futuro, será preciso reimplementar
-         * um método de descoberta compatível com o novo scanner PowerShell.
-         */
-        console.log('⚠️ Modo AD-based removido na refatoração do AD Security scanner');
-        console.log('💡 Use o modo Network Based com alvos específicos ao invés de AD Based');
+        const adScanner = new ADScanner();
+        const dcHost = params.primaryDC || params.secondaryDC || undefined;
         
-        throw new Error('Modo AD Based não suportado após refatoração do AD Security. Use Network Based com alvos específicos.');
+        workstationTargets = await adScanner.discoverWorkstations(
+          domainName,
+          credential.username,
+          decryptedPassword,
+          dcHost
+        );
+
+        console.log(`✅ Descobertas ${workstationTargets.length} workstations via AD`);
 
       } else if (edrAvType === 'network_based') {
         // Modo Network Based: Usar ativos específicos

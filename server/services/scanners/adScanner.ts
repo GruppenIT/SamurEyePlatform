@@ -1194,6 +1194,66 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
   }
 
   /**
+   * Descobre workstations do domínio via PowerShell/WinRM
+   */
+  async discoverWorkstations(
+    domain: string,
+    username: string,
+    password: string,
+    dcHost?: string
+  ): Promise<string[]> {
+    console.log(`🔍 Descobrindo workstations do domínio ${domain}...`);
+
+    this.domain = domain;
+    this.baseDN = this.buildBaseDN(domain);
+
+    // PowerShell command to list all computer objects (workstations)
+    const psCommand = `
+      Get-ADComputer -Filter {OperatingSystem -like "*Windows*" -and Enabled -eq $true} -Properties DNSHostName, OperatingSystem | 
+      Where-Object {$_.OperatingSystem -notlike "*Server*"} | 
+      Select-Object -ExpandProperty DNSHostName
+    `.trim();
+
+    try {
+      // Discover DC if not provided
+      let targetDC = dcHost;
+      if (!targetDC) {
+        const dcs = await this.discoverDomainControllers(domain);
+        if (dcs.length === 0) {
+          throw new Error(`Nenhum controlador de domínio encontrado para ${domain}`);
+        }
+        targetDC = dcs[0];
+        console.log(`🎯 Usando DC descoberto: ${targetDC}`);
+      }
+
+      const result = await this.executePowerShell(
+        targetDC,
+        domain,
+        username,
+        password,
+        psCommand
+      );
+
+      if (result.success && result.stdout.trim()) {
+        // Parse workstation list from stdout (one per line)
+        const workstations = result.stdout
+          .split('\n')
+          .map((line: string) => line.trim())
+          .filter((line: string) => line.length > 0 && line.includes('.'));
+
+        console.log(`✅ Descobertas ${workstations.length} workstations`);
+        return workstations;
+      } else {
+        console.log(`⚠️  Nenhuma workstation encontrada (exitCode: ${result.exitCode})`);
+        return [];
+      }
+    } catch (error: any) {
+      console.error(`❌ Erro ao descobrir workstations: ${error.message}`);
+      return [];
+    }
+  }
+
+  /**
    * Constrói Base DN a partir do nome de domínio
    */
   private buildBaseDN(domain: string): string {
