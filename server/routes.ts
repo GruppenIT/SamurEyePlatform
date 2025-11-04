@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 import { setupAuth, isAuthenticatedWithPasswordCheck } from "./localAuth";
 import { jobQueue } from "./services/jobQueue";
 import { threatEngine } from "./services/threatEngine";
@@ -1231,6 +1233,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao recalcular risk scores:", error);
       res.status(500).json({ message: "Falha ao recalcular risk scores" });
+    }
+  });
+
+  // Session management routes
+  app.get('/api/sessions', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const currentSessionId = req.sessionID;
+      const sessions = await storage.getActiveSessionsByUserId(userId);
+      
+      // Marcar a sessão atual para o frontend
+      const sessionsWithCurrent = sessions.map(session => ({
+        ...session,
+        isCurrent: session.sessionId === currentSessionId
+      }));
+      
+      res.json(sessionsWithCurrent);
+    } catch (error) {
+      console.error("Erro ao buscar sessões ativas:", error);
+      res.status(500).json({ message: "Falha ao buscar sessões ativas" });
+    }
+  });
+
+  app.delete('/api/sessions/:sessionId', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { sessionId } = req.params;
+      
+      // Verificar se a sessão pertence ao usuário
+      const session = await storage.getActiveSessionBySessionId(sessionId);
+      if (!session) {
+        return res.status(404).json({ message: "Sessão não encontrada" });
+      }
+      
+      if (session.userId !== userId) {
+        return res.status(403).json({ message: "Você não pode revogar sessões de outros usuários" });
+      }
+      
+      // Remover sessão ativa do tracking
+      await storage.deleteActiveSession(sessionId);
+      
+      // CRITICAL: Destruir a sessão do Express store (forçar remoção do cache em memória)
+      // connect-pg-simple armazena o sessionId SEM o prefixo "s:", então usamos direto
+      
+      // Usar sessionStore.destroy para remover do cache em memória do Express
+      if (req.sessionStore && req.sessionStore.destroy) {
+        await new Promise<void>((resolve, reject) => {
+          req.sessionStore.destroy(sessionId, (err: any) => {
+            if (err) {
+              console.error('Erro ao destruir sessão do store:', err);
+              reject(err);
+            } else {
+              console.log(`✅ Sessão ${sessionId} revogada com sucesso`);
+              resolve();
+            }
+          });
+        });
+      } else {
+        // Fallback: deletar direto do banco se sessionStore não estiver disponível
+        await db.execute(sql`DELETE FROM sessions WHERE sid = ${sessionId}`);
+        console.log(`✅ Sessão ${sessionId} deletada do banco (fallback)`);
+      }
+      
+      // Registrar auditoria
+      await storage.logAudit({
+        actorId: userId,
+        action: 'session.revoke',
+        objectType: 'session',
+        objectId: sessionId,
+        before: session,
+        after: null,
+      });
+      
+      res.json({ message: 'Sessão revogada com sucesso' });
+    } catch (error) {
+      console.error("Erro ao revogar sessão:", error);
+      res.status(500).json({ message: "Falha ao revogar sessão" });
+    }
+  });
+
+  app.delete('/api/sessions', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Buscar todas as sessões do usuário antes de deletar
+      const userSessions = await storage.getActiveSessionsByUserId(userId);
+      
+      // CRITICAL: Destruir todas as sessões do Express store (forçar remoção do cache)
+      // connect-pg-simple armazena o sessionId SEM o prefixo "s:", então usamos direto
+      for (const session of userSessions) {
+        // Usar sessionStore.destroy para remover do cache em memória
+        if (req.sessionStore && req.sessionStore.destroy) {
+          await new Promise<void>((resolve, reject) => {
+            req.sessionStore.destroy(session.sessionId, (err: any) => {
+              if (err) {
+                console.error(`Erro ao destruir sessão ${session.sessionId} do store:`, err);
+                reject(err);
+              } else {
+                console.log(`✅ Sessão ${session.sessionId} revogada`);
+                resolve();
+              }
+            });
+          });
+        } else {
+          // Fallback: deletar direto do banco
+          await db.execute(sql`DELETE FROM sessions WHERE sid = ${session.sessionId}`);
+          console.log(`✅ Sessão ${session.sessionId} deletada (fallback)`);
+        }
+      }
+      
+      // Remover todas as sessões do tracking
+      await storage.deleteActiveSessionsByUserId(userId);
+      
+      // Registrar auditoria
+      await storage.logAudit({
+        actorId: userId,
+        action: 'session.revoke_all',
+        objectType: 'session',
+        objectId: userId,
+        before: null,
+        after: { message: 'Todas as sessões foram revogadas' },
+      });
+      
+      res.json({ message: 'Todas as sessões foram revogadas com sucesso' });
+    } catch (error) {
+      console.error("Erro ao revogar todas as sessões:", error);
+      res.status(500).json({ message: "Falha ao revogar todas as sessões" });
+    }
+  });
+
+  app.get('/api/admin/sessions', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      const sessions = await storage.getAllActiveSessions(limit);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Erro ao buscar todas as sessões ativas:", error);
+      res.status(500).json({ message: "Falha ao buscar todas as sessões ativas" });
     }
   });
 

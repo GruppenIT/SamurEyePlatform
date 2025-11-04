@@ -12,6 +12,8 @@ import {
   adSecurityTestResults,
   settings,
   auditLog,
+  activeSessions,
+  loginAttempts,
   threatStatusHistory,
   emailSettings,
   notificationPolicies,
@@ -42,6 +44,10 @@ import {
   type ThreatStatusHistory,
   type InsertThreatStatusHistory,
   type AuditLogEntry,
+  type ActiveSession,
+  type InsertActiveSession,
+  type LoginAttempt,
+  type InsertLoginAttempt,
   type EmailSettings,
   type InsertEmailSettings,
   type NotificationPolicy,
@@ -196,6 +202,26 @@ export interface IStorage {
   // Audit operations
   logAudit(entry: Omit<AuditLogEntry, 'id' | 'createdAt'>): Promise<AuditLogEntry>;
   getAuditLog(limit?: number): Promise<AuditLogEntry[]>;
+
+  // Active session operations
+  createActiveSession(session: InsertActiveSession): Promise<ActiveSession>;
+  getActiveSessionBySessionId(sessionId: string): Promise<ActiveSession | undefined>;
+  getActiveSessionsByUserId(userId: string): Promise<ActiveSession[]>;
+  updateActiveSessionLastActivity(sessionId: string): Promise<ActiveSession>;
+  deleteActiveSession(sessionId: string): Promise<void>;
+  deleteActiveSessionsByUserId(userId: string): Promise<void>;
+  cleanupExpiredSessions(): Promise<void>;
+  getAllActiveSessions(limit?: number): Promise<(ActiveSession & { user: User })[]>;
+
+  // Login attempt operations (rate limiting)
+  getLoginAttempt(identifier: string): Promise<LoginAttempt | undefined>;
+  upsertLoginAttempt(identifier: string, increment: boolean): Promise<LoginAttempt>;
+  resetLoginAttempts(identifier: string): Promise<void>;
+  cleanupOldLoginAttempts(): Promise<void>;
+
+  // Session version operations
+  getCurrentSessionVersion(): Promise<number>;
+  incrementSessionVersion(userId: string): Promise<number>;
 
   // Email settings operations
   getEmailSettings(): Promise<EmailSettings | undefined>;
@@ -1762,6 +1788,114 @@ export class DatabaseStorage implements IStorage {
       console.error('❌ Erro na consolidação de duplicatas:', error);
       throw error;
     }
+  }
+
+  // Active session operations
+  async createActiveSession(session: InsertActiveSession): Promise<ActiveSession> {
+    const [newSession] = await db.insert(activeSessions).values(session).returning();
+    return newSession;
+  }
+
+  async getActiveSessionBySessionId(sessionId: string): Promise<ActiveSession | undefined> {
+    const [session] = await db.select().from(activeSessions).where(eq(activeSessions.sessionId, sessionId));
+    return session;
+  }
+
+  async getActiveSessionsByUserId(userId: string): Promise<ActiveSession[]> {
+    return await db.select()
+      .from(activeSessions)
+      .where(eq(activeSessions.userId, userId))
+      .orderBy(desc(activeSessions.lastActivity));
+  }
+
+  async updateActiveSessionLastActivity(sessionId: string): Promise<ActiveSession> {
+    const [updated] = await db.update(activeSessions)
+      .set({ lastActivity: new Date() })
+      .where(eq(activeSessions.sessionId, sessionId))
+      .returning();
+    return updated;
+  }
+
+  async deleteActiveSession(sessionId: string): Promise<void> {
+    await db.delete(activeSessions).where(eq(activeSessions.sessionId, sessionId));
+  }
+
+  async deleteActiveSessionsByUserId(userId: string): Promise<void> {
+    await db.delete(activeSessions).where(eq(activeSessions.userId, userId));
+  }
+
+  async cleanupExpiredSessions(): Promise<void> {
+    await db.delete(activeSessions).where(sql`${activeSessions.expiresAt} < NOW()`);
+  }
+
+  async getAllActiveSessions(limit: number = 100): Promise<(ActiveSession & { user: User })[]> {
+    const sessions = await db.select({
+      session: activeSessions,
+      user: users,
+    })
+    .from(activeSessions)
+    .innerJoin(users, eq(activeSessions.userId, users.id))
+    .orderBy(desc(activeSessions.lastActivity))
+    .limit(limit);
+
+    return sessions.map(row => ({
+      ...row.session,
+      user: row.user,
+    }));
+  }
+
+  // Login attempt operations (rate limiting)
+  async getLoginAttempt(identifier: string): Promise<LoginAttempt | undefined> {
+    const [attempt] = await db.select()
+      .from(loginAttempts)
+      .where(eq(loginAttempts.identifier, identifier));
+    return attempt;
+  }
+
+  async upsertLoginAttempt(identifier: string, increment: boolean): Promise<LoginAttempt> {
+    const existing = await this.getLoginAttempt(identifier);
+    
+    if (existing) {
+      const newAttempts = increment ? existing.attempts + 1 : existing.attempts;
+      const [updated] = await db.update(loginAttempts)
+        .set({
+          attempts: newAttempts,
+          lastAttempt: new Date(),
+          blockedUntil: newAttempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null, // Block for 15 min after 5 attempts
+        })
+        .where(eq(loginAttempts.identifier, identifier))
+        .returning();
+      return updated;
+    } else {
+      const [newAttempt] = await db.insert(loginAttempts).values({
+        identifier,
+        attempts: 1,
+        lastAttempt: new Date(),
+      }).returning();
+      return newAttempt;
+    }
+  }
+
+  async resetLoginAttempts(identifier: string): Promise<void> {
+    await db.delete(loginAttempts).where(eq(loginAttempts.identifier, identifier));
+  }
+
+  async cleanupOldLoginAttempts(): Promise<void> {
+    // Clean up attempts older than 24 hours
+    await db.delete(loginAttempts).where(sql`${loginAttempts.lastAttempt} < NOW() - INTERVAL '24 hours'`);
+  }
+
+  // Session version operations
+  async getCurrentSessionVersion(): Promise<number> {
+    const setting = await this.getSetting('session_version');
+    return setting ? (setting.value as number) : 1;
+  }
+
+  async incrementSessionVersion(userId: string): Promise<number> {
+    const currentVersion = await this.getCurrentSessionVersion();
+    const newVersion = currentVersion + 1;
+    await this.setSetting('session_version', newVersion, userId);
+    return newVersion;
   }
 }
 

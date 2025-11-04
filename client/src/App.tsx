@@ -18,6 +18,7 @@ import Schedules from "@/pages/schedules";
 import Jobs from "@/pages/jobs";
 import Threats from "@/pages/threats";
 import Users from "@/pages/users";
+import Sessions from "@/pages/sessions";
 import Settings from "@/pages/settings";
 import Audit from "@/pages/audit";
 import NotificationPolicies from "@/pages/notification-policies";
@@ -64,6 +65,7 @@ function Router() {
           <Route path="/jobs" component={Jobs} />
           <Route path="/threats" component={Threats} />
           <Route path="/users" component={Users} />
+          <Route path="/sessions" component={Sessions} />
           <Route path="/settings" component={Settings} />
           <Route path="/notification-policies" component={NotificationPolicies} />
           <Route path="/audit" component={Audit} />

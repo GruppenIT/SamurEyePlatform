@@ -20,7 +20,18 @@ The backend runs on Express.js with TypeScript, following a modular service-orie
 - **CVE Detection Service**: Integrates with the NIST NVD API for real-time CVE analysis, providing detailed threat entries and remediation guidance.
 
 ### Authentication & Authorization
-The application uses local authentication with bcrypt for password hashing (12 rounds). Session management is handled by express-session with PostgreSQL storage, featuring session fixation protection, secure logout, rate limiting (5 attempts per minute), and secure cookies. Role-based access control (RBAC) supports `global_administrator`, `operator`, and `read_only` roles.
+The application uses local authentication with bcrypt for password hashing (12 rounds). Session management is handled by express-session with PostgreSQL storage (connect-pg-simple), featuring comprehensive security controls:
+
+**Session Security System:**
+- **Session Versioning**: Global version counter increments on every server restart, immediately invalidating all previous sessions across all devices
+- **Active Sessions Tracking**: `active_sessions` table stores metadata (IP, user agent, device info, creation time, last activity) for all authenticated sessions
+- **Multi-Device Session Management**: Users can view and revoke individual sessions or all sessions simultaneously via the `/sessions` page
+- **Session Revocation**: Immediate invalidation using `sessionStore.destroy()` to purge both database records and in-memory cache; revoked sessions are blocked on next request
+- **Middleware Validation**: Every authenticated request validates against `active_sessions` table and session version; fail-secure approach forces logout on validation errors
+- **Persistent Rate Limiting**: PostgreSQL-backed `login_attempts` table tracks 5 attempts per email:IP combination with 15-minute lockout; survives server restarts
+- **Session Lifecycle**: 8-hour expiration with automatic cleanup, secure HttpOnly cookies, SameSite protection, and automatic HTTPS detection
+
+**RBAC System**: Role-based access control with `global_administrator`, `operator`, and `read_only` roles enforced via middleware.
 
 ### Data Storage
 PostgreSQL is the primary database, utilizing Drizzle ORM for type-safe operations. The schema includes tables for users, assets, credentials, journeys, schedules, jobs, threats, audit logs, and hosts. Credentials are encrypted at rest using a KEK and DEK pattern.

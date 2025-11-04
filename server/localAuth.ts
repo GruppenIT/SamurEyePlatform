@@ -54,64 +54,30 @@ async function bootstrapDevAdmin() {
   }
 }
 
-// Simple in-memory rate limiting for login attempts
-interface RateLimitEntry {
-  attempts: number;
-  lastAttempt: Date;
-  blockedUntil?: Date;
-}
-
-const loginAttempts = new Map<string, RateLimitEntry>();
-const MAX_ATTEMPTS = 5;
-const BLOCK_DURATION = 15 * 60 * 1000; // 15 minutes
-const ATTEMPT_WINDOW = 60 * 1000; // 1 minute window
-
-function isRateLimited(identifier: string): boolean {
-  const entry = loginAttempts.get(identifier);
-  if (!entry) return false;
+// Persistent rate limiting using PostgreSQL
+async function isRateLimited(identifier: string): Promise<boolean> {
+  const attempt = await storage.getLoginAttempt(identifier);
+  if (!attempt) return false;
 
   const now = new Date();
   
   // Check if still blocked
-  if (entry.blockedUntil && now < entry.blockedUntil) {
+  if (attempt.blockedUntil && now < attempt.blockedUntil) {
     return true;
   }
 
-  // Reset if attempt window has passed
-  if (now.getTime() - entry.lastAttempt.getTime() > ATTEMPT_WINDOW) {
-    loginAttempts.delete(identifier);
-    return false;
-  }
-
-  return entry.attempts >= MAX_ATTEMPTS;
+  return false;
 }
 
-function recordLoginAttempt(identifier: string, success: boolean) {
-  const now = new Date();
-  const entry = loginAttempts.get(identifier);
-
+async function recordLoginAttempt(identifier: string, success: boolean) {
   if (success) {
     // Clear on successful login
-    loginAttempts.delete(identifier);
+    await storage.resetLoginAttempts(identifier);
     return;
   }
 
-  if (!entry) {
-    loginAttempts.set(identifier, {
-      attempts: 1,
-      lastAttempt: now
-    });
-    return;
-  }
-
-  entry.attempts += 1;
-  entry.lastAttempt = now;
-
-  if (entry.attempts >= MAX_ATTEMPTS) {
-    entry.blockedUntil = new Date(now.getTime() + BLOCK_DURATION);
-  }
-
-  loginAttempts.set(identifier, entry);
+  // Increment attempts
+  await storage.upsertLoginAttempt(identifier, true);
 }
 
 /**
@@ -119,15 +85,76 @@ function recordLoginAttempt(identifier: string, success: boolean) {
  */
 async function cleanupExpiredSessions(): Promise<void> {
   try {
+    // Limpar sessões connect-pg-simple
     await db.execute(sql`
       DELETE FROM sessions 
       WHERE expire < NOW()
     `);
     
+    // Limpar active_sessions expiradas
+    await storage.cleanupExpiredSessions();
+    
+    // Limpar login attempts antigos
+    await storage.cleanupOldLoginAttempts();
+    
     console.log(`🧹 Limpeza de sessões expiradas executada`);
   } catch (error) {
     console.error('❌ Erro ao limpar sessões expiradas:', error);
   }
+}
+
+/**
+ * Incrementa a versão global de sessão para invalidar todas as sessões ativas
+ * Executado ao iniciar o servidor
+ */
+async function invalidateAllSessionsOnStartup(): Promise<void> {
+  try {
+    // Buscar o primeiro admin para usar como userId
+    const users = await storage.getAllUsers();
+    const adminUser = users.find(u => u.role === 'global_administrator') || users[0];
+    
+    if (!adminUser) {
+      console.warn('⚠️  Nenhum usuário encontrado para incrementar versão de sessão');
+      return;
+    }
+    
+    const newVersion = await storage.incrementSessionVersion(adminUser.id);
+    console.log(`🔐 Versão de sessão incrementada para ${newVersion} - todas as sessões anteriores invalidadas`);
+    
+    // Limpar todas as sessões ativas do banco (connect-pg-simple)
+    await db.execute(sql`DELETE FROM sessions`);
+    
+    // Limpar todas as sessões ativas rastreadas
+    await db.execute(sql`DELETE FROM active_sessions`);
+    
+    console.log(`🔒 Todas as sessões anteriores foram removidas`);
+  } catch (error) {
+    console.error('❌ Erro ao invalidar sessões na inicialização:', error);
+  }
+}
+
+/**
+ * Obtém informações sobre o device do user agent
+ */
+function parseDeviceInfo(userAgent: string): string {
+  if (!userAgent) return 'Unknown Device';
+  
+  // Detectar navegador
+  let browser = 'Unknown Browser';
+  if (userAgent.includes('Chrome')) browser = 'Chrome';
+  else if (userAgent.includes('Firefox')) browser = 'Firefox';
+  else if (userAgent.includes('Safari')) browser = 'Safari';
+  else if (userAgent.includes('Edge')) browser = 'Edge';
+  
+  // Detectar OS
+  let os = 'Unknown OS';
+  if (userAgent.includes('Windows')) os = 'Windows';
+  else if (userAgent.includes('Mac')) os = 'macOS';
+  else if (userAgent.includes('Linux')) os = 'Linux';
+  else if (userAgent.includes('Android')) os = 'Android';
+  else if (userAgent.includes('iOS')) os = 'iOS';
+  
+  return `${browser} on ${os}`;
 }
 
 export function getSession() {
@@ -170,11 +197,11 @@ export function getSession() {
 }
 
 /**
- * Middleware para verificar se a sessão ainda é válida (simplificado)
- * Usa a funcionalidade nativa do express-session ao invés de cálculos manuais
+ * Middleware para verificar se a sessão ainda é válida
+ * Valida tanto a expiração quanto a versão da sessão
  */
 export function validateSession(): RequestHandler {
-  return (req: any, res, next) => {
+  return async (req: any, res, next) => {
     // Se não há usuário logado, prosseguir normalmente
     if (!req.user) {
       return next();
@@ -184,6 +211,13 @@ export function validateSession(): RequestHandler {
     const cookieExpires = req.session.cookie.expires;
     if (cookieExpires && cookieExpires <= new Date()) {
       console.log(`🔒 Sessão expirada para usuário ${req.user.id}, forçando logout`);
+      
+      // Remover sessão ativa
+      if (req.sessionID) {
+        await storage.deleteActiveSession(req.sessionID).catch(err => {
+          console.error('Erro ao remover sessão ativa:', err);
+        });
+      }
       
       // Destruir sessão
       req.session.destroy((err: any) => {
@@ -207,6 +241,96 @@ export function validateSession(): RequestHandler {
         return res.redirect('/login');
       }
     }
+
+    // CRITICAL: Validar se a sessão está rastreada em active_sessions
+    try {
+      const activeSession = await storage.getActiveSessionBySessionId(req.sessionID);
+      
+      // Bloquear sessões que não estão rastreadas (revogadas ou inválidas)
+      if (!activeSession) {
+        console.log(`🔒 Sessão não rastreada para usuário ${req.user.id} - provavelmente revogada`);
+        
+        // Destruir sessão
+        req.session.destroy((err: any) => {
+          if (err) {
+            console.error('Erro ao destruir sessão não rastreada:', err);
+          }
+        });
+        
+        // Limpar cookie
+        res.clearCookie('connect.sid', {
+          path: '/',
+          httpOnly: true,
+          secure: req.secure || req.get('X-Forwarded-Proto') === 'https',
+          sameSite: 'lax'
+        });
+        
+        // Retornar 401 se for request API, redirect se for página
+        if (req.path.startsWith('/api/')) {
+          return res.status(401).json({ message: 'Sessão revogada', expired: true });
+        } else {
+          return res.redirect('/login');
+        }
+      }
+      
+      const currentVersion = await storage.getCurrentSessionVersion();
+      
+      // Bloquear sessões com versão desatualizada
+      if (activeSession.sessionVersion !== currentVersion) {
+        console.log(`🔒 Sessão invalidada para usuário ${req.user.id} (versão ${activeSession.sessionVersion} vs atual ${currentVersion})`);
+        
+        // Remover sessão ativa
+        await storage.deleteActiveSession(req.sessionID).catch(err => {
+          console.error('Erro ao remover sessão ativa:', err);
+        });
+        
+        // Destruir sessão
+        req.session.destroy((err: any) => {
+          if (err) {
+            console.error('Erro ao destruir sessão invalidada:', err);
+          }
+        });
+        
+        // Limpar cookie
+        res.clearCookie('connect.sid', {
+          path: '/',
+          httpOnly: true,
+          secure: req.secure || req.get('X-Forwarded-Proto') === 'https',
+          sameSite: 'lax'
+        });
+        
+        // Retornar 401 se for request API, redirect se for página
+        if (req.path.startsWith('/api/')) {
+          return res.status(401).json({ message: 'Sessão invalidada', expired: true });
+        } else {
+          return res.redirect('/login');
+        }
+      }
+      
+      // Atualizar última atividade
+      await storage.updateActiveSessionLastActivity(req.sessionID).catch(err => {
+        console.error('Erro ao atualizar última atividade da sessão:', err);
+      });
+    } catch (error) {
+      console.error('Erro ao validar sessão:', error);
+      // Em caso de erro, forçar logout por segurança
+      req.session.destroy((err: any) => {
+        if (err) {
+          console.error('Erro ao destruir sessão após erro de validação:', err);
+        }
+      });
+      res.clearCookie('connect.sid', {
+        path: '/',
+        httpOnly: true,
+        secure: req.secure || req.get('X-Forwarded-Proto') === 'https',
+        sameSite: 'lax'
+      });
+      if (req.path.startsWith('/api/')) {
+        return res.status(401).json({ message: 'Erro ao validar sessão', expired: true });
+      } else {
+        return res.redirect('/login');
+      }
+    }
     
     next();
   };
@@ -225,6 +349,9 @@ export async function setupAuth(app: Express) {
   if (process.env.NODE_ENV === 'development') {
     await bootstrapDevAdmin();
   }
+
+  // Invalidar todas as sessões ao iniciar o servidor
+  await invalidateAllSessionsOnStartup();
 
   // Local strategy for email/password authentication
   passport.use(new LocalStrategy(
@@ -269,7 +396,7 @@ export async function setupAuth(app: Express) {
 
 
   // Login route
-  app.post('/api/auth/login', (req, res, next) => {
+  app.post('/api/auth/login', async (req, res, next) => {
     try {
       loginUserSchema.parse(req.body);
     } catch (error: any) {
@@ -284,15 +411,15 @@ export async function setupAuth(app: Express) {
     const rateLimitKey = `${email}:${clientIP}`;
 
     // Check rate limiting
-    if (isRateLimited(rateLimitKey)) {
+    if (await isRateLimited(rateLimitKey)) {
       return res.status(429).json({ 
         message: 'Muitas tentativas de login. Tente novamente em 15 minutos.' 
       });
     }
 
-    passport.authenticate('local', (err: any, user: any, info: any) => {
+    passport.authenticate('local', async (err: any, user: any, info: any) => {
       const success = !!user;
-      recordLoginAttempt(rateLimitKey, success);
+      await recordLoginAttempt(rateLimitKey, success);
 
       if (err) {
         console.error("Erro de autenticação:", err);
@@ -304,16 +431,53 @@ export async function setupAuth(app: Express) {
       }
 
       // Regenerate session ID to prevent session fixation
-      req.session.regenerate((err) => {
+      req.session.regenerate(async (err) => {
         if (err) {
           console.error("Erro ao regenerar sessão:", err);
           return res.status(500).json({ message: 'Erro interno do servidor' });
         }
 
-        req.logIn(user, (err) => {
+        req.logIn(user, async (err) => {
           if (err) {
             console.error("Erro ao fazer login:", err);
             return res.status(500).json({ message: 'Erro interno do servidor' });
+          }
+          
+          try {
+            // Criar sessão ativa rastreada
+            const userAgent = req.get('user-agent') || 'Unknown';
+            const deviceInfo = parseDeviceInfo(userAgent);
+            const currentVersion = await storage.getCurrentSessionVersion();
+            const sessionTtlMs = 8 * 60 * 60 * 1000; // 8 hours
+            
+            await storage.createActiveSession({
+              sessionId: req.sessionID,
+              userId: user.id,
+              sessionVersion: currentVersion,
+              ipAddress: clientIP,
+              userAgent: userAgent,
+              deviceInfo: deviceInfo,
+              expiresAt: new Date(Date.now() + sessionTtlMs),
+            });
+            
+            // Registrar auditoria de login
+            await storage.logAudit({
+              actorId: user.id,
+              action: 'user.login',
+              objectType: 'session',
+              objectId: req.sessionID,
+              before: null,
+              after: {
+                ip: clientIP,
+                userAgent: userAgent,
+                device: deviceInfo,
+              }
+            });
+            
+            console.log(`✅ Login bem-sucedido: ${user.email} de ${clientIP} (${deviceInfo})`);
+          } catch (error) {
+            console.error('Erro ao criar sessão ativa:', error);
+            // Não falhar o login se houver erro ao criar sessão ativa
           }
           
           res.json({ 
@@ -333,15 +497,47 @@ export async function setupAuth(app: Express) {
   });
 
   // Logout route
-  app.post('/api/auth/logout', (req, res) => {
-    req.logout((err) => {
+  app.post('/api/auth/logout', async (req: any, res) => {
+    const userId = req.user?.id;
+    const sessionId = req.sessionID;
+    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+    
+    req.logout(async (err: any) => {
       if (err) {
         console.error("Erro ao fazer logout:", err);
         return res.status(500).json({ message: 'Erro interno do servidor' });
       }
 
+      // Remover sessão ativa rastreada
+      if (sessionId) {
+        try {
+          await storage.deleteActiveSession(sessionId);
+        } catch (error) {
+          console.error('Erro ao remover sessão ativa:', error);
+        }
+      }
+
+      // Registrar auditoria de logout
+      if (userId) {
+        try {
+          await storage.logAudit({
+            actorId: userId,
+            action: 'user.logout',
+            objectType: 'session',
+            objectId: sessionId,
+            before: null,
+            after: {
+              ip: clientIP,
+              reason: 'voluntary',
+            }
+          });
+        } catch (error) {
+          console.error('Erro ao registrar auditoria de logout:', error);
+        }
+      }
+
       // Destroy the session and clear cookie
-      req.session.destroy((err) => {
+      req.session.destroy((err: any) => {
         if (err) {
           console.error("Erro ao destruir sessão:", err);
           return res.status(500).json({ message: 'Erro interno do servidor' });

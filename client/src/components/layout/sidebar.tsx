@@ -18,7 +18,8 @@ import {
   History,
   LogOut,
   Monitor,
-  Bell
+  Bell,
+  Smartphone
 } from "lucide-react";
 
 interface NavItem {
@@ -38,6 +39,7 @@ const navItems: NavItem[] = [
   { href: "/schedules", label: "Agendamentos", icon: Clock },
   { href: "/threats", label: "Ameaças", icon: AlertTriangle },
   { href: "/jobs", label: "Jobs", icon: List },
+  { href: "/sessions", label: "Sessões Ativas", icon: Smartphone },
 ];
 
 const adminItems: NavItem[] = [
