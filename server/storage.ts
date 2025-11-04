@@ -1301,12 +1301,118 @@ export class DatabaseStorage implements IStorage {
     return auditEntry;
   }
 
-  async getAuditLog(limit = 100): Promise<AuditLogEntry[]> {
-    return await db
-      .select()
+  async getAuditLog(limit = 100): Promise<any[]> {
+    // Get audit logs with user information via JOIN
+    const logs = await db
+      .select({
+        id: auditLog.id,
+        actorId: auditLog.actorId,
+        action: auditLog.action,
+        objectType: auditLog.objectType,
+        objectId: auditLog.objectId,
+        before: auditLog.before,
+        after: auditLog.after,
+        createdAt: auditLog.createdAt,
+        actorFirstName: users.firstName,
+        actorLastName: users.lastName,
+        actorEmail: users.email,
+      })
       .from(auditLog)
+      .leftJoin(users, eq(auditLog.actorId, users.id))
       .orderBy(desc(auditLog.createdAt))
       .limit(limit);
+
+    // Enrich with object details
+    const enrichedLogs = await Promise.all(logs.map(async (log) => {
+      let objectDetails = null;
+      
+      // Combine firstName and lastName for actorName
+      const actorName = log.actorFirstName && log.actorLastName 
+        ? `${log.actorFirstName} ${log.actorLastName}` 
+        : null;
+
+      try {
+        switch (log.objectType) {
+          case 'journey':
+            if (log.objectId) {
+              const journey = await this.getJourney(log.objectId);
+              if (journey) {
+                objectDetails = {
+                  name: journey.name,
+                  type: journey.type,
+                };
+              }
+            }
+            break;
+          case 'asset':
+            if (log.objectId) {
+              const asset = await this.getAsset(log.objectId);
+              if (asset) {
+                objectDetails = {
+                  type: asset.type,
+                  value: asset.value,
+                };
+              }
+            }
+            break;
+          case 'credential':
+            if (log.objectId) {
+              const credential = await this.getCredential(log.objectId);
+              if (credential) {
+                objectDetails = {
+                  name: credential.name,
+                  type: credential.type,
+                  username: credential.username,
+                };
+              }
+            }
+            break;
+          case 'user':
+            if (log.objectId) {
+              const user = await this.getUser(log.objectId);
+              if (user) {
+                objectDetails = {
+                  name: `${user.firstName} ${user.lastName}`,
+                  email: user.email,
+                  role: user.role,
+                };
+              }
+            }
+            break;
+          case 'threat':
+            if (log.objectId) {
+              const threat = await this.getThreat(log.objectId);
+              if (threat) {
+                objectDetails = {
+                  title: threat.title,
+                  severity: threat.severity,
+                  status: threat.status,
+                };
+              }
+            }
+            break;
+        }
+      } catch (error) {
+        // Object may have been deleted, that's OK
+        console.log(`Could not fetch details for ${log.objectType} ${log.objectId}`);
+      }
+
+      return {
+        id: log.id,
+        actorId: log.actorId,
+        action: log.action,
+        objectType: log.objectType,
+        objectId: log.objectId,
+        before: log.before,
+        after: log.after,
+        createdAt: log.createdAt,
+        actorName,
+        actorEmail: log.actorEmail,
+        objectDetails,
+      };
+    }));
+
+    return enrichedLogs;
   }
 
   // Email settings operations

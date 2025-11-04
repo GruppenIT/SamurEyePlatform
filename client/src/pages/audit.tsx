@@ -6,6 +6,14 @@ import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -22,13 +30,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, History, User, Edit, Trash2, Plus, Settings, Shield } from "lucide-react";
+import { Search, History, User, Edit, Trash2, Plus, Settings, Shield, Eye } from "lucide-react";
 import { AuditLogEntry } from "@shared/schema";
+
+interface EnrichedAuditLogEntry extends AuditLogEntry {
+  actorName?: string | null;
+  actorEmail?: string | null;
+  objectDetails?: {
+    name?: string;
+    type?: string;
+    value?: string;
+    username?: string;
+    email?: string;
+    role?: string;
+    title?: string;
+    severity?: string;
+    status?: string;
+  } | null;
+}
 
 export default function Audit() {
   const [searchTerm, setSearchTerm] = useState("");
   const [actionFilter, setActionFilter] = useState<string>("all");
   const [objectTypeFilter, setObjectTypeFilter] = useState<string>("all");
+  const [selectedEntry, setSelectedEntry] = useState<EnrichedAuditLogEntry | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
@@ -45,7 +71,7 @@ export default function Audit() {
     }
   }, [currentUser, toast]);
 
-  const { data: auditLog = [], isLoading } = useQuery<AuditLogEntry[]>({
+  const { data: auditLog = [], isLoading } = useQuery<EnrichedAuditLogEntry[]>({
     queryKey: ["/api/audit", { limit: 100 }],
     enabled: currentUser?.role === 'global_administrator',
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -136,7 +162,7 @@ export default function Audit() {
     }
   };
 
-  const formatTimestamp = (timestamp: string) => {
+  const formatTimestamp = (timestamp: string | Date) => {
     return new Date(timestamp).toLocaleString('pt-BR');
   };
 
@@ -259,8 +285,8 @@ export default function Audit() {
                         <TableHead>Usuário</TableHead>
                         <TableHead>Ação</TableHead>
                         <TableHead>Tipo de Objeto</TableHead>
-                        <TableHead>ID do Objeto</TableHead>
-                        <TableHead>Detalhes</TableHead>
+                        <TableHead>Objeto</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -274,7 +300,16 @@ export default function Audit() {
                             <TableCell>
                               <div className="flex items-center space-x-2">
                                 <User className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-medium">ID: {entry.actorId.slice(0, 8)}...</span>
+                                <div>
+                                  <div className="font-medium">
+                                    {entry.actorName || 'Usuário Sistema'}
+                                  </div>
+                                  {entry.actorEmail && (
+                                    <div className="text-xs text-muted-foreground">
+                                      {entry.actorEmail}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -290,21 +325,40 @@ export default function Audit() {
                                 {getObjectTypeLabel(entry.objectType)}
                               </Badge>
                             </TableCell>
-                            <TableCell className="font-mono text-sm text-muted-foreground">
-                              {entry.objectId ? `${entry.objectId.slice(0, 8)}...` : '-'}
+                            <TableCell>
+                              {entry.objectDetails ? (
+                                <div>
+                                  <div className="font-medium text-sm">
+                                    {entry.objectDetails.name || entry.objectDetails.title || '-'}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {entry.objectDetails.type && `Tipo: ${entry.objectDetails.type}`}
+                                    {entry.objectDetails.username && `User: ${entry.objectDetails.username}`}
+                                    {entry.objectDetails.email && entry.objectDetails.email}
+                                    {entry.objectDetails.value && entry.objectDetails.value}
+                                  </div>
+                                </div>
+                              ) : entry.objectId ? (
+                                <span className="font-mono text-xs text-muted-foreground">
+                                  {entry.objectId.slice(0, 8)}...
+                                </span>
+                              ) : (
+                                '-'
+                              )}
                             </TableCell>
-                            <TableCell className="max-w-md">
-                              <div className="text-sm text-muted-foreground">
-                                {entry.before && entry.after ? (
-                                  <span className="text-primary">Alteração registrada</span>
-                                ) : entry.after ? (
-                                  <span className="text-chart-4">Criação registrada</span>
-                                ) : entry.before ? (
-                                  <span className="text-destructive">Exclusão registrada</span>
-                                ) : (
-                                  <span>Ação registrada</span>
-                                )}
-                              </div>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedEntry(entry);
+                                  setDetailsOpen(true);
+                                }}
+                                data-testid={`button-view-details-${entry.id}`}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                Detalhes
+                              </Button>
                             </TableCell>
                           </TableRow>
                         );
@@ -317,6 +371,175 @@ export default function Audit() {
           </Card>
         </div>
       </main>
+
+      {/* Details Dialog */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Atividade de Auditoria</DialogTitle>
+            <DialogDescription>
+              Informações completas sobre a ação executada
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedEntry && (
+            <div className="space-y-6">
+              {/* Timestamp */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground mb-1">Data/Hora</div>
+                  <div className="text-sm font-mono">
+                    {formatTimestamp(selectedEntry.createdAt)}
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground mb-1">Ação</div>
+                  <Badge className={getActionColor(selectedEntry.action)}>
+                    {getActionLabel(selectedEntry.action)}
+                  </Badge>
+                </div>
+                
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground mb-1">Tipo</div>
+                  <Badge variant="outline">
+                    {getObjectTypeLabel(selectedEntry.objectType)}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Actor Info */}
+              <div>
+                <div className="text-sm font-medium text-muted-foreground mb-2">Usuário</div>
+                <Card className="p-4">
+                  <div className="flex items-center space-x-3">
+                    <User className="h-8 w-8 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">
+                        {selectedEntry.actorName || 'Usuário Sistema'}
+                      </div>
+                      {selectedEntry.actorEmail && (
+                        <div className="text-sm text-muted-foreground">
+                          {selectedEntry.actorEmail}
+                        </div>
+                      )}
+                      <div className="text-xs text-muted-foreground font-mono mt-1">
+                        ID: {selectedEntry.actorId}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Object Details */}
+              {selectedEntry.objectDetails && (
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground mb-2">
+                    Detalhes do Objeto
+                  </div>
+                  <Card className="p-4">
+                    <div className="space-y-2">
+                      {selectedEntry.objectDetails.name && (
+                        <div>
+                          <span className="text-sm font-medium">Nome: </span>
+                          <span className="text-sm">{selectedEntry.objectDetails.name}</span>
+                        </div>
+                      )}
+                      {selectedEntry.objectDetails.title && (
+                        <div>
+                          <span className="text-sm font-medium">Título: </span>
+                          <span className="text-sm">{selectedEntry.objectDetails.title}</span>
+                        </div>
+                      )}
+                      {selectedEntry.objectDetails.type && (
+                        <div>
+                          <span className="text-sm font-medium">Tipo: </span>
+                          <span className="text-sm">{selectedEntry.objectDetails.type}</span>
+                        </div>
+                      )}
+                      {selectedEntry.objectDetails.username && (
+                        <div>
+                          <span className="text-sm font-medium">Username: </span>
+                          <span className="text-sm">{selectedEntry.objectDetails.username}</span>
+                        </div>
+                      )}
+                      {selectedEntry.objectDetails.email && (
+                        <div>
+                          <span className="text-sm font-medium">Email: </span>
+                          <span className="text-sm">{selectedEntry.objectDetails.email}</span>
+                        </div>
+                      )}
+                      {selectedEntry.objectDetails.value && (
+                        <div>
+                          <span className="text-sm font-medium">Valor: </span>
+                          <span className="text-sm font-mono">{selectedEntry.objectDetails.value}</span>
+                        </div>
+                      )}
+                      {selectedEntry.objectDetails.role && (
+                        <div>
+                          <span className="text-sm font-medium">Papel: </span>
+                          <Badge variant="outline">{selectedEntry.objectDetails.role}</Badge>
+                        </div>
+                      )}
+                      {selectedEntry.objectDetails.severity && (
+                        <div>
+                          <span className="text-sm font-medium">Severidade: </span>
+                          <Badge variant="outline">{selectedEntry.objectDetails.severity}</Badge>
+                        </div>
+                      )}
+                      {selectedEntry.objectDetails.status && (
+                        <div>
+                          <span className="text-sm font-medium">Status: </span>
+                          <Badge variant="outline">{selectedEntry.objectDetails.status}</Badge>
+                        </div>
+                      )}
+                      {selectedEntry.objectId && (
+                        <div>
+                          <span className="text-sm font-medium">ID do Objeto: </span>
+                          <span className="text-xs font-mono text-muted-foreground">
+                            {selectedEntry.objectId}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              )}
+
+              {/* Before/After State */}
+              {(selectedEntry.before || selectedEntry.after) && (
+                <div className="grid grid-cols-2 gap-4">
+                  {selectedEntry.before && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground mb-2">
+                        Estado Anterior
+                      </div>
+                      <Card className="p-4">
+                        <pre className="text-xs overflow-auto max-h-60 bg-muted/50 p-3 rounded">
+                          {JSON.stringify(selectedEntry.before, null, 2)}
+                        </pre>
+                      </Card>
+                    </div>
+                  )}
+                  
+                  {selectedEntry.after && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground mb-2">
+                        Estado Posterior
+                      </div>
+                      <Card className="p-4">
+                        <pre className="text-xs overflow-auto max-h-60 bg-muted/50 p-3 rounded">
+                          {JSON.stringify(selectedEntry.after, null, 2)}
+                        </pre>
+                      </Card>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
