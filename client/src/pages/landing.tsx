@@ -224,7 +224,7 @@ export default function Landing() {
                 <div className="text-sm text-muted-foreground">Fundação</div>
               </Card>
               <Card className="text-center p-6">
-                <div className="text-3xl font-bold text-primary mb-2">19+</div>
+                <div className="text-3xl font-bold text-primary mb-2">20+</div>
                 <div className="text-sm text-muted-foreground">Anos de Experiência</div>
               </Card>
               <Card className="text-center p-6">
@@ -267,7 +267,7 @@ export default function Landing() {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-center md:text-left">
               <p className="text-sm text-muted-foreground">
-                © 2024 Gruppen Serviços de Informática Ltda. Todos os direitos reservados.
+                © 2025 Gruppen Serviços de Informática Ltda. Todos os direitos reservados.
               </p>
               <p className="text-xs text-muted-foreground/80 mt-1">
                 SamurEye® é uma solução desenvolvida pela Gruppen it.
