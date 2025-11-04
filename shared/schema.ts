@@ -262,6 +262,37 @@ export const auditLog = pgTable("audit_log", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Active sessions table - tracks all active user sessions for security
+export const activeSessions = pgTable("active_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: text("session_id").notNull().unique(), // connect.sid value
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  sessionVersion: integer("session_version").notNull(), // Global version for invalidation
+  ipAddress: text("ip_address").notNull(),
+  userAgent: text("user_agent").notNull(),
+  deviceInfo: text("device_info"), // Parsed device/browser info
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastActivity: timestamp("last_activity").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+}, (table) => [
+  index("IDX_active_sessions_user_id").on(table.userId),
+  index("IDX_active_sessions_session_id").on(table.sessionId),
+  index("IDX_active_sessions_expires_at").on(table.expiresAt),
+]);
+
+// Login attempts table - persistent rate limiting to prevent brute force
+export const loginAttempts = pgTable("login_attempts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  identifier: text("identifier").notNull().unique(), // email:ip combination
+  attempts: integer("attempts").notNull().default(0),
+  lastAttempt: timestamp("last_attempt").defaultNow().notNull(),
+  blockedUntil: timestamp("blocked_until"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_login_attempts_identifier").on(table.identifier),
+  index("IDX_login_attempts_blocked_until").on(table.blockedUntil),
+]);
+
 // Host risk score history table - tracks risk score changes over time
 export const hostRiskHistory = pgTable("host_risk_history", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -723,6 +754,19 @@ export const insertNotificationLogSchema = createInsertSchema(notificationLog).o
   sentAt: true,
 });
 
+// Active session schema
+export const insertActiveSessionSchema = createInsertSchema(activeSessions).omit({
+  id: true,
+  createdAt: true,
+  lastActivity: true,
+});
+
+// Login attempt schema
+export const insertLoginAttemptSchema = createInsertSchema(loginAttempts).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type RegisterUser = z.infer<typeof registerUserSchema>;
@@ -755,6 +799,10 @@ export type ChangeThreatStatus = z.infer<typeof changeThreatStatusSchema>;
 export type AuditLogEntry = typeof auditLog.$inferSelect;
 export type EmailSettings = typeof emailSettings.$inferSelect;
 export type InsertEmailSettings = z.infer<typeof insertEmailSettingsSchema>;
+export type ActiveSession = typeof activeSessions.$inferSelect;
+export type InsertActiveSession = z.infer<typeof insertActiveSessionSchema>;
+export type LoginAttempt = typeof loginAttempts.$inferSelect;
+export type InsertLoginAttempt = z.infer<typeof insertLoginAttemptSchema>;
 export type NotificationPolicy = typeof notificationPolicies.$inferSelect;
 export type InsertNotificationPolicy = z.infer<typeof insertNotificationPolicySchema>;
 export type NotificationLog = typeof notificationLog.$inferSelect;
