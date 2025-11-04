@@ -35,7 +35,7 @@ export default function Landing() {
             </p>
             
             <p className="text-sm text-muted-foreground/80 mb-12">
-              Uma solução profissional da <span className="font-semibold text-primary">GSecDo</span> para empresas que levam cibersegurança a sério
+              Uma solução profissional da <span className="font-semibold text-primary">Gruppen</span> (Gruppen Serviços de Informática Ltda) para empresas que levam cibersegurança a sério
             </p>
             
             <div className="flex gap-4 justify-center">
@@ -169,62 +169,71 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">
-              Sobre a GSecDo
+              Sobre a Gruppen
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Especialistas em cibersegurança desenvolvendo soluções inovadoras 
-              para proteger empresas contra ameaças digitais
+              Empresa gaúcha de tecnologia e segurança da informação fundada em 2005
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div>
               <h3 className="text-2xl font-semibold text-foreground mb-4">
-                Nossa Missão
+                Nossa História
               </h3>
               <p className="text-muted-foreground mb-6">
-                Fornecemos ferramentas de classe empresarial para validação contínua 
-                de segurança, permitindo que organizações identifiquem e mitiguem 
-                riscos antes que se tornem incidentes.
+                Somos uma empresa gaúcha de tecnologia e segurança da informação fundada em 2005. 
+                Desde então, crescemos constantemente junto do mercado de tecnologia, com foco no 
+                fornecimento de soluções sustentáveis de TI e sempre à frente das novidades e 
+                necessidades do setor. A modificação no mercado e no mundo é o que nos move e 
+                mantém até hoje nessa jornada.
               </p>
+              
+              <div className="bg-card/50 border border-border rounded-lg p-6 mb-6">
+                <p className="text-muted-foreground italic mb-4">
+                  "É o nosso trabalho estarmos atualizados e à frente de novidades. O jeito que 
+                  encaramos e nos adaptamos à constante modificação da tecnologia no mundo através 
+                  da busca de ferramentas inovadoras que estão ligadas aos nossos princípios e a 
+                  transmissão dessas inovações para nossos clientes, é o que expande o sucesso da 
+                  Gruppen it".
+                </p>
+                <p className="text-sm text-primary font-semibold">
+                  Felipe Jacobs
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  CEO da Gruppen it
+                </p>
+              </div>
+              
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
                   variant="outline" 
                   className="w-full sm:w-auto"
-                  onClick={() => window.open('https://www.samureye.com.br', '_blank', 'noopener,noreferrer')}
-                  data-testid="link-samureye-site"
+                  onClick={() => window.open('https://www.gruppen.com.br', '_blank', 'noopener,noreferrer')}
+                  data-testid="link-gruppen-site"
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
-                  Site do Produto
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full sm:w-auto"
-                  onClick={() => window.open('https://www.gsecdo.com.br', '_blank', 'noopener,noreferrer')}
-                  data-testid="link-gsecdo-site"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Outras Soluções
+                  www.gruppen.com.br
                 </Button>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <Card className="text-center p-6">
-                <div className="text-3xl font-bold text-primary mb-2">24/7</div>
-                <div className="text-sm text-muted-foreground">Monitoramento</div>
+                <div className="text-3xl font-bold text-primary mb-2">2005</div>
+                <div className="text-sm text-muted-foreground">Fundação</div>
+              </Card>
+              <Card className="text-center p-6">
+                <div className="text-3xl font-bold text-primary mb-2">19+</div>
+                <div className="text-sm text-muted-foreground">Anos de Experiência</div>
               </Card>
               <Card className="text-center p-6">
                 <div className="text-3xl font-bold text-primary mb-2">100%</div>
-                <div className="text-sm text-muted-foreground">Automatizado</div>
+                <div className="text-sm text-muted-foreground">Brasileira</div>
               </Card>
               <Card className="text-center p-6">
-                <div className="text-3xl font-bold text-primary mb-2">{"< 1min"}</div>
-                <div className="text-sm text-muted-foreground">Detecção</div>
-              </Card>
-              <Card className="text-center p-6">
-                <div className="text-3xl font-bold text-primary mb-2">Zero</div>
-                <div className="text-sm text-muted-foreground">Falso Positivo</div>
+                <div className="text-3xl font-bold text-primary mb-2">RS</div>
+                <div className="text-sm text-muted-foreground">Rio Grande do Sul</div>
               </Card>
             </div>
           </div>
@@ -258,27 +267,20 @@ export default function Landing() {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-center md:text-left">
               <p className="text-sm text-muted-foreground">
-                © 2024 GSecDo. Todos os direitos reservados.
+                © 2024 Gruppen Serviços de Informática Ltda. Todos os direitos reservados.
               </p>
               <p className="text-xs text-muted-foreground/80 mt-1">
-                SamurEye® é uma marca registrada da GSecDo Soluções em Cibersegurança Ltda.
+                SamurEye® é uma solução desenvolvida pela Gruppen it.
               </p>
             </div>
             
             <div className="flex space-x-6">
               <button
-                onClick={() => window.open('https://www.samureye.com.br', '_blank', 'noopener,noreferrer')}
+                onClick={() => window.open('https://www.gruppen.com.br', '_blank', 'noopener,noreferrer')}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                data-testid="footer-link-samureye"
+                data-testid="footer-link-gruppen"
               >
-                www.samureye.com.br
-              </button>
-              <button
-                onClick={() => window.open('https://www.gsecdo.com.br', '_blank', 'noopener,noreferrer')}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                data-testid="footer-link-gsecdo"
-              >
-                www.gsecdo.com.br
+                www.gruppen.com.br
               </button>
             </div>
           </div>
