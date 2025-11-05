@@ -117,6 +117,7 @@ export interface IStorage {
   // Asset operations
   getAssets(): Promise<Asset[]>;
   getAsset(id: string): Promise<Asset | undefined>;
+  getAssetsByTags(tags: string[]): Promise<Asset[]>;
   createAsset(asset: InsertAsset, userId: string): Promise<Asset>;
   updateAsset(id: string, asset: Partial<InsertAsset>): Promise<Asset>;
   deleteAsset(id: string): Promise<void>;
@@ -356,6 +357,19 @@ export class DatabaseStorage implements IStorage {
   async getAsset(id: string): Promise<Asset | undefined> {
     const [asset] = await db.select().from(assets).where(eq(assets.id, id));
     return asset;
+  }
+
+  async getAssetsByTags(tags: string[]): Promise<Asset[]> {
+    if (tags.length === 0) {
+      return [];
+    }
+    
+    // Busca assets que possuem QUALQUER uma das tags fornecidas
+    // Usando o operador ?| do PostgreSQL para arrays JSONB
+    const results = await db.select().from(assets).where(
+      sql`${assets.tags}::jsonb ?| array[${sql.join(tags.map(tag => sql`${tag}`), sql`, `)}]::text[]`
+    );
+    return results;
   }
 
   async createAsset(asset: InsertAsset, userId: string): Promise<Asset> {
