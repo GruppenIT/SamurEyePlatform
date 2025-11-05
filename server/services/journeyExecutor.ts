@@ -7,6 +7,7 @@ import { ADScanner } from './scanners/adScanner';
 import { EDRAVScanner } from './scanners/edrAvScanner';
 import { jobQueue } from './jobQueue';
 import { hostService } from './hostService';
+import { processTracker } from './processTracker';
 import { type Journey, type Job } from '@shared/schema';
 
 const adScanner = new ADScanner();
@@ -926,6 +927,16 @@ class JourneyExecutorService {
         
         let stdout = '';
         let stderr = '';
+        
+        // Registrar no ProcessTracker para monitoramento e WebSocket updates
+        const stage = `Validando CVEs em ${host}`;
+        if (jobId) {
+          try {
+            processTracker.register(jobId, 'nmap', child, stage);
+          } catch (error) {
+            console.warn(`⚠️ Falha ao registrar nmap vuln no tracker: ${error}`);
+          }
+        }
         
         const timeout = setTimeout(() => {
           child.kill('SIGTERM');
