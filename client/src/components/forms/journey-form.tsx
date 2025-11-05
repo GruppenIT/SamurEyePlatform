@@ -30,7 +30,7 @@ import { Asset, Credential } from "@shared/schema";
 
 const journeySchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
-  type: z.enum(['attack_surface', 'ad_security', 'edr_av'], {
+  type: z.enum(['attack_surface', 'ad_security', 'edr_av', 'web_application'], {
     required_error: "Tipo de jornada é obrigatório",
   }),
   description: z.string().optional(),
@@ -66,7 +66,6 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         edrAvType: initialData?.params?.edrAvType || 'network_based',
         sampleRate: initialData?.params?.sampleRate || '15',
         timeout: initialData?.params?.timeout || 30,
-        webScanEnabled: initialData?.params?.webScanEnabled ?? false,
         processTimeout: initialData?.params?.processTimeout || 60,
       },
     },
@@ -77,6 +76,10 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
   // Fetch assets and credentials for form options
   const { data: assets = [] } = useQuery<Asset[]>({
     queryKey: ["/api/assets"],
+  });
+
+  const { data: webApplicationAssets = [] } = useQuery<Asset[]>({
+    queryKey: ["/api/assets/by-type/web_application"],
   });
 
   const { data: credentials = [] } = useQuery<Credential[]>({
@@ -116,7 +119,6 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         }
         params.nmapProfile = form.getValues('params.nmapProfile') || 'fast';
         params.nucleiSeverity = form.getValues('params.nucleiSeverity') || 'medium';
-        params.webScanEnabled = form.getValues('params.webScanEnabled') ?? false;
         params.processTimeout = parseInt(form.getValues('params.processTimeout')) || 60;
         break;
       case 'ad_security':
@@ -151,6 +153,10 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
             params.assetIds = selectedAssets;
           }
         }
+        break;
+      case 'web_application':
+        params.assetIds = selectedAssets;
+        params.processTimeout = parseInt(form.getValues('params.processTimeout')) || 60;
         break;
     }
 
@@ -273,30 +279,6 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                     </SelectContent>
                   </Select>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="params.webScanEnabled"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      data-testid="checkbox-web-scan"
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Varrer aplicações web identificadas?
-                    </FormLabel>
-                    <FormDescription>
-                      Quando habilitado, executa Nuclei em portas HTTP/HTTPS detectadas para identificar vulnerabilidades em aplicações web
-                    </FormDescription>
-                  </div>
                 </FormItem>
               )}
             />
@@ -824,6 +806,66 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
           </div>
         );
 
+      case 'web_application':
+        return (
+          <div className="space-y-4">
+            <div>
+              <FormLabel>Aplicações Web Selecionadas</FormLabel>
+              <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                {webApplicationAssets.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Nenhuma aplicação web disponível. Crie ativos do tipo web_application primeiro.
+                  </p>
+                ) : (
+                  webApplicationAssets.map((asset) => (
+                    <div key={asset.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={asset.id}
+                        checked={selectedAssets.includes(asset.id)}
+                        onCheckedChange={(checked) => 
+                          handleAssetSelection(asset.id, checked as boolean)
+                        }
+                        data-testid={`checkbox-webapp-${asset.id}`}
+                      />
+                      <label htmlFor={asset.id} className="text-sm cursor-pointer">
+                        {asset.value}
+                      </label>
+                    </div>
+                  ))
+                )}
+              </div>
+              <FormDescription>
+                Selecione as aplicações web para testar vulnerabilidades
+              </FormDescription>
+            </div>
+
+            <FormField
+              control={form.control}
+              name="params.processTimeout"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Timeout por Processo (minutos)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="5"
+                      max="180"
+                      placeholder="60"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 60)}
+                      data-testid="input-webapp-process-timeout"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Tempo máximo de execução por aplicação web. Mínimo: 5min, Máximo: 180min, Padrão: 60min
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+
       default:
         return null;
     }
@@ -866,6 +908,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                   <SelectItem value="attack_surface">Attack Surface</SelectItem>
                   <SelectItem value="ad_security">AD Security</SelectItem>
                   <SelectItem value="edr_av">Teste EDR/AV</SelectItem>
+                  <SelectItem value="web_application">Web Application</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

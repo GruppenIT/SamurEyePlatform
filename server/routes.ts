@@ -412,6 +412,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/assets/by-type/:type', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const { type } = req.params;
+      const assets = await storage.getAssetsByType(type);
+      res.json(assets);
+    } catch (error) {
+      console.error(`Erro ao buscar ativos do tipo ${req.params.type}:`, error);
+      res.status(500).json({ message: "Falha ao buscar ativos por tipo" });
+    }
+  });
+
   app.post('/api/assets', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;

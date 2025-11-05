@@ -43,7 +43,7 @@ WebSocket integration provides real-time updates for job progress, threat notifi
 Vite handles the frontend build process, while esbuild bundles the backend for production.
 
 ### UI/UX Decisions
-The application features a dark security-focused theme. The threat intelligence page includes interactive filtering tiles for severity and status, with dynamic recalculation of stats based on active filters. UI terminology has been updated for clarity (e.g., "Ativos" to "Alvos").
+The application features a dark security-focused theme. The threat intelligence page includes interactive filtering tiles for severity and status, with dynamic recalculation of stats based on active filters. UI terminology has been updated for clarity: "Hosts" renamed to "Ativos" (Assets) to better reflect the inclusion of web applications and other asset types.
 
 ### Technical Implementations
 - **Host Management**: Automated host discovery from security scans, intelligent deduplication, and automatic threat-to-host linkage.
@@ -58,12 +58,19 @@ The application features a dark security-focused theme. The threat intelligence 
   - API endpoint `GET /api/hosts/:id/risk-history?limit=30` for retrieving historical risk data
   - Admin endpoint `POST /api/admin/recalculate-risk-scores` for manual backfill/recalculation of all host risk scores
   - **Enhanced Host Details Dialog**: Redesigned with prominent Risk Score display (CVSS color-coded), historical trend chart using recharts, and compact threat badges replacing large summary boxes for cleaner UX
-- **Active CVE Validation**: Refactored Attack Surface journey to use active validation with nmap vuln scripts (`--script=vuln`) instead of passive NIST NVD API lookups. CVEs are now validated in real-time against live targets, generating `nmap_vuln` findings with detailed exploit information.
-- **Conditional Web Scanning**: Attack Surface journeys feature optional Nuclei web application scanning via the `webScanEnabled` parameter. When enabled, HTTP/HTTPS services are automatically identified and scanned for web vulnerabilities.
-- **Three-Phase Attack Surface Scanning**: 
-  1. **Discovery Phase**: Port scanning with nmap to identify open ports and services
-  2. **Active Validation Phase**: Nmap vuln scripts execution on all discovered ports (always runs)
-  3. **Web Scanning Phase**: Nuclei execution on web services (conditional, based on webScanEnabled)
+- **Asset Types**: System supports three asset types - `host` (individual hosts), `range` (CIDR ranges), and `web_application` (HTTP/HTTPS URLs)
+- **Journey Types**: Four journey types available - `attack_surface` (infrastructure discovery), `ad_security` (Active Directory assessment), `edr_av` (EDR/AV testing), and `web_application` (OWASP Top 10 scanning)
+- **Attack Surface Journey - Infrastructure Discovery**: Refactored to focus exclusively on infrastructure assessment with automatic web application discovery:
+  - **Phase 1 - Discovery**: Port scanning with nmap to identify open ports and services
+  - **Phase 2 - Active Validation**: Nmap vuln scripts (`--script=vuln`) execution for real-time CVE validation
+  - **Phase 3 - Auto-Discovery**: Automatic creation of `web_application` assets for discovered HTTP/HTTPS services (ports 80, 443, 8080, 8443, etc.)
+  - Web applications are created with format `protocol://host:port` and tagged with `auto-discovered` and job ID
+  - Removed `webScanEnabled` parameter - web vulnerability scanning now handled by dedicated Web Application journey
+- **Web Application Journey - OWASP Top 10 Scanning**: New dedicated journey for deep web vulnerability analysis:
+  - Selects previously discovered `web_application` assets from Attack Surface scans
+  - Executes Nuclei with OWASP Top 10 focus (medium, high, critical severities)
+  - Configurable timeout per application (default 60 minutes)
+  - Generates detailed vulnerability findings with matched templates and evidence
 - **OS and Version Detection**: Enhanced nmap usage with `-O` and `--osscan-guess` flags for improved OS detection accuracy, service version normalization, and a robust fallback mechanism for environments without root privileges.
 - **Port Sanitization**: Implemented automatic port format normalization to strip `/tcp` and `/udp` suffixes before passing to nmap vuln scripts, ensuring command compatibility.
 - **Session Control**: Secure 8-hour session expiration with automatic cleanup and middleware validation.

@@ -24,7 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, Play, Route, Search as SearchIcon, Users, Worm } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Play, Route, Search as SearchIcon, Users, Worm, Globe } from "lucide-react";
 import { Journey } from "@shared/schema";
 import { JourneyFormData } from "@/types";
 
@@ -200,6 +200,8 @@ export default function Journeys() {
         return Users;
       case 'edr_av':
         return Worm;
+      case 'web_application':
+        return Globe;
       default:
         return Route;
     }
@@ -213,6 +215,8 @@ export default function Journeys() {
         return 'AD Security';
       case 'edr_av':
         return 'Teste EDR/AV';
+      case 'web_application':
+        return 'Web Application';
       default:
         return type;
     }
@@ -226,6 +230,8 @@ export default function Journeys() {
         return 'bg-accent/20 text-accent';
       case 'edr_av':
         return 'bg-chart-5/20 text-chart-5';
+      case 'web_application':
+        return 'bg-blue-500/20 text-blue-500';
       default:
         return 'bg-muted text-muted-foreground';
     }

@@ -58,6 +58,7 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/assets" component={Assets} />
+          <Route path="/ativos" component={Hosts} />
           <Route path="/hosts" component={Hosts} />
           <Route path="/credentials" component={Credentials} />
           <Route path="/journeys" component={Journeys} />

@@ -118,6 +118,7 @@ export interface IStorage {
   getAssets(): Promise<Asset[]>;
   getAsset(id: string): Promise<Asset | undefined>;
   getAssetsByTags(tags: string[]): Promise<Asset[]>;
+  getAssetsByType(type: string): Promise<Asset[]>;
   createAsset(asset: InsertAsset, userId: string): Promise<Asset>;
   updateAsset(id: string, asset: Partial<InsertAsset>): Promise<Asset>;
   deleteAsset(id: string): Promise<void>;
@@ -370,6 +371,10 @@ export class DatabaseStorage implements IStorage {
       sql`${assets.tags}::jsonb ?| array[${sql.join(tags.map(tag => sql`${tag}`), sql`, `)}]::text[]`
     );
     return results;
+  }
+
+  async getAssetsByType(type: string): Promise<Asset[]> {
+    return await db.select().from(assets).where(sql`${assets.type} = ${type}`).orderBy(desc(assets.createdAt));
   }
 
   async getUniqueTags(): Promise<string[]> {

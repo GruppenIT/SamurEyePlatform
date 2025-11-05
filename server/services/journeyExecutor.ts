@@ -60,6 +60,9 @@ class JourneyExecutorService {
       case 'edr_av':
         await this.executeEDRAV(journey, jobId, onProgress);
         break;
+      case 'web_application':
+        await this.executeWebApplication(journey, jobId, onProgress);
+        break;
       default:
         throw new Error(`Tipo de jornada não suportado: ${journey.type}`);
     }
@@ -89,13 +92,11 @@ class JourneyExecutorService {
   }
 
   /**
-   * Executes Attack Surface journey - New architecture with active CVE validation
+   * Executes Attack Surface journey - Infrastructure discovery
    * 
    * Phase 1: Discovery (port scanning with nmap)
-   * Phase 2: Active Vulnerability Validation
-   *   - Nmap vuln scripts for network services
-   *   - Nuclei for web applications (if webScanEnabled)
-   * Phase 3: Host discovery and result storage
+   * Phase 2: Active Vulnerability Validation (nmap vuln scripts)
+   * Phase 3: Host discovery and web application asset creation
    */
   private async executeAttackSurface(
     journey: Journey, 
@@ -104,7 +105,6 @@ class JourneyExecutorService {
   ): Promise<void> {
     const params = journey.params;
     const assetIds = await this.resolveAssetIds(journey);
-    const webScanEnabled = params.webScanEnabled === true;
     const processTimeoutMinutes = params.processTimeout || 60; // Default 60 minutos
     const processTimeoutMs = processTimeoutMinutes * 60 * 1000; // Converter para ms
     
@@ -112,7 +112,7 @@ class JourneyExecutorService {
       throw new Error('Nenhum ativo selecionado para varredura');
     }
 
-    console.log(`🚀 Iniciando Attack Surface Journey com varredura web: ${webScanEnabled ? 'ATIVADA' : 'DESATIVADA'}`);
+    console.log(`🚀 Iniciando Attack Surface Journey - Descoberta de Infraestrutura`);
     console.log(`⏱️  Timeout por processo: ${processTimeoutMinutes} minutos`);
 
     onProgress({ status: 'running', progress: 20, currentTask: 'Carregando ativos' });
@@ -191,35 +191,11 @@ class JourneyExecutorService {
 
           console.log(`🔍 FASE 2: Validação ativa de vulnerabilidades em ${host}`);
           
-          // Phase 2A: Nmap vuln scripts for active CVE detection
-          console.log(`🎯 FASE 2A: Executando nmap vuln scripts em ${host}`);
+          // Phase 2: Nmap vuln scripts for active CVE detection
+          console.log(`🎯 FASE 2: Executando nmap vuln scripts em ${host}`);
           const nmapVulnResults = await this.runNmapVulnScripts(host, data.ports, jobId, processTimeoutMs);
           findings.push(...nmapVulnResults);
-          console.log(`✅ FASE 2A: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
-
-          // Phase 2B: Nuclei for web applications (conditional)
-          if (webScanEnabled) {
-            console.log(`🌐 FASE 2B: Identificando aplicações web em ${host}`);
-            const webUrls = this.identifyWebServices(host, data.portResults);
-            
-            if (webUrls.length > 0) {
-              console.log(`🔍 FASE 2B: ${webUrls.length} aplicações web encontradas, executando Nuclei`);
-              
-              onProgress({ 
-                status: 'running', 
-                progress: baseProgress + 10, 
-                currentTask: `Fase 2: Varredura web em ${host} (${webUrls.length} URLs)` 
-              });
-
-              const nucleiResults = await this.runNucleiWebScan(webUrls, jobId, processTimeoutMs);
-              findings.push(...nucleiResults);
-              console.log(`✅ FASE 2B: ${nucleiResults.length} vulnerabilidades web encontradas via Nuclei`);
-            } else {
-              console.log(`ℹ️  FASE 2B: Nenhuma aplicação web detectada em ${host}`);
-            }
-          } else {
-            console.log(`⏭️  FASE 2B: Varredura web DESATIVADA (webScanEnabled=false)`);
-          }
+          console.log(`✅ FASE 2: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
         }
         
       } catch (error) {
@@ -235,9 +211,10 @@ class JourneyExecutorService {
       }
     }
 
-    // ==================== PHASE 3: HOST DISCOVERY & STORAGE ====================
-    onProgress({ status: 'running', progress: 85, currentTask: 'Fase 3: Descobrindo hosts' });
+    // ==================== PHASE 3: HOST DISCOVERY & WEB APP ASSET CREATION ====================
+    onProgress({ status: 'running', progress: 85, currentTask: 'Fase 3: Descobrindo hosts e aplicações web' });
     
+    // Discover hosts from findings
     try {
       const discoveredHosts = await hostService.discoverHostsFromFindings(findings, jobId);
       console.log(`🏠 FASE 3: ${discoveredHosts.length} hosts descobertos/atualizados`);
@@ -245,22 +222,126 @@ class JourneyExecutorService {
       console.error('❌ Erro ao descobrir hosts:', error);
     }
 
+    // Auto-discover and create web application assets from HTTP/HTTPS services
+    const createdWebApps = await this.createWebApplicationAssets(findings, journey.createdBy, jobId);
+    console.log(`🌐 FASE 3: ${createdWebApps.length} aplicações web criadas como ativos`);
+
     // Store results
     await storage.createJobResult({
       jobId,
-      stdout: `Varredura ativa concluída. ${findings.length} achados encontrados.`,
+      stdout: `Varredura ativa concluída. ${findings.length} achados encontrados. ${createdWebApps.length} aplicações web descobertas.`,
       stderr: '',
       artifacts: {
         findings,
         summary: {
           totalAssets: assets.length,
           totalFindings: findings.length,
-          webScanEnabled,
+          webApplicationsDiscovered: createdWebApps.length,
         },
       },
     });
     
-    console.log(`✅ Attack Surface concluído: ${findings.length} findings total`);
+    console.log(`✅ Attack Surface concluído: ${findings.length} findings, ${createdWebApps.length} web apps criadas`);
+  }
+
+  /**
+   * Executes Web Application journey - OWASP Top 10 vulnerability scanning
+   * 
+   * Uses Nuclei to scan previously discovered web applications
+   */
+  private async executeWebApplication(
+    journey: Journey, 
+    jobId: string, 
+    onProgress: ProgressCallback
+  ): Promise<void> {
+    const params = journey.params;
+    const assetIds = params.assetIds || [];
+    const processTimeoutMinutes = params.processTimeout || 60; // Default 60 minutos
+    const processTimeoutMs = processTimeoutMinutes * 60 * 1000;
+    
+    if (assetIds.length === 0) {
+      throw new Error('Nenhuma aplicação web selecionada para varredura');
+    }
+
+    console.log(`🌐 Iniciando Web Application Journey - Análise OWASP Top 10`);
+    console.log(`⏱️  Timeout por processo: ${processTimeoutMinutes} minutos`);
+
+    onProgress({ status: 'running', progress: 20, currentTask: 'Carregando aplicações web' });
+
+    // Get web application assets
+    const webApps = [];
+    for (const assetId of assetIds) {
+      const asset = await storage.getAsset(assetId);
+      if (asset) {
+        // Validate asset type
+        if (asset.type !== 'web_application') {
+          console.warn(`⚠️  Asset ${asset.value} não é do tipo web_application, ignorando`);
+          continue;
+        }
+        webApps.push(asset);
+      }
+    }
+
+    if (webApps.length === 0) {
+      throw new Error('Nenhuma aplicação web válida encontrada para varredura');
+    }
+
+    console.log(`🎯 ${webApps.length} aplicações web serão analisadas`);
+
+    const findings = [];
+    let currentApp = 0;
+
+    for (const app of webApps) {
+      // Check if job was cancelled
+      if (this.isJobCancelled(jobId)) {
+        console.log(`🚫 Job ${jobId} cancelado, parando execução em ${app.value}`);
+        throw new Error('Job cancelado pelo usuário');
+      }
+
+      currentApp++;
+      const baseProgress = 20 + (currentApp / webApps.length) * 70;
+      
+      onProgress({ 
+        status: 'running', 
+        progress: baseProgress, 
+        currentTask: `Analisando ${app.value} (${currentApp}/${webApps.length})` 
+      });
+
+      try {
+        console.log(`🔍 Executando Nuclei em ${app.value}`);
+        
+        const appFindings = await this.runNucleiWebScan([app.value], jobId, processTimeoutMs);
+        findings.push(...appFindings);
+        
+        console.log(`✅ ${appFindings.length} vulnerabilidades encontradas em ${app.value}`);
+      } catch (error) {
+        console.error(`❌ Erro ao analisar ${app.value}:`, error);
+        
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        findings.push({
+          type: 'error',
+          target: app.value,
+          message: `Erro durante análise: ${errorMessage}`,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+
+    // Store results
+    await storage.createJobResult({
+      jobId,
+      stdout: `Análise web concluída. ${findings.length} vulnerabilidades encontradas.`,
+      stderr: '',
+      artifacts: {
+        findings,
+        summary: {
+          totalWebApps: webApps.length,
+          totalVulnerabilities: findings.length,
+        },
+      },
+    });
+    
+    console.log(`✅ Web Application Journey concluída: ${findings.length} vulnerabilidades total`);
   }
 
   /**
@@ -1001,6 +1082,61 @@ class JourneyExecutorService {
       details: buffer.trim(),
       timestamp: new Date().toISOString(),
     };
+  }
+
+  /**
+   * Creates web_application assets from discovered HTTP/HTTPS services
+   * Returns array of created assets
+   */
+  private async createWebApplicationAssets(findings: any[], createdBy: string, jobId: string): Promise<any[]> {
+    const webApps: any[] = [];
+    const webPorts = new Set(['80', '443', '8080', '8443', '3000', '5000', '8000', '8888']);
+    const webServiceNames = ['http', 'https', 'http-alt', 'https-alt', 'http-proxy', 'ssl/http'];
+    const createdUrls = new Set<string>(); // Track to avoid duplicates
+    
+    for (const finding of findings) {
+      // Only process open ports
+      if (finding.type !== 'port' || finding.state !== 'open') continue;
+      
+      const host = finding.target || finding.ip;
+      if (!host) continue;
+      
+      const port = finding.port?.toString().replace(/\/(tcp|udp)$/i, ''); // Clean port
+      const service = finding.service?.toLowerCase() || '';
+      
+      // Determine if this is a web service
+      let protocol = '';
+      
+      if (port === '443' || port === '8443' || service.includes('https') || service.includes('ssl')) {
+        protocol = 'https';
+      } else if (webPorts.has(port) || webServiceNames.some(name => service.includes(name))) {
+        protocol = 'http';
+      }
+      
+      // Create web_application asset if web service detected
+      if (protocol) {
+        const url = `${protocol}://${host}:${port}`;
+        
+        // Avoid duplicates
+        if (createdUrls.has(url)) continue;
+        createdUrls.add(url);
+        
+        try {
+          const asset = await storage.createAsset({
+            type: 'web_application',
+            value: url,
+            tags: ['auto-discovered', `job:${jobId.substring(0, 8)}`],
+          }, createdBy);
+          
+          webApps.push(asset);
+          console.log(`🌐 Aplicação web criada como ativo: ${url} (service: ${service || 'unknown'})`);
+        } catch (error) {
+          console.error(`❌ Erro ao criar ativo web_application para ${url}:`, error);
+        }
+      }
+    }
+    
+    return webApps;
   }
 
   /**

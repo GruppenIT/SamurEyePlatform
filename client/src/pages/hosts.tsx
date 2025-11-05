@@ -719,8 +719,8 @@ export default function Hosts() {
       <Sidebar />
       <main className="flex-1 overflow-hidden">
         <TopBar 
-          title="Gestão de Hosts"
-          subtitle="Visualize e gerencie hosts descobertos pelos scans de segurança"
+          title="Gestão de Ativos"
+          subtitle="Visualize e gerencie ativos descobertos pelos scans de segurança"
         />
         
         <div className="p-6 space-y-6 overflow-auto h-[calc(100%-4rem)]">
@@ -730,7 +730,7 @@ export default function Hosts() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Buscar hosts por nome, IP ou alias..."
+                placeholder="Buscar ativos por nome, IP ou alias..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -785,26 +785,26 @@ export default function Hosts() {
             </div>
           </div>
 
-          {/* Hosts Count */}
+          {/* Assets Count */}
           <div className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              {filteredHosts.length} hosts encontrados
+              {filteredHosts.length} ativos encontrados
             </div>
           </div>
 
-          {/* Hosts Table */}
+          {/* Assets Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Hosts Descobertos</CardTitle>
+              <CardTitle>Ativos Descobertos</CardTitle>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div className="space-y-4">
-                  <p className="text-muted-foreground">Carregando hosts...</p>
+                  <p className="text-muted-foreground">Carregando ativos...</p>
                 </div>
               ) : error ? (
                 <div className="text-center py-8">
-                  <p className="text-destructive mb-2">Erro ao carregar hosts</p>
+                  <p className="text-destructive mb-2">Erro ao carregar ativos</p>
                   <p className="text-sm text-muted-foreground">
                     {error instanceof Error ? error.message : 'Erro desconhecido'}
                   </p>
@@ -813,14 +813,14 @@ export default function Hosts() {
                 <div className="text-center py-8">
                   <div className="text-muted-foreground mb-4">
                     {searchTerm || typeFilter !== "all" || familyFilter !== "all" 
-                      ? 'Nenhum host encontrado com os filtros aplicados' 
-                      : 'Nenhum host descoberto ainda'
+                      ? 'Nenhum ativo encontrado com os filtros aplicados' 
+                      : 'Nenhum ativo descoberto ainda'
                     }
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {searchTerm || typeFilter !== "all" || familyFilter !== "all"
                       ? 'Tente ajustar os filtros de busca'
-                      : 'Execute scans de Attack Surface para descobrir hosts automaticamente'
+                      : 'Execute scans de Attack Surface para descobrir ativos automaticamente'
                     }
                   </div>
                 </div>
@@ -829,6 +829,7 @@ export default function Hosts() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Host</TableHead>
+                      <TableHead>Categoria</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead>Escore de Risco</TableHead>
                       <TableHead>Ameaças</TableHead>
@@ -859,6 +860,14 @@ export default function Hosts() {
                                 )}
                               </div>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant="outline" 
+                              className="bg-green-500/10 text-green-600 border-green-500/20"
+                            >
+                              Host
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge 
