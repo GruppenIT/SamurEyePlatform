@@ -31,13 +31,13 @@ export const sessions = pgTable(
 export const userRoleEnum = pgEnum('user_role', ['global_administrator', 'operator', 'read_only']);
 
 // Asset types enum
-export const assetTypeEnum = pgEnum('asset_type', ['host', 'range']);
+export const assetTypeEnum = pgEnum('asset_type', ['host', 'range', 'web_application']);
 
 // Credential types enum
 export const credentialTypeEnum = pgEnum('credential_type', ['ssh', 'wmi', 'omi', 'ad']);
 
 // Journey types enum
-export const journeyTypeEnum = pgEnum('journey_type', ['attack_surface', 'ad_security', 'edr_av']);
+export const journeyTypeEnum = pgEnum('journey_type', ['attack_surface', 'ad_security', 'edr_av', 'web_application']);
 
 // Schedule kinds enum
 export const scheduleKindEnum = pgEnum('schedule_kind', ['on_demand', 'once', 'recurring']);
