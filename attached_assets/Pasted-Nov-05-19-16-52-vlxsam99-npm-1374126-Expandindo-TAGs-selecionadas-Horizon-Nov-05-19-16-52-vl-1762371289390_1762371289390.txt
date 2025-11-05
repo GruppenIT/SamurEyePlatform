@@ -1,0 +1,79 @@
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 🏷️  Expandindo TAGs selecionadas: Horizon
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 7:16:52 PM [express] POST /api/jobs/execute 201 in 37ms :: {"id":"8f28c127-943c-4135-95a5-689ad1da69…
+Nov 05 19:16:52 vlxsam99 npm[1374126]: ✅ 1 alvos encontrados com as TAGs selecionadas
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 🚀 Iniciando Attack Surface Journey - Descoberta de Infraestrutura
+Nov 05 19:16:52 vlxsam99 npm[1374126]: ⏱️  Timeout por processo: 60 minutos
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 📡 FASE 1: Descoberta de serviços em 192.168.100.3
+Nov 05 19:16:52 vlxsam99 npm[1374126]: Iniciando scan de portas para 192.168.100.3
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 📍 Target 192.168.100.3 já é um IP válido
+Nov 05 19:16:52 vlxsam99 npm[1374126]: ✅ DNS resolvido: 192.168.100.3 → 192.168.100.3
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 🚀 Perfil rápido selecionado: escaneando top 1000 portas
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 🔍 Executando nmap com top 1000 portas
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 🎯 Escaneando portas de 192.168.100.3... nmap (perfil: fast)
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 10 --min-rate 100 --max-rate 1000 --max-rtt-timeout 3s --initial-rtt-timeout 500ms --version-intensity 5 -O --osscan-guess -T4 --top-ports 1000 192.168.100.3
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 📍 Job: 8f28c127-943c-4135-95a5-689ad1da69c4 | Processo: nmap | Stage: Escaneando portas de 192.168.100.3... nmap
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 📍 Processo registrado: nmap pid 1374207 para job 8f28c127-943c-4135-95a5-689ad1da69c4 - Escaneando portas de 192.168.100.3... nmap
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374207) (alive: true, status: running)
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 🗑️ Processo removido: nmap pid 1374207 para job 8f28c127-943c-4135-95a5-689ad1da69c4
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 📋 Comando concluído com código 1
+Nov 05 19:16:52 vlxsam99 npm[1374126]: ❌ Command failed with code 1: TCP/IP fingerprinting (for OS scan) requires root privileges.
+Nov 05 19:16:52 vlxsam99 npm[1374126]: QUITTING!
+Nov 05 19:16:52 vlxsam99 npm[1374126]: ⚠️ nmap requer privilégios de root para perfil fast, fazendo fallback para TCP scan
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 🔄 Usando TCP connect scan como fallback por falta de privilégios root
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 🔍 Executando nmap com top 1000 portas
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 5 --min-rate 50 --max-rate 500 --max-rtt-timeout 5s --initial-rtt-timeout 1s --version-intensity 5 -T3 --top-ports 1000 192.168.100.3
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 📍 Job: 8f28c127-943c-4135-95a5-689ad1da69c4 | Processo: nmap | Stage: Escaneando portas de 192.168.100.3... nmap
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 📍 Processo registrado: nmap pid 1374208 para job 8f28c127-943c-4135-95a5-689ad1da69c4 - Escaneando portas de 192.168.100.3... nmap
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374207) (alive: false, status: running)
+Nov 05 19:16:52 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:16:54 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:16:56 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:16:58 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:00 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:02 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:04 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:06 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:08 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:10 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:12 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:14 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:16 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:18 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:20 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:22 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:24 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:26 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:28 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:30 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:32 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:34 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:36 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:38 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:40 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:42 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:44 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:46 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:48 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:50 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:52 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:54 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:56 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:17:58 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:18:00 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:18:02 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:18:04 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:18:06 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: true, status: running)
+Nov 05 19:18:07 vlxsam99 npm[1374126]: 🗑️ Processo removido: nmap pid 1374208 para job 8f28c127-943c-4135-95a5-689ad1da69c4
+Nov 05 19:18:07 vlxsam99 npm[1374126]: 📋 Comando concluído com código 0
+Nov 05 19:18:07 vlxsam99 npm[1374126]: 🖥️ OS detectado via 'Service Info': Windows
+Nov 05 19:18:07 vlxsam99 npm[1374126]: Parse nmap encontrou 11 portas para 192.168.100.3
+Nov 05 19:18:07 vlxsam99 npm[1374126]: Primeiras portas encontradas: [ '80/open', '135/open', '139/open' ]
+Nov 05 19:18:07 vlxsam99 npm[1374126]: 💻 Sistema operacional detectado: Windows
+Nov 05 19:18:07 vlxsam99 npm[1374126]: 📊 Nmap TCP fallback concluído para 192.168.100.3 - 11 portas processadas
+Nov 05 19:18:07 vlxsam99 npm[1374126]: ✅ FASE 1: 11 portas descobertas
+Nov 05 19:18:07 vlxsam99 npm[1374126]: 🔍 FASE 2: Validação ativa de vulnerabilidades em VMSHO03.gruppen.com.br
+Nov 05 19:18:07 vlxsam99 npm[1374126]: 🎯 FASE 2: Executando nmap vuln scripts em VMSHO03.gruppen.com.br
+Nov 05 19:18:07 vlxsam99 npm[1374126]: 🎯 Executando nmap vuln scripts: nmap -Pn -sT -p 80,135,139,389,443,445,636,3389,4001,4002,8443 --script vuln --script-args vulns.showall VMSHO03.gruppen.com.br
+Nov 05 19:18:07 vlxsam99 npm[1374126]: 📡 JobUpdate emitido para 8f28c127-943c-4135-95a5-689ad1da69c4: Escaneando portas de 192.168.100.3... nmap (nmap pid 1374208) (alive: false, status: running)
+Nov 05 19:23:16 vlxsam99 npm[1374126]: 🧹 Limpeza de sessões expiradas executada
+Nov 05 19:33:16 vlxsam99 npm[1374126]: 🧹 Limpeza de sessões expiradas executada
