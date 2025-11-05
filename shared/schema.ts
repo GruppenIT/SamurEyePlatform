@@ -109,6 +109,9 @@ export const credentials = pgTable("credentials", {
   createdBy: varchar("created_by").references(() => users.id).notNull(),
 });
 
+// Target selection mode enum
+export const targetSelectionModeEnum = pgEnum('target_selection_mode', ['individual', 'by_tag']);
+
 // Journeys table
 export const journeys = pgTable("journeys", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -116,6 +119,8 @@ export const journeys = pgTable("journeys", {
   type: journeyTypeEnum("type").notNull(),
   description: text("description"),
   params: jsonb("params").$type<Record<string, any>>().default({}).notNull(),
+  targetSelectionMode: targetSelectionModeEnum("target_selection_mode").default('individual').notNull(),
+  selectedTags: jsonb("selected_tags").$type<string[]>().default([]).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: varchar("created_by").references(() => users.id).notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
