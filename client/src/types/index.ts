@@ -47,6 +47,8 @@ export interface JourneyFormData {
   type: 'attack_surface' | 'ad_security' | 'edr_av';
   description?: string;
   params: Record<string, any>;
+  targetSelectionMode?: 'individual' | 'by_tag';
+  selectedTags?: string[];
 }
 
 export interface ScheduleFormData {

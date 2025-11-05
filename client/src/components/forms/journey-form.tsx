@@ -23,6 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { TagSelector } from "./tag-selector";
 import { JourneyFormData } from "@/types";
 import { Asset, Credential } from "@shared/schema";
 
@@ -45,6 +47,12 @@ interface JourneyFormProps {
 export default function JourneyForm({ onSubmit, onCancel, isLoading = false, initialData }: JourneyFormProps) {
   const [selectedAssets, setSelectedAssets] = useState<string[]>(
     initialData?.params?.assetIds || []
+  );
+  const [targetSelectionMode, setTargetSelectionMode] = useState<'individual' | 'by_tag'>(
+    initialData?.targetSelectionMode || 'individual'
+  );
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    initialData?.selectedTags || []
   );
 
   const form = useForm<JourneyFormData>({
@@ -88,7 +96,12 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
 
     switch (data.type) {
       case 'attack_surface':
-        params.assetIds = selectedAssets;
+        // Target selection
+        if (targetSelectionMode === 'by_tag') {
+          params.assetIds = []; // Will be resolved from tags on backend
+        } else {
+          params.assetIds = selectedAssets;
+        }
         params.nmapProfile = form.getValues('params.nmapProfile') || 'fast';
         params.nucleiSeverity = form.getValues('params.nucleiSeverity') || 'medium';
         params.webScanEnabled = form.getValues('params.webScanEnabled') ?? false;
@@ -119,9 +132,10 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         if (params.edrAvType === 'ad_based') {
           params.domainName = form.getValues('params.domainName');
         } else if (params.edrAvType === 'network_based') {
-          params.assetIds = form.getValues('params.assetIds') || [];
-          // Fallback para targets se assetIds não estiver definido (compatibilidade)
-          if (params.assetIds.length === 0 && selectedAssets.length > 0) {
+          // Target selection
+          if (targetSelectionMode === 'by_tag') {
+            params.assetIds = []; // Will be resolved from tags on backend
+          } else {
             params.assetIds = selectedAssets;
           }
         }
@@ -131,6 +145,8 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
     onSubmit({
       ...data,
       params,
+      targetSelectionMode,
+      selectedTags: targetSelectionMode === 'by_tag' ? selectedTags : [],
     });
   };
 
@@ -139,35 +155,67 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
       case 'attack_surface':
         return (
           <div className="space-y-4">
-            <div>
-              <FormLabel>Alvos Selecionados</FormLabel>
-              <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
-                {assets.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum alvo disponível. Crie alvos primeiro.
-                  </p>
-                ) : (
-                  assets.map((asset) => (
-                    <div key={asset.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={asset.id}
-                        checked={selectedAssets.includes(asset.id)}
-                        onCheckedChange={(checked) => 
-                          handleAssetSelection(asset.id, checked as boolean)
-                        }
-                        data-testid={`checkbox-asset-${asset.id}`}
-                      />
-                      <label htmlFor={asset.id} className="text-sm">
-                        {asset.value} ({asset.type})
-                      </label>
-                    </div>
-                  ))
-                )}
-              </div>
+            <div className="space-y-3">
+              <FormLabel>Modo de Seleção de Alvos</FormLabel>
+              <RadioGroup
+                value={targetSelectionMode}
+                onValueChange={(value) => setTargetSelectionMode(value as 'individual' | 'by_tag')}
+                className="flex flex-col space-y-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="individual" id="mode-individual" data-testid="radio-mode-individual" />
+                  <label htmlFor="mode-individual" className="text-sm cursor-pointer">
+                    Seleção Individual - Escolher alvos específicos
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="by_tag" id="mode-by-tag" data-testid="radio-mode-by-tag" />
+                  <label htmlFor="mode-by-tag" className="text-sm cursor-pointer">
+                    Seleção por TAG - Escolher grupos de alvos com TAGs
+                  </label>
+                </div>
+              </RadioGroup>
               <FormDescription>
-                Selecione os alvos para incluir na varredura
+                Escolha como selecionar os alvos para a varredura
               </FormDescription>
             </div>
+
+            {targetSelectionMode === 'individual' ? (
+              <div>
+                <FormLabel>Alvos Selecionados</FormLabel>
+                <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                  {assets.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Nenhum alvo disponível. Crie alvos primeiro.
+                    </p>
+                  ) : (
+                    assets.map((asset) => (
+                      <div key={asset.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={asset.id}
+                          checked={selectedAssets.includes(asset.id)}
+                          onCheckedChange={(checked) => 
+                            handleAssetSelection(asset.id, checked as boolean)
+                          }
+                          data-testid={`checkbox-asset-${asset.id}`}
+                        />
+                        <label htmlFor={asset.id} className="text-sm cursor-pointer">
+                          {asset.value} ({asset.type})
+                        </label>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <FormDescription>
+                  Selecione os alvos individualmente
+                </FormDescription>
+              </div>
+            ) : (
+              <TagSelector
+                selectedTags={selectedTags}
+                onTagsChange={setSelectedTags}
+              />
+            )}
 
             <FormField
               control={form.control}
@@ -650,44 +698,67 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="params.assetIds"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Alvos/Targets</FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          const currentValues = field.value || [];
-                          const newValues = currentValues.includes(value) 
-                            ? currentValues.filter((v: string) => v !== value)
-                            : [...currentValues, value];
-                          field.onChange(newValues);
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger data-testid="select-assets">
-                            <SelectValue placeholder="Selecione alvos para teste" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {assets.map((asset) => (
-                            <SelectItem key={asset.id} value={asset.id}>
+                <div className="space-y-3">
+                  <FormLabel>Modo de Seleção de Alvos</FormLabel>
+                  <RadioGroup
+                    value={targetSelectionMode}
+                    onValueChange={(value) => setTargetSelectionMode(value as 'individual' | 'by_tag')}
+                    className="flex flex-col space-y-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="individual" id="edr-mode-individual" data-testid="radio-edr-mode-individual" />
+                      <label htmlFor="edr-mode-individual" className="text-sm cursor-pointer">
+                        Seleção Individual - Escolher alvos específicos
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="by_tag" id="edr-mode-by-tag" data-testid="radio-edr-mode-by-tag" />
+                      <label htmlFor="edr-mode-by-tag" className="text-sm cursor-pointer">
+                        Seleção por TAG - Escolher grupos de alvos com TAGs
+                      </label>
+                    </div>
+                  </RadioGroup>
+                  <FormDescription>
+                    Escolha como selecionar os alvos para o teste
+                  </FormDescription>
+                </div>
+
+                {targetSelectionMode === 'individual' ? (
+                  <div>
+                    <FormLabel>Alvos Selecionados</FormLabel>
+                    <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                      {assets.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          Nenhum alvo disponível. Crie alvos primeiro.
+                        </p>
+                      ) : (
+                        assets.map((asset) => (
+                          <div key={asset.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`edr-${asset.id}`}
+                              checked={selectedAssets.includes(asset.id)}
+                              onCheckedChange={(checked) => 
+                                handleAssetSelection(asset.id, checked as boolean)
+                              }
+                              data-testid={`checkbox-edr-asset-${asset.id}`}
+                            />
+                            <label htmlFor={`edr-${asset.id}`} className="text-sm cursor-pointer">
                               {asset.value} ({asset.type})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        Selecionados: {(field.value || []).length} alvos
-                      </div>
-                      <FormDescription>
-                        Selecione hosts ou ranges de rede para testar
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                            </label>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    <FormDescription>
+                      Selecione os alvos individualmente
+                    </FormDescription>
+                  </div>
+                ) : (
+                  <TagSelector
+                    selectedTags={selectedTags}
+                    onTagsChange={setSelectedTags}
+                  />
+                )}
               </div>
             )}
 
