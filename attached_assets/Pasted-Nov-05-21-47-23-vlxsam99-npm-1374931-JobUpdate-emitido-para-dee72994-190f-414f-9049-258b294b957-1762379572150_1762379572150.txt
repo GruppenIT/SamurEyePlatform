@@ -1,0 +1,167 @@
+Nov 05 21:47:23 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:25 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:27 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:29 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:31 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:33 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:35 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:37 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:39 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:41 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:43 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:45 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:47 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:49 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:51 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:53 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:55 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:57 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:47:59 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:01 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:03 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:05 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:07 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:09 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:11 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:13 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:15 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:17 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:19 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:21 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:23 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:25 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:27 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:29 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:31 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:33 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:35 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:37 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:39 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:41 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:43 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:45 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:47 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:49 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:51 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:53 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:55 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:57 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:48:59 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:01 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:03 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:05 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:07 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:09 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:11 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:13 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:15 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:17 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:19 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:21 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:23 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:25 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:27 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:29 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:31 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:33 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:35 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:37 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:39 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:41 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:43 vlxsam99 npm[1374931]: 📡 JobUpdate emitido para dee72994-190f-414f-9049-258b294b9573: Validando CVEs em VMSHO03.gruppen.com.br (nmap pid 1375279) (alive: true, status: running)
+Nov 05 21:49:45 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:49:47 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:49:49 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:49:51 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:49:53 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:49:55 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:49:57 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:49:59 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:01 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:03 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:05 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:07 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:09 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:11 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:13 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:15 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:17 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:19 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:21 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:23 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:25 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:27 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:29 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:31 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:33 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:35 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:37 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:39 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:41 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:43 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:45 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:47 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:49 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:51 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:53 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:55 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:57 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:50:59 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:01 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:03 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:05 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:07 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:09 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:11 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:13 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:15 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:17 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:19 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:21 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:23 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:25 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:27 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:29 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:31 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:33 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:35 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:37 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:39 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:41 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:43 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:45 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:47 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:49 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:51 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:53 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:55 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:57 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:51:59 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:01 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:03 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:05 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:07 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:09 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:11 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:13 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:15 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:17 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:19 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:21 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:23 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:25 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:27 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:29 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:31 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:33 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:35 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:37 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:39 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:41 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:43 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:44 vlxsam99 npm[1374931]: 🧹 Limpeza de sessões expiradas executada
+Nov 05 21:52:45 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:47 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:49 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:51 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
+Nov 05 21:52:53 vlxsam99 npm[1374931]: 🚫 Job dee72994-190f-414f-9049-258b294b9573 em estado terminal (timeout), ignorando update de processo
