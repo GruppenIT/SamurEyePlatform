@@ -21,6 +21,26 @@ type ProgressCallback = (progress: JourneyProgress) => void;
 
 class JourneyExecutorService {
   /**
+   * Resolve asset IDs based on target selection mode
+   * If targetSelectionMode is 'by_tag', expands selectedTags into assetIds
+   * If targetSelectionMode is 'individual', uses assetIds from params directly
+   */
+  private async resolveAssetIds(journey: Journey): Promise<string[]> {
+    // Modo 1: Seleção por TAG
+    if (journey.targetSelectionMode === 'by_tag' && journey.selectedTags && journey.selectedTags.length > 0) {
+      console.log(`🏷️  Expandindo TAGs selecionadas: ${journey.selectedTags.join(', ')}`);
+      const assets = await storage.getAssetsByTags(journey.selectedTags);
+      const assetIds = assets.map(a => a.id);
+      console.log(`✅ ${assetIds.length} alvos encontrados com as TAGs selecionadas`);
+      return assetIds;
+    }
+    
+    // Modo 2: Seleção Individual (padrão ou explícito)
+    const assetIds = journey.params.assetIds || [];
+    return assetIds;
+  }
+
+  /**
    * Executes a journey based on its type
    */
   async executeJourney(
@@ -83,7 +103,7 @@ class JourneyExecutorService {
     onProgress: ProgressCallback
   ): Promise<void> {
     const params = journey.params;
-    const assetIds = params.assetIds || [];
+    const assetIds = await this.resolveAssetIds(journey);
     const webScanEnabled = params.webScanEnabled === true;
     const processTimeoutMinutes = params.processTimeout || 60; // Default 60 minutos
     const processTimeoutMs = processTimeoutMinutes * 60 * 1000; // Converter para ms
@@ -446,10 +466,13 @@ class JourneyExecutorService {
         // Modo Network Based: Usar ativos específicos
         console.log('🎯 Modo Network Based: Usando ativos específicos...');
         
-        if (params.assetIds && params.assetIds.length > 0) {
-          // Buscar ativos pelos IDs fornecidos
+        // Resolver assetIds baseado em targetSelectionMode (individual ou by_tag)
+        const resolvedAssetIds = await this.resolveAssetIds(journey);
+        
+        if (resolvedAssetIds && resolvedAssetIds.length > 0) {
+          // Buscar ativos pelos IDs fornecidos/resolvidos
           const selectedAssets = await Promise.all(
-            params.assetIds.map(async (assetId: string) => {
+            resolvedAssetIds.map(async (assetId: string) => {
               const asset = await storage.getAsset(assetId);
               return asset;
             })
