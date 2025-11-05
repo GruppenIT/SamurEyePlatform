@@ -329,8 +329,21 @@ export default function Journeys() {
                               {getJourneyTypeLabel(journey.type)}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-muted-foreground max-w-xs truncate">
-                            {journey.description || 'Sem descrição'}
+                          <TableCell className="max-w-xs">
+                            <div className="space-y-1">
+                              <div className="text-muted-foreground truncate">
+                                {journey.description || 'Sem descrição'}
+                              </div>
+                              {journey.targetSelectionMode === 'by_tag' && journey.selectedTags && journey.selectedTags.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {journey.selectedTags.map((tag) => (
+                                    <Badge key={tag} variant="outline" className="text-xs">
+                                      🏷️ {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {new Date(journey.createdAt).toLocaleDateString('pt-BR')}
