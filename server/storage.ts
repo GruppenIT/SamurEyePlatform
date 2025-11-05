@@ -372,6 +372,15 @@ export class DatabaseStorage implements IStorage {
     return results;
   }
 
+  async getUniqueTags(): Promise<string[]> {
+    // Busca todas as TAGs únicas de todos os assets
+    // Usando jsonb_array_elements_text para expandir o array JSONB em linhas
+    const result = await db.execute<{ tag: string }>(
+      sql`SELECT DISTINCT jsonb_array_elements_text(${assets.tags}) as tag FROM ${assets} WHERE ${assets.tags} IS NOT NULL AND jsonb_array_length(${assets.tags}) > 0 ORDER BY tag`
+    );
+    return result.rows.map(row => row.tag);
+  }
+
   async createAsset(asset: InsertAsset, userId: string): Promise<Asset> {
     const assetValues = {
       type: asset.type,

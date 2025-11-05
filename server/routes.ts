@@ -402,6 +402,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/assets/tags/unique', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const tags = await storage.getUniqueTags();
+      res.json(tags);
+    } catch (error) {
+      console.error("Erro ao buscar TAGs únicas:", error);
+      res.status(500).json({ message: "Falha ao buscar TAGs únicas" });
+    }
+  });
+
   app.post('/api/assets', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;
