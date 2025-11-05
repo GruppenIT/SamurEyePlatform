@@ -677,6 +677,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const journeyData = insertJourneySchema.parse(req.body);
+      
+      // Server-side validation: ensure at least one target or TAG is selected
+      if (journeyData.type === 'attack_surface' || 
+          (journeyData.type === 'edr_av' && journeyData.params?.edrAvType === 'network_based')) {
+        const mode = journeyData.targetSelectionMode || 'individual';
+        const hasAssets = Array.isArray(journeyData.params?.assetIds) && journeyData.params.assetIds.length > 0;
+        const hasTags = Array.isArray(journeyData.selectedTags) && journeyData.selectedTags.length > 0;
+        
+        if (mode === 'individual' && !hasAssets) {
+          return res.status(400).json({ 
+            message: "Pelo menos um alvo deve ser selecionado no modo Individual" 
+          });
+        }
+        if (mode === 'by_tag' && !hasTags) {
+          return res.status(400).json({ 
+            message: "Pelo menos uma TAG deve ser selecionada no modo Tag-Based" 
+          });
+        }
+      }
+      
       const journey = await storage.createJourney(journeyData, userId);
       
       await storage.logAudit({

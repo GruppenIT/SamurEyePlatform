@@ -73,6 +73,15 @@ The application features a dark security-focused theme. The threat intelligence 
   - **OAuth2 for Google Workspace/Gmail**: Secure OAuth2 authentication with automatic token refresh using googleapis
   - **OAuth2 for Microsoft 365**: Secure OAuth2 authentication with automatic token refresh using @azure/msal-node
   - All OAuth2 credentials (clientId, clientSecret, refreshToken, tenantId) are encrypted using the KEK/DEK pattern
+- **Tag-Based Target Selection**: Enhanced journey configuration with dual target selection modes:
+  - **Individual Mode** (default): Manual selection of specific assets via checkboxes
+  - **Tag-Based Mode**: Group selection using asset TAGs - system automatically expands selected tags into asset IDs at execution time
+  - Applies to Attack Surface and EDR/AV (Network Based mode only) journeys
+  - Schema fields: `targetSelectionMode` enum ('individual'|'by_tag'), `selectedTags` JSONB array
+  - Backend expansion via `resolveAssetIds()` helper using PostgreSQL JSONB ?| operator for OR-matching
+  - Frontend: `TagSelector` component fetches unique tags via `/api/assets/tags/unique` endpoint
+  - Journey list displays selected tags as badges for easy identification
+  - Form validation ensures at least one asset (individual) or tag (by_tag) is selected
   - Email settings support configurable SMTP hosts, ports, TLS/SSL, and customizable sender information
 - **AD Security Journey (Refactored)**: Complete rewrite of Active Directory security assessment using Python WinRM wrapper:
   - **28 PowerShell-Based Tests**: Organized in 6 categories (Configurações Críticas, Gerenciamento de Contas, Kerberos e Delegação, Compartilhamentos e GPOs, Políticas e Configuração, Contas Inativas)
