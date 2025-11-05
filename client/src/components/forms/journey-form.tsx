@@ -92,6 +92,18 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
   };
 
   const handleSubmit = (data: JourneyFormData) => {
+    // Validação de alvos selecionados
+    if (data.type === 'attack_surface' || (data.type === 'edr_av' && form.getValues('params.edrAvType') === 'network_based')) {
+      if (targetSelectionMode === 'individual' && selectedAssets.length === 0) {
+        alert('Por favor, selecione pelo menos um alvo');
+        return;
+      }
+      if (targetSelectionMode === 'by_tag' && selectedTags.length === 0) {
+        alert('Por favor, selecione pelo menos uma TAG');
+        return;
+      }
+    }
+
     const params: Record<string, any> = {};
 
     switch (data.type) {
