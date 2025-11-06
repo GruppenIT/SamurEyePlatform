@@ -5,6 +5,8 @@ interface CVEResult {
   cvssScore: number;
   publishedDate: string;
   remediation: string;
+  affectedVersions?: string[]; // Versões afetadas extraídas da descrição
+  confidence?: 'high' | 'medium' | 'low'; // Confiança de que este CVE se aplica
 }
 
 interface NVDMetric {
@@ -38,8 +40,9 @@ class CVEService {
 
   /**
    * Busca CVEs para um serviço e versão específicos
+   * Retorna apenas CVEs que realmente se aplicam à versão fornecida
    */
-  async searchCVEs(service: string, version?: string): Promise<CVEResult[]> {
+  async searchCVEs(service: string, version?: string, osInfo?: string): Promise<CVEResult[]> {
     // Normalizar nome do serviço para busca
     const searchTerm = this.normalizeServiceName(service, version);
     
@@ -47,10 +50,10 @@ class CVEService {
     const cacheKey = `${service}:${version || 'latest'}`;
     if (this.cache.has(cacheKey)) {
       console.log(`📦 CVE cache hit para ${cacheKey}`);
-      return this.cache.get(cacheKey)!;
+      return this.filterCVEsByVersion(this.cache.get(cacheKey)!, version, osInfo);
     }
 
-    console.log(`🔍 Buscando CVEs para: ${searchTerm}`);
+    console.log(`🔍 Buscando CVEs para: ${searchTerm} (versão: ${version || 'N/A'}, OS: ${osInfo || 'N/A'})`);
 
     try {
       // Rate limiting - aguardar entre requisições
@@ -83,16 +86,202 @@ class CVEService {
         }
       }
 
-      console.log(`✅ Encontrados ${cves.length} CVEs para ${searchTerm}`);
+      console.log(`✅ Encontrados ${cves.length} CVEs brutos para ${searchTerm}`);
 
       // Armazenar em cache
       this.cache.set(cacheKey, cves);
 
-      return cves;
+      // Filtrar por versão antes de retornar
+      const filteredCves = this.filterCVEsByVersion(cves, version, osInfo);
+      console.log(`✅ Após filtragem por versão: ${filteredCves.length} CVEs aplicáveis`);
+
+      return filteredCves;
     } catch (error) {
       console.error(`❌ Erro ao buscar CVEs para ${searchTerm}:`, error);
       return [];
     }
+  }
+
+  /**
+   * Filtra CVEs baseado na versão detectada e OS info
+   * Remove CVEs que claramente não se aplicam à versão/OS detectado
+   */
+  private filterCVEsByVersion(cves: CVEResult[], detectedVersion?: string, osInfo?: string): CVEResult[] {
+    if (!detectedVersion && !osInfo) {
+      // Sem informação de versão/OS, retornar tudo mas marcar confiança baixa
+      return cves.map(cve => ({ ...cve, confidence: 'low' as const }));
+    }
+
+    const filtered: CVEResult[] = [];
+
+    for (const cve of cves) {
+      const match = this.matchesCVEVersion(cve, detectedVersion, osInfo);
+      
+      if (match.applies) {
+        filtered.push({
+          ...cve,
+          confidence: match.confidence,
+        });
+      }
+    }
+
+    return filtered;
+  }
+
+  /**
+   * Verifica se um CVE se aplica à versão/OS detectado
+   * Retorna { applies: boolean, confidence: 'high'|'medium'|'low' }
+   */
+  private matchesCVEVersion(
+    cve: CVEResult, 
+    detectedVersion?: string, 
+    osInfo?: string
+  ): { applies: boolean; confidence: 'high' | 'medium' | 'low' } {
+    const description = cve.description.toLowerCase();
+    
+    // Extrair versões afetadas da descrição
+    const versionRanges = this.extractAffectedVersions(cve.description);
+    
+    // Se temos OS info, validar contra ela
+    if (osInfo) {
+      const osLower = osInfo.toLowerCase();
+      
+      // Exemplo: CVE para Windows 2008-2012 não deve aplicar a Windows 2016
+      if (description.includes('windows') || description.includes('microsoft')) {
+        // Extrair versões do Windows da descrição do CVE
+        const cveWindowsVersions = this.extractWindowsVersions(description);
+        const detectedWindowsVersion = this.extractWindowsVersions(osLower);
+        
+        if (cveWindowsVersions.length > 0 && detectedWindowsVersion.length > 0) {
+          // Verificar se há overlap entre versões do CVE e versão detectada
+          const hasMatch = cveWindowsVersions.some(cveVer => 
+            detectedWindowsVersion.includes(cveVer)
+          );
+          
+          if (!hasMatch) {
+            console.log(`❌ CVE ${cve.cveId} não se aplica: ${cveWindowsVersions.join(', ')} vs ${detectedWindowsVersion.join(', ')}`);
+            return { applies: false, confidence: 'high' };
+          }
+          
+          console.log(`✅ CVE ${cve.cveId} se aplica: match de versão Windows`);
+          return { applies: true, confidence: 'high' };
+        }
+      }
+    }
+
+    // Se temos versão detectada, validar contra ela
+    if (detectedVersion && versionRanges.length > 0) {
+      const parsedDetected = this.parseVersion(detectedVersion);
+      
+      for (const range of versionRanges) {
+        if (this.isVersionInRange(parsedDetected, range)) {
+          console.log(`✅ CVE ${cve.cveId} se aplica: versão ${detectedVersion} está em ${range}`);
+          return { applies: true, confidence: 'high' };
+        }
+      }
+      
+      // Versão fornecida mas não está no range
+      console.log(`❌ CVE ${cve.cveId} não se aplica: versão ${detectedVersion} fora do range`);
+      return { applies: false, confidence: 'high' };
+    }
+
+    // Sem informação suficiente para validar - incluir mas com confiança média
+    return { applies: true, confidence: 'medium' };
+  }
+
+  /**
+   * Extrai versões do Windows de uma string
+   * Ex: "Windows Server 2008 R2, 2012" -> ['2008', '2012']
+   */
+  private extractWindowsVersions(text: string): string[] {
+    const versions: string[] = [];
+    
+    // Padrões de versão do Windows
+    const patterns = [
+      /windows\s+(?:server\s+)?(\d{4})/gi,
+      /(?:server|vista|xp|7|8|10|11)[\s\.]?r?(\d)?/gi,
+    ];
+    
+    for (const pattern of patterns) {
+      const matches = text.matchAll(pattern);
+      for (const match of matches) {
+        if (match[1]) {
+          versions.push(match[1]);
+        }
+      }
+    }
+    
+    return [...new Set(versions)]; // Remove duplicatas
+  }
+
+  /**
+   * Extrai versões afetadas da descrição do CVE
+   * Ex: "versions 1.0 through 2.5" -> ["1.0-2.5"]
+   */
+  private extractAffectedVersions(description: string): string[] {
+    const ranges: string[] = [];
+    
+    // Padrão: "version(s) X through Y" ou "version(s) X to Y"
+    const rangePattern = /version[s]?\s+([\d.]+)\s+(?:through|to)\s+([\d.]+)/gi;
+    const matches = description.matchAll(rangePattern);
+    
+    for (const match of matches) {
+      ranges.push(`${match[1]}-${match[2]}`);
+    }
+    
+    // Padrão: "version X"
+    const singlePattern = /version\s+([\d.]+)/gi;
+    const singleMatches = description.matchAll(singlePattern);
+    
+    for (const match of singleMatches) {
+      ranges.push(match[1]);
+    }
+    
+    return ranges;
+  }
+
+  /**
+   * Parse de versão para array de números
+   * Ex: "2.5.1" -> [2, 5, 1]
+   */
+  private parseVersion(version: string): number[] {
+    const cleaned = version.replace(/[^\d.]/g, '');
+    return cleaned.split('.').map(v => parseInt(v) || 0);
+  }
+
+  /**
+   * Verifica se uma versão está dentro de um range
+   */
+  private isVersionInRange(version: number[], range: string): boolean {
+    if (range.includes('-')) {
+      const [start, end] = range.split('-');
+      const startVer = this.parseVersion(start);
+      const endVer = this.parseVersion(end);
+      
+      return this.compareVersions(version, startVer) >= 0 && 
+             this.compareVersions(version, endVer) <= 0;
+    } else {
+      const exactVer = this.parseVersion(range);
+      return this.compareVersions(version, exactVer) === 0;
+    }
+  }
+
+  /**
+   * Compara duas versões
+   * Retorna: -1 (v1 < v2), 0 (v1 == v2), 1 (v1 > v2)
+   */
+  private compareVersions(v1: number[], v2: number[]): number {
+    const maxLen = Math.max(v1.length, v2.length);
+    
+    for (let i = 0; i < maxLen; i++) {
+      const num1 = v1[i] || 0;
+      const num2 = v2[i] || 0;
+      
+      if (num1 < num2) return -1;
+      if (num1 > num2) return 1;
+    }
+    
+    return 0;
   }
 
   /**
