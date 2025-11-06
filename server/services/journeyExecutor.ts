@@ -159,57 +159,65 @@ class JourneyExecutorService {
         findings.push(...portResults);
         console.log(`✅ FASE 1: ${portResults.length} portas descobertas`);
 
-        // ==================== PHASE 2A: CVE LOOKUP FROM NVD ====================
-        onProgress({ 
-          status: 'running', 
-          progress: baseProgress + 3, 
-          currentTask: `Fase 2A: Buscando CVEs conhecidos para ${asset.value}` 
-        });
+        // ==================== PHASE 2: CVE DETECTION (OPTIONAL) ====================
+        // Check if CVE detection is enabled (default: true)
+        const enableCveDetection = journey.enableCveDetection !== false;
         
-        console.log(`🔍 FASE 2A: Buscando CVEs conhecidos na base NVD`);
-        const cveFindings = await this.searchKnownCVEs(portResults, jobId);
-        findings.push(...cveFindings);
-        console.log(`✅ FASE 2A: ${cveFindings.length} CVEs encontrados na base NVD`);
-
-        // ==================== PHASE 2B: ACTIVE VALIDATION ====================
-        // Group by host for vulnerability scanning
-        const hostPortMap = new Map<string, { ports: string[], portResults: any[] }>();
-        
-        for (const result of portResults) {
-          if (result.state === 'open') {
-            const target = result.target || asset.value;
-            const existing = hostPortMap.get(target) || { ports: [], portResults: [] };
-            
-            // Sanitize port: remove /tcp or /udp suffix
-            // result.port can be "443" or "443/tcp", nmap needs just "443"
-            const cleanPort = result.port.toString().replace(/\/(tcp|udp)$/i, '');
-            existing.ports.push(cleanPort);
-            existing.portResults.push(result);
-            hostPortMap.set(target, existing);
-          }
-        }
-        
-        // Validate vulnerabilities for each discovered host
-        for (const [host, data] of Array.from(hostPortMap.entries())) {
-          if (this.isJobCancelled(jobId)) {
-            throw new Error('Job cancelado pelo usuário');
-          }
-
-          if (data.ports.length === 0) continue;
-
+        if (enableCveDetection) {
+          // ==================== PHASE 2A: CVE LOOKUP FROM NVD ====================
           onProgress({ 
             status: 'running', 
-            progress: baseProgress + 5, 
-            currentTask: `Fase 2B: Validando vulnerabilidades ativamente em ${host}` 
+            progress: baseProgress + 3, 
+            currentTask: `Fase 2A: Buscando CVEs conhecidos para ${asset.value}` 
           });
-
-          console.log(`🔍 FASE 2B: Validação ativa de vulnerabilidades em ${host}`);
           
-          // Phase 2B: Nmap vuln scripts for active CVE detection
-          console.log(`🎯 FASE 2B: Executando nmap vuln scripts em ${host}`);
-          const nmapVulnResults = await this.runNmapVulnScripts(host, data.ports, jobId, vulnScriptTimeoutMs);
-          findings.push(...nmapVulnResults);
-          console.log(`✅ FASE 2B: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
+          console.log(`🔍 FASE 2A: Buscando CVEs conhecidos na base NVD`);
+          const cveFindings = await this.searchKnownCVEs(portResults, jobId);
+          findings.push(...cveFindings);
+          console.log(`✅ FASE 2A: ${cveFindings.length} CVEs encontrados na base NVD`);
+
+          // ==================== PHASE 2B: ACTIVE VALIDATION ====================
+          // Group by host for vulnerability scanning
+          const hostPortMap = new Map<string, { ports: string[], portResults: any[] }>();
+          
+          for (const result of portResults) {
+            if (result.state === 'open') {
+              const target = result.target || asset.value;
+              const existing = hostPortMap.get(target) || { ports: [], portResults: [] };
+              
+              // Sanitize port: remove /tcp or /udp suffix
+              // result.port can be "443" or "443/tcp", nmap needs just "443"
+              const cleanPort = result.port.toString().replace(/\/(tcp|udp)$/i, '');
+              existing.ports.push(cleanPort);
+              existing.portResults.push(result);
+              hostPortMap.set(target, existing);
+            }
+          }
+          
+          // Validate vulnerabilities for each discovered host
+          for (const [host, data] of Array.from(hostPortMap.entries())) {
+            if (this.isJobCancelled(jobId)) {
+              throw new Error('Job cancelado pelo usuário');
+            }
+
+            if (data.ports.length === 0) continue;
+
+            onProgress({ 
+              status: 'running', 
+              progress: baseProgress + 5, 
+              currentTask: `Fase 2B: Validando vulnerabilidades ativamente em ${host}` 
+            });
+
+            console.log(`🔍 FASE 2B: Validação ativa de vulnerabilidades em ${host}`);
+            
+            // Phase 2B: Nmap vuln scripts for active CVE detection
+            console.log(`🎯 FASE 2B: Executando nmap vuln scripts em ${host}`);
+            const nmapVulnResults = await this.runNmapVulnScripts(host, data.ports, jobId, vulnScriptTimeoutMs);
+            findings.push(...nmapVulnResults);
+            console.log(`✅ FASE 2B: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
+          }
+        } else {
+          console.log(`⏭️  FASE 2: Detecção de CVEs desabilitada - pulando Fases 2A e 2B`);
         }
         
       } catch (error) {
