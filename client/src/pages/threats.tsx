@@ -1140,7 +1140,11 @@ export default function Threats() {
                 </Button>
                 <Button
                   onClick={handleStatusSubmit}
-                  disabled={changeStatusMutation.isPending}
+                  disabled={
+                    changeStatusMutation.isPending || 
+                    statusChangeModal.justification.length < 10 ||
+                    (statusChangeModal.newStatus === 'hibernated' && !statusChangeModal.hibernatedUntil)
+                  }
                   data-testid="button-confirm-status-change"
                 >
                   {changeStatusMutation.isPending ? "Alterando..." : "Confirmar"}
