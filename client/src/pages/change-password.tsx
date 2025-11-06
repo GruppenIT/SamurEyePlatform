@@ -33,12 +33,14 @@ export default function ChangePasswordPage() {
       const response = await apiRequest('POST', '/api/auth/change-password', data);
       return response;
     },
-    onSuccess: (data) => {
-      // Invalida cache de usuário com novos dados
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    onSuccess: async (data) => {
+      // Aguarda refetch do usuário com dados atualizados
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
       
-      // Redireciona para dashboard
-      setLocation("/");
+      // Aguarda um pouco para garantir que o estado foi atualizado
+      setTimeout(() => {
+        setLocation("/");
+      }, 500);
     },
     onError: (error: any) => {
       // O erro será exibido pelo formulário
