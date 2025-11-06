@@ -799,6 +799,19 @@ export default function Threats() {
                 </div>
               )}
 
+              {/* Recomendação - exibir remediation ou recommendation do evidence */}
+              {(selectedThreat.evidence?.remediation || selectedThreat.evidence?.recommendation) && (
+                <div className="p-4 bg-orange-950/20 border border-orange-900/30 rounded-lg">
+                  <h4 className="font-medium text-orange-400 mb-2 flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Recomendação
+                  </h4>
+                  <p className="text-orange-200/90">
+                    {selectedThreat.evidence.remediation || selectedThreat.evidence.recommendation}
+                  </p>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h4 className="font-medium text-foreground mb-2">Informações</h4>
