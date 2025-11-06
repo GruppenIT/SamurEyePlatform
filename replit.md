@@ -52,11 +52,26 @@ Vite handles the frontend build, while esbuild bundles the backend.
 - **Email Notification System**: Supports Basic Password, OAuth2 for Google Workspace/Gmail, and OAuth2 for Microsoft 365, with encrypted credentials.
 - **Tag-Based Target Selection**: Allows asset selection by individual assets or by tags, expanding tags into asset IDs at execution time.
 - **AD Security Journey**: Rewritten using Python WinRM wrapper (`pywinrm`) for 28 PowerShell-based tests across 6 categories. Features DC failover, category toggles, Portuguese keyword enhancement for credential scanning, and comprehensive auditability with `adSecurityTestResults` table storing full execution evidence (PowerShell commands, stdout, stderr, exitCode).
-- **Authenticated Scanning (Optional Credentials)**: Foundation for optional credential-based host enrichment in Attack Surface journeys:
-  - **Schema**: `journeyCredentials` junction table links journeys to credentials with priority ordering; `hostEnrichments` stores collected data (OS, apps, patches) plus audit trail.
-  - **Host Enricher Service**: Pluggable architecture (`IHostCollector` interface) for WMI/SSH/SNMP collectors with exponential backoff (1s, 2s, 4s...), 30s timeouts, and fail-safe error handling.
-  - **Audit Trail**: Complete execution evidence (commands, stdout, stderr, exitCode) mirroring AD Security pattern for compliance and troubleshooting.
-  - **Strategy**: Per-protocol grouping, sequential retries, stops at first successful credential per protocol to prevent account lockouts.
+- **Authenticated Scanning (Optional Credentials)**: Complete system for optional credential-based host enrichment in Attack Surface journeys (74% reduction in CVE false positives):
+  - **Schema**: `journeyCredentials` junction table links journeys to credentials with priority ordering; `hostEnrichments` stores collected data (OS, apps, patches) plus complete audit trail (commands, stdout, stderr, exitCode).
+  - **Collectors**: 
+    - **WMICollector** (Windows): Uses pywinrm wrapper to execute PowerShell commands (Get-ComputerInfo for OS details, registry scan for installed apps up to 500, Get-HotFix for KB patches, Get-Service for running services). 30s timeout per attempt.
+    - **SSHCollector** (Linux): SSH2-based execution (uname for OS/kernel, dpkg/rpm for package lists up to 1000, systemctl for running services). Auto-detects package manager. 30s timeout per attempt.
+  - **Host Enricher Service**: 
+    - Pluggable architecture via `IHostCollector` interface allowing easy addition of SNMP or custom protocols
+    - **Priority ordering**: Credentials sorted ascending by priority field (0 = highest priority)
+    - **Data validation**: Only marks enrichment successful when meaningful data is collected (OS version, apps, patches, or services)
+    - **Retry logic**: Per-protocol grouping with exponential backoff (1s, 2s, 4s, 8s...) between failed attempts
+    - **Stop-on-success**: First successful credential per protocol prevents unnecessary attempts and account lockouts
+    - **Fail-safe**: Enrichment failures never block the scan pipeline; all attempts are logged for troubleshooting
+  - **Journey Executor Phase 1.5**: 
+    - Executes between Discovery (Phase 1) and CVE Detection (Phase 2)
+    - Discovers/creates hosts in database before enrichment
+    - Attempts enrichment on each discovered host using configured credentials
+    - Persists all enrichment records (success and failure) with full audit trail
+    - Detailed logging: protocol, credential used, data collected, success/failure reasons
+  - **API Routes**: POST/PATCH /api/journeys accepts `credentials` array with credentialId, protocol, and priority; GET /api/journeys/:id/credentials returns linked credentials
+  - **Security**: Credentials decrypted only at execution time using KEK/DEK pattern; passwords never logged or exposed in process lists
 
 ## External Dependencies
 
