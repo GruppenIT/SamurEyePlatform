@@ -250,9 +250,12 @@ class HostService {
         .map(f => f.hostname || f.host)
         .filter(h => h && h !== target && !/^\d+\.\d+\.\d+\.\d+$/.test(h));
       
-      if (hostnames.length > 0) {
-        name = hostnames[0].toLowerCase();
-        aliases = hostnames.slice(1).map(h => h.toLowerCase());
+      // Remove duplicates from hostnames
+      const uniqueHostnames = Array.from(new Set(hostnames));
+      
+      if (uniqueHostnames.length > 0) {
+        name = uniqueHostnames[0].toLowerCase();
+        aliases = uniqueHostnames.slice(1).map(h => h.toLowerCase());
       } else {
         name = `host-${target.replace(/\./g, '-')}`;
       }
@@ -262,7 +265,8 @@ class HostService {
         .map(f => f.ip)
         .filter(ip => ip && ip !== target && /^\d+\.\d+\.\d+\.\d+$/.test(ip));
       
-      ips = foundIps; // Only actual IPs, never hostnames - can be empty array
+      // Remove duplicates - each port scan creates a finding with the same IP
+      ips = Array.from(new Set(foundIps)); // Only actual IPs, never hostnames - can be empty array
       
       // Find other hostnames as aliases
       const otherHostnames = findings
@@ -270,7 +274,8 @@ class HostService {
         .filter(h => h && h !== target && !/^\d+\.\d+\.\d+\.\d+$/.test(h))
         .map(h => h.toLowerCase());
       
-      aliases = otherHostnames;
+      // Remove duplicates from aliases
+      aliases = Array.from(new Set(otherHostnames));
     }
 
     // Get OS information
