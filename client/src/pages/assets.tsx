@@ -158,11 +158,15 @@ export default function Assets() {
   };
 
   const getAssetIcon = (type: string) => {
-    return type === 'host' ? Server : Globe;
+    if (type === 'host') return Server;
+    if (type === 'web_application') return Globe;
+    return Globe; // range (Faixa de IPs)
   };
 
   const getAssetTypeLabel = (type: string) => {
-    return type === 'host' ? 'Host Individual' : 'Faixa de IPs';
+    if (type === 'host') return 'Host Individual';
+    if (type === 'web_application') return 'Aplicação Web';
+    return 'Faixa de IPs'; // range
   };
 
   return (
