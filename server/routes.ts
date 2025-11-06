@@ -710,6 +710,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const journey = await storage.createJourney(journeyData, userId);
       
+      // Handle journey credentials (if provided)
+      const credentials = req.body.credentials;
+      if (Array.isArray(credentials) && credentials.length > 0) {
+        for (const cred of credentials) {
+          await storage.createJourneyCredential({
+            journeyId: journey.id,
+            credentialId: cred.credentialId,
+            protocol: cred.protocol,
+            priority: cred.priority || 0,
+          });
+        }
+      }
+      
       await storage.logAudit({
         actorId: userId,
         action: 'create',
@@ -734,6 +747,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const beforeJourney = await storage.getJourney(id);
       const journey = await storage.updateJourney(id, updates);
+      
+      // Handle journey credentials update (if provided)
+      const credentials = req.body.credentials;
+      if (Array.isArray(credentials)) {
+        // Delete all existing credentials for this journey
+        await storage.deleteJourneyCredentials(id);
+        
+        // Create new credentials
+        for (const cred of credentials) {
+          await storage.createJourneyCredential({
+            journeyId: id,
+            credentialId: cred.credentialId,
+            protocol: cred.protocol,
+            priority: cred.priority || 0,
+          });
+        }
+      }
       
       await storage.logAudit({
         actorId: userId,
@@ -772,6 +802,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao excluir jornada:", error);
       res.status(400).json({ message: "Falha ao excluir jornada" });
+    }
+  });
+
+  // Get credentials for a specific journey
+  app.get('/api/journeys/:id/credentials', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const credentials = await storage.getJourneyCredentials(id);
+      res.json(credentials);
+    } catch (error) {
+      console.error("Erro ao buscar credenciais da jornada:", error);
+      res.status(500).json({ message: "Falha ao buscar credenciais da jornada" });
     }
   });
 

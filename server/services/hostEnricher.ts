@@ -84,12 +84,18 @@ export class HostEnricher {
     let successCount = 0;
     let failureCount = 0;
     
-    // Group credentials by protocol
+    // Group credentials by protocol and sort by priority
     const credentialsByProtocol = new Map<string, (JourneyCredential & { credential: Credential })[]>();
     for (const jc of journeyCredentials) {
       const existing = credentialsByProtocol.get(jc.protocol) || [];
       existing.push(jc);
       credentialsByProtocol.set(jc.protocol, existing);
+    }
+    
+    // Sort each protocol's credentials by priority (ascending = higher priority first)
+    for (const [protocol, creds] of Array.from(credentialsByProtocol.entries())) {
+      creds.sort((a, b) => a.priority - b.priority);
+      credentialsByProtocol.set(protocol, creds);
     }
     
     // Try each protocol
@@ -178,7 +184,33 @@ export class HostEnricher {
         this.timeoutPromise(timeout, `${collector.protocol} collection timeout after ${timeout}ms`),
       ]);
       
-      // Success - create enrichment record
+      // Validate that we actually collected meaningful data
+      const hasData = 
+        result.data.osVersion ||
+        result.data.osBuild ||
+        (result.data.installedApps && result.data.installedApps.length > 0) ||
+        (result.data.patches && result.data.patches.length > 0) ||
+        (result.data.services && result.data.services.length > 0);
+      
+      if (!hasData) {
+        // No data collected - treat as failure
+        return {
+          hostId,
+          jobId,
+          protocol: collector.protocol,
+          credentialId: credential.id,
+          success: false,
+          osVersion: null,
+          osBuild: null,
+          installedApps: null,
+          patches: null,
+          services: null,
+          commandsExecuted: result.commandsExecuted || null,
+          errorMessage: 'No data collected - authentication may have failed or commands returned empty',
+        };
+      }
+      
+      // Success - create enrichment record with real data
       return {
         hostId,
         jobId,

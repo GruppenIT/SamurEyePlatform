@@ -55,6 +55,12 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
   const [selectedTags, setSelectedTags] = useState<string[]>(
     initialData?.selectedTags || []
   );
+  const [selectedCredentials, setSelectedCredentials] = useState<Array<{credentialId: string; protocol: 'wmi' | 'ssh' | 'snmp'; priority: number}>>(
+    initialData?.credentials || []
+  );
+  const [enableAuthentication, setEnableAuthentication] = useState<boolean>(
+    initialData?.credentials && initialData.credentials.length > 0
+  );
 
   const form = useForm<JourneyFormData>({
     resolver: zodResolver(journeySchema),
@@ -122,6 +128,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         }
         params.nmapProfile = form.getValues('params.nmapProfile') || 'fast';
         params.vulnScriptTimeout = parseInt(form.getValues('params.vulnScriptTimeout')) || 60;
+        
+        // Add credentials if authentication is enabled
+        if (enableAuthentication && selectedCredentials.length > 0) {
+          (data as any).credentials = selectedCredentials;
+        }
         break;
       case 'ad_security':
         params.domain = form.getValues('params.domain');

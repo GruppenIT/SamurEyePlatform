@@ -9,9 +9,16 @@ import { jobQueue } from './jobQueue';
 import { hostService } from './hostService';
 import { processTracker } from './processTracker';
 import { cveService } from './cveService';
+import { hostEnricher } from './hostEnricher';
+import { WMICollector } from './collectors/wmiCollector';
+import { SSHCollector } from './collectors/sshCollector';
 import { type Journey, type Job } from '@shared/schema';
 
 const adScanner = new ADScanner();
+
+// Register host enrichment collectors
+hostEnricher.registerCollector(new WMICollector());
+hostEnricher.registerCollector(new SSHCollector());
 
 export interface JourneyProgress {
   status: Job['status'];
@@ -158,6 +165,83 @@ class JourneyExecutorService {
         
         findings.push(...portResults);
         console.log(`✅ FASE 1: ${portResults.length} portas descobertas`);
+
+        // ==================== PHASE 1.5: HOST ENRICHMENT (OPTIONAL) ====================
+        // Try to enrich discovered hosts using credentials (WMI/SSH/SNMP)
+        const journeyCredentials = await storage.getJourneyCredentials(journey.id);
+        
+        if (journeyCredentials.length > 0) {
+          onProgress({ 
+            status: 'running', 
+            progress: baseProgress + 1, 
+            currentTask: `Fase 1.5: Enriquecendo hosts com credenciais (${journeyCredentials.length} credenciais)` 
+          });
+          
+          console.log(`🔑 FASE 1.5: Enriquecimento de hosts com ${journeyCredentials.length} credenciais`);
+          
+          // Group port results by host to get unique hosts
+          const uniqueHosts = new Map<string, string[]>();
+          for (const result of portResults) {
+            if (result.state === 'open') {
+              const target = result.target || asset.value;
+              if (!uniqueHosts.has(target)) {
+                uniqueHosts.set(target, []);
+              }
+            }
+          }
+          
+          console.log(`🖥️  FASE 1.5: ${uniqueHosts.size} hosts únicos detectados para enriquecimento`);
+          
+          // Enrich each discovered host
+          for (const [hostIp] of Array.from(uniqueHosts.entries())) {
+            if (this.isJobCancelled(jobId)) {
+              throw new Error('Job cancelado pelo usuário');
+            }
+            
+            try {
+              // First, discover/create the host to get hostId
+              const tempFindings = portResults.filter(r => (r.target || asset.value) === hostIp);
+              const hosts = await hostService.discoverHostsFromFindings(tempFindings, jobId);
+              
+              if (hosts.length > 0) {
+                const hostId = hosts[0].id;
+                
+                console.log(`🔍 FASE 1.5: Tentando enriquecer host ${hostIp} (ID: ${hostId})`);
+                
+                // Attempt enrichment with all credentials
+                const enrichmentResult = await hostEnricher.enrichHost(
+                  hostId,
+                  hostIp,
+                  jobId,
+                  journeyCredentials
+                );
+                
+                // Persist enrichments to database
+                for (const enrichment of enrichmentResult.enrichments) {
+                  await storage.createHostEnrichment(enrichment);
+                }
+                
+                console.log(`✅ FASE 1.5: Host ${hostIp} enriquecido - ${enrichmentResult.successCount} sucessos, ${enrichmentResult.failureCount} falhas`);
+                
+                if (enrichmentResult.successCount > 0) {
+                  console.log(`📊 FASE 1.5: Dados coletados para ${hostIp}`);
+                  for (const e of enrichmentResult.enrichments) {
+                    if (e.success) {
+                      console.log(`   ✓ ${e.protocol}: OS=${e.osVersion || 'N/A'}, Apps=${e.installedApps?.length || 0}, Patches=${e.patches?.length || 0}`);
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              console.error(`❌ FASE 1.5: Erro ao enriquecer host ${hostIp}:`, error);
+              // Continue with next host even if enrichment fails
+            }
+          }
+          
+          console.log(`✅ FASE 1.5: Enriquecimento concluído para ${uniqueHosts.size} hosts`);
+        } else {
+          console.log(`⏭️  FASE 1.5: Nenhuma credencial vinculada - pulando enriquecimento`);
+        }
 
         // ==================== PHASE 2: CVE DETECTION (OPTIONAL) ====================
         // Check if CVE detection is enabled (default: true)
