@@ -18,12 +18,17 @@ The system is a full-stack application. The frontend uses React 18, TypeScript, 
 - **Job Queue & Journey Executor**: Manages and executes asynchronous security assessment journeys.
 - **Threat Engine**: Processes scan results, generates threat intelligence, and supports cross-journey threat reactivation.
 - **Encryption Service**: Securely stores credentials using Data Encryption Key (DEK) methodology.
-- **CVE Detection Service**: Integrates with NIST NVD for real-time, intelligent CVE analysis with authoritative CPE-based filtering:
+- **CVE Detection Service**: Integrates with NIST NVD for real-time, intelligent CVE analysis with authoritative CPE-based filtering and enrichment-aware precision:
   - **CPE Matching (Primary)**: Validates CVEs against detected OS/service versions using NVD CPE configuration data with version range checks (versionStartIncluding/Excluding, versionEndIncluding/Excluding).
   - **Advanced Version Comparison**: Normalizes version comparisons to handle build numbers and trailing zeros correctly. For inclusive bounds, treats extra build segments as equal (e.g., 10.0.19045.452 ≤ 10.0.19045). For exclusive bounds, only non-zero trailing segments count as greater.
   - **Windows Version Extraction**: Extracts Windows versions from both CPE product names and English descriptions for accurate OS matching.
   - **Multi-Strategy Filtering**: Four-tier validation (CPE matching → Windows version extraction → version range parsing → fail-safe rejection) with confidence scoring (high/medium/low).
   - **Keyword Search Fallback**: Only uses keyword-based search when CPE data is unavailable, preventing false positives from cross-OS CVE leakage.
+  - **Enrichment Integration** (NEW): Leverages authenticated scan data when available for precision filtering:
+    - **KB Patch Filtering**: Automatically excludes CVEs already fixed by installed Windows patches (extracted via regex from CVE descriptions, matched against `enrichment.patches`)
+    - **Exact OS Build Matching**: Uses `enrichment.osVersion + osBuild` (e.g., "Windows Server 2019 10.0.17763.3532") instead of nmap-detected OS for CPE/version matching
+    - **Per-Host Filtering**: Each target/IP independently filtered based on its own enrichment data (patches, OS build)
+    - **Graceful Degradation**: Falls back to nmap OS detection if enrichment unavailable; no impact on unauthenticated scans
 
 **Authentication & Authorization:**
 Local authentication uses bcrypt for password hashing (12 rounds). Session management is handled by `express-session` with PostgreSQL storage, featuring:
