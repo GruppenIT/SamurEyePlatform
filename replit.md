@@ -52,6 +52,11 @@ Vite handles the frontend build, while esbuild bundles the backend.
 - **Email Notification System**: Supports Basic Password, OAuth2 for Google Workspace/Gmail, and OAuth2 for Microsoft 365, with encrypted credentials.
 - **Tag-Based Target Selection**: Allows asset selection by individual assets or by tags, expanding tags into asset IDs at execution time.
 - **AD Security Journey**: Rewritten using Python WinRM wrapper (`pywinrm`) for 28 PowerShell-based tests across 6 categories. Features DC failover, category toggles, Portuguese keyword enhancement for credential scanning, and comprehensive auditability with `adSecurityTestResults` table storing full execution evidence (PowerShell commands, stdout, stderr, exitCode).
+- **Authenticated Scanning (Optional Credentials)**: Foundation for optional credential-based host enrichment in Attack Surface journeys:
+  - **Schema**: `journeyCredentials` junction table links journeys to credentials with priority ordering; `hostEnrichments` stores collected data (OS, apps, patches) plus audit trail.
+  - **Host Enricher Service**: Pluggable architecture (`IHostCollector` interface) for WMI/SSH/SNMP collectors with exponential backoff (1s, 2s, 4s...), 30s timeouts, and fail-safe error handling.
+  - **Audit Trail**: Complete execution evidence (commands, stdout, stderr, exitCode) mirroring AD Security pattern for compliance and troubleshooting.
+  - **Strategy**: Per-protocol grouping, sequential retries, stops at first successful credential per protocol to prevent account lockouts.
 
 ## External Dependencies
 
