@@ -358,10 +358,10 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          setSelectedCredentials([...selectedCredentials, {
+                          setSelectedCredentials(prev => [...prev, {
                             credentialId: '',
                             protocol: 'wmi',
-                            priority: selectedCredentials.length
+                            priority: prev.length
                           }]);
                         }}
                         data-testid="button-add-credential"
@@ -384,9 +384,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                             <Select
                               value={cred.protocol}
                               onValueChange={(value: 'wmi' | 'ssh' | 'snmp') => {
-                                const updated = [...selectedCredentials];
-                                updated[index].protocol = value;
-                                setSelectedCredentials(updated);
+                                setSelectedCredentials(prev => {
+                                  const updated = [...prev];
+                                  updated[index].protocol = value;
+                                  return updated;
+                                });
                               }}
                             >
                               <SelectTrigger data-testid={`select-protocol-${index}`}>
@@ -404,9 +406,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                             <Select
                               value={cred.credentialId}
                               onValueChange={(value) => {
-                                const updated = [...selectedCredentials];
-                                updated[index].credentialId = value;
-                                setSelectedCredentials(updated);
+                                setSelectedCredentials(prev => {
+                                  const updated = [...prev];
+                                  updated[index].credentialId = value;
+                                  return updated;
+                                });
                               }}
                             >
                               <SelectTrigger data-testid={`select-credential-${index}`}>
@@ -435,9 +439,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                               max="99"
                               value={cred.priority}
                               onChange={(e) => {
-                                const updated = [...selectedCredentials];
-                                updated[index].priority = parseInt(e.target.value) || 0;
-                                setSelectedCredentials(updated);
+                                setSelectedCredentials(prev => {
+                                  const updated = [...prev];
+                                  updated[index].priority = parseInt(e.target.value) || 0;
+                                  return updated;
+                                });
                               }}
                               data-testid={`input-priority-${index}`}
                               placeholder="0"
@@ -450,7 +456,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                           size="sm"
                           variant="ghost"
                           onClick={() => {
-                            setSelectedCredentials(selectedCredentials.filter((_, i) => i !== index));
+                            setSelectedCredentials(prev => prev.filter((_, i) => i !== index));
                           }}
                           data-testid={`button-remove-credential-${index}`}
                           className="mt-6"
