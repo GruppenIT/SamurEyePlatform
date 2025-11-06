@@ -387,6 +387,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAsset(asset: InsertAsset, userId: string): Promise<Asset> {
+    // Check for existing asset with same value and type
+    const existing = await db
+      .select()
+      .from(assets)
+      .where(and(
+        eq(assets.value, asset.value),
+        eq(assets.type, asset.type)
+      ))
+      .limit(1);
+    
+    if (existing.length > 0) {
+      console.log(`ℹ️  Ativo duplicado ignorado: ${asset.value} (tipo: ${asset.type})`);
+      return existing[0];
+    }
+    
     const assetValues = {
       type: asset.type,
       value: asset.value,

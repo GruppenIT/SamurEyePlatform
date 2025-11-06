@@ -106,15 +106,15 @@ class JourneyExecutorService {
   ): Promise<void> {
     const params = journey.params;
     const assetIds = await this.resolveAssetIds(journey);
-    const processTimeoutMinutes = params.processTimeout || 60; // Default 60 minutos
-    const processTimeoutMs = processTimeoutMinutes * 60 * 1000; // Converter para ms
+    const vulnScriptTimeoutMinutes = params.vulnScriptTimeout || 60; // Default 60 minutos (Fase 2 - nmap vuln)
+    const vulnScriptTimeoutMs = vulnScriptTimeoutMinutes * 60 * 1000; // Converter para ms
     
     if (assetIds.length === 0) {
       throw new Error('Nenhum ativo selecionado para varredura');
     }
 
     console.log(`🚀 Iniciando Attack Surface Journey - Descoberta de Infraestrutura`);
-    console.log(`⏱️  Timeout por processo: ${processTimeoutMinutes} minutos`);
+    console.log(`⏱️  Timeout Fase 2 (nmap vuln): ${vulnScriptTimeoutMinutes} minutos`);
 
     onProgress({ status: 'running', progress: 20, currentTask: 'Carregando ativos' });
 
@@ -194,7 +194,7 @@ class JourneyExecutorService {
           
           // Phase 2: Nmap vuln scripts for active CVE detection
           console.log(`🎯 FASE 2: Executando nmap vuln scripts em ${host}`);
-          const nmapVulnResults = await this.runNmapVulnScripts(host, data.ports, jobId, processTimeoutMs);
+          const nmapVulnResults = await this.runNmapVulnScripts(host, data.ports, jobId, vulnScriptTimeoutMs);
           findings.push(...nmapVulnResults);
           console.log(`✅ FASE 2: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
         }

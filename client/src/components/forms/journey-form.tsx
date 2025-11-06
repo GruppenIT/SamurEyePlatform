@@ -67,6 +67,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         sampleRate: initialData?.params?.sampleRate || '15',
         timeout: initialData?.params?.timeout || 30,
         processTimeout: initialData?.params?.processTimeout || 60,
+        vulnScriptTimeout: initialData?.params?.vulnScriptTimeout || 60,
       },
     },
   });
@@ -118,8 +119,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
           params.assetIds = selectedAssets;
         }
         params.nmapProfile = form.getValues('params.nmapProfile') || 'fast';
-        params.nucleiSeverity = form.getValues('params.nucleiSeverity') || 'medium';
-        params.processTimeout = parseInt(form.getValues('params.processTimeout')) || 60;
+        params.vulnScriptTimeout = parseInt(form.getValues('params.vulnScriptTimeout')) || 60;
         break;
       case 'ad_security':
         params.domain = form.getValues('params.domain');
@@ -260,35 +260,10 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
 
             <FormField
               control={form.control}
-              name="params.nucleiSeverity"
+              name="params.vulnScriptTimeout"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Severidade Mínima Nuclei</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue="medium">
-                    <FormControl>
-                      <SelectTrigger data-testid="select-nuclei-severity">
-                        <SelectValue placeholder="Selecione a severidade" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="info">Info</SelectItem>
-                      <SelectItem value="low">Baixa</SelectItem>
-                      <SelectItem value="medium">Média</SelectItem>
-                      <SelectItem value="high">Alta</SelectItem>
-                      <SelectItem value="critical">Crítica</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="params.processTimeout"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Timeout por Processo (minutos)</FormLabel>
+                  <FormLabel>Timeout de Validação de CVEs (minutos)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -297,11 +272,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                       placeholder="60"
                       {...field}
                       onChange={(e) => field.onChange(parseInt(e.target.value) || 60)}
-                      data-testid="input-process-timeout"
+                      data-testid="input-vuln-timeout"
                     />
                   </FormControl>
                   <FormDescription>
-                    Tempo máximo de execução por host (nmap/nuclei). Mínimo: 5min, Máximo: 180min, Padrão: 60min
+                    Tempo máximo para Fase 2 (nmap vuln scripts) por host. Padrão: 60 minutos
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
