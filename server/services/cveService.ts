@@ -1,12 +1,24 @@
 interface CVEResult {
   cveId: string;
-  description: string;
+  description: string; // Descrição traduzida para PT-BR (exibição)
+  descriptionEnglish: string; // Descrição original em inglês (parsing)
   severity: 'low' | 'medium' | 'high' | 'critical';
   cvssScore: number;
   publishedDate: string;
   remediation: string;
   affectedVersions?: string[]; // Versões afetadas extraídas da descrição
+  cpeMatches?: CPEMatch[]; // CPE configurations do NVD (fonte confiável)
   confidence?: 'high' | 'medium' | 'low'; // Confiança de que este CVE se aplica
+}
+
+interface CPEMatch {
+  criteria: string; // CPE URI (ex: cpe:2.3:o:microsoft:windows_server_2016:*:*:*:*:*:*:*:*)
+  matchCriteriaId?: string;
+  versionStartIncluding?: string;
+  versionEndIncluding?: string;
+  versionStartExcluding?: string;
+  versionEndExcluding?: string;
+  vulnerable?: boolean;
 }
 
 interface NVDMetric {
@@ -29,6 +41,12 @@ interface NVDCVEItem {
       cvssMetricV30?: NVDMetric[];
       cvssMetricV2?: NVDMetric[];
     };
+    configurations?: Array<{
+      nodes: Array<{
+        operator?: string;
+        cpeMatch?: CPEMatch[];
+      }>;
+    }>;
   };
 }
 
@@ -130,6 +148,7 @@ class CVEService {
 
   /**
    * Verifica se um CVE se aplica à versão/OS detectado
+   * Usa CPE como fonte primária (mais confiável), depois descrição
    * Retorna { applies: boolean, confidence: 'high'|'medium'|'low' }
    */
   private matchesCVEVersion(
@@ -137,56 +156,240 @@ class CVEService {
     detectedVersion?: string, 
     osInfo?: string
   ): { applies: boolean; confidence: 'high' | 'medium' | 'low' } {
-    const description = cve.description.toLowerCase();
+    const descriptionEn = cve.descriptionEnglish.toLowerCase();
     
-    // Extrair versões afetadas da descrição
-    const versionRanges = this.extractAffectedVersions(cve.description);
+    // ESTRATÉGIA 1: Usar CPE matches (fonte mais confiável) - SEMPRE tentar
+    if (cve.cpeMatches && cve.cpeMatches.length > 0) {
+      const cpeResult = this.matchAgainstCPE(cve.cpeMatches, osInfo, detectedVersion);
+      if (cpeResult !== null) {
+        if (cpeResult.applies) {
+          console.log(`✅ CVE ${cve.cveId} se aplica via CPE: ${cpeResult.reason}`);
+        } else {
+          console.log(`❌ CVE ${cve.cveId} NÃO se aplica via CPE: ${cpeResult.reason}`);
+        }
+        return { applies: cpeResult.applies, confidence: 'high' };
+      }
+    }
     
-    // Se temos OS info, validar contra ela
-    if (osInfo) {
+    // ESTRATÉGIA 2: Windows version matching (específico e confiável)
+    if (osInfo && (descriptionEn.includes('windows') || descriptionEn.includes('microsoft'))) {
       const osLower = osInfo.toLowerCase();
+      const cveWindowsVersions = this.extractWindowsVersions(descriptionEn);
+      const detectedWindowsVersion = this.extractWindowsVersions(osLower);
       
-      // Exemplo: CVE para Windows 2008-2012 não deve aplicar a Windows 2016
-      if (description.includes('windows') || description.includes('microsoft')) {
-        // Extrair versões do Windows da descrição do CVE
-        const cveWindowsVersions = this.extractWindowsVersions(description);
-        const detectedWindowsVersion = this.extractWindowsVersions(osLower);
+      if (cveWindowsVersions.length > 0 && detectedWindowsVersion.length > 0) {
+        const hasMatch = cveWindowsVersions.some(cveVer => 
+          detectedWindowsVersion.includes(cveVer)
+        );
         
-        if (cveWindowsVersions.length > 0 && detectedWindowsVersion.length > 0) {
-          // Verificar se há overlap entre versões do CVE e versão detectada
-          const hasMatch = cveWindowsVersions.some(cveVer => 
-            detectedWindowsVersion.includes(cveVer)
-          );
-          
-          if (!hasMatch) {
-            console.log(`❌ CVE ${cve.cveId} não se aplica: ${cveWindowsVersions.join(', ')} vs ${detectedWindowsVersion.join(', ')}`);
-            return { applies: false, confidence: 'high' };
+        if (!hasMatch) {
+          console.log(`❌ CVE ${cve.cveId} NÃO se aplica: Windows ${cveWindowsVersions.join(', ')} vs detectado ${detectedWindowsVersion.join(', ')}`);
+          return { applies: false, confidence: 'high' };
+        }
+        
+        console.log(`✅ CVE ${cve.cveId} se aplica: Windows ${cveWindowsVersions.join(', ')} match`);
+        return { applies: true, confidence: 'high' };
+      }
+    }
+
+    // ESTRATÉGIA 3: Version range matching via descrição INGLESA (menos confiável)
+    if (detectedVersion) {
+      const versionRanges = this.extractAffectedVersions(cve.descriptionEnglish);
+      
+      if (versionRanges.length > 0) {
+        const parsedDetected = this.parseVersion(detectedVersion);
+        
+        for (const range of versionRanges) {
+          if (this.isVersionInRange(parsedDetected, range)) {
+            console.log(`✅ CVE ${cve.cveId} se aplica: versão ${detectedVersion} em range ${range}`);
+            return { applies: true, confidence: 'high' };
           }
+        }
+        
+        // Versão detectada mas está FORA do range especificado
+        console.log(`❌ CVE ${cve.cveId} NÃO se aplica: versão ${detectedVersion} fora de todos os ranges`);
+        return { applies: false, confidence: 'high' };
+      }
+    }
+
+    // ESTRATÉGIA 4: Sem informação suficiente - REJEITAR por segurança
+    // Se não conseguimos validar, não podemos afirmar que o CVE se aplica
+    console.log(`❌ CVE ${cve.cveId} NÃO se aplica: informação insuficiente para validação (sem CPE, sem versão Windows, sem version range)`);
+    return { applies: false, confidence: 'low' };
+  }
+
+  /**
+   * Valida contra CPE matches (fonte mais confiável do NVD)
+   * Itera TODOS os CPEs antes de decidir, priorizando matches positivos
+   * Retorna null se CPE não se aplica ao contexto detectado
+   */
+  private matchAgainstCPE(
+    cpeMatches: CPEMatch[], 
+    osInfo: string | undefined, 
+    serviceVersion?: string
+  ): { applies: boolean; reason: string } | null {
+    const osLower = osInfo?.toLowerCase() || '';
+    
+    let foundRelevantCPE = false; // Flag: encontramos CPE relevante ao contexto
+    const mismatches: string[] = []; // Acumular mismatches para logging
+    
+    for (const cpe of cpeMatches) {
+      // Pular CPEs explicitamente marcadas como não-vulneráveis
+      if (cpe.vulnerable === false) {
+        console.log(`⏭️  Pulando CPE não-vulnerável: ${cpe.criteria}`);
+        continue;
+      }
+      
+      // Parse CPE: cpe:2.3:part:vendor:product:version:...
+      const parts = cpe.criteria.split(':');
+      if (parts.length < 5) continue;
+      
+      const [, , part, vendor, product, version] = parts;
+      
+      // Verificar se é OS CPE (part = 'o') ou aplicação (part = 'a')
+      const isOS = part === 'o';
+      
+      // Match de OS (requer osInfo)
+      if (isOS && osInfo) {
+        foundRelevantCPE = true;
+        
+        if (osLower.includes('windows') && product.includes('windows')) {
+          // Extrair versão do CPE product name
+          const cpeWinVer = this.extractWindowsVersionFromCPE(product);
+          const detectedWinVer = this.extractWindowsVersions(osLower);
           
-          console.log(`✅ CVE ${cve.cveId} se aplica: match de versão Windows`);
-          return { applies: true, confidence: 'high' };
-        }
-      }
-    }
-
-    // Se temos versão detectada, validar contra ela
-    if (detectedVersion && versionRanges.length > 0) {
-      const parsedDetected = this.parseVersion(detectedVersion);
-      
-      for (const range of versionRanges) {
-        if (this.isVersionInRange(parsedDetected, range)) {
-          console.log(`✅ CVE ${cve.cveId} se aplica: versão ${detectedVersion} está em ${range}`);
-          return { applies: true, confidence: 'high' };
+          if (cpeWinVer && detectedWinVer.length > 0) {
+            if (detectedWinVer.includes(cpeWinVer)) {
+              // MATCH! Verificar version ranges do CPE
+              if (this.checkCPEVersionRange(cpe, serviceVersion)) {
+                return { applies: true, reason: `CPE OS match: ${product} ${version}` };
+              }
+            } else {
+              // Mismatch - acumular mas CONTINUAR procurando
+              mismatches.push(`${product}(${cpeWinVer}) != detected(${detectedWinVer.join(',')})`);
+            }
+          }
         }
       }
       
-      // Versão fornecida mas não está no range
-      console.log(`❌ CVE ${cve.cveId} não se aplica: versão ${detectedVersion} fora do range`);
-      return { applies: false, confidence: 'high' };
+      // Match de aplicação/serviço (funciona SEM osInfo)
+      if (!isOS) {
+        foundRelevantCPE = true;
+        
+        if (serviceVersion) {
+          const matches = this.checkCPEVersionRange(cpe, serviceVersion);
+          if (matches) {
+            // MATCH! Retornar imediatamente
+            return { applies: true, reason: `CPE service match: ${vendor}:${product} version ${version}` };
+          } else {
+            mismatches.push(`${vendor}:${product} ${version} != detected ${serviceVersion}`);
+          }
+        } else {
+          // Sem versão detectada - match se CPE é vulnerável (já verificado no início)
+          return { applies: true, reason: `CPE service match (sem versão): ${vendor}:${product}` };
+        }
+      }
     }
+    
+    // Se encontramos CPEs relevantes mas NENHUM matched - REJEITAR
+    if (foundRelevantCPE && mismatches.length > 0) {
+      return { applies: false, reason: `All CPE mismatches: ${mismatches.join('; ')}` };
+    }
+    
+    // Nenhum CPE relevante ao contexto (ex: CVE para Linux mas detectamos Windows)
+    return null;
+  }
 
-    // Sem informação suficiente para validar - incluir mas com confiança média
-    return { applies: true, confidence: 'medium' };
+  /**
+   * Verifica se uma versão detectada está dentro do range do CPE
+   * Normaliza comparações para lidar com build numbers extras
+   * Ex: "10.0.19045.452" deve ser <= "10.0.19045"
+   */
+  private checkCPEVersionRange(cpe: CPEMatch, detectedVersion?: string): boolean {
+    if (!detectedVersion) return true; // Sem versão = assume match
+    
+    const parsed = this.parseVersion(detectedVersion);
+    
+    // Check versionStartIncluding
+    if (cpe.versionStartIncluding) {
+      const start = this.parseVersion(cpe.versionStartIncluding);
+      // INCLUSIVE: normalizar para comprimento do bound
+      if (this.compareVersionsNormalized(parsed, start, false) < 0) {
+        return false; // Versão menor que o início do range
+      }
+    }
+    
+    // Check versionStartExcluding
+    if (cpe.versionStartExcluding) {
+      const start = this.parseVersion(cpe.versionStartExcluding);
+      // EXCLUSIVE: builds extras contam como > bound
+      if (this.compareVersionsNormalized(parsed, start, true) <= 0) {
+        return false; // Versão menor ou igual (excluindo)
+      }
+    }
+    
+    // Check versionEndIncluding
+    if (cpe.versionEndIncluding) {
+      const end = this.parseVersion(cpe.versionEndIncluding);
+      // INCLUSIVE: normalizar para comprimento do bound
+      if (this.compareVersionsNormalized(parsed, end, false) > 0) {
+        return false; // Versão maior que o fim do range
+      }
+    }
+    
+    // Check versionEndExcluding
+    if (cpe.versionEndExcluding) {
+      const end = this.parseVersion(cpe.versionEndExcluding);
+      // EXCLUSIVE: builds extras contam como > bound
+      if (this.compareVersionsNormalized(parsed, end, true) >= 0) {
+        return false; // Versão maior ou igual (excluindo)
+      }
+    }
+    
+    return true; // Passou todos os checks
+  }
+
+  /**
+   * Compara versões normalizadas (apenas até o comprimento do bound)
+   * Para INCLUSIVE bounds: [10,0,19045,452] vs [10,0,19045] → 0 (iguais)
+   * Para EXCLUSIVE bounds: [10,0,19045,452] vs [10,0,19045] → 1 (maior)
+   *                        [10,0,19045,0] vs [10,0,19045] → 0 (iguais, trailing zero)
+   */
+  private compareVersionsNormalized(detected: number[], bound: number[], isExclusive: boolean = false): number {
+    // Usar apenas o comprimento do bound para comparação
+    const compareLength = bound.length;
+    
+    for (let i = 0; i < compareLength; i++) {
+      const num1 = detected[i] || 0;
+      const num2 = bound[i] || 0;
+      
+      if (num1 < num2) return -1;
+      if (num1 > num2) return 1;
+    }
+    
+    // Se iguais até o comprimento do bound:
+    // - INCLUSIVE: sempre tratar como iguais (0)
+    // - EXCLUSIVE: só maior se detected tem segments extras NON-ZERO
+    if (isExclusive && detected.length > bound.length) {
+      // Verificar se há algum segment NON-ZERO além do bound
+      const hasNonZeroTrailing = detected.slice(compareLength).some(seg => seg !== 0);
+      if (hasNonZeroTrailing) {
+        // Ex: [10,0,19045,452] > [10,0,19045] para exclusive bounds
+        return 1;
+      }
+      // Ex: [10,0,19045,0] = [10,0,19045] (trailing zeros ignorados)
+    }
+    
+    return 0; // Iguais até o comprimento do bound
+  }
+
+  /**
+   * Extrai versão do Windows de um CPE product name
+   * Ex: "windows_server_2016" -> "2016"
+   */
+  private extractWindowsVersionFromCPE(product: string): string | null {
+    const match = product.match(/windows[_\s]?(?:server[_\s])?(\d{4}|vista|xp|7|8|10|11)/i);
+    return match ? match[1] : null;
   }
 
   /**
@@ -216,25 +419,45 @@ class CVEService {
 
   /**
    * Extrai versões afetadas da descrição do CVE
-   * Ex: "versions 1.0 through 2.5" -> ["1.0-2.5"]
+   * Suporta: "1.0 through 2.5", "before 3.0", "prior to 2.1", "< 1.5", "<= 2.0"
    */
   private extractAffectedVersions(description: string): string[] {
     const ranges: string[] = [];
     
-    // Padrão: "version(s) X through Y" ou "version(s) X to Y"
+    // Padrão 1: "version(s) X through/to Y"
     const rangePattern = /version[s]?\s+([\d.]+)\s+(?:through|to)\s+([\d.]+)/gi;
-    const matches = description.matchAll(rangePattern);
-    
-    for (const match of matches) {
+    for (const match of description.matchAll(rangePattern)) {
       ranges.push(`${match[1]}-${match[2]}`);
     }
     
-    // Padrão: "version X"
-    const singlePattern = /version\s+([\d.]+)/gi;
-    const singleMatches = description.matchAll(singlePattern);
+    // Padrão 2: "before/prior to/earlier than X" -> "0.0-X" (exclusive end)
+    const beforePattern = /(?:before|prior\s+to|earlier\s+than|versions?\s+before)\s+([\d.]+)/gi;
+    for (const match of description.matchAll(beforePattern)) {
+      ranges.push(`<${match[1]}`); // < significa exclusive end
+    }
     
-    for (const match of singleMatches) {
-      ranges.push(match[1]);
+    // Padrão 3: "< X" ou "<= X" (símbolos de comparação)
+    const lessThanPattern = /(?:version[s]?\s+)?(<|<=)\s*([\d.]+)/gi;
+    for (const match of description.matchAll(lessThanPattern)) {
+      const operator = match[1];
+      const version = match[2];
+      ranges.push(operator === '<' ? `<${version}` : `<=${version}`);
+    }
+    
+    // Padrão 4: "> X" ou ">= X" (maior que)
+    const greaterThanPattern = /(?:version[s]?\s+)?(>|>=)\s*([\d.]+)/gi;
+    for (const match of description.matchAll(greaterThanPattern)) {
+      const operator = match[1];
+      const version = match[2];
+      ranges.push(operator === '>' ? `>${version}` : `>=${version}`);
+    }
+    
+    // Padrão 5: "version X" (versão exata) - só adicionar se não tiver outros ranges
+    if (ranges.length === 0) {
+      const singlePattern = /version\s+([\d.]+)/gi;
+      for (const match of description.matchAll(singlePattern)) {
+        ranges.push(match[1]);
+      }
     }
     
     return ranges;
@@ -251,19 +474,46 @@ class CVEService {
 
   /**
    * Verifica se uma versão está dentro de um range
+   * Suporta: "1.0-2.5", "<3.0", "<=2.0", ">1.0", ">=1.5", "2.1" (exata)
    */
   private isVersionInRange(version: number[], range: string): boolean {
-    if (range.includes('-')) {
+    // Range "X-Y" (inclusive)
+    if (range.includes('-') && !range.startsWith('<') && !range.startsWith('>')) {
       const [start, end] = range.split('-');
       const startVer = this.parseVersion(start);
       const endVer = this.parseVersion(end);
       
       return this.compareVersions(version, startVer) >= 0 && 
              this.compareVersions(version, endVer) <= 0;
-    } else {
-      const exactVer = this.parseVersion(range);
-      return this.compareVersions(version, exactVer) === 0;
     }
+    
+    // "< X" (menor que, exclusive)
+    if (range.startsWith('<') && !range.startsWith('<=')) {
+      const targetVer = this.parseVersion(range.substring(1));
+      return this.compareVersions(version, targetVer) < 0;
+    }
+    
+    // "<= X" (menor ou igual)
+    if (range.startsWith('<=')) {
+      const targetVer = this.parseVersion(range.substring(2));
+      return this.compareVersions(version, targetVer) <= 0;
+    }
+    
+    // "> X" (maior que, exclusive)
+    if (range.startsWith('>') && !range.startsWith('>=')) {
+      const targetVer = this.parseVersion(range.substring(1));
+      return this.compareVersions(version, targetVer) > 0;
+    }
+    
+    // ">= X" (maior ou igual)
+    if (range.startsWith('>=')) {
+      const targetVer = this.parseVersion(range.substring(2));
+      return this.compareVersions(version, targetVer) >= 0;
+    }
+    
+    // Versão exata
+    const exactVer = this.parseVersion(range);
+    return this.compareVersions(version, exactVer) === 0;
   }
 
   /**
@@ -357,13 +607,27 @@ class CVEService {
       const translatedDesc = this.translateDescription(englishDesc.value, cveItem.id);
       const remediation = this.generateRemediation(cveItem.id, severity);
 
+      // Extrair CPE matches das configurações (fonte confiável de versões afetadas)
+      const cpeMatches: CPEMatch[] = [];
+      if (cveItem.configurations) {
+        for (const config of cveItem.configurations) {
+          for (const node of config.nodes) {
+            if (node.cpeMatch) {
+              cpeMatches.push(...node.cpeMatch);
+            }
+          }
+        }
+      }
+
       return {
         cveId: cveItem.id,
         description: translatedDesc,
+        descriptionEnglish: englishDesc.value, // Guardar original para parsing
         severity,
         cvssScore,
         publishedDate: cveItem.published,
         remediation,
+        cpeMatches: cpeMatches.length > 0 ? cpeMatches : undefined,
       };
     } catch (error) {
       console.error(`Erro ao processar CVE:`, error);
