@@ -44,11 +44,12 @@ export interface CredentialFormData {
 
 export interface JourneyFormData {
   name: string;
-  type: 'attack_surface' | 'ad_security' | 'edr_av';
+  type: 'attack_surface' | 'ad_security' | 'edr_av' | 'web_application';
   description?: string;
   params: Record<string, any>;
   targetSelectionMode?: 'individual' | 'by_tag';
   selectedTags?: string[];
+  enableCveDetection?: boolean;
 }
 
 export interface ScheduleFormData {

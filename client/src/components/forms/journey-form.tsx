@@ -35,6 +35,7 @@ const journeySchema = z.object({
   }),
   description: z.string().optional(),
   params: z.record(z.any()).default({}),
+  enableCveDetection: z.boolean().optional(),
 });
 
 interface JourneyFormProps {
@@ -69,6 +70,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         processTimeout: initialData?.params?.processTimeout || 60,
         vulnScriptTimeout: initialData?.params?.vulnScriptTimeout || 60,
       },
+      enableCveDetection: initialData?.enableCveDetection !== false,
     },
   });
 
@@ -165,6 +167,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
       params,
       targetSelectionMode,
       selectedTags: targetSelectionMode === 'by_tag' ? selectedTags : [],
+      enableCveDetection: data.enableCveDetection !== false,
     });
   };
 
@@ -279,6 +282,30 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                     Tempo máximo para Fase 2 (nmap vuln scripts) por host. Padrão: 60 minutos
                   </FormDescription>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="enableCveDetection"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value !== false}
+                      onCheckedChange={field.onChange}
+                      data-testid="checkbox-enable-cve-detection"
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Buscar CVEs Associados (Fase 2)
+                    </FormLabel>
+                    <FormDescription>
+                      Quando marcado, após a descoberta de hosts (Fase 1), o sistema buscará CVEs associados às versões detectadas usando a base NIST NVD. Desmarcando, apenas a Fase 1 será executada.
+                    </FormDescription>
+                  </div>
                 </FormItem>
               )}
             />

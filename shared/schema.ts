@@ -121,6 +121,7 @@ export const journeys = pgTable("journeys", {
   params: jsonb("params").$type<Record<string, any>>().default({}).notNull(),
   targetSelectionMode: targetSelectionModeEnum("target_selection_mode").default('individual').notNull(),
   selectedTags: jsonb("selected_tags").$type<string[]>().default([]).notNull(),
+  enableCveDetection: boolean("enable_cve_detection").default(true).notNull(), // For attack_surface journey
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: varchar("created_by").references(() => users.id).notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
