@@ -425,6 +425,9 @@ export default function Journeys() {
                 type: editingJourney.type,
                 description: editingJourney.description || '',
                 params: editingJourney.params,
+                targetSelectionMode: editingJourney.targetSelectionMode || 'individual',
+                selectedTags: editingJourney.selectedTags || [],
+                enableCveDetection: editingJourney.enableCveDetection,
               }}
             />
           )}
