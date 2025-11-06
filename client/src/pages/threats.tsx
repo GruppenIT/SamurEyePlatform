@@ -801,12 +801,12 @@ export default function Threats() {
 
               {/* Recomendação - exibir remediation ou recommendation do evidence */}
               {(selectedThreat.evidence?.remediation || selectedThreat.evidence?.recommendation) && (
-                <div className="p-4 bg-orange-950/20 border border-orange-900/30 rounded-lg">
-                  <h4 className="font-medium text-orange-400 mb-2 flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
+                <div className="p-4 bg-orange-500/10 dark:bg-orange-950/30 border-2 border-orange-600/40 dark:border-orange-700/50 rounded-lg">
+                  <h4 className="font-semibold text-orange-700 dark:text-orange-400 mb-2 flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
                     Recomendação
                   </h4>
-                  <p className="text-orange-200/90">
+                  <p className="text-orange-900 dark:text-orange-100 leading-relaxed">
                     {selectedThreat.evidence.remediation || selectedThreat.evidence.recommendation}
                   </p>
                 </div>
