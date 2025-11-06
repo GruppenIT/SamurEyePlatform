@@ -18,6 +18,8 @@ import {
   emailSettings,
   notificationPolicies,
   notificationLog,
+  journeyCredentials,
+  hostEnrichments,
   type User,
   type UpsertUser,
   type Asset,
@@ -54,6 +56,10 @@ import {
   type InsertNotificationPolicy,
   type NotificationLog,
   type InsertNotificationLog,
+  type JourneyCredential,
+  type InsertJourneyCredential,
+  type HostEnrichment,
+  type InsertHostEnrichment,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, count, like, inArray } from "drizzle-orm";
@@ -248,6 +254,17 @@ export interface IStorage {
   createAdSecurityTestResults(results: InsertAdSecurityTestResult[]): Promise<AdSecurityTestResult[]>;
   getAdSecurityTestResults(hostId: string, jobId?: string): Promise<AdSecurityTestResult[]>;
   getAdSecurityLatestTestResults(hostId: string): Promise<AdSecurityTestResult[]>;
+
+  // Journey credentials operations (authenticated scanning)
+  createJourneyCredential(journeyCredential: InsertJourneyCredential): Promise<JourneyCredential>;
+  getJourneyCredentials(journeyId: string): Promise<JourneyCredential[]>;
+  deleteJourneyCredentials(journeyId: string): Promise<void>;
+  deleteJourneyCredential(id: string): Promise<void>;
+
+  // Host enrichment operations (authenticated scan data)
+  createHostEnrichment(enrichment: InsertHostEnrichment): Promise<HostEnrichment>;
+  getHostEnrichments(hostId: string, jobId?: string): Promise<HostEnrichment[]>;
+  getLatestHostEnrichment(hostId: string): Promise<HostEnrichment | undefined>;
 
   // Dashboard operations
   getDashboardMetrics(): Promise<{
@@ -1164,6 +1181,74 @@ export class DatabaseStorage implements IStorage {
       .orderBy(adSecurityTestResults.category, adSecurityTestResults.testName);
     
     return results;
+  }
+
+  // Journey credentials operations (authenticated scanning)
+  async createJourneyCredential(journeyCredential: InsertJourneyCredential): Promise<JourneyCredential> {
+    const [created] = await db
+      .insert(journeyCredentials)
+      .values(journeyCredential)
+      .returning();
+    return created;
+  }
+
+  async getJourneyCredentials(journeyId: string): Promise<JourneyCredential[]> {
+    const results = await db
+      .select()
+      .from(journeyCredentials)
+      .where(eq(journeyCredentials.journeyId, journeyId))
+      .orderBy(journeyCredentials.priority);
+    return results;
+  }
+
+  async deleteJourneyCredentials(journeyId: string): Promise<void> {
+    await db
+      .delete(journeyCredentials)
+      .where(eq(journeyCredentials.journeyId, journeyId));
+  }
+
+  async deleteJourneyCredential(id: string): Promise<void> {
+    await db
+      .delete(journeyCredentials)
+      .where(eq(journeyCredentials.id, id));
+  }
+
+  // Host enrichment operations (authenticated scan data)
+  async createHostEnrichment(enrichment: InsertHostEnrichment): Promise<HostEnrichment> {
+    const [created] = await db
+      .insert(hostEnrichments)
+      .values(enrichment)
+      .returning();
+    return created;
+  }
+
+  async getHostEnrichments(hostId: string, jobId?: string): Promise<HostEnrichment[]> {
+    const conditions = [eq(hostEnrichments.hostId, hostId)];
+    if (jobId) {
+      conditions.push(eq(hostEnrichments.jobId, jobId));
+    }
+    
+    const results = await db
+      .select()
+      .from(hostEnrichments)
+      .where(and(...conditions))
+      .orderBy(desc(hostEnrichments.collectedAt));
+    
+    return results;
+  }
+
+  async getLatestHostEnrichment(hostId: string): Promise<HostEnrichment | undefined> {
+    const [result] = await db
+      .select()
+      .from(hostEnrichments)
+      .where(and(
+        eq(hostEnrichments.hostId, hostId),
+        eq(hostEnrichments.success, true)
+      ))
+      .orderBy(desc(hostEnrichments.collectedAt))
+      .limit(1);
+    
+    return result;
   }
 
   // Host operations
