@@ -1068,7 +1068,11 @@ export default function Threats() {
                   Justificativa *
                 </label>
                 <textarea
-                  className="mt-1 w-full min-h-[80px] px-3 py-2 text-sm border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                  className={`mt-1 w-full min-h-[80px] px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 ${
+                    statusChangeModal.justification.length > 0 && statusChangeModal.justification.length < 10
+                      ? 'border-red-500 focus:ring-red-500 bg-red-50 dark:bg-red-950/20'
+                      : 'border-input focus:ring-ring bg-background'
+                  }`}
                   placeholder="Descreva o motivo da mudança de status..."
                   value={statusChangeModal.justification}
                   onChange={(e) => setStatusChangeModal(prev => ({
@@ -1077,6 +1081,24 @@ export default function Threats() {
                   }))}
                   data-testid="textarea-justification"
                 />
+                <div className="flex items-center justify-between mt-1">
+                  {statusChangeModal.justification.length < 10 ? (
+                    <p className="text-xs text-red-600 dark:text-red-400">
+                      Mínimo de 10 caracteres necessário
+                    </p>
+                  ) : (
+                    <p className="text-xs text-green-600 dark:text-green-400">
+                      ✓ Justificativa válida
+                    </p>
+                  )}
+                  <span className={`text-xs ${
+                    statusChangeModal.justification.length < 10 
+                      ? 'text-red-600 dark:text-red-400 font-medium' 
+                      : 'text-muted-foreground'
+                  }`}>
+                    {statusChangeModal.justification.length}/10
+                  </span>
+                </div>
               </div>
 
               {statusChangeModal.newStatus === 'hibernated' && (
