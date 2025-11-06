@@ -1058,16 +1058,43 @@ class JourneyExecutorService {
       try {
         console.log(`🔎 Buscando CVEs para: ${data.service} ${data.version || '(sem versão)'} (OS: ${data.osInfo || 'N/A'}, precisão: ${data.versionAccuracy})`);
         
-        // Passar osInfo para filtragem inteligente de CVEs
-        const cves = await cveService.searchCVEs(data.service, data.version, data.osInfo);
+        // Para cada target, buscar CVEs considerando dados enriquecidos
+        const targetCVEs = new Map<string, any[]>();
         
-        if (cves.length > 0) {
-          console.log(`✅ Encontrados ${cves.length} CVEs aplicáveis para ${data.service} (filtrados por versão/OS)`);
+        for (const target of data.targets) {
+          // Try to get hostId for this target/IP
+          let hostId: string | undefined;
+          try {
+            const { hostService } = require('./hostService');
+            const hosts = await hostService.findHostsByTarget(target);
+            if (hosts && hosts.length > 0) {
+              hostId = hosts[0].id;
+              console.log(`🔐 Host encontrado para ${target}: ${hostId} - enriquecimento disponível`);
+            }
+          } catch (error) {
+            console.warn(`⚠️ Erro ao buscar host para ${target}:`, error);
+          }
           
-          // Criar findings para cada CVE encontrado
+          // Buscar CVEs (com enrichment se hostId disponível)
+          const cves = await cveService.searchCVEs(data.service, data.version, data.osInfo, hostId);
+          targetCVEs.set(target, cves);
+        }
+        
+        // Aggregate total unique CVEs found
+        const allCVEs = new Set<string>();
+        for (const cves of targetCVEs.values()) {
           for (const cve of cves) {
-            // Criar um finding para cada target afetado
-            for (const target of data.targets) {
+            allCVEs.add(cve.cveId);
+          }
+        }
+        
+        if (allCVEs.size > 0) {
+          console.log(`✅ Encontrados ${allCVEs.size} CVEs únicos aplicáveis para ${data.service} (filtrados por versão/OS/enrichment)`);
+          
+          // Criar findings para cada CVE encontrado por target
+          for (const target of data.targets) {
+            const cves = targetCVEs.get(target) || [];
+            for (const cve of cves) {
               cveFindings.push({
                 type: 'nvd_cve',
                 target,
@@ -1088,7 +1115,7 @@ class JourneyExecutorService {
             }
           }
         } else {
-          console.log(`ℹ️  Nenhum CVE aplicável encontrado para ${data.service} ${data.version || ''} (filtrados por versão/OS)`);
+          console.log(`ℹ️  Nenhum CVE aplicável encontrado para ${data.service} ${data.version || ''} (filtrados por versão/OS/enrichment)`);
         }
       } catch (error) {
         console.error(`❌ Erro ao buscar CVEs para ${data.service}:`, error);

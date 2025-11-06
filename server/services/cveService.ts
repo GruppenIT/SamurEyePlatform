@@ -59,8 +59,27 @@ class CVEService {
   /**
    * Busca CVEs para um serviço e versão específicos
    * Retorna apenas CVEs que realmente se aplicam à versão fornecida
+   * 
+   * @param service Nome do serviço (ex: apache, openssh)
+   * @param version Versão detectada via nmap
+   * @param osInfo OS info detectado via nmap
+   * @param hostId ID do host para buscar dados enriquecidos (opcional)
    */
-  async searchCVEs(service: string, version?: string, osInfo?: string): Promise<CVEResult[]> {
+  async searchCVEs(service: string, version?: string, osInfo?: string, hostId?: string): Promise<CVEResult[]> {
+    // Buscar dados enriquecidos se hostId fornecido
+    let enrichment = null;
+    if (hostId) {
+      try {
+        const { storage } = require('../storage');
+        enrichment = await storage.getLatestHostEnrichment(hostId);
+        if (enrichment) {
+          console.log(`🔐 Usando dados autenticados para host ${hostId}: OS ${enrichment.osVersion || 'N/A'}, Build ${enrichment.osBuild || 'N/A'}, ${enrichment.installedApps?.length || 0} apps, ${enrichment.patches?.length || 0} patches`);
+        }
+      } catch (error) {
+        console.warn(`⚠️ Erro ao buscar enrichments para host ${hostId}:`, error);
+      }
+    }
+    
     // Normalizar nome do serviço para busca
     const searchTerm = this.normalizeServiceName(service, version);
     
@@ -68,7 +87,7 @@ class CVEService {
     const cacheKey = `${service}:${version || 'latest'}`;
     if (this.cache.has(cacheKey)) {
       console.log(`📦 CVE cache hit para ${cacheKey}`);
-      return this.filterCVEsByVersion(this.cache.get(cacheKey)!, version, osInfo);
+      return this.filterCVEsByVersion(this.cache.get(cacheKey)!, version, osInfo, enrichment);
     }
 
     console.log(`🔍 Buscando CVEs para: ${searchTerm} (versão: ${version || 'N/A'}, OS: ${osInfo || 'N/A'})`);
@@ -109,8 +128,8 @@ class CVEService {
       // Armazenar em cache
       this.cache.set(cacheKey, cves);
 
-      // Filtrar por versão antes de retornar
-      const filteredCves = this.filterCVEsByVersion(cves, version, osInfo);
+      // Filtrar por versão antes de retornar (usando enrichments se disponível)
+      const filteredCves = this.filterCVEsByVersion(cves, version, osInfo, enrichment);
       console.log(`✅ Após filtragem por versão: ${filteredCves.length} CVEs aplicáveis`);
 
       return filteredCves;
@@ -121,11 +140,11 @@ class CVEService {
   }
 
   /**
-   * Filtra CVEs baseado na versão detectada e OS info
+   * Filtra CVEs baseado na versão detectada, OS info, e dados enriquecidos
    * Remove CVEs que claramente não se aplicam à versão/OS detectado
    */
-  private filterCVEsByVersion(cves: CVEResult[], detectedVersion?: string, osInfo?: string): CVEResult[] {
-    if (!detectedVersion && !osInfo) {
+  private filterCVEsByVersion(cves: CVEResult[], detectedVersion?: string, osInfo?: string, enrichment?: any): CVEResult[] {
+    if (!detectedVersion && !osInfo && !enrichment) {
       // Sem informação de versão/OS, retornar tudo mas marcar confiança baixa
       return cves.map(cve => ({ ...cve, confidence: 'low' as const }));
     }
@@ -133,7 +152,7 @@ class CVEService {
     const filtered: CVEResult[] = [];
 
     for (const cve of cves) {
-      const match = this.matchesCVEVersion(cve, detectedVersion, osInfo);
+      const match = this.matchesCVEVersion(cve, detectedVersion, osInfo, enrichment);
       
       if (match.applies) {
         filtered.push({
@@ -154,13 +173,37 @@ class CVEService {
   private matchesCVEVersion(
     cve: CVEResult, 
     detectedVersion?: string, 
-    osInfo?: string
+    osInfo?: string,
+    enrichment?: any
   ): { applies: boolean; confidence: 'high' | 'medium' | 'low' } {
     const descriptionEn = cve.descriptionEnglish.toLowerCase();
     
+    // ENRIQUECIMENTO FASE 0: Verificar patches KB (Windows)
+    if (enrichment?.patches && Array.isArray(enrichment.patches) && enrichment.patches.length > 0) {
+      // Extrair KBs mencionados na descrição do CVE
+      const kbMatches = descriptionEn.match(/kb\d{6,7}/gi) || [];
+      if (kbMatches.length > 0) {
+        const installedKBs = enrichment.patches.map((p: string) => p.toLowerCase());
+        const hasFixedKB = kbMatches.some((kb: string) => installedKBs.includes(kb.toLowerCase()));
+        if (hasFixedKB) {
+          console.log(`✅ CVE ${cve.cveId} JÁ CORRIGIDO por patch: ${kbMatches.join(', ')}`);
+          return { applies: false, confidence: 'high' };
+        }
+      }
+    }
+    
+    // ENRIQUECIMENTO: Usar osVersion e osBuild de enrichment (mais preciso que nmap)
+    const enrichedOsInfo = enrichment?.osVersion 
+      ? `${enrichment.osVersion} ${enrichment.osBuild || ''}`.trim() 
+      : osInfo;
+    
+    if (enrichedOsInfo && enrichedOsInfo !== osInfo) {
+      console.log(`🔐 Usando OS enriquecido: "${enrichedOsInfo}" (vs nmap: "${osInfo || 'N/A'}")`);
+    }
+    
     // ESTRATÉGIA 1: Usar CPE matches (fonte mais confiável) - SEMPRE tentar
     if (cve.cpeMatches && cve.cpeMatches.length > 0) {
-      const cpeResult = this.matchAgainstCPE(cve.cpeMatches, osInfo, detectedVersion);
+      const cpeResult = this.matchAgainstCPE(cve.cpeMatches, enrichedOsInfo, detectedVersion);
       if (cpeResult !== null) {
         if (cpeResult.applies) {
           console.log(`✅ CVE ${cve.cveId} se aplica via CPE: ${cpeResult.reason}`);
@@ -172,8 +215,8 @@ class CVEService {
     }
     
     // ESTRATÉGIA 2: Windows version matching (específico e confiável)
-    if (osInfo && (descriptionEn.includes('windows') || descriptionEn.includes('microsoft'))) {
-      const osLower = osInfo.toLowerCase();
+    if (enrichedOsInfo && (descriptionEn.includes('windows') || descriptionEn.includes('microsoft'))) {
+      const osLower = enrichedOsInfo.toLowerCase();
       const cveWindowsVersions = this.extractWindowsVersions(descriptionEn);
       const detectedWindowsVersion = this.extractWindowsVersions(osLower);
       
