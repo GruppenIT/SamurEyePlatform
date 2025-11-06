@@ -69,6 +69,9 @@ export const hostFamilyEnum = pgEnum('host_family', ['linux', 'windows_server', 
 // AD Security test status enum
 export const adSecurityTestStatusEnum = pgEnum('ad_security_test_status', ['pass', 'fail', 'error', 'skipped']);
 
+// Host enrichment protocol enum
+export const enrichmentProtocolEnum = pgEnum('enrichment_protocol', ['wmi', 'ssh', 'snmp']);
+
 // Users table
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -126,6 +129,19 @@ export const journeys = pgTable("journeys", {
   createdBy: varchar("created_by").references(() => users.id).notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// Journey credentials junction table - links credentials to journeys for authenticated scanning
+export const journeyCredentials = pgTable("journey_credentials", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  journeyId: varchar("journey_id").references(() => journeys.id).notNull(),
+  credentialId: varchar("credential_id").references(() => credentials.id).notNull(),
+  protocol: enrichmentProtocolEnum("protocol").notNull(),
+  priority: integer("priority").default(1).notNull(), // Order of attempt (1 = highest priority)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_journey_credentials_journey_id").on(table.journeyId),
+  index("IDX_journey_credentials_credential_id").on(table.credentialId),
+]);
 
 // Repeat unit enum for flexible intervals
 export const repeatUnitEnum = pgEnum('repeat_unit', ['hours', 'days']);
@@ -198,6 +214,37 @@ export const hosts = pgTable("hosts", {
   index("IDX_hosts_name").on(table.name),
   index("IDX_hosts_type").on(table.type),
   index("IDX_hosts_risk_score").on(table.riskScore),
+]);
+
+// Host enrichments table - stores authenticated scan data collected from hosts
+export const hostEnrichments = pgTable("host_enrichments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  hostId: varchar("host_id").references(() => hosts.id).notNull(),
+  jobId: varchar("job_id").references(() => jobs.id).notNull(),
+  protocol: enrichmentProtocolEnum("protocol").notNull(),
+  credentialId: varchar("credential_id").references(() => credentials.id),
+  success: boolean("success").notNull(),
+  collectedAt: timestamp("collected_at").defaultNow().notNull(),
+  
+  // Normalized collected data
+  osVersion: text("os_version"), // Exact OS version (e.g., "Windows Server 2019 Build 17763.5820")
+  osBuild: text("os_build"), // OS build number for precise matching
+  installedApps: jsonb("installed_apps").$type<Array<{name: string; version: string; vendor?: string}>>(), // Applications detected
+  patches: jsonb("patches").$type<string[]>(), // Installed patches/KBs (Windows: KB numbers, Linux: package versions)
+  services: jsonb("services").$type<Array<{name: string; version?: string; port?: number}>>(), // Running services
+  
+  // Audit trail - commands executed
+  commandsExecuted: jsonb("commands_executed").$type<Array<{
+    command: string;
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+  }>>(),
+  errorMessage: text("error_message"), // Error if collection failed
+}, (table) => [
+  index("IDX_host_enrichments_host_id").on(table.hostId),
+  index("IDX_host_enrichments_job_id").on(table.jobId),
+  index("IDX_host_enrichments_collected_at").on(table.collectedAt),
 ]);
 
 // Threats table
@@ -773,6 +820,18 @@ export const insertLoginAttemptSchema = createInsertSchema(loginAttempts).omit({
   createdAt: true,
 });
 
+// Journey credentials schema
+export const insertJourneyCredentialSchema = createInsertSchema(journeyCredentials).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Host enrichment schema
+export const insertHostEnrichmentSchema = createInsertSchema(hostEnrichments).omit({
+  id: true,
+  collectedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type RegisterUser = z.infer<typeof registerUserSchema>;
@@ -815,3 +874,7 @@ export type NotificationLog = typeof notificationLog.$inferSelect;
 export type InsertNotificationLog = z.infer<typeof insertNotificationLogSchema>;
 export type AdSecurityTestResult = typeof adSecurityTestResults.$inferSelect;
 export type InsertAdSecurityTestResult = z.infer<typeof insertAdSecurityTestResultSchema>;
+export type JourneyCredential = typeof journeyCredentials.$inferSelect;
+export type InsertJourneyCredential = z.infer<typeof insertJourneyCredentialSchema>;
+export type HostEnrichment = typeof hostEnrichments.$inferSelect;
+export type InsertHostEnrichment = z.infer<typeof insertHostEnrichmentSchema>;
