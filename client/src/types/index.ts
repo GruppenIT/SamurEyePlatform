@@ -50,6 +50,11 @@ export interface JourneyFormData {
   targetSelectionMode?: 'individual' | 'by_tag';
   selectedTags?: string[];
   enableCveDetection?: boolean;
+  credentials?: Array<{
+    credentialId: string;
+    protocol: 'wmi' | 'ssh' | 'snmp';
+    priority: number;
+  }>;
 }
 
 export interface ScheduleFormData {
