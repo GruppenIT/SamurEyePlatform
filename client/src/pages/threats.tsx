@@ -1070,8 +1070,8 @@ export default function Threats() {
                 <textarea
                   className={`mt-1 w-full min-h-[80px] px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 ${
                     statusChangeModal.justification.length > 0 && statusChangeModal.justification.length < 10
-                      ? 'border-red-500 focus:ring-red-500 bg-red-50 dark:bg-red-950/20'
-                      : 'border-input focus:ring-ring bg-background'
+                      ? 'border-red-500 focus:ring-red-500 bg-red-50 dark:bg-red-950/20 text-gray-900 dark:text-gray-100'
+                      : 'border-input focus:ring-ring bg-background text-foreground'
                   }`}
                   placeholder="Descreva o motivo da mudança de status..."
                   value={statusChangeModal.justification}
