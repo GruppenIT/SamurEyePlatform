@@ -8,6 +8,7 @@ import { EDRAVScanner } from './scanners/edrAvScanner';
 import { jobQueue } from './jobQueue';
 import { hostService } from './hostService';
 import { processTracker } from './processTracker';
+import { cveService } from './cveService';
 import { type Journey, type Job } from '@shared/schema';
 
 const adScanner = new ADScanner();
@@ -158,7 +159,19 @@ class JourneyExecutorService {
         findings.push(...portResults);
         console.log(`✅ FASE 1: ${portResults.length} portas descobertas`);
 
-        // ==================== PHASE 2: ACTIVE VALIDATION ====================
+        // ==================== PHASE 2A: CVE LOOKUP FROM NVD ====================
+        onProgress({ 
+          status: 'running', 
+          progress: baseProgress + 3, 
+          currentTask: `Fase 2A: Buscando CVEs conhecidos para ${asset.value}` 
+        });
+        
+        console.log(`🔍 FASE 2A: Buscando CVEs conhecidos na base NVD`);
+        const cveFindings = await this.searchKnownCVEs(portResults, jobId);
+        findings.push(...cveFindings);
+        console.log(`✅ FASE 2A: ${cveFindings.length} CVEs encontrados na base NVD`);
+
+        // ==================== PHASE 2B: ACTIVE VALIDATION ====================
         // Group by host for vulnerability scanning
         const hostPortMap = new Map<string, { ports: string[], portResults: any[] }>();
         
@@ -187,16 +200,16 @@ class JourneyExecutorService {
           onProgress({ 
             status: 'running', 
             progress: baseProgress + 5, 
-            currentTask: `Fase 2: Validando vulnerabilidades em ${host}` 
+            currentTask: `Fase 2B: Validando vulnerabilidades ativamente em ${host}` 
           });
 
-          console.log(`🔍 FASE 2: Validação ativa de vulnerabilidades em ${host}`);
+          console.log(`🔍 FASE 2B: Validação ativa de vulnerabilidades em ${host}`);
           
-          // Phase 2: Nmap vuln scripts for active CVE detection
-          console.log(`🎯 FASE 2: Executando nmap vuln scripts em ${host}`);
+          // Phase 2B: Nmap vuln scripts for active CVE detection
+          console.log(`🎯 FASE 2B: Executando nmap vuln scripts em ${host}`);
           const nmapVulnResults = await this.runNmapVulnScripts(host, data.ports, jobId, vulnScriptTimeoutMs);
           findings.push(...nmapVulnResults);
-          console.log(`✅ FASE 2: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
+          console.log(`✅ FASE 2B: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
         }
         
       } catch (error) {
@@ -902,8 +915,86 @@ class JourneyExecutorService {
   }
 
   /**
+   * Busca CVEs conhecidos na base NVD para serviços detectados
+   * Phase 2A: CVE lookup from NIST NVD database
+   */
+  private async searchKnownCVEs(portResults: any[], jobId?: string): Promise<any[]> {
+    const cveFindings: any[] = [];
+    
+    // Agrupar por serviço único para evitar buscas duplicadas
+    const uniqueServices = new Map<string, any>();
+    
+    for (const result of portResults) {
+      if (result.state !== 'open' || !result.service) continue;
+      
+      const service = result.service.toLowerCase();
+      const version = result.version || '';
+      const key = `${service}:${version}`;
+      
+      if (!uniqueServices.has(key)) {
+        uniqueServices.set(key, {
+          service,
+          version,
+          targets: [result.target || result.ip],
+          ports: [result.port],
+        });
+      } else {
+        const existing = uniqueServices.get(key)!;
+        existing.targets.push(result.target || result.ip);
+        existing.ports.push(result.port);
+      }
+    }
+    
+    console.log(`🔍 Buscando CVEs para ${uniqueServices.size} serviços únicos...`);
+    
+    // Buscar CVEs para cada serviço único
+    for (const [key, data] of uniqueServices.entries()) {
+      // Verificar se job foi cancelado
+      if (jobId && this.isJobCancelled(jobId)) {
+        console.log(`🚫 Job ${jobId} cancelado durante busca de CVEs`);
+        break;
+      }
+      
+      try {
+        console.log(`🔎 Buscando CVEs para: ${data.service} ${data.version || '(sem versão)'}`);
+        const cves = await cveService.searchCVEs(data.service, data.version);
+        
+        if (cves.length > 0) {
+          console.log(`✅ Encontrados ${cves.length} CVEs para ${data.service}`);
+          
+          // Criar findings para cada CVE encontrado
+          for (const cve of cves) {
+            // Criar um finding para cada target afetado
+            for (const target of data.targets) {
+              cveFindings.push({
+                type: 'nvd_cve',
+                target,
+                port: data.ports[data.targets.indexOf(target)],
+                service: data.service,
+                version: data.version || 'unknown',
+                cve: cve.cveId,
+                name: `${cve.cveId} - ${data.service}`,
+                severity: cve.severity,
+                cvssScore: cve.cvssScore,
+                description: cve.description,
+                remediation: cve.remediation,
+                publishedDate: cve.publishedDate,
+                timestamp: new Date().toISOString(),
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`❌ Erro ao buscar CVEs para ${data.service}:`, error);
+      }
+    }
+    
+    return cveFindings;
+  }
+
+  /**
    * Executa nmap vuln scripts para validação ativa de CVEs
-   * Phase 2A: Active CVE detection using nmap --script=vuln
+   * Phase 2B: Active CVE detection using nmap --script=vuln
    */
   private async runNmapVulnScripts(host: string, ports: string[], jobId?: string, timeoutMs: number = 3600000): Promise<any[]> {
     try {

@@ -60,11 +60,21 @@ The application features a dark security-focused theme. The threat intelligence 
   - **Enhanced Host Details Dialog**: Redesigned with prominent Risk Score display (CVSS color-coded), historical trend chart using recharts, and compact threat badges replacing large summary boxes for cleaner UX
 - **Asset Types**: System supports three asset types - `host` (individual hosts), `range` (CIDR ranges), and `web_application` (HTTP/HTTPS URLs)
 - **Journey Types**: Four journey types available - `attack_surface` (infrastructure discovery), `ad_security` (Active Directory assessment), `edr_av` (EDR/AV testing), and `web_application` (OWASP Top 10 scanning)
-- **Attack Surface Journey - Infrastructure Discovery**: Refactored to focus exclusively on infrastructure assessment with automatic web application discovery:
-  - **Phase 1 - Discovery**: Port scanning with nmap to identify open ports and services
-  - **Phase 2 - Active Validation**: Nmap vuln scripts (`--script=vuln`) execution for real-time CVE validation
+- **Attack Surface Journey - Infrastructure Discovery**: Refactored to focus exclusively on infrastructure assessment with automatic web application discovery and CVE intelligence:
+  - **Phase 1 - Discovery**: Port scanning with nmap to identify open ports, services, and versions
+  - **Phase 2A - CVE Intelligence**: Automatic CVE lookup using NIST NVD API for detected services
+    - Integrates with CVE Detection Service for real-time vulnerability intelligence
+    - Searches NVD database based on service names and versions
+    - Creates `nvd_cve` findings with CVSS scores, descriptions, and remediation guidance
+    - Intelligent caching and rate limiting (6 seconds between requests) to respect NVD API limits
+    - Generates threats automatically for known CVEs with full evidence trail
+  - **Phase 2B - Active Validation**: Nmap vuln scripts (`--script=vuln`) execution for real-time CVE validation
+    - Configurable timeout (5-180 minutes, default 60) via `vulnScriptTimeout` parameter
+    - Real-time process tracking with WebSocket updates and cooperative cancellation
+    - Creates `nmap_vuln` findings for actively validated CVEs
   - **Phase 3 - Auto-Discovery**: Automatic creation of `web_application` assets for discovered HTTP/HTTPS services (ports 80, 443, 8080, 8443, etc.)
   - Web applications are created with format `protocol://host:port` and tagged with `auto-discovered` and job ID
+  - Asset deduplication prevents creation of duplicate web_application assets
   - Removed `webScanEnabled` parameter - web vulnerability scanning now handled by dedicated Web Application journey
 - **Web Application Journey - OWASP Top 10 Scanning**: New dedicated journey for deep web vulnerability analysis:
   - Selects previously discovered `web_application` assets from Attack Surface scans

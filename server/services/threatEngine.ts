@@ -25,6 +25,33 @@ class ThreatEngineService {
   private initializeRules(): void {
     this.rules = [
       // Attack Surface Rules
+      // NVD CVE Lookup - Known vulnerabilities from NIST database
+      {
+        id: 'nvd-cve-detected',
+        name: 'Vulnerabilidade CVE Conhecida (NVD)',
+        description: 'CVE conhecido encontrado na base NIST NVD',
+        severity: 'high', // Will be overridden by finding.severity
+        matcher: (finding) => finding.type === 'nvd_cve' && finding.cve,
+        createThreat: (finding, assetId, jobId) => ({
+          title: `${finding.cve}: ${finding.service} ${finding.version}`,
+          description: finding.description || `CVE ${finding.cve} identificado para ${finding.service} ${finding.version}. ${finding.remediation || ''}`,
+          severity: finding.severity || 'high',
+          source: 'journey',
+          assetId,
+          jobId,
+          evidence: {
+            cve: finding.cve,
+            cvssScore: finding.cvssScore,
+            service: finding.service,
+            version: finding.version,
+            port: finding.port,
+            host: finding.target,
+            publishedDate: finding.publishedDate,
+            remediation: finding.remediation,
+            detectionMethod: 'nvd_api_lookup',
+          },
+        }),
+      },
       // Nmap Vuln Script Detection - Active CVE validation
       {
         id: 'nmap-vuln-detected',
