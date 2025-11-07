@@ -427,6 +427,7 @@ export default function Journeys() {
           )}
           {editingJourney && !isLoadingCredentials && (
             <JourneyForm
+              key={editingJourney.id}
               onSubmit={handleUpdateJourney}
               onCancel={() => setEditingJourney(null)}
               isLoading={updateJourneyMutation.isPending}

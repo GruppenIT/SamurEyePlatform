@@ -90,6 +90,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
       setEnableAuthentication(true);
       isHydrated.current = true;
     }
+    
+    // Cleanup: Reset hydration flag when component unmounts
+    return () => {
+      isHydrated.current = false;
+    };
   }, [initialData]);
 
   // Fetch assets and credentials for form options
