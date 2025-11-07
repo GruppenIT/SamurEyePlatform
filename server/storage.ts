@@ -1192,25 +1192,44 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async getJourneyCredentials(journeyId: string): Promise<JourneyCredential[]> {
+  async getJourneyCredentials(journeyId: string): Promise<(JourneyCredential & { credential: Credential })[]> {
     console.log(`🔍 [STORAGE] getJourneyCredentials called with journeyId: ${journeyId}`);
     const results = await db
-      .select()
+      .select({
+        jc: journeyCredentials,
+        credential: credentials
+      })
       .from(journeyCredentials)
+      .leftJoin(credentials, eq(journeyCredentials.credentialId, credentials.id))
       .where(eq(journeyCredentials.journeyId, journeyId))
       .orderBy(journeyCredentials.priority);
-    console.log(`  → Drizzle returned ${results.length} rows (raw):`, results);
+    console.log(`  → Drizzle returned ${results.length} rows with JOIN`);
     
-    // Map to plain objects to avoid sanitizeObject stripping Drizzle proxies
+    // Map to plain objects with credential data
     const plainResults = results.map(row => ({
-      id: row.id,
-      journeyId: row.journeyId,
-      credentialId: row.credentialId,
-      protocol: row.protocol,
-      priority: row.priority,
-      createdAt: row.createdAt
+      id: row.jc.id,
+      journeyId: row.jc.journeyId,
+      credentialId: row.jc.credentialId,
+      protocol: row.jc.protocol,
+      priority: row.jc.priority,
+      createdAt: row.jc.createdAt,
+      credential: row.credential ? {
+        id: row.credential.id,
+        name: row.credential.name,
+        username: row.credential.username,
+        secretEncrypted: row.credential.secretEncrypted,
+        dekEncrypted: row.credential.dekEncrypted,
+        domain: row.credential.domain,
+        port: row.credential.port,
+        description: row.credential.description,
+        createdAt: row.credential.createdAt,
+        updatedAt: row.credential.updatedAt
+      } : null as any
     }));
-    console.log(`  → Mapped to plain objects:`, JSON.stringify(plainResults, null, 2));
+    console.log(`  → Mapped with credentials:`, JSON.stringify(plainResults.map(r => ({
+      ...r,
+      credential: r.credential ? { ...r.credential, secretEncrypted: '[REDACTED]', dekEncrypted: '[REDACTED]' } : null
+    })), null, 2));
     return plainResults;
   }
 
