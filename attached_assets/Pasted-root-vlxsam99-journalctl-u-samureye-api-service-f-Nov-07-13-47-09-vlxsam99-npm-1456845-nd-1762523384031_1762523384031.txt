@@ -1,0 +1,46 @@
+root@vlxsam99:~# journalctl -u samureye-api.service -f
+Nov 07 13:47:09 vlxsam99 npm[1456845]: 🔍 Índice único de correlation_key: EXISTE
+Nov 07 13:47:09 vlxsam99 npm[1456845]: ✅ Estrutura do banco de dados já está atualizada
+Nov 07 13:47:09 vlxsam99 npm[1456845]: 🕒 Iniciando monitor de ameaças hibernadas...
+Nov 07 13:47:09 vlxsam99 npm[1456845]: 🕒 Checking for hibernated threats to activate
+Nov 07 13:47:09 vlxsam99 npm[1456845]: 📊 Found 0 hibernated threats to activate
+Nov 07 13:47:09 vlxsam99 npm[1456845]: 🕐 Iniciando serviço de agendamento...
+Nov 07 13:47:09 vlxsam99 npm[1456845]: ✅ Serviço de agendamento iniciado com sucesso
+Nov 07 13:47:09 vlxsam99 npm[1456845]: 🔐 Versão de sessão incrementada para 3 - todas as sessões anteriores invalidadas
+Nov 07 13:47:09 vlxsam99 npm[1456845]: 🔒 Todas as sessões anteriores foram removidas
+Nov 07 13:47:09 vlxsam99 npm[1456845]: 1:47:09 PM [express] serving on port 5000
+Nov 07 13:48:34 vlxsam99 npm[1456845]: 1:48:34 PM [express] POST /api/journeys 401 in 22ms :: {"message":"Não autorizado"}
+Nov 07 13:48:42 vlxsam99 npm[1456845]: 1:48:42 PM [express] GET /api/auth/user 401 in 2ms :: {"message":"Não autorizado"}
+Nov 07 13:48:47 vlxsam99 npm[1456845]: 1:48:47 PM [express] GET /api/auth/user 401 in 2ms :: {"message":"Não autorizado"}
+Nov 07 13:48:51 vlxsam99 npm[1456845]: ✅ Login bem-sucedido: admin@samureye.com.br de 192.168.100.220 (Chrome on Windows)
+Nov 07 13:48:51 vlxsam99 npm[1456845]: 1:48:51 PM [express] POST /api/auth/login 200 in 458ms :: {"message":"Login realizado com sucesso","…
+Nov 07 13:48:51 vlxsam99 npm[1456845]: 1:48:51 PM [express] GET /api/auth/user 200 in 9ms :: {"id":"da6c7d53-77fa-43f8-9567-535784fc8ae3","…
+Nov 07 13:48:51 vlxsam99 npm[1456845]: 1:48:51 PM [express] GET /api/threats 304 in 22ms :: []
+Nov 07 13:48:51 vlxsam99 npm[1456845]: 1:48:51 PM [express] GET /api/dashboard/recent-threats 304 in 42ms :: []
+Nov 07 13:48:51 vlxsam99 npm[1456845]: 1:48:51 PM [express] GET /api/dashboard/running-jobs 304 in 47ms :: []
+Nov 07 13:48:51 vlxsam99 npm[1456845]: 1:48:51 PM [express] GET /api/dashboard/metrics 304 in 51ms :: {"activeAssets":1,"criticalThreats":0…
+Nov 07 13:48:51 vlxsam99 npm[1456845]: 1:48:51 PM [express] GET /api/system/metrics 200 in 45ms :: {"cpu":0,"memory":12,"services":[{"name"…
+Nov 07 13:48:51 vlxsam99 npm[1456845]: 1:48:51 PM [express] GET /api/schedules 304 in 49ms :: []
+Nov 07 13:48:53 vlxsam99 npm[1456845]: 1:48:53 PM [express] GET /api/journeys 304 in 10ms :: [{"id":"da42e9d5-9283-45c2-9316-11d940364315",…
+Nov 07 13:48:55 vlxsam99 npm[1456845]: 1:48:55 PM [express] GET /api/assets 304 in 14ms :: [{"id":"b1bb6ee2-6821-4852-99d6-479013fa49ad","t…
+Nov 07 13:48:55 vlxsam99 npm[1456845]: 1:48:55 PM [express] GET /api/assets/by-type/web_application 304 in 14ms :: []
+Nov 07 13:48:55 vlxsam99 npm[1456845]: 1:48:55 PM [express] GET /api/credentials 304 in 14ms :: [{"id":"197b8060-8291-414f-9d80-76139f176bd…
+Nov 07 13:48:59 vlxsam99 npm[1456845]: 1:48:59 PM [express] GET /api/assets/tags/unique 304 in 10ms :: ["Ellevo"]
+Nov 07 13:49:12 vlxsam99 npm[1456845]: 🔍 [DEBUG] POST /api/journeys - credentials from body: [
+Nov 07 13:49:12 vlxsam99 npm[1456845]:   {
+Nov 07 13:49:12 vlxsam99 npm[1456845]:     "credentialId": "197b8060-8291-414f-9d80-76139f176bd2",
+Nov 07 13:49:12 vlxsam99 npm[1456845]:     "protocol": "wmi",
+Nov 07 13:49:12 vlxsam99 npm[1456845]:     "priority": 0
+Nov 07 13:49:12 vlxsam99 npm[1456845]:   }
+Nov 07 13:49:12 vlxsam99 npm[1456845]: ]
+Nov 07 13:49:12 vlxsam99 npm[1456845]: ✅ [DEBUG] Saving 1 credentials for journey d3cc88db-25d9-464a-aee4-696587e1f079
+Nov 07 13:49:12 vlxsam99 npm[1456845]:   → Saving credential: {
+Nov 07 13:49:12 vlxsam99 npm[1456845]:   journeyId: 'd3cc88db-25d9-464a-aee4-696587e1f079',
+Nov 07 13:49:12 vlxsam99 npm[1456845]:   credentialId: '197b8060-8291-414f-9d80-76139f176bd2',
+Nov 07 13:49:12 vlxsam99 npm[1456845]:   protocol: 'wmi',
+Nov 07 13:49:12 vlxsam99 npm[1456845]:   priority: 0
+Nov 07 13:49:12 vlxsam99 npm[1456845]: }
+Nov 07 13:49:12 vlxsam99 npm[1456845]: ✅ [DEBUG] Successfully saved 1 credentials
+Nov 07 13:49:12 vlxsam99 npm[1456845]: 1:49:12 PM [express] POST /api/journeys 201 in 31ms :: {"id":"d3cc88db-25d9-464a-aee4-696587e1f079",…
+Nov 07 13:49:12 vlxsam99 npm[1456845]: 1:49:12 PM [express] GET /api/journeys 200 in 8ms :: [{"id":"d3cc88db-25d9-464a-aee4-696587e1f079","…
+Nov 07 13:49:19 vlxsam99 npm[1456845]: 1:49:19 PM [express] GET /api/journeys 304 in 9ms :: [{"id":"d3cc88db-25d9-464a-aee4-696587e1f079","…

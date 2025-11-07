@@ -1,0 +1,49 @@
+ [DEBUG] JourneyForm Hydration
+index-Dqd_THG8.js:429 1. initialData received: undefined
+index-Dqd_THG8.js:429 2. isHydrated.current: false
+index-Dqd_THG8.js:429 3. credentials from query: []
+index-Dqd_THG8.js:429 4. isLoadingCredentials: true
+index-Dqd_THG8.js:429 ❌ NOT HYDRATING. Reasons: {hasCredentials: false, credentialsLength: 0, isAlreadyHydrated: false}
+index-Dqd_THG8.js:429 🔍 [DEBUG] JourneyForm Hydration
+index-Dqd_THG8.js:429 1. initialData received: undefined
+index-Dqd_THG8.js:429 2. isHydrated.current: false
+index-Dqd_THG8.js:429 3. credentials from query: [{…}]
+index-Dqd_THG8.js:429 4. isLoadingCredentials: false
+index-Dqd_THG8.js:429 ❌ NOT HYDRATING. Reasons: {hasCredentials: false, credentialsLength: 0, isAlreadyHydrated: false}
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 0: {protocol: 'wmi', credentialId: '', priority: 0, availableOptions: Array(1), matchFound: false}
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 0: {protocol: 'wmi', credentialId: '197b8060-8291-414f-9d80-76139f176bd2', priority: 0, availableOptions: Array(1), matchFound: true}
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 0: {protocol: 'wmi', credentialId: '197b8060-8291-414f-9d80-76139f176bd2', priority: 0, availableOptions: Array(1), matchFound: true}
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 0: {protocol: 'wmi', credentialId: '197b8060-8291-414f-9d80-76139f176bd2', priority: 0, availableOptions: Array(1), matchFound: true}
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 0: {protocol: 'wmi', credentialId: '197b8060-8291-414f-9d80-76139f176bd2', priority: 0, availableOptions: Array(1), matchFound: true}
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 0: {protocol: 'wmi', credentialId: '197b8060-8291-414f-9d80-76139f176bd2', priority: 0, availableOptions: Array(1), matchFound: true}
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 0: {protocol: 'wmi', credentialId: '197b8060-8291-414f-9d80-76139f176bd2', priority: 0, availableOptions: Array(1), matchFound: true}
+index-Dqd_THG8.js:429 🔍 [DEBUG] Journeys.tsx - Edit Journey
+index-Dqd_THG8.js:429 1. editingJourney: {id: 'd3cc88db-25d9-464a-aee4-696587e1f079', name: 'teste', type: 'attack_surface', description: '', params: {…}, …}
+index-Dqd_THG8.js:429 2. journeyCredentials from query: (2) [{…}, {…}]
+index-Dqd_THG8.js:429 3. initialData being passed to JourneyForm: {name: 'teste', type: 'attack_surface', description: '', params: {…}, targetSelectionMode: 'by_tag', …}
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 0: {protocol: undefined, credentialId: undefined, priority: undefined, availableOptions: Array(0), matchFound: false}
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 1: {protocol: undefined, credentialId: undefined, priority: undefined, availableOptions: Array(0), matchFound: false}
+index-Dqd_THG8.js:429 🔍 [DEBUG] JourneyForm Hydration
+index-Dqd_THG8.js:429 1. initialData received: {
+  "name": "teste",
+  "type": "attack_surface",
+  "description": "",
+  "params": {
+    "assetIds": [],
+    "nmapProfile": "fast",
+    "vulnScriptTimeout": 60
+  },
+  "targetSelectionMode": "by_tag",
+  "selectedTags": [
+    "Ellevo"
+  ],
+  "enableCveDetection": false,
+  "credentials": [
+    {},
+    {}
+  ]
+}
+index-Dqd_THG8.js:429 2. isHydrated.current: false
+index-Dqd_THG8.js:429 3. credentials from query: [{…}]
+index-Dqd_THG8.js:429 4. isLoadingCredentials: false
+index-Dqd_THG8.js:429 ✅ HYDRATING selectedCredentials with: (2) [{…}, {…}]

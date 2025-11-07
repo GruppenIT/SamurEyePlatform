@@ -847,7 +847,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/journeys/:id/credentials', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const { id } = req.params;
+      console.log(`🔍 [DEBUG] GET /api/journeys/${id}/credentials`);
       const credentials = await storage.getJourneyCredentials(id);
+      console.log(`  → Found ${credentials.length} credentials:`, JSON.stringify(credentials, null, 2));
       res.json(credentials);
     } catch (error) {
       console.error("Erro ao buscar credenciais da jornada:", error);
