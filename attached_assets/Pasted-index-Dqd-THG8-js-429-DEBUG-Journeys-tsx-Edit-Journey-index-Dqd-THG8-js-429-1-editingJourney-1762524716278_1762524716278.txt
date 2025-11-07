@@ -1,0 +1,80 @@
+index-Dqd_THG8.js:429 🔍 [DEBUG] Journeys.tsx - Edit Journey
+index-Dqd_THG8.js:429 1. editingJourney: 
+{id: 'd3cc88db-25d9-464a-aee4-696587e1f079', name: 'teste', type: 'attack_surface', description: '', params: {…}, …}
+index-Dqd_THG8.js:429 2. journeyCredentials from query: 
+(2) [{…}, {…}]
+index-Dqd_THG8.js:429 3. initialData being passed to JourneyForm: 
+{name: 'teste', type: 'attack_surface', description: '', params: {…}, targetSelectionMode: 'by_tag', …}
+index-Dqd_THG8.js:429 🔍 [DEBUG] JourneyForm Hydration
+index-Dqd_THG8.js:429 1. initialData received: {
+  "name": "teste",
+  "type": "attack_surface",
+  "description": "",
+  "params": {
+    "assetIds": [],
+    "nmapProfile": "fast",
+    "vulnScriptTimeout": 60
+  },
+  "targetSelectionMode": "by_tag",
+  "selectedTags": [
+    "Ellevo"
+  ],
+  "enableCveDetection": false,
+  "credentials": [
+    {},
+    {}
+  ]
+}
+index-Dqd_THG8.js:429 2. isHydrated.current: false
+index-Dqd_THG8.js:429 3. credentials from query: 
+[]
+index-Dqd_THG8.js:429 4. isLoadingCredentials: true
+index-Dqd_THG8.js:429 ✅ HYDRATING selectedCredentials with: 
+(2) [{…}, {…}]
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 0: 
+{protocol: undefined, credentialId: undefined, priority: undefined, availableOptions: Array(0), matchFound: false}
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 1: 
+{protocol: undefined, credentialId: undefined, priority: undefined, availableOptions: Array(0), matchFound: false}
+index-Dqd_THG8.js:429 🔍 [DEBUG] JourneyForm Hydration
+index-Dqd_THG8.js:429 1. initialData received: {
+  "name": "teste",
+  "type": "attack_surface",
+  "description": "",
+  "params": {
+    "assetIds": [],
+    "nmapProfile": "fast",
+    "vulnScriptTimeout": 60
+  },
+  "targetSelectionMode": "by_tag",
+  "selectedTags": [
+    "Ellevo"
+  ],
+  "enableCveDetection": false,
+  "credentials": [
+    {},
+    {}
+  ]
+}
+index-Dqd_THG8.js:429 2. isHydrated.current: false
+index-Dqd_THG8.js:429 3. credentials from query: 
+[{…}]
+index-Dqd_THG8.js:429 4. isLoadingCredentials: false
+index-Dqd_THG8.js:429 ✅ HYDRATING selectedCredentials with: 
+(2) [{…}, {…}]
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 0: 
+{protocol: undefined, credentialId: undefined, priority: undefined, availableOptions: Array(0), matchFound: false}
+index-Dqd_THG8.js:429 🔍 [DEBUG] Credential 1: 
+{protocol: undefined, credentialId: undefined, priority: undefined, availableOptions: Array(0), matchFound: false}
+﻿
+
+Full stack trace AI agent in Performance panel
+The Performance panel now integrates a more capable AI agent that has full access to the stack trace.
+
+AI code completion in Sources and Console
+Code completion powered by AI is now available in the Sources panel and the Console.
+
+Google Developer Program support
+The Google Developer Program, a ready-made subscription and community platform, is now in DevTools, offering a more personalized experience, a badge system, and easier discovery of new features.
+
+One main 'Debug with AI' button
+The primary action bar at the top of DevTools now features the primary "Debug with AI" button which opens the 'AI assistance' panel in a right-hand side bar.

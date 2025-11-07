@@ -1193,11 +1193,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getJourneyCredentials(journeyId: string): Promise<JourneyCredential[]> {
+    console.log(`🔍 [STORAGE] getJourneyCredentials called with journeyId: ${journeyId}`);
     const results = await db
       .select()
       .from(journeyCredentials)
       .where(eq(journeyCredentials.journeyId, journeyId))
       .orderBy(journeyCredentials.priority);
+    console.log(`  → Drizzle returned ${results.length} rows:`, JSON.stringify(results, null, 2));
     return results;
   }
 
