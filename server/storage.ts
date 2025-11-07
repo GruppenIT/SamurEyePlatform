@@ -1199,8 +1199,19 @@ export class DatabaseStorage implements IStorage {
       .from(journeyCredentials)
       .where(eq(journeyCredentials.journeyId, journeyId))
       .orderBy(journeyCredentials.priority);
-    console.log(`  → Drizzle returned ${results.length} rows:`, JSON.stringify(results, null, 2));
-    return results;
+    console.log(`  → Drizzle returned ${results.length} rows (raw):`, results);
+    
+    // Map to plain objects to avoid sanitizeObject stripping Drizzle proxies
+    const plainResults = results.map(row => ({
+      id: row.id,
+      journeyId: row.journeyId,
+      credentialId: row.credentialId,
+      protocol: row.protocol,
+      priority: row.priority,
+      createdAt: row.createdAt
+    }));
+    console.log(`  → Mapped to plain objects:`, JSON.stringify(plainResults, null, 2));
+    return plainResults;
   }
 
   async deleteJourneyCredentials(journeyId: string): Promise<void> {
