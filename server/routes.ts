@@ -712,8 +712,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Handle journey credentials (if provided)
       const credentials = req.body.credentials;
+      console.log('🔍 [DEBUG] POST /api/journeys - credentials from body:', JSON.stringify(credentials, null, 2));
+      
       if (Array.isArray(credentials) && credentials.length > 0) {
+        console.log(`✅ [DEBUG] Saving ${credentials.length} credentials for journey ${journey.id}`);
         for (const cred of credentials) {
+          console.log(`  → Saving credential:`, {
+            journeyId: journey.id,
+            credentialId: cred.credentialId,
+            protocol: cred.protocol,
+            priority: cred.priority || 0
+          });
           await storage.createJourneyCredential({
             journeyId: journey.id,
             credentialId: cred.credentialId,
@@ -721,6 +730,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             priority: cred.priority || 0,
           });
         }
+        console.log(`✅ [DEBUG] Successfully saved ${credentials.length} credentials`);
+      } else {
+        console.log('❌ [DEBUG] No credentials to save:', {
+          isArray: Array.isArray(credentials),
+          length: credentials?.length,
+          value: credentials
+        });
       }
       
       await storage.logAudit({
@@ -750,19 +766,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Handle journey credentials update (if provided)
       const credentials = req.body.credentials;
+      console.log('🔍 [DEBUG] PATCH /api/journeys/:id - credentials from body:', JSON.stringify(credentials, null, 2));
+      
       if (Array.isArray(credentials)) {
+        console.log(`✅ [DEBUG] Updating credentials for journey ${id}`);
+        
         // Delete all existing credentials for this journey
         await storage.deleteJourneyCredentials(id);
+        console.log(`  → Deleted existing credentials`);
         
         // Create new credentials
-        for (const cred of credentials) {
-          await storage.createJourneyCredential({
-            journeyId: id,
-            credentialId: cred.credentialId,
-            protocol: cred.protocol,
-            priority: cred.priority || 0,
-          });
+        if (credentials.length > 0) {
+          console.log(`  → Creating ${credentials.length} new credentials`);
+          for (const cred of credentials) {
+            console.log(`    • Saving:`, {
+              journeyId: id,
+              credentialId: cred.credentialId,
+              protocol: cred.protocol,
+              priority: cred.priority || 0
+            });
+            await storage.createJourneyCredential({
+              journeyId: id,
+              credentialId: cred.credentialId,
+              protocol: cred.protocol,
+              priority: cred.priority || 0,
+            });
+          }
+          console.log(`✅ [DEBUG] Successfully saved ${credentials.length} credentials`);
+        } else {
+          console.log(`  → No credentials to create (array is empty)`);
         }
+      } else {
+        console.log('❌ [DEBUG] credentials is not an array:', {
+          type: typeof credentials,
+          value: credentials
+        });
       }
       
       await storage.logAudit({
