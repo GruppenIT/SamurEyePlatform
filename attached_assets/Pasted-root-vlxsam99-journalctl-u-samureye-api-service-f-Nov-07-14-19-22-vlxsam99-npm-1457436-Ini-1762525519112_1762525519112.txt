@@ -1,0 +1,53 @@
+root@vlxsam99:~# journalctl -u samureye-api.service -f
+Nov 07 14:19:22 vlxsam99 npm[1457436]: 🕐 Iniciando serviço de agendamento...
+Nov 07 14:19:22 vlxsam99 npm[1457436]: ✅ Serviço de agendamento iniciado com sucesso
+Nov 07 14:19:22 vlxsam99 npm[1457436]: 🔐 Versão de sessão incrementada para 6 - todas as sessões anteriores invalidadas
+Nov 07 14:19:22 vlxsam99 npm[1457436]: 🔒 Todas as sessões anteriores foram removidas
+Nov 07 14:19:22 vlxsam99 npm[1457436]: 2:19:22 PM [express] serving on port 5000
+Nov 07 14:19:36 vlxsam99 npm[1457436]: 2:19:36 PM [express] POST /api/auth/logout 200 in 34ms :: {"message":"Logout realizado com sucesso"}
+Nov 07 14:19:36 vlxsam99 npm[1457436]: 2:19:36 PM [express] GET /api/auth/user 401 in 2ms :: {"message":"Não autorizado"}
+Nov 07 14:19:36 vlxsam99 npm[1457436]: 2:19:36 PM [express] GET /api/auth/user 401 in 1ms :: {"message":"Não autorizado"}
+Nov 07 14:19:36 vlxsam99 npm[1457436]: 2:19:36 PM [express] GET /api/threats 401 in 1ms :: {"message":"Não autorizado"}
+Nov 07 14:19:36 vlxsam99 npm[1457436]: 2:19:36 PM [express] GET /api/auth/user 401 in 1ms :: {"message":"Não autorizado"}
+Nov 07 14:19:59 vlxsam99 npm[1457436]: ✅ Login bem-sucedido: admin@samureye.com.br de 192.168.100.220 (Chrome on Windows)
+Nov 07 14:19:59 vlxsam99 npm[1457436]: 2:19:59 PM [express] POST /api/auth/login 200 in 459ms :: {"message":"Login realizado com sucesso","…
+Nov 07 14:19:59 vlxsam99 npm[1457436]: 2:19:59 PM [express] GET /api/auth/user 200 in 8ms :: {"id":"da6c7d53-77fa-43f8-9567-535784fc8ae3","…
+Nov 07 14:19:59 vlxsam99 npm[1457436]: 2:19:59 PM [express] GET /api/system/metrics 304 in 18ms :: {"cpu":0,"memory":12,"services":[{"name"…
+Nov 07 14:19:59 vlxsam99 npm[1457436]: 2:19:59 PM [express] GET /api/threats 304 in 42ms :: []
+Nov 07 14:19:59 vlxsam99 npm[1457436]: 2:19:59 PM [express] GET /api/dashboard/recent-threats 304 in 41ms :: []
+Nov 07 14:19:59 vlxsam99 npm[1457436]: 2:19:59 PM [express] GET /api/dashboard/running-jobs 304 in 47ms :: []
+Nov 07 14:19:59 vlxsam99 npm[1457436]: 2:19:59 PM [express] GET /api/schedules 304 in 50ms :: []
+Nov 07 14:19:59 vlxsam99 npm[1457436]: 2:19:59 PM [express] GET /api/dashboard/metrics 304 in 67ms :: {"activeAssets":1,"criticalThreats":0…
+Nov 07 14:20:01 vlxsam99 npm[1457436]: 2:20:01 PM [express] GET /api/journeys 304 in 12ms :: [{"id":"d3cc88db-25d9-464a-aee4-696587e1f079",…
+Nov 07 14:20:05 vlxsam99 npm[1457436]: 2:20:05 PM [express] GET /api/journeys 304 in 11ms :: [{"id":"d3cc88db-25d9-464a-aee4-696587e1f079",…
+Nov 07 14:20:05 vlxsam99 npm[1457436]: 2:20:05 PM [express] GET /api/assets/tags/unique 304 in 13ms :: ["Ellevo"]
+Nov 07 14:20:05 vlxsam99 npm[1457436]: 2:20:05 PM [express] GET /api/assets 304 in 18ms :: [{"id":"b1bb6ee2-6821-4852-99d6-479013fa49ad","t…
+Nov 07 14:20:05 vlxsam99 npm[1457436]: 2:20:05 PM [express] GET /api/assets/by-type/web_application 304 in 18ms :: []
+Nov 07 14:20:05 vlxsam99 npm[1457436]: 2:20:05 PM [express] GET /api/credentials 304 in 18ms :: [{"id":"197b8060-8291-414f-9d80-76139f176bd…
+Nov 07 14:20:11 vlxsam99 npm[1457436]: 🔍 [DEBUG] PATCH /api/journeys/:id - credentials from body: [
+Nov 07 14:20:11 vlxsam99 npm[1457436]:   {
+Nov 07 14:20:11 vlxsam99 npm[1457436]:     "credentialId": "197b8060-8291-414f-9d80-76139f176bd2",
+Nov 07 14:20:11 vlxsam99 npm[1457436]:     "protocol": "wmi"
+Nov 07 14:20:11 vlxsam99 npm[1457436]:   }
+Nov 07 14:20:11 vlxsam99 npm[1457436]: ]
+Nov 07 14:20:11 vlxsam99 npm[1457436]: ✅ [DEBUG] Updating credentials for journey d3cc88db-25d9-464a-aee4-696587e1f079
+Nov 07 14:20:11 vlxsam99 npm[1457436]:   → Deleted existing credentials
+Nov 07 14:20:11 vlxsam99 npm[1457436]:   → Creating 1 new credentials
+Nov 07 14:20:11 vlxsam99 npm[1457436]:     • Saving: {
+Nov 07 14:20:11 vlxsam99 npm[1457436]:   journeyId: 'd3cc88db-25d9-464a-aee4-696587e1f079',
+Nov 07 14:20:11 vlxsam99 npm[1457436]:   credentialId: '197b8060-8291-414f-9d80-76139f176bd2',
+Nov 07 14:20:11 vlxsam99 npm[1457436]:   protocol: 'wmi',
+Nov 07 14:20:11 vlxsam99 npm[1457436]:   priority: 0
+Nov 07 14:20:11 vlxsam99 npm[1457436]: }
+Nov 07 14:20:11 vlxsam99 npm[1457436]: ✅ [DEBUG] Successfully saved 1 credentials
+Nov 07 14:20:11 vlxsam99 npm[1457436]: 2:20:11 PM [express] PATCH /api/journeys/d3cc88db-25d9-464a-aee4-696587e1f079 200 in 20ms :: {"id":"…
+Nov 07 14:20:11 vlxsam99 npm[1457436]: 2:20:11 PM [express] GET /api/journeys 200 in 11ms :: [{"id":"d3cc88db-25d9-464a-aee4-696587e1f079",…
+Nov 07 14:20:11 vlxsam99 npm[1457436]: 2:20:11 PM [express] GET /api/journeys 304 in 9ms :: [{"id":"d3cc88db-25d9-464a-aee4-696587e1f079","…
+Nov 07 14:25:17 vlxsam99 npm[1457436]: 2:25:17 PM [express] GET /api/auth/user 304 in 8ms :: {"id":"da6c7d53-77fa-43f8-9567-535784fc8ae3","…
+Nov 07 14:25:17 vlxsam99 npm[1457436]: 2:25:17 PM [express] GET /api/journeys 304 in 12ms :: [{"id":"d3cc88db-25d9-464a-aee4-696587e1f079",…
+Nov 07 14:25:17 vlxsam99 npm[1457436]: 2:25:17 PM [express] GET /api/threats 304 in 23ms :: []
+Nov 07 14:25:18 vlxsam99 npm[1457436]: 2:25:18 PM [express] GET /api/journeys 304 in 11ms :: [{"id":"d3cc88db-25d9-464a-aee4-696587e1f079",…
+Nov 07 14:25:18 vlxsam99 npm[1457436]: 2:25:18 PM [express] GET /api/assets/tags/unique 304 in 11ms :: ["Ellevo"]
+Nov 07 14:25:18 vlxsam99 npm[1457436]: 2:25:18 PM [express] GET /api/assets/by-type/web_application 304 in 9ms :: []
+Nov 07 14:25:18 vlxsam99 npm[1457436]: 2:25:18 PM [express] GET /api/assets 304 in 26ms :: [{"id":"b1bb6ee2-6821-4852-99d6-479013fa49ad","t…
+Nov 07 14:25:18 vlxsam99 npm[1457436]: 2:25:18 PM [express] GET /api/credentials 304 in 25ms :: [{"id":"197b8060-8291-414f-9d80-76139f176bd…

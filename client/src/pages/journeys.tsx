@@ -41,7 +41,7 @@ export default function Journeys() {
   });
 
   const { data: journeyCredentials = [], isLoading: isLoadingCredentials } = useQuery<Array<{id: string; journeyId: string; credentialId: string; protocol: string; priority: number}>>({
-    queryKey: ["/api/journeys", editingJourney?.id, "credentials"],
+    queryKey: [`/api/journeys/${editingJourney?.id}/credentials`],
     enabled: !!editingJourney,
   });
 
