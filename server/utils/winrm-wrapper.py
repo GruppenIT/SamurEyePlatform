@@ -10,7 +10,7 @@ import os
 import argparse
 from winrm.protocol import Protocol
 
-def execute_winrm_command(host, username, password, script, timeout=30):
+def execute_winrm_command(host, username, password, script, timeout=30, port=5985):
     """
     Execute PowerShell command via WinRM
     
@@ -20,6 +20,7 @@ def execute_winrm_command(host, username, password, script, timeout=30):
         password: User password
         script: PowerShell script to execute
         timeout: Command timeout in seconds
+        port: WinRM port (default: 5985 for HTTP, 5986 for HTTPS)
         
     Returns:
         dict: {
@@ -32,7 +33,8 @@ def execute_winrm_command(host, username, password, script, timeout=30):
     try:
         # Create WinRM protocol instance
         # read_timeout_sec must be greater than operation_timeout_sec
-        endpoint = f'http://{host}:5985/wsman'
+        protocol_scheme = 'https' if port == 5986 else 'http'
+        endpoint = f'{protocol_scheme}://{host}:{port}/wsman'
         protocol = Protocol(
             endpoint=endpoint,
             transport='ntlm',
@@ -67,11 +69,12 @@ def execute_winrm_command(host, username, password, script, timeout=30):
         }
         
     except Exception as e:
+        error_msg = str(e)
         return {
             "stdout": "",
-            "stderr": "",
+            "stderr": f"WinRM connection/execution failed: {error_msg}",
             "exitCode": 1,
-            "error": str(e)
+            "error": error_msg
         }
 
 def main():
@@ -80,6 +83,7 @@ def main():
     parser.add_argument('--username', required=True, help='Username with domain')
     parser.add_argument('--script', required=True, help='PowerShell script')
     parser.add_argument('--timeout', type=int, default=30, help='Timeout in seconds')
+    parser.add_argument('--port', type=int, default=5985, help='WinRM port (5985=HTTP, 5986=HTTPS)')
     parser.add_argument('--password-stdin', action='store_true', help='Read password from stdin')
     
     args = parser.parse_args()
@@ -106,7 +110,8 @@ def main():
         username=args.username,
         password=password,
         script=args.script,
-        timeout=args.timeout
+        timeout=args.timeout,
+        port=args.port
     )
     
     # Output JSON result

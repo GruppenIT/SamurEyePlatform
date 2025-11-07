@@ -234,6 +234,11 @@ export class WMICollector implements IHostCollector {
         username = `${credential.domain}\\${username}`;
       }
 
+      // WinRM port (default: 5985 HTTP, 5986 HTTPS)
+      const winrmPort = credential.port && (credential.port === 5985 || credential.port === 5986) 
+        ? credential.port 
+        : 5985;
+
       // Log command details
       const cmdArgs = [
         wrapperPath,
@@ -241,10 +246,11 @@ export class WMICollector implements IHostCollector {
         '--username', username,
         '--script', script,
         '--timeout', '30',
+        '--port', String(winrmPort),
         '--password-stdin'
       ];
       log(`[WMICollector] Executing: ${pythonBin} ${cmdArgs.join(' ').replace(password, '[REDACTED]')}`);
-      log(`[WMICollector] Credential: username="${username}", domain="${credential.domain || '(empty)'}", port=${credential.port || 5985}`);
+      log(`[WMICollector] Credential: username="${username}", domain="${credential.domain || '(empty)'}", winrm_port=${winrmPort}`);
 
       // Execute wrapper
       const winrm = spawn(pythonBin, cmdArgs);
