@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import type { Credential } from "@shared/schema";
 import type { IHostCollector, EnrichmentData } from "../hostEnricher";
 import { log } from "../../vite";
+import { encryptionService } from "../encryption";
 
 /**
  * WMI Collector for Windows hosts
@@ -216,8 +217,7 @@ export class WMICollector implements IHostCollector {
       // Decrypt credential password
       let password: string;
       try {
-        const { decryptCredentialPassword } = require('../credentialService');
-        password = decryptCredentialPassword(credential);
+        password = encryptionService.decryptCredential(credential.secretEncrypted, credential.dekEncrypted);
       } catch (error) {
         log(`[WMICollector] Failed to decrypt password: ${error}`, "error");
         return resolve({

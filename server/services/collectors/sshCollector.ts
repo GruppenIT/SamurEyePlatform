@@ -2,6 +2,7 @@ import { Client } from 'ssh2';
 import type { Credential } from "@shared/schema";
 import type { IHostCollector, EnrichmentData } from "../hostEnricher";
 import { log } from "../../vite";
+import { encryptionService } from "../encryption";
 
 /**
  * SSH Collector for Linux/Unix hosts
@@ -194,8 +195,7 @@ export class SSHCollector implements IHostCollector {
       // Decrypt password
       let password: string;
       try {
-        const { decryptCredentialPassword } = require('../credentialService');
-        password = decryptCredentialPassword(credential);
+        password = encryptionService.decryptCredential(credential.secretEncrypted, credential.dekEncrypted);
       } catch (error) {
         log(`[SSHCollector] Failed to decrypt password: ${error}`, "error");
         return resolve({
