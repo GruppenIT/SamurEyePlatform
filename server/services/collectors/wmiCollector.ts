@@ -234,15 +234,20 @@ export class WMICollector implements IHostCollector {
         username = `${credential.domain}\\${username}`;
       }
 
-      // Execute wrapper
-      const winrm = spawn(pythonBin, [
+      // Log command details
+      const cmdArgs = [
         wrapperPath,
         '--host', host,
         '--username', username,
         '--script', script,
         '--timeout', '30',
         '--password-stdin'
-      ]);
+      ];
+      log(`[WMICollector] Executing: ${pythonBin} ${cmdArgs.join(' ').replace(password, '[REDACTED]')}`);
+      log(`[WMICollector] Credential: username="${username}", domain="${credential.domain || '(empty)'}", port=${credential.port || 5985}`);
+
+      // Execute wrapper
+      const winrm = spawn(pythonBin, cmdArgs);
 
       // Error handler
       winrm.on('error', (error) => {
@@ -275,21 +280,24 @@ export class WMICollector implements IHostCollector {
       });
 
       winrm.on('close', (code) => {
-        if (testName) {
-          log(`[WMICollector] PowerShell [${testName}]: exitCode=${code}`);
-        }
-
         // Parse JSON response from wrapper
         try {
           if (stdout.trim()) {
             const parsed = JSON.parse(stdout);
+            const success = parsed.exitCode === 0;
+            
+            if (testName) {
+              log(`[WMICollector] PowerShell [${testName}]: exitCode=${parsed.exitCode}${!success ? ` (stderr: ${parsed.stderr?.substring(0, 100)})` : ''}`);
+            }
+            
             resolve({
-              success: parsed.exitCode === 0,
+              success,
               stdout: parsed.stdout || '',
               stderr: parsed.stderr || parsed.error || '',
               exitCode: parsed.exitCode || 0,
             });
           } else {
+            log(`[WMICollector] No JSON output from wrapper. Python exitCode=${code}, stderr=${stderr.substring(0, 200)}`, "error");
             resolve({
               success: false,
               stdout: '',
@@ -298,6 +306,7 @@ export class WMICollector implements IHostCollector {
             });
           }
         } catch (e) {
+          log(`[WMICollector] Failed to parse wrapper JSON. stdout=${stdout.substring(0, 200)}, stderr=${stderr.substring(0, 200)}`, "error");
           resolve({
             success: false,
             stdout: stdout,
