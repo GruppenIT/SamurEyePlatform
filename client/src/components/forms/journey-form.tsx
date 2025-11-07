@@ -83,20 +83,6 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
   const watchedType = form.watch('type');
   const isHydrated = useRef(false);
 
-  // Hydrate authentication state when initialData changes (e.g., when editing journey)
-  useEffect(() => {
-    if (initialData?.credentials && initialData.credentials.length > 0 && !isHydrated.current) {
-      setSelectedCredentials(initialData.credentials);
-      setEnableAuthentication(true);
-      isHydrated.current = true;
-    }
-    
-    // Cleanup: Reset hydration flag when component unmounts
-    return () => {
-      isHydrated.current = false;
-    };
-  }, [initialData]);
-
   // Fetch assets and credentials for form options
   const { data: assets = [] } = useQuery<Asset[]>({
     queryKey: ["/api/assets"],
@@ -109,6 +95,34 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
   const { data: credentials = [], isLoading: isLoadingCredentials } = useQuery<Credential[]>({
     queryKey: ["/api/credentials"],
   });
+
+  // Hydrate authentication state when initialData changes (e.g., when editing journey)
+  useEffect(() => {
+    console.group('🔍 [DEBUG] JourneyForm Hydration');
+    console.log('1. initialData received:', JSON.stringify(initialData, null, 2));
+    console.log('2. isHydrated.current:', isHydrated.current);
+    console.log('3. credentials from query:', credentials.map(c => ({ id: c.id, name: c.name, type: c.type })));
+    console.log('4. isLoadingCredentials:', isLoadingCredentials);
+    
+    if (initialData?.credentials && initialData.credentials.length > 0 && !isHydrated.current) {
+      console.log('✅ HYDRATING selectedCredentials with:', initialData.credentials);
+      setSelectedCredentials(initialData.credentials);
+      setEnableAuthentication(true);
+      isHydrated.current = true;
+    } else {
+      console.log('❌ NOT HYDRATING. Reasons:', {
+        hasCredentials: !!initialData?.credentials,
+        credentialsLength: initialData?.credentials?.length || 0,
+        isAlreadyHydrated: isHydrated.current
+      });
+    }
+    console.groupEnd();
+    
+    // Cleanup: Reset hydration flag when component unmounts
+    return () => {
+      isHydrated.current = false;
+    };
+  }, [initialData, credentials, isLoadingCredentials]);
 
   const handleAssetSelection = (assetId: string, checked: boolean) => {
     if (checked) {
@@ -397,7 +411,21 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                       </div>
                     )}
 
-                    {!isLoadingCredentials && selectedCredentials.map((cred, index) => (
+                    {!isLoadingCredentials && selectedCredentials.map((cred, index) => {
+                      const filteredCredentials = credentials.filter(c => 
+                        (cred.protocol === 'wmi' && c.type === 'wmi') ||
+                        (cred.protocol === 'ssh' && c.type === 'ssh')
+                      );
+                      
+                      console.log(`🔍 [DEBUG] Credential ${index}:`, {
+                        protocol: cred.protocol,
+                        credentialId: cred.credentialId,
+                        priority: cred.priority,
+                        availableOptions: filteredCredentials.map(c => ({ id: c.id, name: c.name })),
+                        matchFound: filteredCredentials.some(c => c.id === cred.credentialId)
+                      });
+                      
+                      return (
                       <div key={index} className="flex gap-3 items-start border rounded-md p-3 bg-muted/10">
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
                           <div className="space-y-2">
@@ -405,6 +433,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                             <Select
                               value={cred.protocol}
                               onValueChange={(value: 'wmi' | 'ssh' | 'snmp') => {
+                                console.log(`📝 Protocol changed to: ${value}`);
                                 setSelectedCredentials(prev => {
                                   const updated = [...prev];
                                   updated[index].protocol = value;
@@ -427,6 +456,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                             <Select
                               value={cred.credentialId}
                               onValueChange={(value) => {
+                                console.log(`📝 Credential changed to: ${value}`);
                                 setSelectedCredentials(prev => {
                                   const updated = [...prev];
                                   updated[index].credentialId = value;
@@ -438,16 +468,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                                 <SelectValue placeholder="Selecione..." />
                               </SelectTrigger>
                               <SelectContent>
-                                {credentials
-                                  .filter(c => 
-                                    (cred.protocol === 'wmi' && c.type === 'wmi') ||
-                                    (cred.protocol === 'ssh' && c.type === 'ssh')
-                                  )
-                                  .map((credential) => (
-                                    <SelectItem key={credential.id} value={credential.id}>
-                                      {credential.name}
-                                    </SelectItem>
-                                  ))}
+                                {filteredCredentials.map((credential) => (
+                                  <SelectItem key={credential.id} value={credential.id}>
+                                    {credential.name}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </div>
@@ -485,7 +510,8 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                           ✕
                         </Button>
                       </div>
-                    ))}
+                    );
+                    })}
 
                     {selectedCredentials.length > 0 && (
                       <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/20 rounded-md p-2 border border-blue-200 dark:border-blue-900">

@@ -425,28 +425,38 @@ export default function Journeys() {
               <div className="text-muted-foreground">Carregando credenciais...</div>
             </div>
           )}
-          {editingJourney && !isLoadingCredentials && (
-            <JourneyForm
-              key={editingJourney.id}
-              onSubmit={handleUpdateJourney}
-              onCancel={() => setEditingJourney(null)}
-              isLoading={updateJourneyMutation.isPending}
-              initialData={{
-                name: editingJourney.name,
-                type: editingJourney.type,
-                description: editingJourney.description || '',
-                params: editingJourney.params,
-                targetSelectionMode: editingJourney.targetSelectionMode || 'individual',
-                selectedTags: editingJourney.selectedTags || [],
-                enableCveDetection: editingJourney.enableCveDetection,
-                credentials: journeyCredentials.map(jc => ({
-                  credentialId: jc.credentialId,
-                  protocol: jc.protocol as 'wmi' | 'ssh' | 'snmp',
-                  priority: jc.priority
-                }))
-              }}
-            />
-          )}
+          {editingJourney && !isLoadingCredentials && (() => {
+            const initialDataPayload = {
+              name: editingJourney.name,
+              type: editingJourney.type,
+              description: editingJourney.description || '',
+              params: editingJourney.params,
+              targetSelectionMode: editingJourney.targetSelectionMode || 'individual',
+              selectedTags: editingJourney.selectedTags || [],
+              enableCveDetection: editingJourney.enableCveDetection,
+              credentials: journeyCredentials.map(jc => ({
+                credentialId: jc.credentialId,
+                protocol: jc.protocol as 'wmi' | 'ssh' | 'snmp',
+                priority: jc.priority
+              }))
+            };
+            
+            console.group('🔍 [DEBUG] Journeys.tsx - Edit Journey');
+            console.log('1. editingJourney:', editingJourney);
+            console.log('2. journeyCredentials from query:', journeyCredentials);
+            console.log('3. initialData being passed to JourneyForm:', initialDataPayload);
+            console.groupEnd();
+            
+            return (
+              <JourneyForm
+                key={editingJourney.id}
+                onSubmit={handleUpdateJourney}
+                onCancel={() => setEditingJourney(null)}
+                isLoading={updateJourneyMutation.isPending}
+                initialData={initialDataPayload}
+              />
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>
