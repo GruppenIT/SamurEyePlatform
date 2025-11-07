@@ -40,6 +40,11 @@ export default function Journeys() {
     queryKey: ["/api/journeys"],
   });
 
+  const { data: journeyCredentials = [] } = useQuery<Array<{id: string; journeyId: string; credentialId: string; protocol: string; priority: number}>>({
+    queryKey: ["/api/journeys", editingJourney?.id, "credentials"],
+    enabled: !!editingJourney,
+  });
+
   const createJourneyMutation = useMutation({
     mutationFn: async (data: JourneyFormData) => {
       return await apiRequest('POST', '/api/journeys', data);
@@ -428,6 +433,11 @@ export default function Journeys() {
                 targetSelectionMode: editingJourney.targetSelectionMode || 'individual',
                 selectedTags: editingJourney.selectedTags || [],
                 enableCveDetection: editingJourney.enableCveDetection,
+                credentials: journeyCredentials.map(jc => ({
+                  credentialId: jc.credentialId,
+                  protocol: jc.protocol as 'wmi' | 'ssh' | 'snmp',
+                  priority: jc.priority
+                }))
               }}
             />
           )}
