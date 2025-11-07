@@ -40,7 +40,7 @@ export default function Journeys() {
     queryKey: ["/api/journeys"],
   });
 
-  const { data: journeyCredentials = [] } = useQuery<Array<{id: string; journeyId: string; credentialId: string; protocol: string; priority: number}>>({
+  const { data: journeyCredentials = [], isLoading: isLoadingCredentials } = useQuery<Array<{id: string; journeyId: string; credentialId: string; protocol: string; priority: number}>>({
     queryKey: ["/api/journeys", editingJourney?.id, "credentials"],
     enabled: !!editingJourney,
   });
@@ -420,7 +420,12 @@ export default function Journeys() {
           <DialogHeader>
             <DialogTitle>Editar Jornada</DialogTitle>
           </DialogHeader>
-          {editingJourney && (
+          {editingJourney && isLoadingCredentials && (
+            <div className="flex items-center justify-center p-8">
+              <div className="text-muted-foreground">Carregando credenciais...</div>
+            </div>
+          )}
+          {editingJourney && !isLoadingCredentials && (
             <JourneyForm
               onSubmit={handleUpdateJourney}
               onCancel={() => setEditingJourney(null)}

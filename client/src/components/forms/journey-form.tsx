@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -81,14 +81,16 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
   });
 
   const watchedType = form.watch('type');
+  const isHydrated = useRef(false);
 
   // Hydrate authentication state when initialData changes (e.g., when editing journey)
   useEffect(() => {
-    if (initialData?.credentials && initialData.credentials.length > 0) {
+    if (initialData?.credentials && initialData.credentials.length > 0 && !isHydrated.current) {
       setSelectedCredentials(initialData.credentials);
       setEnableAuthentication(true);
+      isHydrated.current = true;
     }
-  }, [initialData?.credentials]);
+  }, [initialData]);
 
   // Fetch assets and credentials for form options
   const { data: assets = [] } = useQuery<Asset[]>({
