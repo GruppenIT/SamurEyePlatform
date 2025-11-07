@@ -106,7 +106,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
     queryKey: ["/api/assets/by-type/web_application"],
   });
 
-  const { data: credentials = [] } = useQuery<Credential[]>({
+  const { data: credentials = [], isLoading: isLoadingCredentials } = useQuery<Credential[]>({
     queryKey: ["/api/credentials"],
   });
 
@@ -391,7 +391,13 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                       </div>
                     )}
 
-                    {selectedCredentials.map((cred, index) => (
+                    {isLoadingCredentials && selectedCredentials.length > 0 && (
+                      <div className="text-sm text-muted-foreground text-center py-4">
+                        Carregando opções de credenciais...
+                      </div>
+                    )}
+
+                    {!isLoadingCredentials && selectedCredentials.map((cred, index) => (
                       <div key={index} className="flex gap-3 items-start border rounded-md p-3 bg-muted/10">
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
                           <div className="space-y-2">
@@ -407,7 +413,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                               }}
                             >
                               <SelectTrigger data-testid={`select-protocol-${index}`}>
-                                <SelectValue />
+                                <SelectValue placeholder="Selecione..." />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="wmi">WMI (Windows)</SelectItem>
