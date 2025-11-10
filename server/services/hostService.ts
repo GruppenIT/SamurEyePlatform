@@ -330,8 +330,14 @@ class HostService {
       const host = await storage.findHostByTarget(target);
       return host ? [host] : [];
     } else {
-      // Search by name
-      const host = await storage.getHostByName(target.toLowerCase());
+      // Search by name first
+      let host = await storage.getHostByName(target.toLowerCase());
+      
+      // If not found by name, search in aliases (for renamed hosts)
+      if (!host) {
+        host = await storage.findHostByTarget(target.toLowerCase());
+      }
+      
       return host ? [host] : [];
     }
   }

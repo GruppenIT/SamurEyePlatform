@@ -218,9 +218,21 @@ export class HostEnricher {
         try {
           const hosts = await storage.getHosts();
           const host = hosts.find(h => h.id === hostId);
-          if (host && host.name !== result.data.hostname) {
-            log(`[HostEnricher] Updating hostname: ${host.name} → ${result.data.hostname}`);
-            await storage.updateHost(hostId, { name: result.data.hostname });
+          if (host && host.name !== result.data.hostname.toLowerCase()) {
+            const oldName = host.name;
+            const newName = result.data.hostname.toLowerCase();
+            
+            // Add old name to aliases to preserve DNS reverse lookup name
+            const existingAliases = host.aliases || [];
+            const newAliases = existingAliases.includes(oldName) 
+              ? existingAliases 
+              : [...existingAliases, oldName];
+            
+            log(`[HostEnricher] Updating hostname: ${oldName} → ${newName} (old name preserved as alias)`);
+            await storage.updateHost(hostId, { 
+              name: newName,
+              aliases: newAliases 
+            });
           }
         } catch (err) {
           log(`[HostEnricher] Failed to update hostname: ${err}`, "warn");
