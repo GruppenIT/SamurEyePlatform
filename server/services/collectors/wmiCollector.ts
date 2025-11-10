@@ -173,14 +173,37 @@ export class WMICollector implements IHostCollector {
       }
     }
 
-    // 4. Get running services
+    // 4. Get all services with detailed information including delayed start
     const servicesScript = `
-      Get-Service | Where-Object { $_.Status -eq 'Running' } | Select-Object Name,DisplayName | ConvertTo-Json -Compress
+      Get-CimInstance -ClassName Win32_Service | ForEach-Object {
+        $svc = $_
+        $delayedStart = $false
+        
+        # Check for delayed auto-start (only for Auto services)
+        if ($svc.StartMode -eq 'Auto') {
+          try {
+            $regPath = "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\$($svc.Name)"
+            $delayedAutostart = Get-ItemProperty -Path $regPath -Name DelayedAutostart -ErrorAction SilentlyContinue
+            if ($delayedAutostart.DelayedAutostart -eq 1) {
+              $delayedStart = $true
+            }
+          } catch {}
+        }
+        
+        @{
+          Name = $svc.Name
+          DisplayName = $svc.DisplayName
+          StartMode = $svc.StartMode
+          State = $svc.State
+          Description = $svc.Description
+          DelayedStart = $delayedStart
+        }
+      } | ConvertTo-Json -Compress
     `;
 
-    const servicesResult = await this.executePowerShell(host, credential, servicesScript, 'Get-Service');
+    const servicesResult = await this.executePowerShell(host, credential, servicesScript, 'Get-CimInstance Win32_Service with DelayedStart');
     commandsExecuted.push({
-      command: 'Get-Service',
+      command: 'Get-CimInstance Win32_Service with DelayedStart detection',
       stdout: servicesResult.stdout,
       stderr: servicesResult.stderr,
       exitCode: servicesResult.exitCode,
@@ -189,17 +212,35 @@ export class WMICollector implements IHostCollector {
     if (servicesResult.success && servicesResult.stdout) {
       try {
         const services = JSON.parse(servicesResult.stdout);
-        data.services = Array.isArray(services) ? services.map((svc: any) => ({
-          name: svc.Name || '',
-          version: undefined,
-          port: undefined,
-        })) : (services.Name ? [{
-          name: services.Name,
-          version: undefined,
-          port: undefined,
+        data.services = Array.isArray(services) ? services.map((svc: any) => {
+          // Translate Windows StartMode to Portuguese with delayed start detection
+          let startType = 'Manual';
+          if (svc.StartMode === 'Auto') {
+            startType = svc.DelayedStart ? 'Automático com delay' : 'Automático';
+          } else if (svc.StartMode === 'Manual') {
+            startType = 'Manual';
+          } else if (svc.StartMode === 'Disabled') {
+            startType = 'Desabilitado';
+          }
+          
+          return {
+            name: svc.Name || '',
+            displayName: svc.DisplayName || '',
+            startType,
+            status: svc.State || '',
+            description: svc.Description || '',
+          };
+        }) : (services.Name ? [{
+          name: services.Name || '',
+          displayName: services.DisplayName || '',
+          startType: services.StartMode === 'Auto' 
+            ? (services.DelayedStart ? 'Automático com delay' : 'Automático')
+            : services.StartMode === 'Disabled' ? 'Desabilitado' : 'Manual',
+          status: services.State || '',
+          description: services.Description || '',
         }] : []);
         
-        log(`[WMICollector] Found ${data.services.length} running services`);
+        log(`[WMICollector] Found ${data.services.length} services`);
       } catch (e) {
         log(`[WMICollector] Failed to parse services: ${e}`, "warn");
       }

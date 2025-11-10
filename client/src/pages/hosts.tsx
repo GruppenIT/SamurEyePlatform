@@ -478,7 +478,7 @@ interface HostEnrichment {
   osBuild: string | null;
   installedApps: Array<{ name: string; version: string; vendor?: string }> | null;
   patches: string[] | null;
-  services: Array<{ name: string; version?: string; port?: number }> | null;
+  services: Array<{ name: string; displayName?: string; startType?: string; status?: string; description?: string }> | null;
   collectedAt: string;
   errorMessage: string | null;
 }
@@ -612,16 +612,36 @@ function HostEnrichmentTabs({ hostId }: { hostId: string }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs">Nome</TableHead>
-                    <TableHead className="text-xs">Versão</TableHead>
-                    <TableHead className="text-xs">Porta</TableHead>
+                    <TableHead className="text-xs">Inicialização</TableHead>
+                    <TableHead className="text-xs">Status</TableHead>
+                    <TableHead className="text-xs">Descrição</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {enrichment.services.map((service, idx) => (
                     <TableRow key={idx}>
-                      <TableCell className="text-xs font-medium">{service.name}</TableCell>
-                      <TableCell className="text-xs font-mono">{service.version || '—'}</TableCell>
-                      <TableCell className="text-xs">{service.port || '—'}</TableCell>
+                      <TableCell className="text-xs font-medium" data-testid={`text-service-name-${idx}`}>
+                        {service.displayName || service.name}
+                      </TableCell>
+                      <TableCell className="text-xs" data-testid={`text-service-starttype-${idx}`}>
+                        {service.startType || '—'}
+                      </TableCell>
+                      <TableCell className="text-xs" data-testid={`text-service-status-${idx}`}>
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            service.status === 'Running' ? 'bg-green-500/10 text-green-600 border-green-500/30' :
+                            service.status === 'Stopped' ? 'bg-gray-500/10 text-gray-600 border-gray-500/30' :
+                            service.status === 'Failed' ? 'bg-red-500/10 text-red-600 border-red-500/30' :
+                            ''
+                          }
+                        >
+                          {service.status || '—'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground max-w-xs truncate" data-testid={`text-service-description-${idx}`}>
+                        {service.description || '—'}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

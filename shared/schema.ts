@@ -231,7 +231,7 @@ export const hostEnrichments = pgTable("host_enrichments", {
   osBuild: text("os_build"), // OS build number for precise matching
   installedApps: jsonb("installed_apps").$type<Array<{name: string; version: string; vendor?: string}>>(), // Applications detected
   patches: jsonb("patches").$type<string[]>(), // Installed patches/KBs (Windows: KB numbers, Linux: package versions)
-  services: jsonb("services").$type<Array<{name: string; version?: string; port?: number}>>(), // Running services
+  services: jsonb("services").$type<Array<{name: string; displayName?: string; startType?: string; status?: string; description?: string}>>(), // Detected services with startup config and status
   
   // Audit trail - commands executed
   commandsExecuted: jsonb("commands_executed").$type<Array<{

@@ -107,7 +107,7 @@ export class SSHCollector implements IHostCollector {
       }
 
       // Get patches (dpkg list with dates) - store package names as "patches"
-      data.patches = data.installedApps.map(app => `${app.name}:${app.version}`);
+      data.patches = data.installedApps?.map(app => `${app.name}:${app.version}`) || [];
 
     } else if (packageManager === 'rpm') {
       // RHEL/CentOS/Fedora
@@ -139,34 +139,103 @@ export class SSHCollector implements IHostCollector {
       }
 
       // Get patches - store package names as "patches"
-      data.patches = data.installedApps.map(app => `${app.name}:${app.version}`);
+      data.patches = data.installedApps?.map(app => `${app.name}:${app.version}`) || [];
     } else {
       log(`[SSHCollector] Unsupported or unknown package manager: ${packageManager}`, "warn");
     }
 
-    // 3. Get running services (systemctl for systemd-based systems)
+    // 3. Get all services with detailed information (systemctl for systemd-based systems)
+    // First, get list of services with their status
     const servicesResult = await this.executeSSH(
       host,
       credential,
-      'systemctl list-units --type=service --state=running --no-legend --no-pager | awk \'{print $1}\'',
-      'Get Running Services'
+      'systemctl list-units --all --type=service --no-pager --no-legend --plain --full',
+      'Get All Services'
     );
     commandsExecuted.push({
-      command: 'systemctl list-units --type=service --state=running',
+      command: 'systemctl list-units --all --type=service',
       stdout: servicesResult.stdout,
       stderr: servicesResult.stderr,
       exitCode: servicesResult.exitCode,
     });
 
     if (servicesResult.success && servicesResult.stdout) {
-      const serviceNames = servicesResult.stdout.trim().split('\n').filter(s => s.trim());
-      data.services = serviceNames.map(name => ({
-        name: name.replace('.service', ''),
-        version: undefined,
-        port: undefined,
-      }));
+      const lines = servicesResult.stdout.trim().split('\n').filter(s => s.trim());
+      const serviceUnits: string[] = [];
       
-      log(`[SSHCollector] Found ${data.services.length} running services`);
+      // Parse systemctl output: UNIT LOAD ACTIVE SUB DESCRIPTION
+      const parsedServices = lines.map(line => {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length < 5) return null;
+        
+        const unit = parts[0]; // e.g., "cron.service"
+        const loadState = parts[1]; // e.g., "loaded"
+        const activeState = parts[2]; // e.g., "active"
+        const subState = parts[3]; // e.g., "running"
+        const description = parts.slice(4).join(' '); // e.g., "Regular background program processing daemon"
+        
+        const name = unit.replace('.service', '');
+        serviceUnits.push(unit); // Keep full unit name for systemctl is-enabled
+        
+        // Map systemd active state to status
+        const status = activeState === 'active' ? 'Running' : 
+                       activeState === 'inactive' ? 'Stopped' : 
+                       activeState === 'failed' ? 'Failed' : 
+                       activeState || 'Unknown';
+        
+        return {
+          name,
+          displayName: description || name,
+          loadState,
+          activeState,
+          status,
+          description: description || '',
+        };
+      }).filter(svc => svc !== null);
+      
+      // Get enablement status for all services (this determines startType)
+      const enabledResult = await this.executeSSH(
+        host,
+        credential,
+        `systemctl is-enabled ${serviceUnits.join(' ')} 2>/dev/null || true`,
+        'Get Service Enablement'
+      );
+      commandsExecuted.push({
+        command: 'systemctl is-enabled (batch)',
+        stdout: enabledResult.stdout,
+        stderr: enabledResult.stderr,
+        exitCode: enabledResult.exitCode,
+      });
+      
+      // Parse enablement results (one per line, in same order as serviceUnits)
+      const enabledStates = enabledResult.success && enabledResult.stdout 
+        ? enabledResult.stdout.trim().split('\n')
+        : [];
+      
+      // Combine service data with enablement status
+      data.services = parsedServices.map((svc, idx) => {
+        const enabledState = enabledStates[idx]?.trim() || 'unknown';
+        
+        // Map systemd enablement to startup type
+        let startType = 'Manual';
+        if (enabledState === 'enabled' || enabledState === 'static' || enabledState === 'indirect') {
+          startType = 'Automático';
+        } else if (enabledState === 'disabled') {
+          startType = 'Desabilitado';
+        } else if (enabledState === 'masked') {
+          startType = 'Desabilitado';
+        }
+        
+        return {
+          name: svc.name,
+          displayName: svc.displayName,
+          startType,
+          status: svc.status,
+          description: svc.description,
+        };
+      });
+      
+      log(`[SSHCollector] Found ${data.services.length} services`);
     }
 
     return { data, commandsExecuted };
