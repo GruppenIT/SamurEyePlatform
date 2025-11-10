@@ -228,14 +228,18 @@ export class HostEnricher {
               ? existingAliases 
               : [...existingAliases, oldName];
             
-            log(`[HostEnricher] Updating hostname: ${oldName} → ${newName} (old name preserved as alias)`);
+            log(`🔄 [HostEnricher] Updating hostname: ${oldName} → ${newName} (old name preserved as alias)`);
+            log(`🔄 [HostEnricher] Aliases after update: ${newAliases.join(', ')}`);
             await storage.updateHost(hostId, { 
               name: newName,
               aliases: newAliases 
             });
+            log(`✅ [HostEnricher] Hostname updated successfully`);
+          } else if (host) {
+            log(`ℹ️  [HostEnricher] Hostname unchanged: ${host.name}`);
           }
         } catch (err) {
-          log(`[HostEnricher] Failed to update hostname: ${err}`, "warn");
+          log(`❌ [HostEnricher] Failed to update hostname: ${err}`, "warn");
         }
       }
       

@@ -1350,10 +1350,19 @@ export class DatabaseStorage implements IStorage {
   async upsertHost(host: InsertHost): Promise<Host> {
     const normalizedName = host.name.toLowerCase();
     
+    console.log(`🔍 [UPSERT] Attempting upsert for host: ${normalizedName}, IPs: ${(host.ips || []).join(', ')}`);
+    
     // Try to find existing host by name first
-    const existingHost = await this.getHostByName(normalizedName);
+    let existingHost = await this.getHostByName(normalizedName);
+    
+    // If not found by name, try by IP (critical for renamed hosts after enrichment)
+    if (!existingHost && host.ips && host.ips.length > 0) {
+      console.log(`🔍 [UPSERT] Not found by name, searching by IP: ${host.ips[0]}`);
+      existingHost = await this.findHostByTarget(normalizedName, host.ips[0]);
+    }
     
     if (existingHost) {
+      console.log(`✅ [UPSERT] Found existing host: ${existingHost.name} (ID: ${existingHost.id}), updating...`);
       // Update existing host, merging IPs and aliases
       const mergedIps = Array.from(new Set([...(existingHost.ips || []), ...(host.ips || [])]));
       const mergedAliases = Array.from(new Set([...(existingHost.aliases || []), ...(host.aliases || [])]));
@@ -1371,8 +1380,10 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(hosts.id, existingHost.id))
         .returning();
+      console.log(`✅ [UPSERT] Host updated: ${updatedHost.name} (IPs: ${updatedHost.ips.join(', ')}, Aliases: ${(updatedHost.aliases || []).join(', ')})`);
       return updatedHost;
     } else {
+      console.log(`➕ [UPSERT] No existing host found, creating new: ${normalizedName}`);
       // Create new host
       const hostValues = {
         ...host,
@@ -1383,6 +1394,7 @@ export class DatabaseStorage implements IStorage {
         .insert(hosts)
         .values(hostValues)
         .returning();
+      console.log(`✅ [UPSERT] New host created: ${newHost.name} (ID: ${newHost.id})`);
       return newHost;
     }
   }
