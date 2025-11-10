@@ -46,7 +46,7 @@ WebSocket integration provides live updates for job progress, threat notificatio
 Vite handles the frontend build, while esbuild bundles the backend.
 
 **Core Features & Design Patterns:**
-- **Host Management**: Automated discovery, intelligent deduplication, and automatic threat linkage.
+- **Host Management**: Automated discovery, intelligent deduplication, and automatic threat linkage with hostname alias preservation to prevent duplicates when enrichment updates DNS names to real hostnames.
 - **Threat Lifecycle Management**: Cross-journey threat reactivation and duplicate prevention.
 - **Risk Scoring System**: Dual-metric (Risk Score 0-100, Raw Score) assessment with historical tracking, automatic recalculation, and API access for historical data.
 - **Asset Types**: Supports `host`, `range` (CIDR), and `web_application` assets.
@@ -69,6 +69,7 @@ Vite handles the frontend build, while esbuild bundles the backend.
     - **Retry logic**: Per-protocol grouping with exponential backoff (1s, 2s, 4s, 8s...) between failed attempts
     - **Stop-on-success**: First successful credential per protocol prevents unnecessary attempts and account lockouts
     - **Fail-safe**: Enrichment failures never block the scan pipeline; all attempts are logged for troubleshooting
+    - **Hostname Deduplication**: When enrichment detects real hostname (e.g., VMSDB18), it updates the host name and preserves the DNS reverse name (e.g., vmsapl18.gruppen.com.br) as an alias, preventing duplicate host creation during threat linking
   - **Journey Executor Phase 1.5**: 
     - Executes between Discovery (Phase 1) and CVE Detection (Phase 2)
     - Discovers/creates hosts in database before enrichment
