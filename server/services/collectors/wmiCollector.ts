@@ -50,6 +50,21 @@ export class WMICollector implements IHostCollector {
       services: [],
     };
 
+    // 0. Get real hostname from the machine
+    const hostnameScript = `$env:COMPUTERNAME`;
+    const hostnameResult = await this.executePowerShell(host, credential, hostnameScript, 'Get-Hostname');
+    commandsExecuted.push({
+      command: 'Get-Hostname',
+      stdout: hostnameResult.stdout,
+      stderr: hostnameResult.stderr,
+      exitCode: hostnameResult.exitCode,
+    });
+
+    if (hostnameResult.success && hostnameResult.stdout) {
+      data.hostname = hostnameResult.stdout.trim();
+      log(`[WMICollector] Real hostname detected: ${data.hostname}`);
+    }
+
     // 1. Get OS information (Get-ComputerInfo)
     const osScript = `
       $info = Get-ComputerInfo -Property WindowsProductName,WindowsVersion,WindowsBuildLabEx,OsHardwareAbstractionLayer

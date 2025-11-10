@@ -4,6 +4,7 @@ import { log } from "../vite";
 
 // Types for enrichment data collected from hosts
 export interface EnrichmentData {
+  hostname?: string; // Real hostname from the machine (not DNS)
   osVersion?: string;
   osBuild?: string;
   installedApps?: Array<{
@@ -93,13 +94,15 @@ export class HostEnricher {
     }
     
     // Sort each protocol's credentials by priority (ascending = higher priority first)
-    for (const [protocol, creds] of Array.from(credentialsByProtocol.entries())) {
+    const protocolEntries = Array.from(credentialsByProtocol.entries());
+    for (const [protocol, creds] of protocolEntries) {
       creds.sort((a, b) => a.priority - b.priority);
       credentialsByProtocol.set(protocol, creds);
     }
     
     // Try each protocol
-    for (const [protocol, credentials] of credentialsByProtocol) {
+    const protocolList = Array.from(credentialsByProtocol.entries());
+    for (const [protocol, credentials] of protocolList) {
       const collector = this.collectors.get(protocol);
       if (!collector) {
         log(`[HostEnricher] No collector registered for protocol: ${protocol}`, "warn");
@@ -208,6 +211,20 @@ export class HostEnricher {
           commandsExecuted: result.commandsExecuted || null,
           errorMessage: 'No data collected - authentication may have failed or commands returned empty',
         };
+      }
+      
+      // Update host with real hostname if detected
+      if (result.data.hostname) {
+        try {
+          const hosts = await storage.getHosts();
+          const host = hosts.find(h => h.id === hostId);
+          if (host && host.name !== result.data.hostname) {
+            log(`[HostEnricher] Updating hostname: ${host.name} → ${result.data.hostname}`);
+            await storage.updateHost(hostId, { name: result.data.hostname });
+          }
+        } catch (err) {
+          log(`[HostEnricher] Failed to update hostname: ${err}`, "warn");
+        }
       }
       
       // Success - create enrichment record with real data
