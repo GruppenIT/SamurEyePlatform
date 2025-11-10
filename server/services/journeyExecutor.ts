@@ -179,13 +179,17 @@ class JourneyExecutorService {
           
           console.log(`🔑 FASE 1.5: Enriquecimento de hosts com ${journeyCredentials.length} credenciais`);
           
-          // Group port results by host to get unique hosts
-          const uniqueHosts = new Map<string, string[]>();
+          // Group port results by IP to get unique hosts
+          // CRITICAL: Use IP address (not hostname) for WinRM/SSH connections
+          const uniqueHosts = new Map<string, string>();
           for (const result of portResults) {
             if (result.state === 'open') {
-              const target = result.target || asset.value;
-              if (!uniqueHosts.has(target)) {
-                uniqueHosts.set(target, []);
+              // Prefer IP over target (hostname)
+              const hostIp = result.ip || result.target || asset.value;
+              const hostTarget = result.target || result.ip || asset.value;
+              
+              if (!uniqueHosts.has(hostIp)) {
+                uniqueHosts.set(hostIp, hostTarget);
               }
             }
           }
@@ -193,25 +197,30 @@ class JourneyExecutorService {
           console.log(`🖥️  FASE 1.5: ${uniqueHosts.size} hosts únicos detectados para enriquecimento`);
           
           // Enrich each discovered host
-          for (const [hostIp] of Array.from(uniqueHosts.entries())) {
+          for (const [hostIp, hostTarget] of Array.from(uniqueHosts.entries())) {
             if (this.isJobCancelled(jobId)) {
               throw new Error('Job cancelado pelo usuário');
             }
             
             try {
               // First, discover/create the host to get hostId
-              const tempFindings = portResults.filter(r => (r.target || asset.value) === hostIp);
+              // Use target (hostname) for discovery, but IP for connection
+              const tempFindings = portResults.filter(r => {
+                const findingIp = r.ip || r.target || asset.value;
+                return findingIp === hostIp;
+              });
               const hosts = await hostService.discoverHostsFromFindings(tempFindings, jobId);
               
               if (hosts.length > 0) {
                 const hostId = hosts[0].id;
                 
-                console.log(`🔍 FASE 1.5: Tentando enriquecer host ${hostIp} (ID: ${hostId})`);
+                console.log(`🔍 FASE 1.5: Tentando enriquecer host ${hostTarget} usando IP ${hostIp} (ID: ${hostId})`);
                 
-                // Attempt enrichment with all credentials
+                // CRITICAL: Always use IP for WinRM/SSH connections (not hostname)
+                // This bypasses DNS/Kerberos issues
                 const enrichmentResult = await hostEnricher.enrichHost(
                   hostId,
-                  hostIp,
+                  hostIp, // Always use IP here
                   jobId,
                   journeyCredentials
                 );
@@ -1048,7 +1057,8 @@ class JourneyExecutorService {
     console.log(`🔍 Buscando CVEs para ${uniqueServices.size} serviços únicos...`);
     
     // Buscar CVEs para cada serviço único
-    for (const [key, data] of uniqueServices.entries()) {
+    const serviceEntries = Array.from(uniqueServices.entries());
+    for (const [key, data] of serviceEntries) {
       // Verificar se job foi cancelado
       if (jobId && this.isJobCancelled(jobId)) {
         console.log(`🚫 Job ${jobId} cancelado durante busca de CVEs`);
@@ -1082,7 +1092,8 @@ class JourneyExecutorService {
         
         // Aggregate total unique CVEs found
         const allCVEs = new Set<string>();
-        for (const cves of targetCVEs.values()) {
+        const targetCVEValues = Array.from(targetCVEs.values());
+        for (const cves of targetCVEValues) {
           for (const cve of cves) {
             allCVEs.add(cve.cveId);
           }
