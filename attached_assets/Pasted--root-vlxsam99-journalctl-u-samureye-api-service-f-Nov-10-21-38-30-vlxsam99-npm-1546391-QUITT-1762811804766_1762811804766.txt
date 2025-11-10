@@ -1,0 +1,967 @@
+ root@vlxsam99:~# journalctl -u samureye-api.service -f
+Nov 10 21:38:30 vlxsam99 npm[1546391]: QUITTING!
+Nov 10 21:38:30 vlxsam99 npm[1546391]: ⚠️ nmap requer privilégios de root para perfil fast, fazendo fallback para TCP scan
+Nov 10 21:38:30 vlxsam99 npm[1546391]: 🔄 Usando TCP connect scan como fallback por falta de privilégios root
+Nov 10 21:38:30 vlxsam99 npm[1546391]: 🔍 Executando nmap com top 1000 portas
+Nov 10 21:38:30 vlxsam99 npm[1546391]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 5 --min-rate 50 --max-rate 500 --max-rtt-timeout 5s --initial-rtt-timeout 1s --version-intensity 5 -T3 --top-ports 1000 192.168.100.18
+Nov 10 21:38:30 vlxsam99 npm[1546391]: 📍 Job: 6e3e0c01-3d86-48bf-bd04-f963bc35159a | Processo: nmap | Stage: Escaneando portas de 192.168.100.18... nmap
+Nov 10 21:38:30 vlxsam99 npm[1546391]: 📍 Processo registrado: nmap pid 1546499 para job 6e3e0c01-3d86-48bf-bd04-f963bc35159a - Escaneando portas de 192.168.100.18... nmap
+Nov 10 21:38:30 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546498) (alive: false, status: running)
+Nov 10 21:38:30 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546499) (alive: true, status: running)
+Nov 10 21:38:32 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546499) (alive: true, status: running)
+Nov 10 21:38:34 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546499) (alive: true, status: running)
+Nov 10 21:38:36 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546499) (alive: true, status: running)
+Nov 10 21:38:38 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546499) (alive: true, status: running)
+Nov 10 21:38:40 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546499) (alive: true, status: running)
+Nov 10 21:38:42 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546499) (alive: true, status: running)
+Nov 10 21:38:44 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546499) (alive: true, status: running)
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 🗑️ Processo removido: nmap pid 1546499 para job 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 📋 Comando concluído com código 0
+Nov 10 21:38:45 vlxsam99 npm[1546391]: ⚠️ Versão detectada como range: Microsoft Windows Server 2008 R2 - 2012 microsoft-ds - precisão baixa
+Nov 10 21:38:45 vlxsam99 npm[1546391]: Parse nmap encontrou 6 portas para 192.168.100.18
+Nov 10 21:38:45 vlxsam99 npm[1546391]: Primeiras portas encontradas: [ '80/open', '135/open', '139/open' ]
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 📊 Nmap TCP fallback concluído para 192.168.100.18 - 6 portas processadas
+Nov 10 21:38:45 vlxsam99 npm[1546391]: ✅ FASE 1: 6 portas descobertas
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 🔍 [STORAGE] getJourneyCredentials called with journeyId: 9a858896-fb9f-4175-a673-9a0f6a33ca3b
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546499) (alive: false, status: running)
+Nov 10 21:38:45 vlxsam99 npm[1546391]:   → Drizzle returned 2 rows with JOIN
+Nov 10 21:38:45 vlxsam99 npm[1546391]:   → Mapped with credentials: [
+Nov 10 21:38:45 vlxsam99 npm[1546391]:   {
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "id": "82af6f76-3a06-457c-a2a8-4bf8a2f4fdbc",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "journeyId": "9a858896-fb9f-4175-a673-9a0f6a33ca3b",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "credentialId": "93524866-0c4a-4173-96ef-fb86205ce128",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "protocol": "wmi",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "priority": 0,
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "createdAt": "2025-11-10T21:38:28.152Z",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "credential": {
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "id": "93524866-0c4a-4173-96ef-fb86205ce128",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "name": "WMI",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "username": "gruppen\\rodrigo",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "secretEncrypted": "[REDACTED]",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "dekEncrypted": "[REDACTED]",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "domain": "",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "port": 5985,
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "createdAt": "2025-11-10T21:34:44.018Z"
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     }
+Nov 10 21:38:45 vlxsam99 npm[1546391]:   },
+Nov 10 21:38:45 vlxsam99 npm[1546391]:   {
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "id": "9a21ec81-dd84-4ad2-bc8d-0a9407d07f22",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "journeyId": "9a858896-fb9f-4175-a673-9a0f6a33ca3b",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "credentialId": "8a734106-3688-41f6-9f7a-24ccd001d484",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "protocol": "ssh",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "priority": 1,
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "createdAt": "2025-11-10T21:38:28.154Z",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     "credential": {
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "id": "8a734106-3688-41f6-9f7a-24ccd001d484",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "name": "SSH_suporte",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "username": "suporte",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "secretEncrypted": "[REDACTED]",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "dekEncrypted": "[REDACTED]",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "domain": "",
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "port": 22,
+Nov 10 21:38:45 vlxsam99 npm[1546391]:       "createdAt": "2025-11-10T21:38:11.997Z"
+Nov 10 21:38:45 vlxsam99 npm[1546391]:     }
+Nov 10 21:38:45 vlxsam99 npm[1546391]:   }
+Nov 10 21:38:45 vlxsam99 npm[1546391]: ]
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 🔑 FASE 1.5: Enriquecimento de hosts com 2 credenciais
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 🖥️  FASE 1.5: 1 hosts únicos detectados para enriquecimento
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 🔍 [UPSERT] Attempting upsert for host: vmsapl18.gruppen.com.br, IPs: 192.168.100.18
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 🔍 [UPSERT] Not found by name, searching by IP: 192.168.100.18
+Nov 10 21:38:45 vlxsam99 npm[1546391]: ✅ [UPSERT] Found existing host: vmsdb18 (ID: a46e423f-dde6-4013-bb7b-4a9d052a102f), updating...
+Nov 10 21:38:45 vlxsam99 npm[1546391]: ✅ [UPSERT] Host updated: vmsdb18 (IPs: 192.168.100.18, Aliases: vmsapl18.gruppen.com.br)
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 🏠 Host descoberto/atualizado: vmsdb18 (192.168.100.18)
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 🔍 FASE 1.5: Tentando enriquecer host vmsapl18.gruppen.com.br usando IP 192.168.100.18 (ID: a46e423f-dde6-4013-bb7b-4a9d052a102f)
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 9:38:45 PM [express] [HostEnricher] Attempting wmi enrichment for host 192.168.100.18
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 9:38:45 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.18 --username gruppen\rodrigo --script $env:COMPUTERNAME --timeout 30 --port 5985 --password-stdin
+Nov 10 21:38:45 vlxsam99 npm[1546391]: 9:38:45 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:38:46 vlxsam99 npm[1546391]: 9:38:46 PM [express] [WMICollector] PowerShell [Get-Hostname]: exitCode=0
+Nov 10 21:38:46 vlxsam99 npm[1546391]: 9:38:46 PM [express] [WMICollector] Real hostname detected: VMSDB18
+Nov 10 21:38:46 vlxsam99 npm[1546391]: 9:38:46 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.18 --username gruppen\rodrigo --script
+Nov 10 21:38:46 vlxsam99 npm[1546391]:       $info = Get-ComputerInfo -Property WindowsProductName,WindowsVersion,WindowsBuildLabEx,OsHardwareAbstractionLayer
+Nov 10 21:38:46 vlxsam99 npm[1546391]:       $obj = @{
+Nov 10 21:38:46 vlxsam99 npm[1546391]:         ProductName = $info.WindowsProductName
+Nov 10 21:38:46 vlxsam99 npm[1546391]:         Version = $info.WindowsVersion
+Nov 10 21:38:46 vlxsam99 npm[1546391]:         BuildLabEx = $info.WindowsBuildLabEx
+Nov 10 21:38:46 vlxsam99 npm[1546391]:         HAL = $info.OsHardwareAbstractionLayer
+Nov 10 21:38:46 vlxsam99 npm[1546391]:       }
+Nov 10 21:38:46 vlxsam99 npm[1546391]:       $obj | ConvertTo-Json -Compress
+Nov 10 21:38:46 vlxsam99 npm[1546391]:      --timeout 30 --port 5985 --password-stdin
+Nov 10 21:38:46 vlxsam99 npm[1546391]: 9:38:46 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:39:01 vlxsam99 npm[1546391]: 9:39:01 PM [express] [WMICollector] PowerShell [Get-ComputerInfo]: exitCode=0
+Nov 10 21:39:01 vlxsam99 npm[1546391]: 9:39:01 PM [express] [WMICollector] OS detected: Windows Server 2016 Standard (14393.8422.amd64fre.rs1_release.250902-1939)
+Nov 10 21:39:01 vlxsam99 npm[1546391]: 9:39:01 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.18 --username gruppen\rodrigo --script
+Nov 10 21:39:01 vlxsam99 npm[1546391]:       # Get apps from Win32_Product (slower but reliable)
+Nov 10 21:39:01 vlxsam99 npm[1546391]:       $apps = @()
+Nov 10 21:39:01 vlxsam99 npm[1546391]:
+Nov 10 21:39:01 vlxsam99 npm[1546391]:       # Registry-based detection (faster, covers more apps)
+Nov 10 21:39:01 vlxsam99 npm[1546391]:       $paths = @(
+Nov 10 21:39:01 vlxsam99 npm[1546391]:         'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+Nov 10 21:39:01 vlxsam99 npm[1546391]:         'HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
+Nov 10 21:39:01 vlxsam99 npm[1546391]:       )
+Nov 10 21:39:01 vlxsam99 npm[1546391]:
+Nov 10 21:39:01 vlxsam99 npm[1546391]:       foreach ($path in $paths) {
+Nov 10 21:39:01 vlxsam99 npm[1546391]:         Get-ItemProperty $path -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName } | ForEach-Object {
+Nov 10 21:39:01 vlxsam99 npm[1546391]:           $apps += @{
+Nov 10 21:39:01 vlxsam99 npm[1546391]:             Name = $_.DisplayName
+Nov 10 21:39:01 vlxsam99 npm[1546391]:             Version = $_.DisplayVersion
+Nov 10 21:39:01 vlxsam99 npm[1546391]:             Vendor = $_.Publisher
+Nov 10 21:39:01 vlxsam99 npm[1546391]:           }
+Nov 10 21:39:01 vlxsam99 npm[1546391]:         }
+Nov 10 21:39:01 vlxsam99 npm[1546391]:       }
+Nov 10 21:39:01 vlxsam99 npm[1546391]:
+Nov 10 21:39:01 vlxsam99 npm[1546391]:       # Limit to 500 apps to avoid huge payloads
+Nov 10 21:39:01 vlxsam99 npm[1546391]:       $apps | Select-Object -First 500 | ConvertTo-Json -Compress
+Nov 10 21:39:01 vlxsam99 npm[1546391]:      --timeout 30 --port 5985 --password-stdin
+Nov 10 21:39:01 vlxsam99 npm[1546391]: 9:39:01 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:39:02 vlxsam99 npm[1546391]: 9:39:02 PM [express] [WMICollector] PowerShell [Get Installed Applications]: exitCode=0
+Nov 10 21:39:02 vlxsam99 npm[1546391]: 9:39:02 PM [express] [WMICollector] Found 88 installed applications
+Nov 10 21:39:02 vlxsam99 npm[1546391]: 9:39:02 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.18 --username gruppen\rodrigo --script
+Nov 10 21:39:02 vlxsam99 npm[1546391]:       Get-HotFix | Select-Object -ExpandProperty HotFixID | ConvertTo-Json -Compress
+Nov 10 21:39:02 vlxsam99 npm[1546391]:      --timeout 30 --port 5985 --password-stdin
+Nov 10 21:39:02 vlxsam99 npm[1546391]: 9:39:02 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:39:08 vlxsam99 npm[1546391]: 9:39:08 PM [express] [WMICollector] PowerShell [Get-HotFix]: exitCode=0
+Nov 10 21:39:08 vlxsam99 npm[1546391]: 9:39:08 PM [express] [WMICollector] Found 30 installed patches (KBs)
+Nov 10 21:39:08 vlxsam99 npm[1546391]: 9:39:08 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.18 --username gruppen\rodrigo --script
+Nov 10 21:39:08 vlxsam99 npm[1546391]:       Get-CimInstance -ClassName Win32_Service | ForEach-Object {
+Nov 10 21:39:08 vlxsam99 npm[1546391]:         $svc = $_
+Nov 10 21:39:08 vlxsam99 npm[1546391]:         $delayedStart = $false
+Nov 10 21:39:08 vlxsam99 npm[1546391]:
+Nov 10 21:39:08 vlxsam99 npm[1546391]:         # Check for delayed auto-start (only for Auto services)
+Nov 10 21:39:08 vlxsam99 npm[1546391]:         if ($svc.StartMode -eq 'Auto') {
+Nov 10 21:39:08 vlxsam99 npm[1546391]:           try {
+Nov 10 21:39:08 vlxsam99 npm[1546391]:             $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$($svc.Name)"
+Nov 10 21:39:08 vlxsam99 npm[1546391]:             $delayedAutostart = Get-ItemProperty -Path $regPath -Name DelayedAutostart -ErrorAction SilentlyContinue
+Nov 10 21:39:08 vlxsam99 npm[1546391]:             if ($delayedAutostart.DelayedAutostart -eq 1) {
+Nov 10 21:39:08 vlxsam99 npm[1546391]:               $delayedStart = $true
+Nov 10 21:39:08 vlxsam99 npm[1546391]:             }
+Nov 10 21:39:08 vlxsam99 npm[1546391]:           } catch {}
+Nov 10 21:39:08 vlxsam99 npm[1546391]:         }
+Nov 10 21:39:08 vlxsam99 npm[1546391]:
+Nov 10 21:39:08 vlxsam99 npm[1546391]:         @{
+Nov 10 21:39:08 vlxsam99 npm[1546391]:           Name = $svc.Name
+Nov 10 21:39:08 vlxsam99 npm[1546391]:           DisplayName = $svc.DisplayName
+Nov 10 21:39:08 vlxsam99 npm[1546391]:           StartMode = $svc.StartMode
+Nov 10 21:39:08 vlxsam99 npm[1546391]:           State = $svc.State
+Nov 10 21:39:08 vlxsam99 npm[1546391]:           Description = $svc.Description
+Nov 10 21:39:08 vlxsam99 npm[1546391]:           DelayedStart = $delayedStart
+Nov 10 21:39:08 vlxsam99 npm[1546391]:         }
+Nov 10 21:39:08 vlxsam99 npm[1546391]:       } | ConvertTo-Json -Compress
+Nov 10 21:39:08 vlxsam99 npm[1546391]:      --timeout 30 --port 5985 --password-stdin
+Nov 10 21:39:08 vlxsam99 npm[1546391]: 9:39:08 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 9:39:10 PM [express] [WMICollector] PowerShell [Get-CimInstance Win32_Service with DelayedStart]: exitCode=0
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 9:39:10 PM [express] [WMICollector] Found 216 services
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 9:39:10 PM [express] ℹ️  [HostEnricher] Hostname unchanged: vmsdb18
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 9:39:10 PM [express] [HostEnricher] ✓ wmi enrichment successful for 192.168.100.18 using credential WMI
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 9:39:10 PM [express] [HostEnricher] Attempting ssh enrichment for host 192.168.100.18
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 9:39:10 PM [error] [SSHCollector] Connection error: connect ECONNREFUSED 192.168.100.18:22
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 9:39:10 PM [error] [SSHCollector] Connection error: connect ECONNREFUSED 192.168.100.18:22
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 9:39:10 PM [express] [SSHCollector] Detected package manager: none
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 9:39:10 PM [warn] [SSHCollector] Unsupported or unknown package manager: none
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 9:39:10 PM [error] [SSHCollector] Connection error: connect ECONNREFUSED 192.168.100.18:22
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 9:39:10 PM [express] [HostEnricher] ✗ ssh enrichment failed for 192.168.100.18 using credential SSH_suporte: No data collected - authentication may have failed or commands returned empty
+Nov 10 21:39:10 vlxsam99 npm[1546391]: ✅ FASE 1.5: Host 192.168.100.18 enriquecido - 1 sucessos, 1 falhas
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 📊 FASE 1.5: Dados coletados para 192.168.100.18
+Nov 10 21:39:10 vlxsam99 npm[1546391]:    ✓ wmi: OS=Windows Server 2016 Standard, Apps=88, Patches=30
+Nov 10 21:39:10 vlxsam99 npm[1546391]: ✅ FASE 1.5: Enriquecimento concluído para 1 hosts
+Nov 10 21:39:10 vlxsam99 npm[1546391]: ⏭️  FASE 2: Detecção de CVEs desabilitada - pulando Fases 2A e 2B
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 📡 FASE 1: Descoberta de serviços em 192.168.100.155
+Nov 10 21:39:10 vlxsam99 npm[1546391]: Iniciando scan de portas para 192.168.100.155
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 📍 Target 192.168.100.155 já é um IP válido
+Nov 10 21:39:10 vlxsam99 npm[1546391]: ✅ DNS resolvido: 192.168.100.155 → 192.168.100.155
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 🚀 Perfil rápido selecionado: escaneando top 1000 portas
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 🔍 Executando nmap com top 1000 portas
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 🎯 Escaneando portas de 192.168.100.155... nmap (perfil: fast)
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 10 --min-rate 100 --max-rate 1000 --max-rtt-timeout 3s --initial-rtt-timeout 500ms --version-intensity 5 -O --osscan-guess -T4 --top-ports 1000 192.168.100.155
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 📍 Job: 6e3e0c01-3d86-48bf-bd04-f963bc35159a | Processo: nmap | Stage: Escaneando portas de 192.168.100.155... nmap
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 📍 Processo registrado: nmap pid 1546511 para job 6e3e0c01-3d86-48bf-bd04-f963bc35159a - Escaneando portas de 192.168.100.155... nmap
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546511) (alive: true, status: running)
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 🗑️ Processo removido: nmap pid 1546511 para job 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 📋 Comando concluído com código 1
+Nov 10 21:39:10 vlxsam99 npm[1546391]: ❌ Command failed with code 1: TCP/IP fingerprinting (for OS scan) requires root privileges.
+Nov 10 21:39:10 vlxsam99 npm[1546391]: QUITTING!
+Nov 10 21:39:10 vlxsam99 npm[1546391]: ⚠️ nmap requer privilégios de root para perfil fast, fazendo fallback para TCP scan
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 🔄 Usando TCP connect scan como fallback por falta de privilégios root
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 🔍 Executando nmap com top 1000 portas
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 5 --min-rate 50 --max-rate 500 --max-rtt-timeout 5s --initial-rtt-timeout 1s --version-intensity 5 -T3 --top-ports 1000 192.168.100.155
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 📍 Job: 6e3e0c01-3d86-48bf-bd04-f963bc35159a | Processo: nmap | Stage: Escaneando portas de 192.168.100.155... nmap
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 📍 Processo registrado: nmap pid 1546513 para job 6e3e0c01-3d86-48bf-bd04-f963bc35159a - Escaneando portas de 192.168.100.155... nmap
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546511) (alive: false, status: running)
+Nov 10 21:39:10 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:12 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:14 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:16 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:18 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:20 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:22 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:24 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:26 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:28 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:30 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:32 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:34 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:36 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:38 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:40 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:42 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:44 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:46 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:48 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:50 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:52 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:54 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:56 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:39:58 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:00 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:02 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:04 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:06 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:08 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:10 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:12 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:14 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:16 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:18 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:20 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:22 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:24 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:26 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:28 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:30 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:32 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:34 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:36 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:38 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:40 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:42 vlxsam99 npm[1546391]: 9:40:42 PM [express] GET /api/jobs 200 in 23ms :: [{"id":"6e3e0c01-3d86-48bf-bd04-f963bc35159a","jou…
+Nov 10 21:40:42 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:43 vlxsam99 npm[1546391]: 9:40:43 PM [express] GET /api/jobs/6e3e0c01-3d86-48bf-bd04-f963bc35159a/result 404 in 11ms :: {"mess…
+Nov 10 21:40:44 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:46 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:47 vlxsam99 npm[1546391]: 9:40:47 PM [express] GET /api/jobs 304 in 10ms :: [{"id":"6e3e0c01-3d86-48bf-bd04-f963bc35159a","jou…
+Nov 10 21:40:48 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:50 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:52 vlxsam99 npm[1546391]: 9:40:52 PM [express] GET /api/jobs 304 in 7ms :: [{"id":"6e3e0c01-3d86-48bf-bd04-f963bc35159a","jour…
+Nov 10 21:40:52 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:54 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:56 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:40:57 vlxsam99 npm[1546391]: 9:40:57 PM [express] GET /api/jobs 304 in 7ms :: [{"id":"6e3e0c01-3d86-48bf-bd04-f963bc35159a","jour…
+Nov 10 21:40:58 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:41:00 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:41:02 vlxsam99 npm[1546391]: 9:41:02 PM [express] GET /api/jobs 304 in 7ms :: [{"id":"6e3e0c01-3d86-48bf-bd04-f963bc35159a","jour…
+Nov 10 21:41:02 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:41:04 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:41:06 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:41:07 vlxsam99 npm[1546391]: 9:41:07 PM [express] GET /api/jobs 304 in 9ms :: [{"id":"6e3e0c01-3d86-48bf-bd04-f963bc35159a","jour…
+Nov 10 21:41:08 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:41:10 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: true, status: running)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🗑️ Processo removido: nmap pid 1546513 para job 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 Comando concluído com código 0
+Nov 10 21:41:11 vlxsam99 npm[1546391]: Parse nmap encontrou 0 portas para 192.168.100.155
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📊 Nmap TCP fallback concluído para 192.168.100.155 - 0 portas processadas
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ FASE 1: 0 portas descobertas
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 [STORAGE] getJourneyCredentials called with journeyId: 9a858896-fb9f-4175-a673-9a0f6a33ca3b
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 6e3e0c01-3d86-48bf-bd04-f963bc35159a: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546513) (alive: false, status: running)
+Nov 10 21:41:11 vlxsam99 npm[1546391]:   → Drizzle returned 2 rows with JOIN
+Nov 10 21:41:11 vlxsam99 npm[1546391]:   → Mapped with credentials: [
+Nov 10 21:41:11 vlxsam99 npm[1546391]:   {
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "id": "82af6f76-3a06-457c-a2a8-4bf8a2f4fdbc",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "journeyId": "9a858896-fb9f-4175-a673-9a0f6a33ca3b",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "credentialId": "93524866-0c4a-4173-96ef-fb86205ce128",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "protocol": "wmi",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "priority": 0,
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "createdAt": "2025-11-10T21:38:28.152Z",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "credential": {
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "id": "93524866-0c4a-4173-96ef-fb86205ce128",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "name": "WMI",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "username": "gruppen\\rodrigo",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "secretEncrypted": "[REDACTED]",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "dekEncrypted": "[REDACTED]",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "domain": "",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "port": 5985,
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "createdAt": "2025-11-10T21:34:44.018Z"
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     }
+Nov 10 21:41:11 vlxsam99 npm[1546391]:   },
+Nov 10 21:41:11 vlxsam99 npm[1546391]:   {
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "id": "9a21ec81-dd84-4ad2-bc8d-0a9407d07f22",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "journeyId": "9a858896-fb9f-4175-a673-9a0f6a33ca3b",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "credentialId": "8a734106-3688-41f6-9f7a-24ccd001d484",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "protocol": "ssh",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "priority": 1,
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "createdAt": "2025-11-10T21:38:28.154Z",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     "credential": {
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "id": "8a734106-3688-41f6-9f7a-24ccd001d484",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "name": "SSH_suporte",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "username": "suporte",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "secretEncrypted": "[REDACTED]",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "dekEncrypted": "[REDACTED]",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "domain": "",
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "port": 22,
+Nov 10 21:41:11 vlxsam99 npm[1546391]:       "createdAt": "2025-11-10T21:38:11.997Z"
+Nov 10 21:41:11 vlxsam99 npm[1546391]:     }
+Nov 10 21:41:11 vlxsam99 npm[1546391]:   }
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ]
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔑 FASE 1.5: Enriquecimento de hosts com 2 credenciais
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🖥️  FASE 1.5: 0 hosts únicos detectados para enriquecimento
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ FASE 1.5: Enriquecimento concluído para 0 hosts
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ⏭️  FASE 2: Detecção de CVEs desabilitada - pulando Fases 2A e 2B
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 [UPSERT] Attempting upsert for host: vmsapl18.gruppen.com.br, IPs: 192.168.100.18
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 [UPSERT] Not found by name, searching by IP: 192.168.100.18
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ [UPSERT] Found existing host: vmsdb18 (ID: a46e423f-dde6-4013-bb7b-4a9d052a102f), updating...
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ [UPSERT] Host updated: vmsdb18 (IPs: 192.168.100.18, Aliases: vmsapl18.gruppen.com.br)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🏠 Host descoberto/atualizado: vmsdb18 (192.168.100.18)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🏠 FASE 3: 1 hosts descobertos/atualizados
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ℹ️  Ativo duplicado ignorado: http://vmsapl18.gruppen.com.br:80 (tipo: web_application)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🌐 Aplicação web criada como ativo: http://vmsapl18.gruppen.com.br:80 (service: http)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🌐 FASE 3: 1 aplicações web criadas como ativos
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ Attack Surface concluído: 6 findings, 1 web apps criadas
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 PROCESS_JOB_RESULTS: Starting with jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 PROCESS_JOB_RESULTS: Journey 9a858896-fb9f-4175-a673-9a0f6a33ca3b, Type: attack_surface, JobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 ThreatEngine.analyzeWithLifecycle: Analisando 6 findings para journeyType 'attack_surface' (jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ Finding matched rule: web-ports-exposed
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔗 Linking threat to host: vmsdb18 (vmsapl18.gruppen.com.br)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔗 Host found for threat: a46e423f-dde6-4013-bb7b-4a9d052a102f
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:80
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 UPSERT: Input threat details - title: Porta web 80 exposta, jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a, status: open
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:80" (length: 34)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 FIND: Found 1 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:80"
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ FIND: Using threat 4214324b-8b60-44b9-8c2f-61702e011012 with status: open (created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time))
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 UPSERT: Found existing threat 4214324b-8b60-44b9-8c2f-61702e011012 with status: open, jobId: ef5b5e14-ac01-4af8-bdda-5086292aad46
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 UPSERT: Existing threat created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time), updated: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔄 Threat upserted: Porta web 80 exposta (Category: attack_surface, HostId: a46e423f-dde6-4013-bb7b-4a9d052a102f, Key: as:port:vmsapl18.gruppen.com.br:80, isNew: false)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔢 Recalculando risk score para host a46e423f-dde6-4013-bb7b-4a9d052a102f...
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ Updated risk scores for host a46e423f-dde6-4013-bb7b-4a9d052a102f: riskScore=82, rawScore=40
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ⚪ Nenhuma regra correspondeu ao finding: type=port, name=undefined
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ Finding matched rule: smb-ports-exposed
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔗 Linking threat to host: vmsdb18 (vmsapl18.gruppen.com.br)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔗 Host found for threat: a46e423f-dde6-4013-bb7b-4a9d052a102f
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:139
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 UPSERT: Input threat details - title: Porta SMB 139 exposta, jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a, status: open
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:139" (length: 35)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 FIND: Found 1 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:139"
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ FIND: Using threat 958ea820-3fe9-4cd7-b025-73295b128cd8 with status: open (created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time))
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 UPSERT: Found existing threat 958ea820-3fe9-4cd7-b025-73295b128cd8 with status: open, jobId: ef5b5e14-ac01-4af8-bdda-5086292aad46
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 UPSERT: Existing threat created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time), updated: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔄 Threat upserted: Porta SMB 139 exposta (Category: attack_surface, HostId: a46e423f-dde6-4013-bb7b-4a9d052a102f, Key: as:port:vmsapl18.gruppen.com.br:139, isNew: false)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔢 Recalculando risk score para host a46e423f-dde6-4013-bb7b-4a9d052a102f...
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ Updated risk scores for host a46e423f-dde6-4013-bb7b-4a9d052a102f: riskScore=82, rawScore=40
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ Finding matched rule: smb-ports-exposed
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔗 Linking threat to host: vmsdb18 (vmsapl18.gruppen.com.br)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔗 Host found for threat: a46e423f-dde6-4013-bb7b-4a9d052a102f
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:445
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 UPSERT: Input threat details - title: Porta SMB 445 exposta, jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a, status: open
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:445" (length: 35)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 FIND: Found 1 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:445"
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ FIND: Using threat 3ff7f211-dc1a-4783-bff8-da969c2c1c10 with status: open (created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time))
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 UPSERT: Found existing threat 3ff7f211-dc1a-4783-bff8-da969c2c1c10 with status: open, jobId: ef5b5e14-ac01-4af8-bdda-5086292aad46
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 UPSERT: Existing threat created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time), updated: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔄 Threat upserted: Porta SMB 445 exposta (Category: attack_surface, HostId: a46e423f-dde6-4013-bb7b-4a9d052a102f, Key: as:port:vmsapl18.gruppen.com.br:445, isNew: false)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔢 Recalculando risk score para host a46e423f-dde6-4013-bb7b-4a9d052a102f...
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ Updated risk scores for host a46e423f-dde6-4013-bb7b-4a9d052a102f: riskScore=82, rawScore=40
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ Finding matched rule: database-ports-exposed
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔗 Linking threat to host: vmsdb18 (vmsapl18.gruppen.com.br)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔗 Host found for threat: a46e423f-dde6-4013-bb7b-4a9d052a102f
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:1433
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 UPSERT: Input threat details - title: Porta de banco 1433 exposta, jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a, status: open
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:1433" (length: 36)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 FIND: Found 1 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:1433"
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ FIND: Using threat 5a5e36ad-e104-4302-bfb6-6803b210c2ab with status: open (created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time))
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 UPSERT: Found existing threat 5a5e36ad-e104-4302-bfb6-6803b210c2ab with status: open, jobId: ef5b5e14-ac01-4af8-bdda-5086292aad46
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 UPSERT: Existing threat created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time), updated: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔄 Threat upserted: Porta de banco 1433 exposta (Category: attack_surface, HostId: a46e423f-dde6-4013-bb7b-4a9d052a102f, Key: as:port:vmsapl18.gruppen.com.br:1433, isNew: false)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔢 Recalculando risk score para host a46e423f-dde6-4013-bb7b-4a9d052a102f...
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ Updated risk scores for host a46e423f-dde6-4013-bb7b-4a9d052a102f: riskScore=82, rawScore=40
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ Finding matched rule: open-admin-ports
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔗 Linking threat to host: vmsdb18 (vmsapl18.gruppen.com.br)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔗 Host found for threat: a46e423f-dde6-4013-bb7b-4a9d052a102f
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:3389
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📋 UPSERT: Input threat details - title: Porta administrativa 3389 exposta, jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a, status: open
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:3389" (length: 36)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 FIND: Found 1 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:3389"
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ FIND: Using threat dc75a171-ebd9-4dae-818e-00aac7f475e3 with status: open (created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time))
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 UPSERT: Found existing threat dc75a171-ebd9-4dae-818e-00aac7f475e3 with status: open, jobId: ef5b5e14-ac01-4af8-bdda-5086292aad46
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 UPSERT: Existing threat created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time), updated: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔄 Threat upserted: Porta administrativa 3389 exposta (Category: attack_surface, HostId: a46e423f-dde6-4013-bb7b-4a9d052a102f, Key: as:port:vmsapl18.gruppen.com.br:3389, isNew: false)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔢 Recalculando risk score para host a46e423f-dde6-4013-bb7b-4a9d052a102f...
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ Updated risk scores for host a46e423f-dde6-4013-bb7b-4a9d052a102f: riskScore=82, rawScore=40
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🎯 ThreatEngine.analyzeWithLifecycle: Criou 5 ameaças de 6 findings para journeyType 'attack_surface'
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 PROCESS_JOB_RESULTS: About to run post-processing with jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔍 ATTACK_SURFACE_CLOSURES: Starting with journeyId: 9a858896-fb9f-4175-a673-9a0f6a33ca3b, jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📊 ATTACK_SURFACE_METRICS: Starting analysis - scannedHosts: 1, observedKeys: 6, openThreats: 5, currentJobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta web 80 exposta (jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta SMB 139 exposta (jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta SMB 445 exposta (jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta de banco 1433 exposta (jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta administrativa 3389 exposta (jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ ATTACK_SURFACE_METRICS: Completed - skippedCurrentJob: 5, closed: 0, keptOpen: 0, outOfScope: 0, noCorrelationKey: 0, total: 5
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🔄 Processing journey completion for job 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 📊 CLOSURE_METRICS: Journey 9a858896-fb9f-4175-a673-9a0f6a33ca3b analysis - openThreats: 5, previousJobsCount: 1, currentJobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping threat from current job: Porta web 80 exposta (threatJobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a, currentJobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping threat from current job: Porta SMB 139 exposta (threatJobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a, currentJobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping threat from current job: Porta SMB 445 exposta (threatJobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a, currentJobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping threat from current job: Porta de banco 1433 exposta (threatJobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a, currentJobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping threat from current job: Porta administrativa 3389 exposta (threatJobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a, currentJobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a)
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ CLOSURE_METRICS: Journey 9a858896-fb9f-4175-a673-9a0f6a33ca3b completed - skippedCurrentJob: 5, closed: 0, reactivated: 0, processed: 5
+Nov 10 21:41:11 vlxsam99 npm[1546391]: ✅ Journey completion processing finished for job 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:41:11 vlxsam99 npm[1546391]: 🗑️  Job 6e3e0c01-3d86-48bf-bd04-f963bc35159a removido dos jobs em execução
+Nov 10 21:41:12 vlxsam99 npm[1546391]: 9:41:12 PM [express] GET /api/jobs 200 in 10ms :: [{"id":"6e3e0c01-3d86-48bf-bd04-f963bc35159a","jou…
+Nov 10 21:41:17 vlxsam99 npm[1546391]: 9:41:17 PM [express] GET /api/jobs 304 in 9ms :: [{"id":"6e3e0c01-3d86-48bf-bd04-f963bc35159a","jour…
+Nov 10 21:41:22 vlxsam99 npm[1546391]: 9:41:22 PM [express] GET /api/jobs 304 in 7ms :: [{"id":"6e3e0c01-3d86-48bf-bd04-f963bc35159a","jour…
+^C
+(venv) root@vlxsam99:~# ping -c 3 192.168.100.155
+PING 192.168.100.155 (192.168.100.155) 56(84) bytes of data.
+^C
+--- 192.168.100.155 ping statistics ---
+2 packets transmitted, 0 received, 100% packet loss, time 1043ms
+
+(venv) root@vlxsam99:~# nc -zv 192.168.100.155 22
+nc: connect to 192.168.100.155 port 22 (tcp) failed: No route to host
+(venv) root@vlxsam99:~# journalctl -u samureye-api.service -f
+Nov 10 21:51:16 vlxsam99 npm[1546391]: QUITTING!
+Nov 10 21:51:16 vlxsam99 npm[1546391]: ⚠️ nmap requer privilégios de root para perfil fast, fazendo fallback para TCP scan
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 🔄 Usando TCP connect scan como fallback por falta de privilégios root
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 🔍 Executando nmap com top 1000 portas
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 5 --min-rate 50 --max-rate 500 --max-rtt-timeout 5s --initial-rtt-timeout 1s --version-intensity 5 -T3 --top-ports 1000 192.168.100.18
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 📍 Job: 1b42b604-8036-4ef0-a078-5b46bd1aa91c | Processo: nmap | Stage: Escaneando portas de 192.168.100.18... nmap
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 📍 Processo registrado: nmap pid 1546674 para job 1b42b604-8036-4ef0-a078-5b46bd1aa91c - Escaneando portas de 192.168.100.18... nmap
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546673) (alive: false, status: running)
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546674) (alive: true, status: running)
+Nov 10 21:51:18 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546674) (alive: true, status: running)
+Nov 10 21:51:20 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546674) (alive: true, status: running)
+^C
+(venv) root@vlxsam99:~# nc -zv 192.168.100.155 22
+Connection to 192.168.100.155 22 port [tcp/ssh] succeeded!
+(venv) root@vlxsam99:~# journalctl -u samureye-api.service -f
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 🔍 Executando nmap com top 1000 portas
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 5 --min-rate 50 --max-rate 500 --max-rtt-timeout 5s --initial-rtt-timeout 1s --version-intensity 5 -T3 --top-ports 1000 192.168.100.18
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 📍 Job: 1b42b604-8036-4ef0-a078-5b46bd1aa91c | Processo: nmap | Stage: Escaneando portas de 192.168.100.18... nmap
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 📍 Processo registrado: nmap pid 1546674 para job 1b42b604-8036-4ef0-a078-5b46bd1aa91c - Escaneando portas de 192.168.100.18... nmap
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546673) (alive: false, status: running)
+Nov 10 21:51:16 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546674) (alive: true, status: running)
+Nov 10 21:51:18 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546674) (alive: true, status: running)
+Nov 10 21:51:20 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546674) (alive: true, status: running)
+Nov 10 21:51:22 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546674) (alive: true, status: running)
+Nov 10 21:51:24 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546674) (alive: true, status: running)
+Nov 10 21:51:26 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546674) (alive: true, status: running)
+Nov 10 21:51:28 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546674) (alive: true, status: running)
+Nov 10 21:51:30 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546674) (alive: true, status: running)
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 🗑️ Processo removido: nmap pid 1546674 para job 1b42b604-8036-4ef0-a078-5b46bd1aa91c
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 📋 Comando concluído com código 0
+Nov 10 21:51:31 vlxsam99 npm[1546391]: ⚠️ Versão detectada como range: Microsoft Windows Server 2008 R2 - 2012 microsoft-ds - precisão baixa
+Nov 10 21:51:31 vlxsam99 npm[1546391]: Parse nmap encontrou 6 portas para 192.168.100.18
+Nov 10 21:51:31 vlxsam99 npm[1546391]: Primeiras portas encontradas: [ '80/open', '135/open', '139/open' ]
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 📊 Nmap TCP fallback concluído para 192.168.100.18 - 6 portas processadas
+Nov 10 21:51:31 vlxsam99 npm[1546391]: ✅ FASE 1: 6 portas descobertas
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 🔍 [STORAGE] getJourneyCredentials called with journeyId: 9a858896-fb9f-4175-a673-9a0f6a33ca3b
+Nov 10 21:51:31 vlxsam99 npm[1546391]:   → Drizzle returned 2 rows with JOIN
+Nov 10 21:51:31 vlxsam99 npm[1546391]:   → Mapped with credentials: [
+Nov 10 21:51:31 vlxsam99 npm[1546391]:   {
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "id": "82af6f76-3a06-457c-a2a8-4bf8a2f4fdbc",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "journeyId": "9a858896-fb9f-4175-a673-9a0f6a33ca3b",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "credentialId": "93524866-0c4a-4173-96ef-fb86205ce128",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "protocol": "wmi",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "priority": 0,
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "createdAt": "2025-11-10T21:38:28.152Z",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "credential": {
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "id": "93524866-0c4a-4173-96ef-fb86205ce128",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "name": "WMI",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "username": "gruppen\\rodrigo",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "secretEncrypted": "[REDACTED]",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "dekEncrypted": "[REDACTED]",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "domain": "",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "port": 5985,
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "createdAt": "2025-11-10T21:34:44.018Z"
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     }
+Nov 10 21:51:31 vlxsam99 npm[1546391]:   },
+Nov 10 21:51:31 vlxsam99 npm[1546391]:   {
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "id": "9a21ec81-dd84-4ad2-bc8d-0a9407d07f22",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "journeyId": "9a858896-fb9f-4175-a673-9a0f6a33ca3b",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "credentialId": "8a734106-3688-41f6-9f7a-24ccd001d484",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "protocol": "ssh",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "priority": 1,
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "createdAt": "2025-11-10T21:38:28.154Z",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     "credential": {
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "id": "8a734106-3688-41f6-9f7a-24ccd001d484",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "name": "SSH_suporte",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "username": "suporte",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "secretEncrypted": "[REDACTED]",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "dekEncrypted": "[REDACTED]",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "domain": "",
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "port": 22,
+Nov 10 21:51:31 vlxsam99 npm[1546391]:       "createdAt": "2025-11-10T21:38:11.997Z"
+Nov 10 21:51:31 vlxsam99 npm[1546391]:     }
+Nov 10 21:51:31 vlxsam99 npm[1546391]:   }
+Nov 10 21:51:31 vlxsam99 npm[1546391]: ]
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 🔑 FASE 1.5: Enriquecimento de hosts com 2 credenciais
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 🖥️  FASE 1.5: 1 hosts únicos detectados para enriquecimento
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 🔍 [UPSERT] Attempting upsert for host: vmsapl18.gruppen.com.br, IPs: 192.168.100.18
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.18... nmap (nmap pid 1546674) (alive: false, status: running)
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 🔍 [UPSERT] Not found by name, searching by IP: 192.168.100.18
+Nov 10 21:51:31 vlxsam99 npm[1546391]: ✅ [UPSERT] Found existing host: vmsdb18 (ID: a46e423f-dde6-4013-bb7b-4a9d052a102f), updating...
+Nov 10 21:51:31 vlxsam99 npm[1546391]: ✅ [UPSERT] Host updated: vmsdb18 (IPs: 192.168.100.18, Aliases: vmsapl18.gruppen.com.br)
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 🏠 Host descoberto/atualizado: vmsdb18 (192.168.100.18)
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 🔍 FASE 1.5: Tentando enriquecer host vmsapl18.gruppen.com.br usando IP 192.168.100.18 (ID: a46e423f-dde6-4013-bb7b-4a9d052a102f)
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 9:51:31 PM [express] [HostEnricher] Attempting wmi enrichment for host 192.168.100.18
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 9:51:31 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.18 --username gruppen\rodrigo --script $env:COMPUTERNAME --timeout 30 --port 5985 --password-stdin
+Nov 10 21:51:31 vlxsam99 npm[1546391]: 9:51:31 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:51:32 vlxsam99 npm[1546391]: 9:51:32 PM [express] [WMICollector] PowerShell [Get-Hostname]: exitCode=0
+Nov 10 21:51:32 vlxsam99 npm[1546391]: 9:51:32 PM [express] [WMICollector] Real hostname detected: VMSDB18
+Nov 10 21:51:32 vlxsam99 npm[1546391]: 9:51:32 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.18 --username gruppen\rodrigo --script
+Nov 10 21:51:32 vlxsam99 npm[1546391]:       $info = Get-ComputerInfo -Property WindowsProductName,WindowsVersion,WindowsBuildLabEx,OsHardwareAbstractionLayer
+Nov 10 21:51:32 vlxsam99 npm[1546391]:       $obj = @{
+Nov 10 21:51:32 vlxsam99 npm[1546391]:         ProductName = $info.WindowsProductName
+Nov 10 21:51:32 vlxsam99 npm[1546391]:         Version = $info.WindowsVersion
+Nov 10 21:51:32 vlxsam99 npm[1546391]:         BuildLabEx = $info.WindowsBuildLabEx
+Nov 10 21:51:32 vlxsam99 npm[1546391]:         HAL = $info.OsHardwareAbstractionLayer
+Nov 10 21:51:32 vlxsam99 npm[1546391]:       }
+Nov 10 21:51:32 vlxsam99 npm[1546391]:       $obj | ConvertTo-Json -Compress
+Nov 10 21:51:32 vlxsam99 npm[1546391]:      --timeout 30 --port 5985 --password-stdin
+Nov 10 21:51:32 vlxsam99 npm[1546391]: 9:51:32 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:51:36 vlxsam99 npm[1546391]: 9:51:36 PM [express] GET /api/jobs 200 in 18ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jou…
+Nov 10 21:51:38 vlxsam99 npm[1546391]: 9:51:38 PM [express] GET /api/jobs/1b42b604-8036-4ef0-a078-5b46bd1aa91c/result 404 in 9ms :: {"messa…
+Nov 10 21:51:41 vlxsam99 npm[1546391]: 9:51:41 PM [express] GET /api/jobs 304 in 9ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:51:46 vlxsam99 npm[1546391]: 9:51:46 PM [express] GET /api/jobs 304 in 8ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:51:48 vlxsam99 npm[1546391]: 9:51:48 PM [express] [WMICollector] PowerShell [Get-ComputerInfo]: exitCode=0
+Nov 10 21:51:48 vlxsam99 npm[1546391]: 9:51:48 PM [express] [WMICollector] OS detected: Windows Server 2016 Standard (14393.8422.amd64fre.rs1_release.250902-1939)
+Nov 10 21:51:48 vlxsam99 npm[1546391]: 9:51:48 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.18 --username gruppen\rodrigo --script
+Nov 10 21:51:48 vlxsam99 npm[1546391]:       # Get apps from Win32_Product (slower but reliable)
+Nov 10 21:51:48 vlxsam99 npm[1546391]:       $apps = @()
+Nov 10 21:51:48 vlxsam99 npm[1546391]:
+Nov 10 21:51:48 vlxsam99 npm[1546391]:       # Registry-based detection (faster, covers more apps)
+Nov 10 21:51:48 vlxsam99 npm[1546391]:       $paths = @(
+Nov 10 21:51:48 vlxsam99 npm[1546391]:         'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+Nov 10 21:51:48 vlxsam99 npm[1546391]:         'HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
+Nov 10 21:51:48 vlxsam99 npm[1546391]:       )
+Nov 10 21:51:48 vlxsam99 npm[1546391]:
+Nov 10 21:51:48 vlxsam99 npm[1546391]:       foreach ($path in $paths) {
+Nov 10 21:51:48 vlxsam99 npm[1546391]:         Get-ItemProperty $path -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName } | ForEach-Object {
+Nov 10 21:51:48 vlxsam99 npm[1546391]:           $apps += @{
+Nov 10 21:51:48 vlxsam99 npm[1546391]:             Name = $_.DisplayName
+Nov 10 21:51:48 vlxsam99 npm[1546391]:             Version = $_.DisplayVersion
+Nov 10 21:51:48 vlxsam99 npm[1546391]:             Vendor = $_.Publisher
+Nov 10 21:51:48 vlxsam99 npm[1546391]:           }
+Nov 10 21:51:48 vlxsam99 npm[1546391]:         }
+Nov 10 21:51:48 vlxsam99 npm[1546391]:       }
+Nov 10 21:51:48 vlxsam99 npm[1546391]:
+Nov 10 21:51:48 vlxsam99 npm[1546391]:       # Limit to 500 apps to avoid huge payloads
+Nov 10 21:51:48 vlxsam99 npm[1546391]:       $apps | Select-Object -First 500 | ConvertTo-Json -Compress
+Nov 10 21:51:48 vlxsam99 npm[1546391]:      --timeout 30 --port 5985 --password-stdin
+Nov 10 21:51:48 vlxsam99 npm[1546391]: 9:51:48 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:51:49 vlxsam99 npm[1546391]: 9:51:49 PM [express] [WMICollector] PowerShell [Get Installed Applications]: exitCode=0
+Nov 10 21:51:49 vlxsam99 npm[1546391]: 9:51:49 PM [express] [WMICollector] Found 88 installed applications
+Nov 10 21:51:49 vlxsam99 npm[1546391]: 9:51:49 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.18 --username gruppen\rodrigo --script
+Nov 10 21:51:49 vlxsam99 npm[1546391]:       Get-HotFix | Select-Object -ExpandProperty HotFixID | ConvertTo-Json -Compress
+Nov 10 21:51:49 vlxsam99 npm[1546391]:      --timeout 30 --port 5985 --password-stdin
+Nov 10 21:51:49 vlxsam99 npm[1546391]: 9:51:49 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:51:51 vlxsam99 npm[1546391]: 9:51:51 PM [express] GET /api/jobs 304 in 8ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:51:56 vlxsam99 npm[1546391]: 9:51:56 PM [express] [WMICollector] PowerShell [Get-HotFix]: exitCode=0
+Nov 10 21:51:56 vlxsam99 npm[1546391]: 9:51:56 PM [express] [WMICollector] Found 30 installed patches (KBs)
+Nov 10 21:51:56 vlxsam99 npm[1546391]: 9:51:56 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.18 --username gruppen\rodrigo --script
+Nov 10 21:51:56 vlxsam99 npm[1546391]:       Get-CimInstance -ClassName Win32_Service | ForEach-Object {
+Nov 10 21:51:56 vlxsam99 npm[1546391]:         $svc = $_
+Nov 10 21:51:56 vlxsam99 npm[1546391]:         $delayedStart = $false
+Nov 10 21:51:56 vlxsam99 npm[1546391]:
+Nov 10 21:51:56 vlxsam99 npm[1546391]:         # Check for delayed auto-start (only for Auto services)
+Nov 10 21:51:56 vlxsam99 npm[1546391]:         if ($svc.StartMode -eq 'Auto') {
+Nov 10 21:51:56 vlxsam99 npm[1546391]:           try {
+Nov 10 21:51:56 vlxsam99 npm[1546391]:             $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$($svc.Name)"
+Nov 10 21:51:56 vlxsam99 npm[1546391]:             $delayedAutostart = Get-ItemProperty -Path $regPath -Name DelayedAutostart -ErrorAction SilentlyContinue
+Nov 10 21:51:56 vlxsam99 npm[1546391]:             if ($delayedAutostart.DelayedAutostart -eq 1) {
+Nov 10 21:51:56 vlxsam99 npm[1546391]:               $delayedStart = $true
+Nov 10 21:51:56 vlxsam99 npm[1546391]:             }
+Nov 10 21:51:56 vlxsam99 npm[1546391]:           } catch {}
+Nov 10 21:51:56 vlxsam99 npm[1546391]:         }
+Nov 10 21:51:56 vlxsam99 npm[1546391]:
+Nov 10 21:51:56 vlxsam99 npm[1546391]:         @{
+Nov 10 21:51:56 vlxsam99 npm[1546391]:           Name = $svc.Name
+Nov 10 21:51:56 vlxsam99 npm[1546391]:           DisplayName = $svc.DisplayName
+Nov 10 21:51:56 vlxsam99 npm[1546391]:           StartMode = $svc.StartMode
+Nov 10 21:51:56 vlxsam99 npm[1546391]:           State = $svc.State
+Nov 10 21:51:56 vlxsam99 npm[1546391]:           Description = $svc.Description
+Nov 10 21:51:56 vlxsam99 npm[1546391]:           DelayedStart = $delayedStart
+Nov 10 21:51:56 vlxsam99 npm[1546391]:         }
+Nov 10 21:51:56 vlxsam99 npm[1546391]:       } | ConvertTo-Json -Compress
+Nov 10 21:51:56 vlxsam99 npm[1546391]:      --timeout 30 --port 5985 --password-stdin
+Nov 10 21:51:56 vlxsam99 npm[1546391]: 9:51:56 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:51:56 vlxsam99 npm[1546391]: 9:51:56 PM [express] GET /api/jobs 304 in 6ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 9:51:58 PM [express] [WMICollector] PowerShell [Get-CimInstance Win32_Service with DelayedStart]: exitCode=0
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 9:51:58 PM [express] [WMICollector] Found 216 services
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 9:51:58 PM [express] ℹ️  [HostEnricher] Hostname unchanged: vmsdb18
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 9:51:58 PM [express] [HostEnricher] ✓ wmi enrichment successful for 192.168.100.18 using credential WMI
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 9:51:58 PM [express] [HostEnricher] Attempting ssh enrichment for host 192.168.100.18
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 9:51:58 PM [error] [SSHCollector] Connection error: connect ECONNREFUSED 192.168.100.18:22
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 9:51:58 PM [error] [SSHCollector] Connection error: connect ECONNREFUSED 192.168.100.18:22
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 9:51:58 PM [express] [SSHCollector] Detected package manager: none
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 9:51:58 PM [warn] [SSHCollector] Unsupported or unknown package manager: none
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 9:51:58 PM [error] [SSHCollector] Connection error: connect ECONNREFUSED 192.168.100.18:22
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 9:51:58 PM [express] [HostEnricher] ✗ ssh enrichment failed for 192.168.100.18 using credential SSH_suporte: No data collected - authentication may have failed or commands returned empty
+Nov 10 21:51:58 vlxsam99 npm[1546391]: ✅ FASE 1.5: Host 192.168.100.18 enriquecido - 1 sucessos, 1 falhas
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 📊 FASE 1.5: Dados coletados para 192.168.100.18
+Nov 10 21:51:58 vlxsam99 npm[1546391]:    ✓ wmi: OS=Windows Server 2016 Standard, Apps=88, Patches=30
+Nov 10 21:51:58 vlxsam99 npm[1546391]: ✅ FASE 1.5: Enriquecimento concluído para 1 hosts
+Nov 10 21:51:58 vlxsam99 npm[1546391]: ⏭️  FASE 2: Detecção de CVEs desabilitada - pulando Fases 2A e 2B
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 📡 FASE 1: Descoberta de serviços em 192.168.100.155
+Nov 10 21:51:58 vlxsam99 npm[1546391]: Iniciando scan de portas para 192.168.100.155
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 📍 Target 192.168.100.155 já é um IP válido
+Nov 10 21:51:58 vlxsam99 npm[1546391]: ✅ DNS resolvido: 192.168.100.155 → 192.168.100.155
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 🚀 Perfil rápido selecionado: escaneando top 1000 portas
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 🔍 Executando nmap com top 1000 portas
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 🎯 Escaneando portas de 192.168.100.155... nmap (perfil: fast)
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 10 --min-rate 100 --max-rate 1000 --max-rtt-timeout 3s --initial-rtt-timeout 500ms --version-intensity 5 -O --osscan-guess -T4 --top-ports 1000 192.168.100.155
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 📍 Job: 1b42b604-8036-4ef0-a078-5b46bd1aa91c | Processo: nmap | Stage: Escaneando portas de 192.168.100.155... nmap
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 📍 Processo registrado: nmap pid 1546689 para job 1b42b604-8036-4ef0-a078-5b46bd1aa91c - Escaneando portas de 192.168.100.155... nmap
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546689) (alive: true, status: running)
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 🗑️ Processo removido: nmap pid 1546689 para job 1b42b604-8036-4ef0-a078-5b46bd1aa91c
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 📋 Comando concluído com código 1
+Nov 10 21:51:58 vlxsam99 npm[1546391]: ❌ Command failed with code 1: TCP/IP fingerprinting (for OS scan) requires root privileges.
+Nov 10 21:51:58 vlxsam99 npm[1546391]: QUITTING!
+Nov 10 21:51:58 vlxsam99 npm[1546391]: ⚠️ nmap requer privilégios de root para perfil fast, fazendo fallback para TCP scan
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 🔄 Usando TCP connect scan como fallback por falta de privilégios root
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 🔍 Executando nmap com top 1000 portas
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 🔧 Executando: nmap -Pn -sT -sV --max-hostgroup 1 --max-parallelism 5 --min-rate 50 --max-rate 500 --max-rtt-timeout 5s --initial-rtt-timeout 1s --version-intensity 5 -T3 --top-ports 1000 192.168.100.155
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 📍 Job: 1b42b604-8036-4ef0-a078-5b46bd1aa91c | Processo: nmap | Stage: Escaneando portas de 192.168.100.155... nmap
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 📍 Processo registrado: nmap pid 1546691 para job 1b42b604-8036-4ef0-a078-5b46bd1aa91c - Escaneando portas de 192.168.100.155... nmap
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:51:58 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546689) (alive: false, status: running)
+Nov 10 21:52:00 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:01 vlxsam99 npm[1546391]: 9:52:01 PM [express] GET /api/jobs 200 in 9ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:52:02 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:04 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:06 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:06 vlxsam99 npm[1546391]: 9:52:06 PM [express] GET /api/jobs 304 in 8ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:52:08 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:10 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:11 vlxsam99 npm[1546391]: 9:52:11 PM [express] GET /api/jobs 304 in 5ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:52:12 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:14 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:16 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:16 vlxsam99 npm[1546391]: 9:52:16 PM [express] GET /api/jobs 304 in 7ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:52:18 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:20 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:21 vlxsam99 npm[1546391]: 9:52:21 PM [express] GET /api/jobs 304 in 7ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:52:22 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:24 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:26 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:26 vlxsam99 npm[1546391]: 9:52:26 PM [express] GET /api/jobs 304 in 6ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:52:28 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:30 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:31 vlxsam99 npm[1546391]: 9:52:31 PM [express] GET /api/jobs 304 in 10ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jou…
+Nov 10 21:52:32 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:34 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:36 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:36 vlxsam99 npm[1546391]: 9:52:36 PM [express] GET /api/jobs 304 in 8ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:52:38 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:40 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:41 vlxsam99 npm[1546391]: 9:52:41 PM [express] GET /api/jobs 304 in 8ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:52:42 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:44 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:46 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:46 vlxsam99 npm[1546391]: 9:52:46 PM [express] GET /api/jobs 304 in 7ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:52:48 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:50 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:51 vlxsam99 npm[1546391]: 9:52:51 PM [express] GET /api/jobs 304 in 7ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:52:52 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:54 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:56 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:56 vlxsam99 npm[1546391]: 9:52:56 PM [express] GET /api/jobs 304 in 7ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: true, status: running)
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 🗑️ Processo removido: nmap pid 1546691 para job 1b42b604-8036-4ef0-a078-5b46bd1aa91c
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 📋 Comando concluído com código 0
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 🖥️ OS detectado via 'Service Info': Linux
+Nov 10 21:52:58 vlxsam99 npm[1546391]: Parse nmap encontrou 2 portas para 192.168.100.155
+Nov 10 21:52:58 vlxsam99 npm[1546391]: Primeiras portas encontradas: [ '22/open', '5000/open' ]
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 💻 Sistema operacional detectado: Linux
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 📊 Nmap TCP fallback concluído para 192.168.100.155 - 2 portas processadas
+Nov 10 21:52:58 vlxsam99 npm[1546391]: ✅ FASE 1: 2 portas descobertas
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 🔍 [STORAGE] getJourneyCredentials called with journeyId: 9a858896-fb9f-4175-a673-9a0f6a33ca3b
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 📡 JobUpdate emitido para 1b42b604-8036-4ef0-a078-5b46bd1aa91c: Escaneando portas de 192.168.100.155... nmap (nmap pid 1546691) (alive: false, status: running)
+Nov 10 21:52:58 vlxsam99 npm[1546391]:   → Drizzle returned 2 rows with JOIN
+Nov 10 21:52:58 vlxsam99 npm[1546391]:   → Mapped with credentials: [
+Nov 10 21:52:58 vlxsam99 npm[1546391]:   {
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "id": "82af6f76-3a06-457c-a2a8-4bf8a2f4fdbc",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "journeyId": "9a858896-fb9f-4175-a673-9a0f6a33ca3b",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "credentialId": "93524866-0c4a-4173-96ef-fb86205ce128",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "protocol": "wmi",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "priority": 0,
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "createdAt": "2025-11-10T21:38:28.152Z",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "credential": {
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "id": "93524866-0c4a-4173-96ef-fb86205ce128",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "name": "WMI",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "username": "gruppen\\rodrigo",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "secretEncrypted": "[REDACTED]",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "dekEncrypted": "[REDACTED]",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "domain": "",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "port": 5985,
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "createdAt": "2025-11-10T21:34:44.018Z"
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     }
+Nov 10 21:52:58 vlxsam99 npm[1546391]:   },
+Nov 10 21:52:58 vlxsam99 npm[1546391]:   {
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "id": "9a21ec81-dd84-4ad2-bc8d-0a9407d07f22",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "journeyId": "9a858896-fb9f-4175-a673-9a0f6a33ca3b",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "credentialId": "8a734106-3688-41f6-9f7a-24ccd001d484",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "protocol": "ssh",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "priority": 1,
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "createdAt": "2025-11-10T21:38:28.154Z",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     "credential": {
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "id": "8a734106-3688-41f6-9f7a-24ccd001d484",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "name": "SSH_suporte",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "username": "suporte",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "secretEncrypted": "[REDACTED]",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "dekEncrypted": "[REDACTED]",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "domain": "",
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "port": 22,
+Nov 10 21:52:58 vlxsam99 npm[1546391]:       "createdAt": "2025-11-10T21:38:11.997Z"
+Nov 10 21:52:58 vlxsam99 npm[1546391]:     }
+Nov 10 21:52:58 vlxsam99 npm[1546391]:   }
+Nov 10 21:52:58 vlxsam99 npm[1546391]: ]
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 🔑 FASE 1.5: Enriquecimento de hosts com 2 credenciais
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 🖥️  FASE 1.5: 1 hosts únicos detectados para enriquecimento
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 🔍 [UPSERT] Attempting upsert for host: host-192-168-100-155, IPs: 192.168.100.155
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 🔍 [UPSERT] Not found by name, searching by IP: 192.168.100.155
+Nov 10 21:52:58 vlxsam99 npm[1546391]: ➕ [UPSERT] No existing host found, creating new: host-192-168-100-155
+Nov 10 21:52:58 vlxsam99 npm[1546391]: ✅ [UPSERT] New host created: host-192-168-100-155 (ID: 306dd9be-93b9-4249-a055-2c5177250a89)
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 🏠 Host descoberto/atualizado: host-192-168-100-155 (192.168.100.155)
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 🔍 FASE 1.5: Tentando enriquecer host 192.168.100.155 usando IP 192.168.100.155 (ID: 306dd9be-93b9-4249-a055-2c5177250a89)
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 9:52:58 PM [express] [HostEnricher] Attempting wmi enrichment for host 192.168.100.155
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 9:52:58 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.155 --username gruppen\rodrigo --script $env:COMPUTERNAME --timeout 30 --port 5985 --password-stdin
+Nov 10 21:52:58 vlxsam99 npm[1546391]: 9:52:58 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:53:27 vlxsam99 npm[1546391]: 🧹 Limpeza de sessões expiradas executada
+Nov 10 21:53:28 vlxsam99 npm[1546391]: 9:53:28 PM [express] [HostEnricher] ✗ wmi enrichment failed for 192.168.100.155 using credential WMI: wmi collection timeout after 30000ms
+Nov 10 21:53:28 vlxsam99 npm[1546391]: 9:53:28 PM [express] [HostEnricher] Attempting ssh enrichment for host 192.168.100.155
+Nov 10 21:53:28 vlxsam99 npm[1546391]: 9:53:28 PM [express] [SSHCollector] Executing: Get OS Info
+Nov 10 21:53:29 vlxsam99 npm[1546391]: 9:53:29 PM [express] [SSHCollector] OS detected: Linux 6.8.0-86-generic #87-Ubuntu SMP PREEMPT_DYNAMIC Mon Sep 22 18:03:36 UTC 2025
+Nov 10 21:53:29 vlxsam99 npm[1546391]: 9:53:29 PM [express] [SSHCollector] Executing: Detect Package Manager
+Nov 10 21:53:29 vlxsam99 npm[1546391]: 9:53:29 PM [express] [SSHCollector] Detected package manager: dpkg
+Nov 10 21:53:29 vlxsam99 npm[1546391]: 9:53:29 PM [express] [SSHCollector] Executing: Get Installed Packages (dpkg)
+Nov 10 21:53:29 vlxsam99 npm[1546391]: 9:53:29 PM [express] [SSHCollector] Found 768 packages (dpkg)
+Nov 10 21:53:29 vlxsam99 npm[1546391]: 9:53:29 PM [express] [SSHCollector] Executing: Get All Services
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 9:53:30 PM [express] [SSHCollector] Executing: Get Service Enablement
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 9:53:30 PM [express] [SSHCollector] Found 163 services
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 9:53:30 PM [express] [HostEnricher] ✓ ssh enrichment successful for 192.168.100.155 using credential SSH_suporte
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ FASE 1.5: Host 192.168.100.155 enriquecido - 1 sucessos, 1 falhas
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📊 FASE 1.5: Dados coletados para 192.168.100.155
+Nov 10 21:53:30 vlxsam99 npm[1546391]:    ✓ ssh: OS=Linux, Apps=768, Patches=768
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ FASE 1.5: Enriquecimento concluído para 1 hosts
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏭️  FASE 2: Detecção de CVEs desabilitada - pulando Fases 2A e 2B
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 [UPSERT] Attempting upsert for host: vmsapl18.gruppen.com.br, IPs: 192.168.100.18
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 [UPSERT] Not found by name, searching by IP: 192.168.100.18
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ [UPSERT] Found existing host: vmsdb18 (ID: a46e423f-dde6-4013-bb7b-4a9d052a102f), updating...
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ [UPSERT] Host updated: vmsdb18 (IPs: 192.168.100.18, Aliases: vmsapl18.gruppen.com.br)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🏠 Host descoberto/atualizado: vmsdb18 (192.168.100.18)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 [UPSERT] Attempting upsert for host: host-192-168-100-155, IPs: 192.168.100.155
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ [UPSERT] Found existing host: host-192-168-100-155 (ID: 306dd9be-93b9-4249-a055-2c5177250a89), updating...
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ [UPSERT] Host updated: host-192-168-100-155 (IPs: 192.168.100.155, Aliases: )
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🏠 Host descoberto/atualizado: host-192-168-100-155 (192.168.100.155)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🏠 FASE 3: 2 hosts descobertos/atualizados
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ℹ️  Ativo duplicado ignorado: http://vmsapl18.gruppen.com.br:80 (tipo: web_application)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🌐 Aplicação web criada como ativo: http://vmsapl18.gruppen.com.br:80 (service: http)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🌐 Aplicação web criada como ativo: http://192.168.100.155:5000 (service: http)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🌐 FASE 3: 2 aplicações web criadas como ativos
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Attack Surface concluído: 8 findings, 2 web apps criadas
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 PROCESS_JOB_RESULTS: Starting with jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 PROCESS_JOB_RESULTS: Journey 9a858896-fb9f-4175-a673-9a0f6a33ca3b, Type: attack_surface, JobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 ThreatEngine.analyzeWithLifecycle: Analisando 8 findings para journeyType 'attack_surface' (jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Finding matched rule: web-ports-exposed
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔗 Linking threat to host: vmsdb18 (vmsapl18.gruppen.com.br)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔗 Host found for threat: a46e423f-dde6-4013-bb7b-4a9d052a102f
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:80
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 UPSERT: Input threat details - title: Porta web 80 exposta, jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c, status: open
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:80" (length: 34)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 FIND: Found 1 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:80"
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ FIND: Using threat 4214324b-8b60-44b9-8c2f-61702e011012 with status: open (created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time))
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 UPSERT: Found existing threat 4214324b-8b60-44b9-8c2f-61702e011012 with status: open, jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 UPSERT: Existing threat created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time), updated: Mon Nov 10 2025 21:41:11 GMT+0000 (Coordinated Universal Time)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔄 Threat upserted: Porta web 80 exposta (Category: attack_surface, HostId: a46e423f-dde6-4013-bb7b-4a9d052a102f, Key: as:port:vmsapl18.gruppen.com.br:80, isNew: false)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔢 Recalculando risk score para host a46e423f-dde6-4013-bb7b-4a9d052a102f...
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Updated risk scores for host a46e423f-dde6-4013-bb7b-4a9d052a102f: riskScore=82, rawScore=40
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⚪ Nenhuma regra correspondeu ao finding: type=port, name=undefined
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Finding matched rule: smb-ports-exposed
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔗 Linking threat to host: vmsdb18 (vmsapl18.gruppen.com.br)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔗 Host found for threat: a46e423f-dde6-4013-bb7b-4a9d052a102f
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:139
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 UPSERT: Input threat details - title: Porta SMB 139 exposta, jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c, status: open
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:139" (length: 35)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 FIND: Found 1 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:139"
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ FIND: Using threat 958ea820-3fe9-4cd7-b025-73295b128cd8 with status: open (created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time))
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 UPSERT: Found existing threat 958ea820-3fe9-4cd7-b025-73295b128cd8 with status: open, jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 UPSERT: Existing threat created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time), updated: Mon Nov 10 2025 21:41:11 GMT+0000 (Coordinated Universal Time)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔄 Threat upserted: Porta SMB 139 exposta (Category: attack_surface, HostId: a46e423f-dde6-4013-bb7b-4a9d052a102f, Key: as:port:vmsapl18.gruppen.com.br:139, isNew: false)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔢 Recalculando risk score para host a46e423f-dde6-4013-bb7b-4a9d052a102f...
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Updated risk scores for host a46e423f-dde6-4013-bb7b-4a9d052a102f: riskScore=82, rawScore=40
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Finding matched rule: smb-ports-exposed
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔗 Linking threat to host: vmsdb18 (vmsapl18.gruppen.com.br)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔗 Host found for threat: a46e423f-dde6-4013-bb7b-4a9d052a102f
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:445
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 UPSERT: Input threat details - title: Porta SMB 445 exposta, jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c, status: open
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:445" (length: 35)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 FIND: Found 1 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:445"
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ FIND: Using threat 3ff7f211-dc1a-4783-bff8-da969c2c1c10 with status: open (created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time))
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 UPSERT: Found existing threat 3ff7f211-dc1a-4783-bff8-da969c2c1c10 with status: open, jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 UPSERT: Existing threat created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time), updated: Mon Nov 10 2025 21:41:11 GMT+0000 (Coordinated Universal Time)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔄 Threat upserted: Porta SMB 445 exposta (Category: attack_surface, HostId: a46e423f-dde6-4013-bb7b-4a9d052a102f, Key: as:port:vmsapl18.gruppen.com.br:445, isNew: false)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔢 Recalculando risk score para host a46e423f-dde6-4013-bb7b-4a9d052a102f...
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Updated risk scores for host a46e423f-dde6-4013-bb7b-4a9d052a102f: riskScore=82, rawScore=40
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Finding matched rule: database-ports-exposed
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔗 Linking threat to host: vmsdb18 (vmsapl18.gruppen.com.br)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔗 Host found for threat: a46e423f-dde6-4013-bb7b-4a9d052a102f
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:1433
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 UPSERT: Input threat details - title: Porta de banco 1433 exposta, jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c, status: open
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:1433" (length: 36)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 FIND: Found 1 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:1433"
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ FIND: Using threat 5a5e36ad-e104-4302-bfb6-6803b210c2ab with status: open (created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time))
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 UPSERT: Found existing threat 5a5e36ad-e104-4302-bfb6-6803b210c2ab with status: open, jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 UPSERT: Existing threat created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time), updated: Mon Nov 10 2025 21:41:11 GMT+0000 (Coordinated Universal Time)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔄 Threat upserted: Porta de banco 1433 exposta (Category: attack_surface, HostId: a46e423f-dde6-4013-bb7b-4a9d052a102f, Key: as:port:vmsapl18.gruppen.com.br:1433, isNew: false)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔢 Recalculando risk score para host a46e423f-dde6-4013-bb7b-4a9d052a102f...
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Updated risk scores for host a46e423f-dde6-4013-bb7b-4a9d052a102f: riskScore=82, rawScore=40
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=vmsapl18.gruppen.com.br
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Finding matched rule: open-admin-ports
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔗 Linking threat to host: vmsdb18 (vmsapl18.gruppen.com.br)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔗 Host found for threat: a46e423f-dde6-4013-bb7b-4a9d052a102f
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 UPSERT: Processing threat with correlationKey: as:port:vmsapl18.gruppen.com.br:3389
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 UPSERT: Input threat details - title: Porta administrativa 3389 exposta, jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c, status: open
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 FIND: Searching for correlationKey: "as:port:vmsapl18.gruppen.com.br:3389" (length: 36)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 FIND: Found 1 threats with correlationKey: "as:port:vmsapl18.gruppen.com.br:3389"
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ FIND: Using threat dc75a171-ebd9-4dae-818e-00aac7f475e3 with status: open (created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time))
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 UPSERT: Found existing threat dc75a171-ebd9-4dae-818e-00aac7f475e3 with status: open, jobId: 6e3e0c01-3d86-48bf-bd04-f963bc35159a
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 UPSERT: Existing threat created: Mon Nov 10 2025 21:35:45 GMT+0000 (Coordinated Universal Time), updated: Mon Nov 10 2025 21:41:11 GMT+0000 (Coordinated Universal Time)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔄 Threat upserted: Porta administrativa 3389 exposta (Category: attack_surface, HostId: a46e423f-dde6-4013-bb7b-4a9d052a102f, Key: as:port:vmsapl18.gruppen.com.br:3389, isNew: false)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔢 Recalculando risk score para host a46e423f-dde6-4013-bb7b-4a9d052a102f...
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Updated risk scores for host a46e423f-dde6-4013-bb7b-4a9d052a102f: riskScore=82, rawScore=40
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=192.168.100.155
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Finding matched rule: open-admin-ports
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 Debug: Tentativa de busca para target '192.168.100.155' entre 2 hosts falhou
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⚠️  No host found for threat (attack_surface): 192.168.100.155
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔗 Host found for threat: NULL
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 UPSERT: Processing threat with correlationKey: as:port:192.168.100.155:22
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 UPSERT: Input threat details - title: Porta administrativa 22 exposta, jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c, status: open
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 FIND: Searching for correlationKey: "as:port:192.168.100.155:22" (length: 26)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 FIND: Found 0 threats with correlationKey: "as:port:192.168.100.155:22"
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ❌ FIND: No threat found for key: "as:port:192.168.100.155:22"
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🆕 UPSERT: No existing threat found for correlationKey: as:port:192.168.100.155:22
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 UPSERT: Searching for threats with similar keys...
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 UPSERT: Found 0 similar threats: []
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🆕 UPSERT: Creating new threat with correlationKey: as:port:192.168.100.155:22
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⚠️  UPSERT: onConflict not supported, falling back to simple insert
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ UPSERT: Created new threat 24fc2665-9a1e-4c74-a73a-cc602ff74a9c via fallback insert - status: open
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔄 Threat upserted: Porta administrativa 22 exposta (Category: attack_surface, HostId: null, Key: as:port:192.168.100.155:22, isNew: true)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📧 Sending notification for new threat: 24fc2665-9a1e-4c74-a73a-cc602ff74a9c
+Nov 10 21:53:30 vlxsam99 npm[1546391]: Nenhuma política de notificação corresponde à ameaça 24fc2665-9a1e-4c74-a73a-cc602ff74a9c
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📋 Finding: type=port, name=undefined, target=192.168.100.155
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⚪ Nenhuma regra correspondeu ao finding: type=port, name=undefined
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🎯 ThreatEngine.analyzeWithLifecycle: Criou 6 ameaças de 8 findings para journeyType 'attack_surface'
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 PROCESS_JOB_RESULTS: About to run post-processing with jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔍 ATTACK_SURFACE_CLOSURES: Starting with journeyId: 9a858896-fb9f-4175-a673-9a0f6a33ca3b, jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📊 ATTACK_SURFACE_METRICS: Starting analysis - scannedHosts: 2, observedKeys: 8, openThreats: 6, currentJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta administrativa 22 exposta (jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta web 80 exposta (jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta SMB 139 exposta (jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta SMB 445 exposta (jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta de banco 1433 exposta (jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping Attack Surface threat from current job: Porta administrativa 3389 exposta (jobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ ATTACK_SURFACE_METRICS: Completed - skippedCurrentJob: 6, closed: 0, keptOpen: 0, outOfScope: 0, noCorrelationKey: 0, total: 6
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🔄 Processing journey completion for job 1b42b604-8036-4ef0-a078-5b46bd1aa91c
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 📊 CLOSURE_METRICS: Journey 9a858896-fb9f-4175-a673-9a0f6a33ca3b analysis - openThreats: 6, previousJobsCount: 2, currentJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping threat from current job: Porta administrativa 22 exposta (threatJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c, currentJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping threat from current job: Porta web 80 exposta (threatJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c, currentJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping threat from current job: Porta SMB 139 exposta (threatJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c, currentJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping threat from current job: Porta SMB 445 exposta (threatJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c, currentJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping threat from current job: Porta de banco 1433 exposta (threatJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c, currentJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ⏰ GUARD: Skipping threat from current job: Porta administrativa 3389 exposta (threatJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c, currentJobId: 1b42b604-8036-4ef0-a078-5b46bd1aa91c)
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ CLOSURE_METRICS: Journey 9a858896-fb9f-4175-a673-9a0f6a33ca3b completed - skippedCurrentJob: 6, closed: 0, reactivated: 0, processed: 6
+Nov 10 21:53:30 vlxsam99 npm[1546391]: ✅ Journey completion processing finished for job 1b42b604-8036-4ef0-a078-5b46bd1aa91c
+Nov 10 21:53:30 vlxsam99 npm[1546391]: 🗑️  Job 1b42b604-8036-4ef0-a078-5b46bd1aa91c removido dos jobs em execução
+Nov 10 21:53:38 vlxsam99 npm[1546391]: 9:53:38 PM [express] [WMICollector] PowerShell [Get-Hostname]: exitCode=1 (stderr: WinRM connection/execution failed: HTTPConnectionPool(host='192.168.100.155', port=5985): Max retrie)
+Nov 10 21:53:38 vlxsam99 npm[1546391]: 9:53:38 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.155 --username gruppen\rodrigo --script
+Nov 10 21:53:38 vlxsam99 npm[1546391]:       $info = Get-ComputerInfo -Property WindowsProductName,WindowsVersion,WindowsBuildLabEx,OsHardwareAbstractionLayer
+Nov 10 21:53:38 vlxsam99 npm[1546391]:       $obj = @{
+Nov 10 21:53:38 vlxsam99 npm[1546391]:         ProductName = $info.WindowsProductName
+Nov 10 21:53:38 vlxsam99 npm[1546391]:         Version = $info.WindowsVersion
+Nov 10 21:53:38 vlxsam99 npm[1546391]:         BuildLabEx = $info.WindowsBuildLabEx
+Nov 10 21:53:38 vlxsam99 npm[1546391]:         HAL = $info.OsHardwareAbstractionLayer
+Nov 10 21:53:38 vlxsam99 npm[1546391]:       }
+Nov 10 21:53:38 vlxsam99 npm[1546391]:       $obj | ConvertTo-Json -Compress
+Nov 10 21:53:38 vlxsam99 npm[1546391]:      --timeout 30 --port 5985 --password-stdin
+Nov 10 21:53:38 vlxsam99 npm[1546391]: 9:53:38 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:53:41 vlxsam99 npm[1546391]: 9:53:41 PM [express] GET /api/jobs 200 in 30ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jou…
+Nov 10 21:53:46 vlxsam99 npm[1546391]: 9:53:46 PM [express] GET /api/jobs 304 in 8ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:53:51 vlxsam99 npm[1546391]: 9:53:51 PM [express] GET /api/jobs 304 in 10ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jou…
+Nov 10 21:53:56 vlxsam99 npm[1546391]: 9:53:56 PM [express] GET /api/jobs 304 in 7ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:54:01 vlxsam99 npm[1546391]: 9:54:01 PM [express] GET /api/jobs 304 in 7ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:54:06 vlxsam99 npm[1546391]: 9:54:06 PM [express] GET /api/jobs 304 in 8ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:54:12 vlxsam99 npm[1546391]: 9:54:12 PM [express] GET /api/jobs 304 in 8ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:54:17 vlxsam99 npm[1546391]: 9:54:17 PM [express] GET /api/jobs 304 in 8ms :: [{"id":"1b42b604-8036-4ef0-a078-5b46bd1aa91c","jour…
+Nov 10 21:54:19 vlxsam99 npm[1546391]: 9:54:19 PM [express] [WMICollector] PowerShell [Get-ComputerInfo]: exitCode=1 (stderr: WinRM connection/execution failed: HTTPConnectionPool(host='192.168.100.155', port=5985): Max retrie)
+Nov 10 21:54:19 vlxsam99 npm[1546391]: 9:54:19 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.155 --username gruppen\rodrigo --script
+Nov 10 21:54:19 vlxsam99 npm[1546391]:       # Get apps from Win32_Product (slower but reliable)
+Nov 10 21:54:19 vlxsam99 npm[1546391]:       $apps = @()
+Nov 10 21:54:19 vlxsam99 npm[1546391]:
+Nov 10 21:54:19 vlxsam99 npm[1546391]:       # Registry-based detection (faster, covers more apps)
+Nov 10 21:54:19 vlxsam99 npm[1546391]:       $paths = @(
+Nov 10 21:54:19 vlxsam99 npm[1546391]:         'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+Nov 10 21:54:19 vlxsam99 npm[1546391]:         'HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
+Nov 10 21:54:19 vlxsam99 npm[1546391]:       )
+Nov 10 21:54:19 vlxsam99 npm[1546391]:
+Nov 10 21:54:19 vlxsam99 npm[1546391]:       foreach ($path in $paths) {
+Nov 10 21:54:19 vlxsam99 npm[1546391]:         Get-ItemProperty $path -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName } | ForEach-Object {
+Nov 10 21:54:19 vlxsam99 npm[1546391]:           $apps += @{
+Nov 10 21:54:19 vlxsam99 npm[1546391]:             Name = $_.DisplayName
+Nov 10 21:54:19 vlxsam99 npm[1546391]:             Version = $_.DisplayVersion
+Nov 10 21:54:19 vlxsam99 npm[1546391]:             Vendor = $_.Publisher
+Nov 10 21:54:19 vlxsam99 npm[1546391]:           }
+Nov 10 21:54:19 vlxsam99 npm[1546391]:         }
+Nov 10 21:54:19 vlxsam99 npm[1546391]:       }
+Nov 10 21:54:19 vlxsam99 npm[1546391]:
+Nov 10 21:54:19 vlxsam99 npm[1546391]:       # Limit to 500 apps to avoid huge payloads
+Nov 10 21:54:19 vlxsam99 npm[1546391]:       $apps | Select-Object -First 500 | ConvertTo-Json -Compress
+Nov 10 21:54:19 vlxsam99 npm[1546391]:      --timeout 30 --port 5985 --password-stdin
+Nov 10 21:54:19 vlxsam99 npm[1546391]: 9:54:19 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:54:20 vlxsam99 npm[1546391]: 9:54:20 PM [express] GET /api/hosts 200 in 10ms :: [{"id":"a46e423f-dde6-4013-bb7b-4a9d052a102f","na…
+Nov 10 21:54:26 vlxsam99 npm[1546391]: 9:54:26 PM [express] GET /api/threats 200 in 8ms :: []
+Nov 10 21:54:26 vlxsam99 npm[1546391]: 9:54:26 PM [express] GET /api/hosts/306dd9be-93b9-4249-a055-2c5177250a89/risk-history 200 in 9ms :: …
+Nov 10 21:54:26 vlxsam99 npm[1546391]: 9:54:26 PM [express] GET /api/hosts/306dd9be-93b9-4249-a055-2c5177250a89/ad-tests 200 in 20ms :: []
+Nov 10 21:54:26 vlxsam99 npm[1546391]: 9:54:26 PM [express] GET /api/hosts/306dd9be-93b9-4249-a055-2c5177250a89/enrichments 200 in 26ms :: …
+Nov 10 21:54:59 vlxsam99 npm[1546391]: 9:54:59 PM [express] [WMICollector] PowerShell [Get Installed Applications]: exitCode=1 (stderr: WinRM connection/execution failed: HTTPConnectionPool(host='192.168.100.155', port=5985): Max retrie)
+Nov 10 21:54:59 vlxsam99 npm[1546391]: 9:54:59 PM [express] [WMICollector] Executing: /opt/samureye/venv/bin/python /opt/samureye/server/utils/winrm-wrapper.py --host 192.168.100.155 --username gruppen\rodrigo --script
+Nov 10 21:54:59 vlxsam99 npm[1546391]:       Get-HotFix | Select-Object -ExpandProperty HotFixID | ConvertTo-Json -Compress
+Nov 10 21:54:59 vlxsam99 npm[1546391]:      --timeout 30 --port 5985 --password-stdin
+Nov 10 21:54:59 vlxsam99 npm[1546391]: 9:54:59 PM [express] [WMICollector] Credential: username="gruppen\rodrigo", domain="(empty)", winrm_port=5985
+Nov 10 21:55:06 vlxsam99 npm[1546391]: 9:55:06 PM [express] GET /api/auth/user 304 in 6ms :: {"id":"0efb0815-b5cd-489c-aafe-b6cf9e67b2f3","…
+Nov 10 21:55:06 vlxsam99 npm[1546391]: 9:55:06 PM [express] GET /api/threats 304 in 8ms :: []
+Nov 10 21:55:06 vlxsam99 npm[1546391]: 9:55:06 PM [express] GET /api/hosts 304 in 19ms :: [{"id":"a46e423f-dde6-4013-bb7b-4a9d052a102f","na…
+Nov 10 21:55:06 vlxsam99 npm[1546391]: 9:55:06 PM [express] GET /api/auth/user 304 in 8ms :: {"id":"0efb0815-b5cd-489c-aafe-b6cf9e67b2f3","…
+Nov 10 21:55:06 vlxsam99 npm[1546391]: 9:55:06 PM [express] GET /api/threats 304 in 10ms :: []
+Nov 10 21:55:06 vlxsam99 npm[1546391]: 9:55:06 PM [express] GET /api/hosts 304 in 24ms :: [{"id":"a46e423f-dde6-4013-bb7b-4a9d052a102f","na…
+Nov 10 21:55:07 vlxsam99 npm[1546391]: 9:55:07 PM [express] GET /api/auth/user 304 in 8ms :: {"id":"0efb0815-b5cd-489c-aafe-b6cf9e67b2f3","…
+Nov 10 21:55:07 vlxsam99 npm[1546391]: 9:55:07 PM [express] GET /api/threats 304 in 10ms :: []
+Nov 10 21:55:07 vlxsam99 npm[1546391]: 9:55:07 PM [express] GET /api/hosts 304 in 10ms :: [{"id":"a46e423f-dde6-4013-bb7b-4a9d052a102f","na…
+Nov 10 21:55:07 vlxsam99 npm[1546391]: 9:55:07 PM [express] GET /api/auth/user 304 in 6ms :: {"id":"0efb0815-b5cd-489c-aafe-b6cf9e67b2f3","…
+Nov 10 21:55:07 vlxsam99 npm[1546391]: 9:55:07 PM [express] GET /api/threats 304 in 9ms :: []
+Nov 10 21:55:07 vlxsam99 npm[1546391]: 9:55:07 PM [express] GET /api/hosts 304 in 11ms :: [{"id":"a46e423f-dde6-4013-bb7b-4a9d052a102f","na…
+Nov 10 21:55:07 vlxsam99 npm[1546391]: 9:55:07 PM [express] GET /api/auth/user 304 in 6ms :: {"id":"0efb0815-b5cd-489c-aafe-b6cf9e67b2f3","…
+Nov 10 21:55:07 vlxsam99 npm[1546391]: 9:55:07 PM [express] GET /api/threats 304 in 9ms :: []
+Nov 10 21:55:07 vlxsam99 npm[1546391]: 9:55:07 PM [express] GET /api/hosts 304 in 10ms :: [{"id":"a46e423f-dde6-4013-bb7b-4a9d052a102f","na…
+Nov 10 21:55:09 vlxsam99 npm[1546391]: 9:55:09 PM [express] GET /api/threats 200 in 12ms :: [{"id":"24fc2665-9a1e-4c74-a73a-cc602ff74a9c","…
+Nov 10 21:55:09 vlxsam99 npm[1546391]: 9:55:09 PM [express] GET /api/hosts 200 in 12ms :: [{"id":"a46e423f-dde6-4013-bb7b-4a9d052a102f","na…
+Nov 10 21:55:09 vlxsam99 npm[1546391]: 9:55:09 PM [express] GET /api/threats/stats 200 in 21ms :: {"total":6,"critical":0,"high":5,"medium"…
+^C
