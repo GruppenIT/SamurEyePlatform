@@ -30,6 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { 
   Search, 
@@ -42,7 +48,10 @@ import {
   AlertTriangle,
   TrendingUp,
   TrendingDown,
-  Minus
+  Minus,
+  Package,
+  Shield,
+  Settings
 } from "lucide-react";
 import { Host, Threat, HostRiskHistory } from "@shared/schema";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
@@ -454,6 +463,177 @@ function ADSecurityTests({ hostId }: { hostId: string }) {
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// Host Enrichment Data Component
+interface HostEnrichment {
+  id: string;
+  hostId: string;
+  jobId: string;
+  protocol: 'wmi' | 'ssh' | 'snmp';
+  success: boolean;
+  osVersion: string | null;
+  osBuild: string | null;
+  installedApps: Array<{ name: string; version: string; vendor?: string }> | null;
+  patches: string[] | null;
+  services: Array<{ name: string; version?: string; port?: number }> | null;
+  collectedAt: string;
+  errorMessage: string | null;
+}
+
+function HostEnrichmentTabs({ hostId }: { hostId: string }) {
+  const { data: enrichment, isLoading } = useQuery<HostEnrichment | null>({
+    queryKey: ['/api/hosts', hostId, 'enrichments'],
+    queryFn: async () => {
+      const res = await fetch(`/api/hosts/${hostId}/enrichments`);
+      if (!res.ok) throw new Error('Failed to fetch enrichment data');
+      return res.json();
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="p-6 border rounded-lg bg-muted/30 animate-pulse">
+        <div className="text-sm text-muted-foreground text-center">
+          Carregando dados de enriquecimento...
+        </div>
+      </div>
+    );
+  }
+
+  if (!enrichment || !enrichment.success) {
+    return null;
+  }
+
+  return (
+    <div className="border rounded-lg p-4" data-testid="host-enrichment-tabs">
+      <h3 className="text-sm font-semibold mb-4">Dados de Enriquecimento</h3>
+      
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="general" className="text-xs">
+            <Monitor className="w-3 h-3 mr-1.5" />
+            Geral
+          </TabsTrigger>
+          <TabsTrigger value="apps" className="text-xs">
+            <Package className="w-3 h-3 mr-1.5" />
+            Programas ({enrichment.installedApps?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="patches" className="text-xs">
+            <Shield className="w-3 h-3 mr-1.5" />
+            Patches ({enrichment.patches?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="services" className="text-xs">
+            <Settings className="w-3 h-3 mr-1.5" />
+            Serviços ({enrichment.services?.length || 0})
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="general" className="mt-4 space-y-3">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Sistema Operacional</label>
+            <div className="text-sm mt-1 font-mono" data-testid="text-enrichment-os">
+              {enrichment.osVersion || '—'}
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Build</label>
+            <div className="text-sm mt-1 font-mono" data-testid="text-enrichment-build">
+              {enrichment.osBuild || '—'}
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Protocolo</label>
+            <div className="text-sm mt-1">
+              <Badge variant="outline">{enrichment.protocol.toUpperCase()}</Badge>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Coletado em</label>
+            <div className="text-xs mt-1 text-muted-foreground">
+              {new Date(enrichment.collectedAt).toLocaleString('pt-BR')}
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="apps" className="mt-4">
+          <div className="max-h-64 overflow-y-auto">
+            {enrichment.installedApps && enrichment.installedApps.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs">Nome</TableHead>
+                    <TableHead className="text-xs">Versão</TableHead>
+                    <TableHead className="text-xs">Fabricante</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {enrichment.installedApps.map((app, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="text-xs font-medium">{app.name}</TableCell>
+                      <TableCell className="text-xs font-mono">{app.version || '—'}</TableCell>
+                      <TableCell className="text-xs">{app.vendor || '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-sm text-muted-foreground text-center py-8">
+                Nenhum programa instalado detectado
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="patches" className="mt-4">
+          <div className="max-h-64 overflow-y-auto">
+            {enrichment.patches && enrichment.patches.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2">
+                {enrichment.patches.map((patch, idx) => (
+                  <Badge key={idx} variant="outline" className="justify-start font-mono text-xs">
+                    {patch}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground text-center py-8">
+                Nenhum patch detectado
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="services" className="mt-4">
+          <div className="max-h-64 overflow-y-auto">
+            {enrichment.services && enrichment.services.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs">Nome</TableHead>
+                    <TableHead className="text-xs">Versão</TableHead>
+                    <TableHead className="text-xs">Porta</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {enrichment.services.map((service, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="text-xs font-medium">{service.name}</TableCell>
+                      <TableCell className="text-xs font-mono">{service.version || '—'}</TableCell>
+                      <TableCell className="text-xs">{service.port || '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-sm text-muted-foreground text-center py-8">
+                Nenhum serviço detectado
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -992,6 +1172,9 @@ export default function Hosts() {
               
               {/* AD Security Tests */}
               <ADSecurityTests hostId={selectedHost.id} />
+              
+              {/* Host Enrichment Data */}
+              <HostEnrichmentTabs hostId={selectedHost.id} />
               
               {/* Compact Threat Badges */}
               {hostThreats && Array.isArray(hostThreats) && hostThreats.length > 0 && (
