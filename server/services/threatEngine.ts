@@ -110,7 +110,7 @@ class ThreatEngineService {
           finding.state === 'open',
         createThreat: (finding, assetId, jobId) => ({
           title: `Porta administrativa ${finding.port} exposta`,
-          description: `Porta ${finding.port} (${finding.service}) está aberta e acessível no host ${finding.target}`,
+          description: `Porta ${finding.port} (${finding.service}) está aberta e acessível`,
           severity: 'high',
           source: 'journey',
           assetId,
@@ -138,7 +138,7 @@ class ThreatEngineService {
           finding.state === 'open',
         createThreat: (finding, assetId, jobId) => ({
           title: `Porta web ${finding.port} exposta`,
-          description: `Serviço web na porta ${finding.port} (${finding.service}) está acessível no host ${finding.target}`,
+          description: `Serviço web na porta ${finding.port} (${finding.service}) está acessível`,
           severity: 'medium',
           source: 'journey',
           assetId,
@@ -166,7 +166,7 @@ class ThreatEngineService {
           finding.state === 'open',
         createThreat: (finding, assetId, jobId) => ({
           title: `Porta SMB ${finding.port} exposta`,
-          description: `Serviço de compartilhamento na porta ${finding.port} (${finding.service}) está acessível no host ${finding.target}`,
+          description: `Serviço de compartilhamento na porta ${finding.port} (${finding.service}) está acessível`,
           severity: 'high',
           source: 'journey',
           assetId,
@@ -194,7 +194,7 @@ class ThreatEngineService {
           finding.state === 'open',
         createThreat: (finding, assetId, jobId) => ({
           title: `Porta de banco ${finding.port} exposta`,
-          description: `Banco de dados na porta ${finding.port} (${finding.service}) está acessível no host ${finding.target}`,
+          description: `Banco de dados na porta ${finding.port} (${finding.service}) está acessível`,
           severity: 'high',
           source: 'journey',
           assetId,
