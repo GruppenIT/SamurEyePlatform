@@ -834,7 +834,21 @@ EOF
 
 # Função para configurar Nginx reverse proxy
 setup_nginx_proxy() {
-    log "Configurando proxy reverso Nginx..."
+    # IMPORTANTE: Preserva configuração SSL se já existir
+    SSL_MARKER="/etc/samureye/.ssl_configured"
+    if [[ -f "$SSL_MARKER" ]]; then
+        log "⚠️  Configuração SSL detectada - preservando configuração HTTPS existente"
+        log "   Para reconfigurar SSL, execute: sudo bash setup_ssl.sh"
+        
+        # Apenas verifica se o Nginx está funcionando
+        if nginx -t 2>/dev/null; then
+            systemctl reload nginx 2>/dev/null || true
+            log "✅ Configuração SSL preservada e Nginx recarregado"
+        fi
+        return 0
+    fi
+    
+    log "Configurando proxy reverso Nginx (HTTP)..."
     
     cat > /etc/nginx/sites-available/samureye << EOF
 server {
@@ -887,6 +901,7 @@ EOF
     systemctl reload nginx
     
     log "Proxy reverso Nginx configurado"
+    log "💡 Para habilitar HTTPS, execute: sudo bash setup_ssl.sh"
 }
 
 # Função para criar scripts de backup
