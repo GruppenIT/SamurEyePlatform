@@ -277,41 +277,61 @@ install_security_tools() {
     # Instala nmap
     apt install -y nmap
     
-    # Instala nuclei via Go (mais seguro que download direto)
+    # Instala nuclei via download direto do GitHub (evita problemas com snap/SSL inspection)
     if ! command -v nuclei &> /dev/null; then
-        log "Instalando nuclei..."
+        log "Instalando nuclei via download direto do GitHub..."
         
-        # Verifica se Go está disponível ou instala
-        if ! command -v go &> /dev/null; then
-            # Tenta instalar via snap primeiro
-            if command -v snap &> /dev/null; then
-                snap install go --classic
-            else
-                # Fallback para apt se snap não estiver disponível
-                log "Snapd não disponível, instalando Go via apt..."
-                apt install -y golang-go
-            fi
-        fi
+        # Detecta arquitetura
+        ARCH=$(uname -m)
+        case "$ARCH" in
+            x86_64)
+                NUCLEI_ARCH="amd64"
+                ;;
+            aarch64|arm64)
+                NUCLEI_ARCH="arm64"
+                ;;
+            *)
+                warn "Arquitetura $ARCH não suportada para nuclei"
+                NUCLEI_ARCH=""
+                ;;
+        esac
         
-        # Verifica se Go foi instalado corretamente
-        if ! command -v go &> /dev/null; then
-            warn "Não foi possível instalar Go. Nuclei será ignorado."
-            warn "Instale manualmente: https://github.com/projectdiscovery/nuclei"
-        else
-            # Instala nuclei via Go
-            GOPATH="/tmp/go" go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
-            if [[ -f "/tmp/go/bin/nuclei" ]]; then
-                mv /tmp/go/bin/nuclei /usr/local/bin/
-                chmod +x /usr/local/bin/nuclei
-                log "Nuclei instalado com sucesso"
-                
-                # Atualiza templates do nuclei
-                nuclei -update-templates -silent
-            else
-                warn "Falha na instalação do nuclei via Go"
+        if [[ -n "$NUCLEI_ARCH" ]]; then
+            # Busca a versão mais recente do nuclei
+            NUCLEI_VERSION=$(curl -sL "https://api.github.com/repos/projectdiscovery/nuclei/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/' || echo "3.3.7")
+            
+            if [[ -z "$NUCLEI_VERSION" ]]; then
+                NUCLEI_VERSION="3.3.7"
+                warn "Não foi possível detectar versão mais recente, usando v${NUCLEI_VERSION}"
             fi
-            rm -rf /tmp/go
+            
+            log "Baixando nuclei v${NUCLEI_VERSION} para ${NUCLEI_ARCH}..."
+            NUCLEI_URL="https://github.com/projectdiscovery/nuclei/releases/download/v${NUCLEI_VERSION}/nuclei_${NUCLEI_VERSION}_linux_${NUCLEI_ARCH}.zip"
+            
+            # Download e instalação
+            cd /tmp
+            if curl -sLO "$NUCLEI_URL"; then
+                unzip -o "nuclei_${NUCLEI_VERSION}_linux_${NUCLEI_ARCH}.zip" -d /tmp/nuclei_extract
+                if [[ -f "/tmp/nuclei_extract/nuclei" ]]; then
+                    mv /tmp/nuclei_extract/nuclei /usr/local/bin/
+                    chmod +x /usr/local/bin/nuclei
+                    log "✅ Nuclei v${NUCLEI_VERSION} instalado com sucesso"
+                    
+                    # Atualiza templates do nuclei
+                    log "Atualizando templates do nuclei..."
+                    nuclei -update-templates -silent 2>/dev/null || warn "Templates serão baixados no primeiro uso"
+                else
+                    warn "Falha ao extrair nuclei do arquivo zip"
+                fi
+                rm -rf /tmp/nuclei_extract "nuclei_${NUCLEI_VERSION}_linux_${NUCLEI_ARCH}.zip"
+            else
+                warn "Falha no download do nuclei. Verifique conectividade com GitHub."
+                warn "Instale manualmente: https://github.com/projectdiscovery/nuclei/releases"
+            fi
+            cd - > /dev/null
         fi
+    else
+        log "✅ Nuclei já está instalado: $(nuclei -version 2>/dev/null | head -1)"
     fi
     
     # Instala smbclient e ferramentas LDAP
