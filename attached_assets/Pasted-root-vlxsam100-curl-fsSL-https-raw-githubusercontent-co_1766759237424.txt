@@ -1,0 +1,182 @@
+root@vlxsam100:~# curl -fsSL https://raw.githubusercontent.com/GruppenIT/SamurEyePlatform/main/install.sh | sudo bash
+
+[INFO] ==========================================
+[INFO]   SamurEye - Instalação Automática v1.0
+[INFO] ==========================================
+
+[INFO] Distribuição detectada: ubuntu 24.04
+[INFO] Iniciando instalação em Fri Dec 26 02:04:02 PM UTC 2025
+[INFO] Atualizando repositórios do sistema...
+Hit:1 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:3 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease
+Hit:4 https://deb.nodesource.com/node_20.x nodistro InRelease
+Hit:5 http://security.ubuntu.com/ubuntu noble-security InRelease
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+All packages are up to date.
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Calculating upgrade... Done
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+[INFO] Instalando dependências básicas do sistema...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+curl is already the newest version (8.5.0-2ubuntu10.6).
+wget is already the newest version (1.21.4-1ubuntu4.1).
+git is already the newest version (1:2.43.0-1ubuntu7.3).
+unzip is already the newest version (6.0-28ubuntu4.1).
+build-essential is already the newest version (12.10ubuntu1).
+software-properties-common is already the newest version (0.99.49.3).
+apt-transport-https is already the newest version (2.8.3).
+ca-certificates is already the newest version (20240203).
+gnupg is already the newest version (2.4.4-2ubuntu17.3).
+lsb-release is already the newest version (12.0-2).
+ufw is already the newest version (0.36.2-6).
+htop is already the newest version (3.3.0-4build1).
+tree is already the newest version (2.1.1-2ubuntu3.24.04.2).
+jq is already the newest version (1.7.1-3ubuntu0.24.04.1).
+openssl is already the newest version (3.0.13-0ubuntu3.6).
+net-tools is already the newest version (2.10-0.1ubuntu4.4).
+python3 is already the newest version (3.12.3-0ubuntu2.1).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+[INFO] Dependências básicas instaladas com sucesso
+[INFO] Instalando Node.js 20...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Package 'npm' is not installed, so not removed
+The following packages will be REMOVED:
+  nodejs
+0 upgraded, 0 newly installed, 1 to remove and 0 not upgraded.
+After this operation, 197 MB disk space will be freed.
+(Reading database ... 97874 files and directories currently installed.)
+Removing nodejs (20.19.6-1nodesource1) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+2025-12-26 14:04:07 - Installing pre-requisites
+Hit:1 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:3 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease
+Hit:4 https://deb.nodesource.com/node_20.x nodistro InRelease
+Hit:5 http://security.ubuntu.com/ubuntu noble-security InRelease
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+All packages are up to date.
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+apt-transport-https is already the newest version (2.8.3).
+ca-certificates is already the newest version (20240203).
+curl is already the newest version (8.5.0-2ubuntu10.6).
+gnupg is already the newest version (2.4.4-2ubuntu17.3).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+Hit:1 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:3 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease
+Hit:4 https://deb.nodesource.com/node_20.x nodistro InRelease
+Hit:5 http://security.ubuntu.com/ubuntu noble-security InRelease
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+All packages are up to date.
+2025-12-26 14:04:11 - Repository configured successfully.
+2025-12-26 14:04:11 - To install Node.js, run: apt install nodejs -y
+2025-12-26 14:04:11 - You can use N|solid Runtime as a node.js alternative
+2025-12-26 14:04:11 - To install N|solid Runtime, run: apt install nsolid -y
+
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following NEW packages will be installed:
+  nodejs
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 32.0 MB of archives.
+After this operation, 197 MB of additional disk space will be used.
+Get:1 https://deb.nodesource.com/node_20.x nodistro/main amd64 nodejs amd64 20.19.6-1nodesource1 [32.0 MB]
+Fetched 32.0 MB in 3s (10.1 MB/s)
+Selecting previously unselected package nodejs.
+(Reading database ... 92511 files and directories currently installed.)
+Preparing to unpack .../nodejs_20.19.6-1nodesource1_amd64.deb ...
+Unpacking nodejs (20.19.6-1nodesource1) ...
+Setting up nodejs (20.19.6-1nodesource1) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+Scanning processes...
+Scanning candidates...
+Scanning linux images...
+
+Running kernel seems to be up-to-date.
+
+Restarting services...
+
+Service restarts being deferred:
+ /etc/needrestart/restart.d/dbus.service
+ systemctl restart getty@tty1.service
+ systemctl restart systemd-logind.service
+ systemctl restart unattended-upgrades.service
+
+No containers need to be restarted.
+
+User sessions running outdated binaries:
+ suporte @ session #1: sshd[1365]
+ suporte @ user manager service: systemd[1370]
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+[INFO] Node.js v20.19.6 e npm 10.8.2 instalados com sucesso
+[INFO] Instalando PostgreSQL...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+postgresql is already the newest version (16+257build1.1).
+postgresql-contrib is already the newest version (16+257build1.1).
+postgresql-client is already the newest version (16+257build1.1).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+Warning: The unit file, source configuration file or drop-ins of postgresql.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+Synchronizing state of postgresql.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable postgresql
+[INFO] PostgreSQL instalado e iniciado com sucesso
+[INFO] 🔄 HARD RESET: Recriando banco de dados PostgreSQL...
+[INFO] ☢️ HARD RESET RADICAL: Removendo banco e usuário com método direto...
+ pg_terminate_backend
+----------------------
+(0 rows)
+
+DROP DATABASE
+DROP ROLE
+[INFO] ✅ Usuário samureye removido com sucesso
+[INFO] 👤 Criando novo usuário do banco de dados...
+CREATE ROLE
+[INFO] 🏗️ Criando novo banco de dados...
+CREATE DATABASE
+[INFO] 🔒 Removendo privilégio CREATEDB desnecessário...
+ALTER ROLE
+[INFO] 🔧 Instalando extensões necessárias...
+CREATE EXTENSION
+[INFO] 🔍 Verificando estrutura final do banco...
+[INFO] ✅ HARD RESET concluído com sucesso
+[INFO] ✅ Banco de dados: samureye_db criado
+[INFO] ✅ Usuário do banco: samureye criado
+[INFO] 🔑 Nova senha do banco gerada
+[INFO] 🔧 Extensão pgcrypto instalada
+[INFO] Instalando Nginx...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+nginx is already the newest version (1.24.0-2ubuntu7.5).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+Synchronizing state of nginx.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable nginx
+[INFO] Nginx instalado com sucesso
+[INFO] Instalando ferramentas de segurança...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+nmap is already the newest version (7.94+git20230807.3be01efb1+dfsg-3build2).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+[INFO] Instalando nuclei...
+error: cannot perform the following tasks:
+- Download snap "core22" (2193) from channel "stable" (Get "https://canonical-bos01.cdn.snapcraftcontent.com/download-origin/canonical-lgw01/amcUKQILKXHHTlmSa7NMdnXSx02dNeeT_2193.snap?interactive=1&token=1766772000_da04d4a6546a07f51444561e99c1f714b14f7aac": tls: failed to verify certificate: x509: certificate signed by unknown authority)
+root@vlxsam100:~#
