@@ -219,11 +219,35 @@ export class ADScanner {
       });
 
       // Create test results from all executed tests
+      let credentialErrorCount = 0;
+      let connectionErrorCount = 0;
+      const totalTests = executionResults.size;
+      
       executionResults.forEach((evidence, testId) => {
         const finding = findingsByTestId.get(testId);
         
+        // Check for connection/credential errors
+        const hasCredentialError = evidence.stderr && (
+          evidence.stderr.includes('credentials were rejected') ||
+          evidence.stderr.includes('authentication failed') ||
+          evidence.stderr.includes('Access is denied') ||
+          evidence.stderr.includes('logon failure')
+        );
+        
+        const hasConnectionError = evidence.stderr && (
+          evidence.stderr.includes('WinRM connection') ||
+          evidence.stderr.includes('connection refused') ||
+          evidence.stderr.includes('timeout') ||
+          evidence.stderr.includes('Timeout') ||
+          evidence.stderr.includes('unreachable') ||
+          evidence.stderr.includes('No such host')
+        );
+        
+        if (hasCredentialError) credentialErrorCount++;
+        if (hasConnectionError && !hasCredentialError) connectionErrorCount++;
+        
         if (finding) {
-          // Test failed - create "fail" result
+          // Test failed - create "fail" result (vulnerability found)
           testResults.push(this.createTestResult(
             testId,
             finding.name,
@@ -233,6 +257,22 @@ export class ADScanner {
             evidence,
             finding.description,
             finding.recommendation
+          ));
+        } else if (hasCredentialError || (hasConnectionError && evidence.exitCode !== 0)) {
+          // Test error - connection or credential issue
+          const testMetadata = this.getTestMetadata(testId);
+          const errorType = hasCredentialError ? 'Credenciais rejeitadas' : 'Erro de conexão';
+          testResults.push(this.createTestResult(
+            testId,
+            testMetadata.name,
+            testMetadata.category,
+            testMetadata.severity,
+            'error',
+            evidence,
+            `${errorType}: ${evidence.stderr?.substring(0, 200) || 'Erro desconhecido'}`,
+            hasCredentialError 
+              ? 'Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM'
+              : 'Verifique conectividade de rede com o DC e se o serviço WinRM está habilitado'
           ));
         } else {
           // Test passed - create "pass" result
@@ -251,6 +291,19 @@ export class ADScanner {
       });
 
       console.log(`✅ Análise concluída: ${findings.length} achados, ${testResults.length} resultados de teste`);
+      
+      // If ALL tests failed due to credential error, throw exception to fail the job
+      if (credentialErrorCount > 0 && credentialErrorCount === totalTests) {
+        console.error(`❌ TODOS os ${totalTests} testes falharam por erro de credencial`);
+        throw new Error(`Falha de autenticação: As credenciais foram rejeitadas pelo servidor. Verifique usuário/senha e permissões WinRM.`);
+      }
+      
+      // If majority of tests failed due to connection error, throw exception
+      if (connectionErrorCount > 0 && connectionErrorCount === totalTests) {
+        console.error(`❌ TODOS os ${totalTests} testes falharam por erro de conexão`);
+        throw new Error(`Falha de conexão: Não foi possível conectar ao controlador de domínio. Verifique conectividade e se WinRM está habilitado.`);
+      }
+      
       return { findings, testResults };
 
     } catch (error: any) {

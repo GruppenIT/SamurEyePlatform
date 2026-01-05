@@ -1,0 +1,313 @@
+{
+  "summary": {
+    "domain": "gruppen.com.br",
+    "totalTests": 20,
+    "scanDuration": "2026-01-05T21:04:30.370Z",
+    "totalFindings": 0,
+    "findingsByCategory": {},
+    "findingsBySeverity": {}
+  },
+  "findings": [],
+  "testResults": [
+    {
+      "status": "pass",
+      "testId": "dc_print_spooler",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "dc_print_spooler",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-Service -Name Spooler | Select-Object Name, Status | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Dc Print Spooler",
+      "description": "Teste Dc Print Spooler passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "ldap_anonymous",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "ldap_anonymous",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADObject -Identity 'CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,DC=gruppen,DC=com,DC=br' -Properties dSHeuristics | Select-Object -Property dSHeuristics | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Ldap Anonymous",
+      "description": "Teste Ldap Anonymous passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "smbv1_enabled",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "smbv1_enabled",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-WindowsFeature -Name FS-SMB1 | Select-Object Name, InstallState | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Smbv1 Enabled",
+      "description": "Teste Smbv1 Enabled passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "krbtgt_weak",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "krbtgt_weak",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Identity krbtgt -Property PasswordLastSet | Select-Object Name, PasswordLastSet | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Krbtgt Weak",
+      "description": "Teste Krbtgt Weak passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "schema_permissions",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "schema_permissions",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  (Get-Acl 'AD:CN=Schema,CN=Configuration,DC=gruppen,DC=com,DC=br').Access | Where-Object {$_.IdentityReference -notmatch 'SYSTEM|Administrators|Schema Admins|Enterprise Admins'} | Select-Object IdentityReference, ActiveDirectoryRights | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Schema Permissions",
+      "description": "Teste Schema Permissions passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "privileged_spn",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "privileged_spn",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter * -Properties servicePrincipalName, MemberOf | Where-Object {$_.servicePrincipalName -and ($_.MemberOf -match 'Admins')} | Select-Object Name, SamAccountName, servicePrincipalName | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Privileged Spn",
+      "description": "Teste Privileged Spn passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "password_never_expires",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "password_never_expires",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter {PasswordNeverExpires -eq $true} -Property Name, PasswordNeverExpires | Select-Object Name, PasswordNeverExpires | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Password Never Expires",
+      "description": "Teste Password Never Expires passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "preauth_disabled",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "preauth_disabled",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter * -Properties UserAccountControl | Where-Object {$_.UserAccountControl -band 0x400000} | Select-Object Name, SamAccountName | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Preauth Disabled",
+      "description": "Teste Preauth Disabled passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "admin_account_weak",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "admin_account_weak",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Identity 'Administrator' -Property PasswordLastSet, PasswordNeverExpires, LastLogonTimestamp | Select-Object Name, PasswordLastSet, PasswordNeverExpires, @{Name='LastLogon';Expression={[DateTime]::FromFileTime($_.LastLogonTimestamp)}} | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Admin Account Weak",
+      "description": "Teste Admin Account Weak passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "dc_password_old",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "dc_password_old",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADDomainController -Filter * | ForEach-Object { Get-ADComputer -Identity $_.Name -Property PasswordLastSet | Select-Object Name, PasswordLastSet } | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Dc Password Old",
+      "description": "Teste Dc Password Old passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "low_primary_group_id",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "low_primary_group_id",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter {primaryGroupId -lt 1000} -Property primaryGroupId | Select-Object Name, primaryGroupId | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Low Primary Group Id",
+      "description": "Teste Low Primary Group Id passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "admin_count_set",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "admin_count_set",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter {admincount -gt 0} -Properties adminCount, MemberOf | Where-Object {-not ($_.MemberOf -match \"Admins\")} | Select-Object Name, SamAccountName, adminCount | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Admin Count Set",
+      "description": "Teste Admin Count Set passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "trust_relationships",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "trust_relationships",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADTrust -Filter * | Select-Object Name, TrustType, TrustDirection, ForestTransitive | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Trust Relationships",
+      "description": "Teste Trust Relationships passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "hidden_privileged_sid",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "hidden_privileged_sid",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter {admincount -gt 0} -Properties adminCount, sidHistory | Where-Object {$_.sidHistory} | Select-Object Name, SamAccountName, adminCount, sidHistory | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Hidden Privileged Sid",
+      "description": "Teste Hidden Privileged Sid passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "pre_win2000_access",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "pre_win2000_access",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADGroupMember -Identity 'Pre-Windows 2000 Compatible Access' -Recursive | Select-Object Name, SamAccountName | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Pre Win2000 Access",
+      "description": "Teste Pre Win2000 Access passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "krbtgt_rbcd",
+      "category": "kerberos_delegacao",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "krbtgt_rbcd",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Identity 'krbtgt' -Property 'msDS-AllowedToDelegateTo' | Select-Object SamAccountName, 'msDS-AllowedToDelegateTo' | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Krbtgt Rbcd",
+      "description": "Teste Krbtgt Rbcd passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "gmsa_read_permissions",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "gmsa_read_permissions",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADServiceAccount -Filter * -Properties PrincipalsAllowedToRetrieveManagedPassword | Where-Object {$_.PrincipalsAllowedToRetrieveManagedPassword} | Select-Object Name, PrincipalsAllowedToRetrieveManagedPassword | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Gmsa Read Permissions",
+      "description": "Teste Gmsa Read Permissions passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "kerberos_vulnerabilities",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "kerberos_vulnerabilities",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter * -Properties 'msDS-SupportedEncryptionTypes' | Where-Object {$_.'msDS-SupportedEncryptionTypes' -lt 16} | Select-Object Name, SamAccountName, 'msDS-SupportedEncryptionTypes' | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Kerberos Vulnerabilities",
+      "description": "Teste Kerberos Vulnerabilities passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "kerberos_rbcd_computers",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "kerberos_rbcd_computers",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADComputer -Filter * -Properties PrincipalsAllowedToDelegateToAccount | Where-Object {$_.PrincipalsAllowedToDelegateToAccount} | Select-Object Name, SamAccountName, PrincipalsAllowedToDelegateToAccount | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Kerberos Rbcd Computers",
+      "description": "Teste Kerberos Rbcd Computers passou com sucesso",
+      "severityHint": "medium"
+    },
+    {
+      "status": "pass",
+      "testId": "rodc_kdc_access",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "rodc_kdc_access",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADDomainController -Filter {IsReadOnly -eq $true} | ForEach-Object { Get-ADComputer -Identity $_.Name -Properties 'msDS-RevealedUsers' | Select-Object Name, 'msDS-RevealedUsers' } | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Rodc Kdc Access",
+      "description": "Teste Rodc Kdc Access passou com sucesso",
+      "severityHint": "medium"
+    }
+  ]
+}
