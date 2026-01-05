@@ -38,8 +38,9 @@ export interface CredentialFormData {
   type: 'ssh' | 'wmi' | 'omi' | 'ad';
   hostOverride?: string;
   port?: number;
+  domain?: string;
   username: string;
-  secret: string;
+  secret?: string;
 }
 
 export interface JourneyFormData {

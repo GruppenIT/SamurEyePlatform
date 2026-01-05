@@ -669,6 +669,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/credentials/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      const existingCredential = await storage.getCredential(id);
+      if (!existingCredential) {
+        return res.status(404).json({ message: "Credencial não encontrada" });
+      }
+      
+      const beforeState = {
+        ...existingCredential,
+        secretEncrypted: '[ENCRYPTED]',
+        dekEncrypted: '[ENCRYPTED]',
+      };
+      
+      const updatePayload: any = {
+        name: updateData.name,
+        type: updateData.type,
+        hostOverride: updateData.hostOverride ?? null,
+        port: updateData.port ?? null,
+        domain: updateData.domain ?? null,
+        username: updateData.username,
+      };
+      
+      if (updateData.secret && updateData.secret.trim() !== '') {
+        const { secretEncrypted, dekEncrypted } = encryptionService.encryptCredential(updateData.secret);
+        updatePayload.secretEncrypted = secretEncrypted;
+        updatePayload.dekEncrypted = dekEncrypted;
+      }
+      
+      const updatedCredential = await storage.updateCredential(id, updatePayload);
+      
+      await storage.logAudit({
+        actorId: userId,
+        action: 'update',
+        objectType: 'credential',
+        objectId: id,
+        before: beforeState,
+        after: { ...updatedCredential, secretEncrypted: '[ENCRYPTED]', dekEncrypted: '[ENCRYPTED]' },
+      });
+      
+      res.json({
+        ...updatedCredential,
+        secretEncrypted: '[ENCRYPTED]',
+        dekEncrypted: '[ENCRYPTED]',
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar credencial:", error);
+      res.status(400).json({ message: "Falha ao atualizar credencial" });
+    }
+  });
+
   app.delete('/api/credentials/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const userId = req.user.id;

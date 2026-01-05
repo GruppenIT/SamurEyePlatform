@@ -20,8 +20,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CredentialFormData } from "@/types";
+import { Credential } from "@shared/schema";
 
-const credentialSchema = z.object({
+const createCredentialSchema = (isEditing: boolean) => z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   type: z.enum(['ssh', 'wmi', 'omi', 'ad'], {
     required_error: "Tipo de credencial é obrigatório",
@@ -30,25 +31,31 @@ const credentialSchema = z.object({
   port: z.number().min(1).max(65535).optional(),
   domain: z.string().optional(),
   username: z.string().min(1, "Usuário é obrigatório"),
-  secret: z.string().min(1, "Senha/chave é obrigatória"),
+  secret: isEditing 
+    ? z.string().optional()
+    : z.string().min(1, "Senha/chave é obrigatória"),
 });
 
 interface CredentialFormProps {
   onSubmit: (data: CredentialFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
+  initialData?: Omit<Credential, 'secretEncrypted' | 'dekEncrypted'>;
 }
 
-export default function CredentialForm({ onSubmit, onCancel, isLoading = false }: CredentialFormProps) {
+export default function CredentialForm({ onSubmit, onCancel, isLoading = false, initialData }: CredentialFormProps) {
+  const isEditing = !!initialData;
+  const credentialSchema = createCredentialSchema(isEditing);
+  
   const form = useForm<CredentialFormData>({
     resolver: zodResolver(credentialSchema),
     defaultValues: {
-      name: '',
-      type: 'ssh',
-      hostOverride: '',
-      port: undefined,
-      domain: '',
-      username: '',
+      name: initialData?.name || '',
+      type: initialData?.type || 'ssh',
+      hostOverride: initialData?.hostOverride || '',
+      port: initialData?.port || undefined,
+      domain: initialData?.domain || '',
+      username: initialData?.username || '',
       secret: '',
     },
   });
@@ -245,9 +252,12 @@ export default function CredentialForm({ onSubmit, onCancel, isLoading = false }
                 )}
               </FormControl>
               <FormDescription>
-                {watchedType === 'ssh' 
-                  ? 'Digite uma senha ou cole uma chave privada SSH (detectado automaticamente)'
-                  : 'Esta informação será criptografada e armazenada com segurança'
+                {isEditing 
+                  ? 'Deixe em branco para manter a senha atual. Preencha apenas se quiser alterá-la.'
+                  : (watchedType === 'ssh' 
+                    ? 'Digite uma senha ou cole uma chave privada SSH (detectado automaticamente)'
+                    : 'Esta informação será criptografada e armazenada com segurança'
+                  )
                 }
               </FormDescription>
               <FormMessage />
@@ -270,7 +280,7 @@ export default function CredentialForm({ onSubmit, onCancel, isLoading = false }
             disabled={isLoading}
             data-testid="button-submit"
           >
-            {isLoading ? 'Salvando...' : 'Salvar Credencial'}
+            {isLoading ? 'Salvando...' : (isEditing ? 'Atualizar Credencial' : 'Salvar Credencial')}
           </Button>
         </div>
       </form>

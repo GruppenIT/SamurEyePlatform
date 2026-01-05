@@ -24,13 +24,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Trash2, Key, Shield } from "lucide-react";
+import { Plus, Search, Trash2, Key, Shield, Pencil } from "lucide-react";
 import { Credential } from "@shared/schema";
 import { CredentialFormData } from "@/types";
 
 export default function Credentials() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingCredential, setEditingCredential] = useState<Omit<Credential, 'secretEncrypted' | 'dekEncrypted'> | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -66,6 +67,38 @@ export default function Credentials() {
       toast({
         title: "Erro",
         description: "Falha ao criar credencial",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateCredentialMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: CredentialFormData }) => {
+      return await apiRequest('PATCH', `/api/credentials/${id}`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Credencial atualizada com sucesso",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/credentials"] });
+      setEditingCredential(null);
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Não autorizado",
+          description: "Você foi desconectado. Fazendo login novamente...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar credencial",
         variant: "destructive",
       });
     },
@@ -110,6 +143,12 @@ export default function Credentials() {
 
   const handleCreateCredential = (data: CredentialFormData) => {
     createCredentialMutation.mutate(data);
+  };
+
+  const handleUpdateCredential = (data: CredentialFormData) => {
+    if (editingCredential) {
+      updateCredentialMutation.mutate({ id: editingCredential.id, data });
+    }
   };
 
   const handleDeleteCredential = (id: string) => {
@@ -270,6 +309,15 @@ export default function Credentials() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => setEditingCredential(credential)}
+                            className="text-muted-foreground hover:text-foreground mr-1"
+                            data-testid={`button-edit-${credential.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleDeleteCredential(credential.id)}
                             className="text-destructive hover:text-destructive"
                             data-testid={`button-delete-${credential.id}`}
@@ -298,6 +346,23 @@ export default function Credentials() {
             onCancel={() => setShowCreateDialog(false)}
             isLoading={createCredentialMutation.isPending}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Credential Dialog */}
+      <Dialog open={!!editingCredential} onOpenChange={(open) => !open && setEditingCredential(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar Credencial</DialogTitle>
+          </DialogHeader>
+          {editingCredential && (
+            <CredentialForm
+              onSubmit={handleUpdateCredential}
+              onCancel={() => setEditingCredential(null)}
+              isLoading={updateCredentialMutation.isPending}
+              initialData={editingCredential}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
