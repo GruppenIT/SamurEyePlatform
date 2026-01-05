@@ -351,9 +351,20 @@ export class ADScanner {
         .replace(/\$baseDN/g, this.baseDN)
         .replace(/\$domainName/g, domain);
 
+      // Build qualified username - avoid double domain prefix
+      // If username already contains \ or @, use as-is; otherwise prepend domain
+      let qualifiedUsername: string;
+      if (username.includes('\\') || username.includes('@')) {
+        qualifiedUsername = username;
+        console.log(`📝 Username já qualificado: ${username}`);
+      } else {
+        qualifiedUsername = `${domain}\\${username}`;
+        console.log(`📝 Username qualificado com domínio: ${qualifiedUsername}`);
+      }
+
       // Log do comando sendo executado (sem senha)
       const sanitizedScript = `
-$credential = [PSCredential]::new('${domain}\\${username}', [REDACTED])
+$credential = [PSCredential]::new('${qualifiedUsername}', [REDACTED])
 Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
   ${processedScript}
 }`;
@@ -373,7 +384,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       const winrm = spawn(pythonBin, [
         wrapperPath,
         '--host', dcHost,
-        '--username', `${domain}\\${username}`,
+        '--username', qualifiedUsername,
         '--script', processedScript,
         '--timeout', '300', // 5 minutos
         '--password-stdin'

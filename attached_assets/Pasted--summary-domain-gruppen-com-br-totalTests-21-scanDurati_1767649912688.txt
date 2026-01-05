@@ -1,0 +1,359 @@
+{
+  "summary": {
+    "domain": "gruppen.com.br",
+    "totalTests": 21,
+    "scanDuration": "2026-01-05T21:52:00.406Z",
+    "totalFindings": 1,
+    "findingsByCategory": {
+      "configuration": 1
+    },
+    "findingsBySeverity": {
+      "critical": 1
+    }
+  },
+  "findings": [
+    {
+      "name": "Erro na Execução da Análise",
+      "type": "ad_misconfiguration",
+      "target": "gruppen.com.br",
+      "category": "configuration",
+      "severity": "critical",
+      "description": "Falha ao executar análise de segurança: Falha de autenticação: As credenciais foram rejeitadas pelo servidor. Verifique usuário/senha e permissões WinRM.",
+      "recommendation": "Verificar credenciais, conectividade e permissões WinRM no controlador de domínio"
+    }
+  ],
+  "testResults": [
+    {
+      "status": "error",
+      "testId": "dc_print_spooler",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "dc_print_spooler",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-Service -Name Spooler | Select-Object Name, Status | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Dc Print Spooler",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "ldap_anonymous",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "ldap_anonymous",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADObject -Identity 'CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,DC=gruppen,DC=com,DC=br' -Properties dSHeuristics | Select-Object -Property dSHeuristics | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Ldap Anonymous",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "smbv1_enabled",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "smbv1_enabled",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-WindowsFeature -Name FS-SMB1 | Select-Object Name, InstallState | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Smbv1 Enabled",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "krbtgt_weak",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "krbtgt_weak",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Identity krbtgt -Property PasswordLastSet | Select-Object Name, PasswordLastSet | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Krbtgt Weak",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "schema_permissions",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "schema_permissions",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  (Get-Acl 'AD:CN=Schema,CN=Configuration,DC=gruppen,DC=com,DC=br').Access | Where-Object {$_.IdentityReference -notmatch 'SYSTEM|Administrators|Schema Admins|Enterprise Admins'} | Select-Object IdentityReference, ActiveDirectoryRights | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Schema Permissions",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "privileged_spn",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "privileged_spn",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter * -Properties servicePrincipalName, MemberOf | Where-Object {$_.servicePrincipalName -and ($_.MemberOf -match 'Admins')} | Select-Object Name, SamAccountName, servicePrincipalName | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Privileged Spn",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "password_never_expires",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "password_never_expires",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter {PasswordNeverExpires -eq $true} -Property Name, PasswordNeverExpires | Select-Object Name, PasswordNeverExpires | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Password Never Expires",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "preauth_disabled",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "preauth_disabled",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter * -Properties UserAccountControl | Where-Object {$_.UserAccountControl -band 0x400000} | Select-Object Name, SamAccountName | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Preauth Disabled",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "admin_account_weak",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "admin_account_weak",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Identity 'Administrator' -Property PasswordLastSet, PasswordNeverExpires, LastLogonTimestamp | Select-Object Name, PasswordLastSet, PasswordNeverExpires, @{Name='LastLogon';Expression={[DateTime]::FromFileTime($_.LastLogonTimestamp)}} | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Admin Account Weak",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "dc_password_old",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "dc_password_old",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADDomainController -Filter * | ForEach-Object { Get-ADComputer -Identity $_.Name -Property PasswordLastSet | Select-Object Name, PasswordLastSet } | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Dc Password Old",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "low_primary_group_id",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "low_primary_group_id",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter {primaryGroupId -lt 1000} -Property primaryGroupId | Select-Object Name, primaryGroupId | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Low Primary Group Id",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "admin_count_set",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "admin_count_set",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter {admincount -gt 0} -Properties adminCount, MemberOf | Where-Object {-not ($_.MemberOf -match \"Admins\")} | Select-Object Name, SamAccountName, adminCount | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Admin Count Set",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "trust_relationships",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "trust_relationships",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADTrust -Filter * | Select-Object Name, TrustType, TrustDirection, ForestTransitive | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Trust Relationships",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "hidden_privileged_sid",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "hidden_privileged_sid",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter {admincount -gt 0} -Properties adminCount, sidHistory | Where-Object {$_.sidHistory} | Select-Object Name, SamAccountName, adminCount, sidHistory | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Hidden Privileged Sid",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "pre_win2000_access",
+      "category": "gerenciamento_contas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "pre_win2000_access",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADGroupMember -Identity 'Pre-Windows 2000 Compatible Access' -Recursive | Select-Object Name, SamAccountName | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Pre Win2000 Access",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "krbtgt_rbcd",
+      "category": "kerberos_delegacao",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "krbtgt_rbcd",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Identity 'krbtgt' -Property 'msDS-AllowedToDelegateTo' | Select-Object SamAccountName, 'msDS-AllowedToDelegateTo' | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Krbtgt Rbcd",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "gmsa_read_permissions",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "gmsa_read_permissions",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADServiceAccount -Filter * -Properties PrincipalsAllowedToRetrieveManagedPassword | Where-Object {$_.PrincipalsAllowedToRetrieveManagedPassword} | Select-Object Name, PrincipalsAllowedToRetrieveManagedPassword | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Gmsa Read Permissions",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "kerberos_vulnerabilities",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "kerberos_vulnerabilities",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADUser -Filter * -Properties 'msDS-SupportedEncryptionTypes' | Where-Object {$_.'msDS-SupportedEncryptionTypes' -lt 16} | Select-Object Name, SamAccountName, 'msDS-SupportedEncryptionTypes' | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Kerberos Vulnerabilities",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "kerberos_rbcd_computers",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "kerberos_rbcd_computers",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADComputer -Filter * -Properties PrincipalsAllowedToDelegateToAccount | Where-Object {$_.PrincipalsAllowedToDelegateToAccount} | Select-Object Name, SamAccountName, PrincipalsAllowedToDelegateToAccount | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Kerberos Rbcd Computers",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "rodc_kdc_access",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "stderr": "WinRM connection/execution failed: the specified credentials were rejected by the server",
+        "stdout": "",
+        "testId": "rodc_kdc_access",
+        "command": "\n$credential = [PSCredential]::new('gruppen.com.br\\gruppen\\svc_samureye', [REDACTED])\nInvoke-Command -ComputerName 192.168.100.43 -Credential $credential -ScriptBlock {\n  Get-ADDomainController -Filter {IsReadOnly -eq $true} | ForEach-Object { Get-ADComputer -Identity $_.Name -Properties 'msDS-RevealedUsers' | Select-Object Name, 'msDS-RevealedUsers' } | ConvertTo-Json\n}",
+        "exitCode": 1
+      },
+      "testName": "Rodc Kdc Access",
+      "description": "Credenciais rejeitadas: WinRM connection/execution failed: the specified credentials were rejected by the server",
+      "severityHint": "medium",
+      "recommendation": "Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM"
+    },
+    {
+      "status": "error",
+      "testId": "test_error_execution",
+      "category": "configuracoes_criticas",
+      "evidence": {
+        "error": "Falha de autenticação: As credenciais foram rejeitadas pelo servidor. Verifique usuário/senha e permissões WinRM.",
+        "stack": "Error: Falha de autenticação: As credenciais foram rejeitadas pelo servidor. Verifique usuário/senha e permissões WinRM.\n    at ADScanner.scanADSecurity (file:///opt/samureye/dist/index.js:6166:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async JourneyExecutorService.executeADSecurity (file:///opt/samureye/dist/index.js:9282:26)\n    at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:8959:9)\n    at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:10294:7)"
+      },
+      "testName": "Erro na Execução da Análise",
+      "description": "Falha ao executar análise de segurança: Falha de autenticação: As credenciais foram rejeitadas pelo servidor. Verifique usuário/senha e permissões WinRM.",
+      "severityHint": "critical",
+      "recommendation": "Verificar credenciais, conectividade e permissões WinRM no controlador de domínio"
+    }
+  ]
