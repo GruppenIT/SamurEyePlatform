@@ -129,19 +129,22 @@ log "✅ Estrutura do banco recriada"
 # Gera hash da senha usando Node.js
 log "Criando usuário administrador..."
 
+cd "$INSTALL_DIR"
 HASHED_PASSWORD=$(node -e "
 const bcrypt = require('bcryptjs');
 const hash = bcrypt.hashSync('$ADMIN_PASSWORD', 12);
 console.log(hash);
 ")
 
-# Insere o usuário admin
+# Insere o usuário admin (schema correto: first_name, last_name, password_hash)
 sudo -u postgres psql -d "$PGDATABASE" << EOSQL
-INSERT INTO users (username, email, password, role, is_active, created_at)
+INSERT INTO users (id, email, password_hash, first_name, last_name, role, is_active, created_at)
 VALUES (
-    'Administrador',
+    gen_random_uuid(),
     '$ADMIN_EMAIL',
     '$HASHED_PASSWORD',
+    'Administrador',
+    'SamurEye',
     'global_administrator',
     true,
     NOW()

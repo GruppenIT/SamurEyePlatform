@@ -1,0 +1,62 @@
+root@vlxsam99:~# # Baixar e executar
+curl -fsSL https://raw.githubusercontent.com/GruppenIT/SamurEyePlatform/main/cle                                                              an_appliance.sh -o clean_appliance.sh
+sudo bash clean_appliance.sh
+
+╔═══════════════════════════════════════════════════════════╗
+║  ⚠️  ATENÇÃO: OPERAÇÃO DESTRUTIVA                         ║
+╠═══════════════════════════════════════════════════════════╣
+║  Este script irá:                                         ║
+║  • APAGAR TODOS OS DADOS do banco de dados                ║
+║  • Recriar o usuário admin@samureye.com.br                ║
+║  • Gerar nova senha de administrador                      ║
+║                                                            ║
+║  TODOS OS HOSTS, AMEAÇAS, JORNADAS E CONFIGURAÇÕES        ║
+║  SERÃO PERMANENTEMENTE PERDIDOS!                          ║
+╚═══════════════════════════════════════════════════════════╝
+
+Tem certeza que deseja continuar? Digite 'SIM' para confirmar: SIM
+
+[INFO] Iniciando limpeza do appliance...
+[INFO] Parando serviço SamurEye...
+[INFO] Limpando banco de dados...
+SET
+NOTICE:  drop cascades to 3 other objects
+DETAIL:  drop cascades to constraint host_enrichments_host_id_hosts_id_fk on tab                                                              le host_enrichments
+drop cascades to constraint host_risk_history_host_id_hosts_id_fk on table host_                                                              risk_history
+drop cascades to constraint threats_host_id_hosts_id_fk on table threats
+NOTICE:  drop cascades to 2 other objects
+DETAIL:  drop cascades to constraint host_enrichments_credential_id_credentials_                                                              id_fk on table host_enrichments
+drop cascades to constraint journey_credentials_credential_id_credentials_id_fk                                                               on table journey_credentials
+NOTICE:  drop cascades to constraint threats_asset_id_assets_id_fk on table thre                                                              ats
+NOTICE:  drop cascades to 3 other objects
+DETAIL:  drop cascades to constraint jobs_journey_id_journeys_id_fk on table job                                                              s
+drop cascades to constraint journey_credentials_journey_id_journeys_id_fk on tab                                                              le journey_credentials
+drop cascades to constraint schedules_journey_id_journeys_id_fk on table schedul                                                              es
+NOTICE:  drop cascades to constraint threats_job_id_jobs_id_fk on table threats
+NOTICE:  drop cascades to constraint threat_status_history_threat_id_threats_id_                                                              fk on table threat_status_history
+DO
+DO
+DO
+SET
+[INFO] ✅ Banco de dados limpo
+[INFO] Recriando estrutura do banco de dados...
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/opt/samureye/drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
+[✓] Changes applied
+[INFO] ✅ Estrutura do banco recriada
+[INFO] Criando usuário administrador...
+ERROR:  column "username" of relation "users" does not exist
+LINE 1: INSERT INTO users (username, email, password, role, is_activ...
+                           ^
+[INFO] ✅ Usuário administrador criado
+[INFO] Atualizando arquivo de credenciais...
+[INFO] ✅ Arquivo de credenciais atualizado: /opt/samureye/ADMIN_CREDENTIALS
+[INFO] Iniciando serviço SamurEye...
+Failed to start samureye.service: Unit samureye.service not found.
+root@vlxsam99:~#
