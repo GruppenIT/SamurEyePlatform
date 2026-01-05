@@ -2,11 +2,18 @@
 
 # SamurEye - Adversarial Exposure Validation Platform
 # Script de Atualização Segura (Sem Reset do Banco de Dados)
-# Versão: 1.0.0
+# Versão: 1.1.0
 #
 # USAGE:
-#   sudo ./update-samureye.sh              # Atualização padrão do repositório GitHub
-#   sudo SKIP_BACKUP=true ./update-samureye.sh  # Pula backup (use com cautela)
+#   Via pipe (recomendado para atualizações remotas):
+#     curl -fsSL https://raw.githubusercontent.com/GruppenIT/SamurEyePlatform/main/update.sh | sudo AUTO_CONFIRM=true bash
+#
+#   Local (com confirmação interativa):
+#     sudo ./update.sh
+#
+#   Opções via variáveis de ambiente:
+#     AUTO_CONFIRM=true   - Pula confirmações (obrigatório para execução via pipe)
+#     SKIP_BACKUP=true    - Pula backup (use com cautela)
 
 set -euo pipefail
 
@@ -27,6 +34,7 @@ TEMP_DIR="$INSTALL_DIR/temp"
 SKIP_BACKUP="${SKIP_BACKUP:-false}"
 REPO_URL="${REPO_URL:-https://github.com/GruppenIT/SamurEyePlatform.git}"
 BRANCH="${BRANCH:-main}"
+AUTO_CONFIRM="${AUTO_CONFIRM:-false}"
 
 # Função para logging
 log() {
@@ -114,12 +122,20 @@ check_updates() {
     
     if [[ $LOCAL == $REMOTE ]]; then
         success "Sistema já está na versão mais recente!"
-        echo
-        read -p "Deseja forçar atualização mesmo assim? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            log "Atualização cancelada pelo usuário"
+        
+        if [[ "$AUTO_CONFIRM" == "true" ]]; then
+            log "Auto-confirmação ativada - forçando atualização"
+        elif [[ ! -t 0 ]]; then
+            log "Já na versão mais recente. Nada a fazer."
             exit 0
+        else
+            echo
+            read -p "Deseja forçar atualização mesmo assim? (y/N): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                log "Atualização cancelada pelo usuário"
+                exit 0
+            fi
         fi
     else
         warn "Novas atualizações disponíveis:"
@@ -517,12 +533,25 @@ main() {
     # Confirmação do usuário
     echo
     warn "⚠️  O serviço será parado temporariamente durante a atualização"
-    read -p "Continuar com a atualização? (y/N): " -n 1 -r
-    echo
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        log "Atualização cancelada pelo usuário"
-        exit 0
+    
+    if [[ "$AUTO_CONFIRM" == "true" ]]; then
+        log "Auto-confirmação ativada (AUTO_CONFIRM=true)"
+    else
+        # Verifica se stdin é um terminal (não funciona via pipe)
+        if [[ ! -t 0 ]]; then
+            warn "Execução via pipe detectada (curl | bash)"
+            warn "Use: curl -fsSL URL | sudo AUTO_CONFIRM=true bash"
+            error "Ou baixe o script primeiro: curl -fsSL URL -o update.sh && sudo bash update.sh"
+            exit 1
+        fi
+        
+        read -p "Continuar com a atualização? (y/N): " -n 1 -r
+        echo
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log "Atualização cancelada pelo usuário"
+            exit 0
+        fi
     fi
     
     # Executa atualização com proteção de rollback
@@ -538,10 +567,16 @@ main() {
     ); then
         error "❌ Atualização falhou!"
         echo
-        read -p "Executar rollback automático? (Y/n): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+        
+        if [[ "$AUTO_CONFIRM" == "true" ]] || [[ ! -t 0 ]]; then
+            log "Executando rollback automático..."
             rollback
+        else
+            read -p "Executar rollback automático? (Y/n): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+                rollback
+            fi
         fi
         error "Atualização não foi concluída"
         exit 1
