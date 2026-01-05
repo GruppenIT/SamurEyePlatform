@@ -1,0 +1,233 @@
+root@vlxsam99:~# journalctl -u samureye-api -f
+Jan 05 21:55:09 vlxsam99 npm[2393986]: 9:55:09 PM [express] GET /api/jobs 200 in 8ms :: [{"id":"e18b3289-47cf-4cb6-b5c9-911c4f4bf531","jour…
+Jan 05 21:55:09 vlxsam99 npm[2393986]: 🗑️  Job e18b3289-47cf-4cb6-b5c9-911c4f4bf531 removido dos jobs em execução
+Jan 05 21:55:09 vlxsam99 npm[2393986]: 9:55:09 PM [express] GET /api/jobs 200 in 7ms :: [{"id":"e18b3289-47cf-4cb6-b5c9-911c4f4bf531","jour…
+Jan 05 21:55:09 vlxsam99 npm[2393986]: 9:55:09 PM [express] GET /api/jobs 200 in 6ms :: [{"id":"e18b3289-47cf-4cb6-b5c9-911c4f4bf531","jour…
+Jan 05 21:55:12 vlxsam99 npm[2393986]: 9:55:12 PM [express] GET /api/jobs/e18b3289-47cf-4cb6-b5c9-911c4f4bf531/result 200 in 8ms :: {"id":"…
+Jan 05 21:55:14 vlxsam99 npm[2393986]: 9:55:14 PM [express] GET /api/jobs 200 in 8ms :: [{"id":"e18b3289-47cf-4cb6-b5c9-911c4f4bf531","jour…
+Jan 05 21:55:19 vlxsam99 npm[2393986]: 9:55:19 PM [express] GET /api/jobs 200 in 7ms :: [{"id":"e18b3289-47cf-4cb6-b5c9-911c4f4bf531","jour…
+Jan 05 21:55:24 vlxsam99 npm[2393986]: 9:55:24 PM [express] GET /api/jobs 200 in 7ms :: [{"id":"e18b3289-47cf-4cb6-b5c9-911c4f4bf531","jour…
+Jan 05 21:55:24 vlxsam99 npm[2393986]: Cliente WebSocket desconectado
+Jan 05 21:55:29 vlxsam99 npm[2393986]: Cliente WebSocket conectado
+Jan 05 21:56:13 vlxsam99 npm[2393986]: 9:56:13 PM [express] PATCH /api/credentials/ae862b85-8ad1-4d68-8bab-942a2d06681e 200 in 30ms :: {"id…
+Jan 05 21:56:13 vlxsam99 npm[2393986]: 9:56:13 PM [express] GET /api/credentials 200 in 7ms :: [{"id":"ae862b85-8ad1-4d68-8bab-942a2d06681e…
+Jan 05 21:56:14 vlxsam99 npm[2393986]: Cliente WebSocket conectado
+Jan 05 21:56:16 vlxsam99 npm[2393986]: Cliente WebSocket desconectado
+Jan 05 21:56:16 vlxsam99 npm[2393986]: 9:56:16 PM [express] GET /api/threats 200 in 11ms :: [{"id":"cbe3899c-8e10-4c46-baae-d6e2c32fad2b","…
+Jan 05 21:56:16 vlxsam99 npm[2393986]: 9:56:16 PM [express] GET /api/threats/stats 200 in 21ms :: {"total":1,"critical":1,"high":0,"medium"…
+Jan 05 21:56:16 vlxsam99 npm[2393986]: 9:56:16 PM [express] GET /api/hosts 200 in 21ms :: [{"id":"fc4def95-7298-446c-ae00-e03377fed200","na…
+Jan 05 21:56:19 vlxsam99 npm[2393986]: 9:56:19 PM [express] POST /api/jobs/execute 201 in 12ms :: {"id":"feec429c-2258-409b-83d6-0e659c8762…
+Jan 05 21:56:19 vlxsam99 npm[2393986]: 🔍 [UPSERT] Attempting upsert for host: gruppen.com.br, IPs:
+Jan 05 21:56:19 vlxsam99 npm[2393986]: ✅ [UPSERT] Found existing host: gruppen.com.br (ID: fc4def95-7298-446c-ae00-e03377fed200), updating...
+Jan 05 21:56:19 vlxsam99 npm[2393986]: ✅ [UPSERT] Host updated: gruppen.com.br (IPs: , Aliases: )
+Jan 05 21:56:19 vlxsam99 npm[2393986]: 🏠 Host de domínio criado/atualizado: gruppen.com.br
+Jan 05 21:56:19 vlxsam99 npm[2393986]: 🏠 AD Hygiene: Host de domínio criado: gruppen.com.br
+Jan 05 21:56:19 vlxsam99 npm[2393986]: 🔍 Iniciando análise de segurança AD para domínio gruppen.com.br
+Jan 05 21:56:19 vlxsam99 npm[2393986]: 🎯 Usando DC primário: 192.168.100.43
+Jan 05 21:56:19 vlxsam99 npm[2393986]: 🔴 Executando testes: Configurações Críticas...
+Jan 05 21:56:19 vlxsam99 npm[2393986]: 🔧 PowerShell [Controlador de domínio com spooler de impressão ativado (PrintNightmare)]: Executando co                                                 mando via WinRM no DC 192.168.100.43
+Jan 05 21:56:19 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:19 vlxsam99 npm[2393986]: Get-Service -Name Spooler | Select-Object Name, Status | ConvertTo-Json...
+Jan 05 21:56:20 vlxsam99 npm[2393986]: ✅ PowerShell [Controlador de domínio com spooler de impressão ativado (PrintNightmare)]: Concluído (ex                                                 itCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:20 vlxsam99 npm[2393986]: 🔧 PowerShell [LDAP anônimo e sem assinatura permitido]: Executando comando via WinRM no DC 192.168.100                                                 .43
+Jan 05 21:56:20 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:20 vlxsam99 npm[2393986]: Get-ADObject -Identity 'CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,DC=gruppen,DC=c                                                 om,DC=br' -Properties dSHeuristics | Select-Object -Property dSHeuristics | ConvertTo-Json...
+Jan 05 21:56:20 vlxsam99 npm[2393986]: ✅ PowerShell [LDAP anônimo e sem assinatura permitido]: Concluído (exitCode: 1, stdout: 198 chars, std                                                 err: 0 chars)
+Jan 05 21:56:20 vlxsam99 npm[2393986]: 🔧 PowerShell [Sessão SMBv1 fraca permitida]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:20 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:20 vlxsam99 npm[2393986]: Get-WindowsFeature -Name FS-SMB1 | Select-Object Name, InstallState | ConvertTo-Json...
+Jan 05 21:56:20 vlxsam99 npm[2393986]: ✅ PowerShell [Sessão SMBv1 fraca permitida]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 char                                                 s)
+Jan 05 21:56:20 vlxsam99 npm[2393986]: 🔧 PowerShell [Conta KRBTGT fraca (Golden Ticket)]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:20 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:20 vlxsam99 npm[2393986]: Get-ADUser -Identity krbtgt -Property PasswordLastSet | Select-Object Name, PasswordLastSet | ConvertTo                                                 -Json...
+Jan 05 21:56:20 vlxsam99 npm[2393986]: 9:56:20 PM [express] GET /api/jobs 200 in 9ms :: [{"id":"feec429c-2258-409b-83d6-0e659c8762bf","jour…
+Jan 05 21:56:20 vlxsam99 npm[2393986]: Cliente WebSocket conectado
+Jan 05 21:56:20 vlxsam99 npm[2393986]: ✅ PowerShell [Conta KRBTGT fraca (Golden Ticket)]: Concluído (exitCode: 1, stdout: 198 chars, stderr:                                                  0 chars)
+Jan 05 21:56:20 vlxsam99 npm[2393986]: 🔧 PowerShell [Alterações de permissões padrão na partição do esquema]: Executando comando via WinRM no                                                  DC 192.168.100.43
+Jan 05 21:56:20 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:20 vlxsam99 npm[2393986]: (Get-Acl 'AD:CN=Schema,CN=Configuration,DC=gruppen,DC=com,DC=br').Access | Where-Object {$_.IdentityRef                                                 erence -notmatch 'SYSTEM|Administrators|Schema Admins|Enterprise Admins'} | Select-Object Identit...
+Jan 05 21:56:21 vlxsam99 npm[2393986]: ✅ PowerShell [Alterações de permissões padrão na partição do esquema]: Concluído (exitCode: 1, stdout:                                                  198 chars, stderr: 0 chars)
+Jan 05 21:56:21 vlxsam99 npm[2393986]: ✅ Configurações Críticas: 0 achados
+Jan 05 21:56:21 vlxsam99 npm[2393986]: 👥 Executando testes: Gerenciamento de Contas...
+Jan 05 21:56:21 vlxsam99 npm[2393986]: 🔧 PowerShell [Usuários privilegiados com Service Principal Names (SPN) definidos]: Executando comando                                                  via WinRM no DC 192.168.100.43
+Jan 05 21:56:21 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:21 vlxsam99 npm[2393986]: Get-ADUser -Filter * -Properties servicePrincipalName, MemberOf | Where-Object {$_.servicePrincipalName                                                  -and ($_.MemberOf -match 'Admins')} | Select-Object Name, SamAccountName, servicePrincipalName |...
+Jan 05 21:56:21 vlxsam99 npm[2393986]: Cliente WebSocket conectado
+Jan 05 21:56:21 vlxsam99 npm[2393986]: ✅ PowerShell [Usuários privilegiados com Service Principal Names (SPN) definidos]: Concluído (exitCode                                                 : 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:21 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas com senha sem expiração]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:21 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:21 vlxsam99 npm[2393986]: Get-ADUser -Filter {PasswordNeverExpires -eq $true} -Property Name, PasswordNeverExpires | Select-Objec                                                 t Name, PasswordNeverExpires | ConvertTo-Json...
+Jan 05 21:56:21 vlxsam99 npm[2393986]: ✅ PowerShell [Contas com senha sem expiração]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 ch                                                 ars)
+Jan 05 21:56:21 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas com pré-autenticação desativada]: Executando comando via WinRM no DC 192.168.100.                                                 43
+Jan 05 21:56:21 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:21 vlxsam99 npm[2393986]: Get-ADUser -Filter * -Properties UserAccountControl | Where-Object {$_.UserAccountControl -band 0x40000                                                 0} | Select-Object Name, SamAccountName | ConvertTo-Json...
+Jan 05 21:56:22 vlxsam99 npm[2393986]: ✅ PowerShell [Contas com pré-autenticação desativada]: Concluído (exitCode: 1, stdout: 198 chars, stde                                                 rr: 0 chars)
+Jan 05 21:56:22 vlxsam99 npm[2393986]: 🔧 PowerShell [Conta de administrador padrão fraca]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:22 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:22 vlxsam99 npm[2393986]: Get-ADUser -Identity 'Administrator' -Property PasswordLastSet, PasswordNeverExpires, LastLogonTimestam                                                 p | Select-Object Name, PasswordLastSet, PasswordNeverExpires, @{Name='LastLogon';Expression={[Da...
+Jan 05 21:56:22 vlxsam99 npm[2393986]: ✅ PowerShell [Conta de administrador padrão fraca]: Concluído (exitCode: 1, stdout: 198 chars, stderr:                                                  0 chars)
+Jan 05 21:56:22 vlxsam99 npm[2393986]: 🔧 PowerShell [Controladores de domínio com senha não alterada recentemente]: Executando comando via Wi                                                 nRM no DC 192.168.100.43
+Jan 05 21:56:22 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:22 vlxsam99 npm[2393986]: Get-ADDomainController -Filter * | ForEach-Object { Get-ADComputer -Identity $_.Name -Property Password                                                 LastSet | Select-Object Name, PasswordLastSet } | ConvertTo-Json...
+Jan 05 21:56:22 vlxsam99 npm[2393986]: ✅ PowerShell [Controladores de domínio com senha não alterada recentemente]: Concluído (exitCode: 1, s                                                 tdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:22 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas com ID de grupo primário (PrimaryGroupID) menor que 1000]: Executando comando via                                                  WinRM no DC 192.168.100.43
+Jan 05 21:56:22 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:22 vlxsam99 npm[2393986]: Get-ADUser -Filter {primaryGroupId -lt 1000} -Property primaryGroupId | Select-Object Name, primaryGrou                                                 pId | ConvertTo-Json...
+Jan 05 21:56:22 vlxsam99 npm[2393986]: ✅ PowerShell [Contas com ID de grupo primário (PrimaryGroupID) menor que 1000]: Concluído (exitCode: 1                                                 , stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:22 vlxsam99 npm[2393986]: 🔧 PowerShell [Atributo AdminCount definido para usuários padrão]: Executando comando via WinRM no DC 1                                                 92.168.100.43
+Jan 05 21:56:22 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:22 vlxsam99 npm[2393986]: Get-ADUser -Filter {admincount -gt 0} -Properties adminCount, MemberOf | Where-Object {-not ($_.MemberO                                                 f -match "Admins")} | Select-Object Name, SamAccountName, adminCount | ConvertTo-Json...
+Jan 05 21:56:23 vlxsam99 npm[2393986]: ✅ PowerShell [Atributo AdminCount definido para usuários padrão]: Concluído (exitCode: 1, stdout: 198                                                  chars, stderr: 0 chars)
+Jan 05 21:56:23 vlxsam99 npm[2393986]: 🔧 PowerShell [Relações de confiança de alto risco]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:23 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:23 vlxsam99 npm[2393986]: Get-ADTrust -Filter * | Select-Object Name, TrustType, TrustDirection, ForestTransitive | ConvertTo-Jso                                                 n...
+Jan 05 21:56:23 vlxsam99 npm[2393986]: ✅ PowerShell [Relações de confiança de alto risco]: Concluído (exitCode: 1, stdout: 198 chars, stderr:                                                  0 chars)
+Jan 05 21:56:23 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas com SID privilegiado oculto]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:23 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:23 vlxsam99 npm[2393986]: Get-ADUser -Filter {admincount -gt 0} -Properties adminCount, sidHistory | Where-Object {$_.sidHistory}                                                  | Select-Object Name, SamAccountName, adminCount, sidHistory | ConvertTo-Json...
+Jan 05 21:56:23 vlxsam99 npm[2393986]: ✅ PowerShell [Contas com SID privilegiado oculto]: Concluído (exitCode: 1, stdout: 198 chars, stderr:                                                  0 chars)
+Jan 05 21:56:23 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas usando controle de acesso compatível com pré-Windows 2000]: Executando comando vi                                                 a WinRM no DC 192.168.100.43
+Jan 05 21:56:23 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:23 vlxsam99 npm[2393986]: Get-ADGroupMember -Identity 'Pre-Windows 2000 Compatible Access' -Recursive | Select-Object Name, SamAc                                                 countName | ConvertTo-Json...
+Jan 05 21:56:24 vlxsam99 npm[2393986]: ✅ PowerShell [Contas usando controle de acesso compatível com pré-Windows 2000]: Concluído (exitCode:                                                  1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:24 vlxsam99 npm[2393986]: ✅ Gerenciamento de Contas: 0 achados
+Jan 05 21:56:24 vlxsam99 npm[2393986]: 🎫 Executando testes: Kerberos e Delegação...
+Jan 05 21:56:24 vlxsam99 npm[2393986]: 🔧 PowerShell [Conta KRBTGT com delegação restrita baseada em recursos (RBCD) habilitada]: Executando c                                                 omando via WinRM no DC 192.168.100.43
+Jan 05 21:56:24 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:24 vlxsam99 npm[2393986]: Get-ADUser -Identity 'krbtgt' -Property 'msDS-AllowedToDelegateTo' | Select-Object SamAccountName, 'msD                                                 S-AllowedToDelegateTo' | ConvertTo-Json...
+Jan 05 21:56:24 vlxsam99 npm[2393986]: ✅ PowerShell [Conta KRBTGT com delegação restrita baseada em recursos (RBCD) habilitada]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:24 vlxsam99 npm[2393986]: 🔧 PowerShell [Usuários padrão com permissão para leitura de senha de GMSA]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:24 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:24 vlxsam99 npm[2393986]: Get-ADServiceAccount -Filter * -Properties PrincipalsAllowedToRetrieveManagedPassword | Where-Object {$_.PrincipalsAllowedToRetrieveManagedPassword} | Select-Object Name, PrincipalsAllowedToRetrieveMa...
+Jan 05 21:56:24 vlxsam99 npm[2393986]: ✅ PowerShell [Usuários padrão com permissão para leitura de senha de GMSA]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:24 vlxsam99 npm[2393986]: 🔧 PowerShell [Avaliação de vulnerabilidades do Kerberos]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:24 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:24 vlxsam99 npm[2393986]: Get-ADUser -Filter * -Properties 'msDS-SupportedEncryptionTypes' | Where-Object {$_.'msDS-SupportedEncryptionTypes' -lt 16} | Select-Object Name, SamAccountName, 'msDS-SupportedEncryptionTypes' | Conv...
+Jan 05 21:56:24 vlxsam99 npm[2393986]: ✅ PowerShell [Avaliação de vulnerabilidades do Kerberos]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:24 vlxsam99 npm[2393986]: 🔧 PowerShell [Comprometimento de conta de computador via delegação restrita baseada em recursos do Kerberos (RBCD)]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:24 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:24 vlxsam99 npm[2393986]: Get-ADComputer -Filter * -Properties PrincipalsAllowedToDelegateToAccount | Where-Object {$_.PrincipalsAllowedToDelegateToAccount} | Select-Object Name, SamAccountName, PrincipalsAllowedToDelegateToAc...
+Jan 05 21:56:25 vlxsam99 npm[2393986]: ✅ PowerShell [Comprometimento de conta de computador via delegação restrita baseada em recursos do Kerberos (RBCD)]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:25 vlxsam99 npm[2393986]: 🔧 PowerShell [Direitos de acesso perigosos na conta KDC do RODC]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:25 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:25 vlxsam99 npm[2393986]: Get-ADDomainController -Filter {IsReadOnly -eq $true} | ForEach-Object { Get-ADComputer -Identity $_.Name -Properties 'msDS-RevealedUsers' | Select-Object Name, 'msDS-RevealedUsers' } | ConvertTo-Json...
+Jan 05 21:56:25 vlxsam99 npm[2393986]: ✅ PowerShell [Direitos de acesso perigosos na conta KDC do RODC]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:25 vlxsam99 npm[2393986]: ✅ Kerberos e Delegação: 0 achados
+Jan 05 21:56:25 vlxsam99 npm[2393986]: 📂 Executando testes: Compartilhamentos e GPOs...
+Jan 05 21:56:25 vlxsam99 npm[2393986]: 🔧 PowerShell [Coleta de credenciais a partir de compartilhamentos de domínio]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:25 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:25 vlxsam99 npm[2393986]: $paths = @('\\gruppen.com.br\SYSVOL', '\\gruppen.com.br\NETLOGON'); foreach ($path in $paths) { Get-ChildItem -Path $path -Recurse -Include *.ps1, *.vbs, *.bat, *.xml -ErrorAction SilentlyContinue | S...
+Jan 05 21:56:25 vlxsam99 npm[2393986]: ✅ PowerShell [Coleta de credenciais a partir de compartilhamentos de domínio]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:25 vlxsam99 npm[2393986]: 🔧 PowerShell [Verificar objetos GPO sensíveis e permissões de arquivos]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:25 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:25 vlxsam99 npm[2393986]: $path = '\\gruppen.com.br\SYSVOL'; $acl = Get-Acl -Path $path; $acl.Access | Where-Object {$_.IdentityReference -notmatch 'Domain Admins|Enterprise Admins|SYSTEM|Administrators|Authenticated Users|Ser...
+Jan 05 21:56:25 vlxsam99 npm[2393986]: 9:56:25 PM [express] GET /api/jobs 200 in 8ms :: [{"id":"feec429c-2258-409b-83d6-0e659c8762bf","jour…
+Jan 05 21:56:25 vlxsam99 npm[2393986]: ✅ PowerShell [Verificar objetos GPO sensíveis e permissões de arquivos]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:25 vlxsam99 npm[2393986]: 🔧 PowerShell [Assinatura SMB fraca]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:25 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:25 vlxsam99 npm[2393986]: Get-SmbServerConfiguration | Select-Object RequireSecuritySignature, EnableSecuritySignature | ConvertTo-Json...
+Jan 05 21:56:26 vlxsam99 npm[2393986]: ✅ PowerShell [Assinatura SMB fraca]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:26 vlxsam99 npm[2393986]: ✅ Compartilhamentos e GPOs: 0 achados
+Jan 05 21:56:26 vlxsam99 npm[2393986]: ⚙️  Executando testes: Políticas e Configuração...
+Jan 05 21:56:26 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas com parâmetros de controle de conta de usuário arriscados]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:26 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:26 vlxsam99 npm[2393986]: Get-ADUser -Filter * -Property userAccountControl | Where-Object {($_.userAccountControl -band 0x10000) -or ($_.userAccountControl -band 0x80000)} | Select-Object Name, userAccountControl | ConvertTo-...
+Jan 05 21:56:26 vlxsam99 npm[2393986]: ✅ PowerShell [Contas com parâmetros de controle de conta de usuário arriscados]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:26 vlxsam99 npm[2393986]: 🔧 PowerShell [Domínios com nível funcional desatualizado]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:26 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:26 vlxsam99 npm[2393986]: Get-ADDomain | Select-Object DomainMode, DistinguishedName | ConvertTo-Json...
+Jan 05 21:56:26 vlxsam99 npm[2393986]: ✅ PowerShell [Domínios com nível funcional desatualizado]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:26 vlxsam99 npm[2393986]: 🔧 PowerShell [Solução LAPS não habilitada]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:26 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:26 vlxsam99 npm[2393986]: Get-ADComputer -Filter * -Properties 'ms-Mcs-AdmPwd' -ResultSetSize 100 | Where-Object {$_.'ms-Mcs-AdmPwd' -eq $null} | Measure-Object | Select-Object Count | ConvertTo-Json...
+Jan 05 21:56:27 vlxsam99 npm[2393986]: ✅ PowerShell [Solução LAPS não habilitada]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:27 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas de usuário padrão como administradores DNS]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:27 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:27 vlxsam99 npm[2393986]: Get-ADGroupMember -Identity 'DnsAdmins' -Recursive | Where-Object {$_.objectClass -eq 'user'} | Select-Object Name, SamAccountName | ConvertTo-Json...
+Jan 05 21:56:27 vlxsam99 npm[2393986]: ✅ PowerShell [Contas de usuário padrão como administradores DNS]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:27 vlxsam99 npm[2393986]: 🔧 PowerShell [ACE não canônico em objetos]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:27 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:27 vlxsam99 npm[2393986]: $objects = Get-ADObject -Filter * -Properties nTSecurityDescriptor -ResultSetSize 1000; $nonCanonical = $objects | Where-Object {$_.nTSecurityDescriptor.AreAccessRulesCanonical -eq $false}; $nonCanoni...
+Jan 05 21:56:27 vlxsam99 npm[2393986]: ✅ PowerShell [ACE não canônico em objetos]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:27 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas krbtgt de RODC órfãs]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:27 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:27 vlxsam99 npm[2393986]: Get-ADObject -Filter {(objectclass -eq 'user') -and (name -like 'krbtgt*')} -Properties 'msDS-KrbTgtLinkBl' | Where-Object {-not $_.'msDS-KrbTgtLinkBl'} | Select-Object Name, 'msDS-KrbTgtLinkBl' | Con...
+Jan 05 21:56:27 vlxsam99 npm[2393986]: ✅ PowerShell [Contas krbtgt de RODC órfãs]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:27 vlxsam99 npm[2393986]: 🔧 PowerShell [Domínio com configuração de compatibilidade retroativa perigosa]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:27 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:27 vlxsam99 npm[2393986]: Get-ADObject -Identity 'CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,DC=gruppen,DC=com,DC=br' -Properties dSHeuristics | Where-Object {$_.dSHeuristics} | Select-Object -ExpandProper...
+Jan 05 21:56:28 vlxsam99 npm[2393986]: ✅ PowerShell [Domínio com configuração de compatibilidade retroativa perigosa]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:28 vlxsam99 npm[2393986]: ✅ Políticas e Configuração: 0 achados
+Jan 05 21:56:28 vlxsam99 npm[2393986]: 💤 Executando testes: Contas Inativas...
+Jan 05 21:56:28 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas privilegiadas inativas]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:28 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:28 vlxsam99 npm[2393986]: $DaysInactive = 90; $InactiveDate = (Get-Date).AddDays(-$DaysInactive); Get-ADUser -Filter {Enabled -eq $True} -Properties LastLogonDate, MemberOf | Where-Object {($_.LastLogonDate -lt $InactiveDate) ...
+Jan 05 21:56:28 vlxsam99 npm[2393986]: ✅ PowerShell [Contas privilegiadas inativas]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:28 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas desativadas em grupos privilegiados]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:28 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:28 vlxsam99 npm[2393986]: Get-ADUser -Filter {Enabled -eq $false} -Properties MemberOf | Where-Object {$_.MemberOf -match 'Admins'} | Select-Object Name, SamAccountName | ConvertTo-Json...
+Jan 05 21:56:28 vlxsam99 npm[2393986]: ✅ PowerShell [Contas desativadas em grupos privilegiados]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:28 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas gMSA com senha não alterada recentemente]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:28 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:28 vlxsam99 npm[2393986]: $DaysThreshold = 90; $ThresholdDate = (Get-Date).AddDays(-$DaysThreshold); Get-ADServiceAccount -Filter * -Properties whenChanged | Where-Object {$_.whenChanged -lt $ThresholdDate} | Select-Object Nam...
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ✅ PowerShell [Contas gMSA com senha não alterada recentemente]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas de serviço inativas há mais de 60 dias]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:29 vlxsam99 npm[2393986]: $daysInactive = 60; $limitDate = (Get-Date).AddDays(-$daysInactive); Get-ADUser -Filter {(servicePrincipalName -like '*') -and (LastLogonDate -lt $limitDate)} -Properties LastLogonDate, servicePrincip...
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ✅ PowerShell [Contas de serviço inativas há mais de 60 dias]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔧 PowerShell [Servidores com senhas não alteradas há mais de 60 dias]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:29 vlxsam99 npm[2393986]: $days = 60; $limitDate = (Get-Date).AddDays(-$days); Get-ADComputer -Filter {OperatingSystem -like '*Windows Server*'} -Properties PasswordLastSet | Where-Object {$_.PasswordLastSet -lt $limitDate} | ...
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ✅ PowerShell [Servidores com senhas não alteradas há mais de 60 dias]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔧 PowerShell [Contas de usuário dormentes]: Executando comando via WinRM no DC 192.168.100.43
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 📝 Script:
+Jan 05 21:56:29 vlxsam99 npm[2393986]: $days = 90; $date = (Get-Date).AddDays(-$days); Get-ADUser -Filter {(Enabled -eq $true) -and (LastLogonDate -lt $date)} -Properties LastLogonDate -ResultSetSize 100 | Select-Object Name, LastLogonDate...
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ✅ PowerShell [Contas de usuário dormentes]: Concluído (exitCode: 1, stdout: 198 chars, stderr: 0 chars)
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ✅ Contas Inativas: 0 achados
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ✅ Análise concluída: 0 achados, 20 resultados de teste
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ❌ TODOS os 20 testes falharam por erro de credencial
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ❌ Erro na análise AD Security: Error: Falha de autenticação: As credenciais foram rejeitadas pelo servidor. Verifique usuário/senha e permissões WinRM.
+Jan 05 21:56:29 vlxsam99 npm[2393986]:     at ADScanner.scanADSecurity (file:///opt/samureye/dist/index.js:6166:15)
+Jan 05 21:56:29 vlxsam99 npm[2393986]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Jan 05 21:56:29 vlxsam99 npm[2393986]:     at async JourneyExecutorService.executeADSecurity (file:///opt/samureye/dist/index.js:9282:26)
+Jan 05 21:56:29 vlxsam99 npm[2393986]:     at async JourneyExecutorService.executeJourney (file:///opt/samureye/dist/index.js:8959:9)
+Jan 05 21:56:29 vlxsam99 npm[2393986]:     at async JobQueueService.processJob (file:///opt/samureye/dist/index.js:10294:7)
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ✅ Salvos 21 resultados de testes AD Security
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 9:56:29 PM [express] GET /api/jobs 200 in 7ms :: [{"id":"feec429c-2258-409b-83d6-0e659c8762bf","jour…
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔍 PROCESS_JOB_RESULTS: Starting with jobId: feec429c-2258-409b-83d6-0e659c8762bf
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔍 PROCESS_JOB_RESULTS: Journey 8ad288b7-3d6e-4ce6-88fd-88a5f07b114d, Type: ad_security, JobId: feec429c-2258-409b-83d6-0e659c8762bf
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔍 ThreatEngine.analyzeWithLifecycle: Analisando 1 findings para journeyType 'ad_security' (jobId: feec429c-2258-409b-83d6-0e659c8762bf)
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 📋 Finding: type=ad_misconfiguration, name=Erro na Execução da Análise, target=gruppen.com.br
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ✅ Finding matched rule: ad-security-generic
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 9:56:29 PM [express] GET /api/jobs 200 in 10ms :: [{"id":"feec429c-2258-409b-83d6-0e659c8762bf","jou…
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔍 AD Hygiene: Buscando host do domínio 'gruppen.com.br'
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ✅ AD Hygiene: Host de domínio encontrado: gruppen.com.br
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔗 Linking AD threat to domain host: gruppen.com.br
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔗 Host found for threat: fc4def95-7298-446c-ae00-e03377fed200
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 📋 UPSERT: Processing threat with correlationKey: ad:Erro_na_Execução_da_Análise:COM:gruppen.com.br
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 📋 UPSERT: Input threat details - title: Erro na Execução da Análise, jobId: feec429c-2258-409b-83d6-0e659c8762bf, status: open
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔍 FIND: Searching for correlationKey: "ad:Erro_na_Execução_da_Análise:COM:gruppen.com.br" (length: 49)
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔍 FIND: Found 1 threats with correlationKey: "ad:Erro_na_Execução_da_Análise:COM:gruppen.com.br"
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ✅ FIND: Using threat cbe3899c-8e10-4c46-baae-d6e2c32fad2b with status: open (created: Mon Jan 05 2026 21:39:41 GMT+0000 (Coordinated Universal Time))
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔍 UPSERT: Found existing threat cbe3899c-8e10-4c46-baae-d6e2c32fad2b with status: open, jobId: e18b3289-47cf-4cb6-b5c9-911c4f4bf531
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔍 UPSERT: Existing threat created: Mon Jan 05 2026 21:39:41 GMT+0000 (Coordinated Universal Time), updated: Mon Jan 05 2026 21:55:09 GMT+0000 (Coordinated Universal Time)
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔄 UPSERT: Existing threat status is 'open', shouldReactivate: false
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔄 Threat upserted: Erro na Execução da Análise (Category: ad_security, HostId: fc4def95-7298-446c-ae00-e03377fed200, Key: ad:Erro_na_Execução_da_Análise:COM:gruppen.com.br, isNew: false)
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔢 Recalculando risk score para host fc4def95-7298-446c-ae00-e03377fed200...
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ✅ Updated risk scores for host fc4def95-7298-446c-ae00-e03377fed200: riskScore=92, rawScore=10
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🎯 ThreatEngine.analyzeWithLifecycle: Criou 1 ameaças de 1 findings para journeyType 'ad_security'
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔍 PROCESS_JOB_RESULTS: About to run post-processing with jobId: feec429c-2258-409b-83d6-0e659c8762bf
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔍 AD_SECURITY_CLOSURES: Starting with journeyId: 8ad288b7-3d6e-4ce6-88fd-88a5f07b114d, jobId: feec429c-2258-409b-83d6-0e659c8762bf
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 9:56:29 PM [express] GET /api/jobs 200 in 7ms :: [{"id":"feec429c-2258-409b-83d6-0e659c8762bf","jour…
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 📊 AD_SECURITY_METRICS: Starting analysis - observedKeys: 1, openThreats: 1, currentJobId: feec429c-2258-409b-83d6-0e659c8762bf
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ⏰ GUARD: Skipping AD threat from current job: Erro na Execução da Análise (jobId: feec429c-2258-409b-83d6-0e659c8762bf)
+Jan 05 21:56:29 vlxsam99 npm[2393986]: ✅ AD_SECURITY_METRICS: Completed - skippedCurrentJob: 1, closed: 0, keptOpen: 0, noCorrelationKey: 0, total: 1
+Jan 05 21:56:29 vlxsam99 npm[2393986]: 🔄 Processing journey completion for job feec429c-2258-409b-83d6-0e659c8762bf
+Jan 05 21:56:30 vlxsam99 npm[2393986]: 📊 CLOSURE_METRICS: Journey 8ad288b7-3d6e-4ce6-88fd-88a5f07b114d analysis - openThreats: 1, previousJobsCount: 10, currentJobId: feec429c-2258-409b-83d6-0e659c8762bf
+Jan 05 21:56:30 vlxsam99 npm[2393986]: ⏰ GUARD: Skipping threat from current job: Erro na Execução da Análise (threatJobId: feec429c-2258-409b-83d6-0e659c8762bf, currentJobId: feec429c-2258-409b-83d6-0e659c8762bf)
+Jan 05 21:56:30 vlxsam99 npm[2393986]: ✅ CLOSURE_METRICS: Journey 8ad288b7-3d6e-4ce6-88fd-88a5f07b114d completed - skippedCurrentJob: 1, closed: 0, reactivated: 0, processed: 1
+Jan 05 21:56:30 vlxsam99 npm[2393986]: ✅ Journey completion processing finished for job feec429c-2258-409b-83d6-0e659c8762bf
+Jan 05 21:56:30 vlxsam99 npm[2393986]: 🗑️  Job feec429c-2258-409b-83d6-0e659c8762bf removido dos jobs em execução
+Jan 05 21:56:30 vlxsam99 npm[2393986]: 9:56:30 PM [express] GET /api/jobs 200 in 7ms :: [{"id":"feec429c-2258-409b-83d6-0e659c8762bf","jour…
+Jan 05 21:56:30 vlxsam99 npm[2393986]: 9:56:30 PM [express] GET /api/jobs 200 in 5ms :: [{"id":"feec429c-2258-409b-83d6-0e659c8762bf","jour…
+Jan 05 21:56:35 vlxsam99 npm[2393986]: 9:56:35 PM [express] GET /api/jobs 200 in 7ms :: [{"id":"feec429c-2258-409b-83d6-0e659c8762bf","jour…
