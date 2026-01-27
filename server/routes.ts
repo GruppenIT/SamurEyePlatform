@@ -1250,6 +1250,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Don't fail status change if notification fails
       }
       
+      // Recalculate host risk score after status change
+      if (threat.hostId) {
+        try {
+          await threatEngine.recalculateHostRiskScore(threat.hostId);
+          console.log(`✅ Risk score recalculado para host ${threat.hostId} após mudança de status`);
+        } catch (riskError) {
+          console.error(`⚠️ Erro ao recalcular risk score para host ${threat.hostId}:`, riskError);
+          // Don't fail status change if risk recalculation fails
+        }
+      }
+      
       res.json(threat);
     } catch (error) {
       console.error("Erro ao alterar status da ameaça:", error);

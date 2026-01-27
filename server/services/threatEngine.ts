@@ -1748,13 +1748,17 @@ class ThreatEngineService {
       // Get all threats for this host
       const threats = await storage.getThreats();
       const hostThreats = threats.filter(t => t.hostId === hostId);
+      
+      // Filter only ACTIVE threats (open or investigating) - exclude closed, mitigated, hibernated, accepted_risk
+      const activeStatuses = ['open', 'investigating'];
+      const activeThreats = hostThreats.filter(t => activeStatuses.includes(t.status));
 
-      // Count threats by severity
+      // Count active threats by severity
       const severityCounts = {
-        critical: hostThreats.filter(t => t.severity === 'critical').length,
-        high: hostThreats.filter(t => t.severity === 'high').length,
-        medium: hostThreats.filter(t => t.severity === 'medium').length,
-        low: hostThreats.filter(t => t.severity === 'low').length,
+        critical: activeThreats.filter(t => t.severity === 'critical').length,
+        high: activeThreats.filter(t => t.severity === 'high').length,
+        medium: activeThreats.filter(t => t.severity === 'medium').length,
+        low: activeThreats.filter(t => t.severity === 'low').length,
       };
 
       // CVSS base scores for each severity
