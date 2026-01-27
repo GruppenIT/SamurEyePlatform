@@ -179,14 +179,18 @@ create_backup() {
         exit 1
     fi
     
-    # 2. Backup do código fonte (excluindo node_modules e dist)
+    # 2. Backup do código fonte (excluindo diretórios grandes e problemáticos)
     log "📦 Fazendo backup do código fonte..."
     cd "$INSTALL_DIR"
-    if tar --exclude='node_modules' --exclude='dist' --exclude='logs' --exclude='temp' \
+    # Usa timeout de 60s para evitar travamento em diretórios problemáticos
+    if timeout 60 tar --exclude='node_modules' --exclude='dist' --exclude='logs' \
+        --exclude='temp' --exclude='backups' --exclude='.git/objects' \
+        --exclude='*.log' --exclude='*.sql' --warning=no-file-changed \
         -czf "$CODE_BACKUP" . 2>/dev/null; then
         success "Backup do código: $CODE_BACKUP ($(du -h "$CODE_BACKUP" | cut -f1))"
     else
-        warn "Falha ao criar backup do código (não crítico)"
+        warn "Backup do código ignorado (não crítico, timeout ou erro)"
+        rm -f "$CODE_BACKUP" 2>/dev/null || true
     fi
     
     # 3. Salva informações para rollback

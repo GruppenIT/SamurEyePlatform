@@ -1,0 +1,30 @@
+root@vlxsam99:~# curl -fsSL https://raw.githubusercontent.com/GruppenIT/SamurEye                                                                                                                                                             Platform/main/update.sh | sudo AUTO_CONFIRM=true bash
+
+==========================================
+[INFO] 🛡️  SamurEye - Atualização Segura v1.0
+==========================================
+[INFO] ⚠️  Esta atualização NÃO reseta o banco de dados
+[INFO] ⚠️  Todos os dados serão preservados
+==========================================
+
+[INFO] Verificando instalação existente...
+[SUCCESS] Instalação verificada em /opt/samureye
+[INFO] Configurando permissões do repositório Git...
+[SUCCESS] Permissões do Git configuradas
+[INFO] Verificando atualizações disponíveis no GitHub...
+From https://github.com/GruppenIT/SamurEyePlatform
+ * branch            main       -> FETCH_HEAD
+[INFO] Versão local:  368bcf2 - Saved progress at the end of the loop
+[INFO] Versão remota: d8d23cd - Add execution results to AD security tests for b                                                                                                                                                             etter reporting
+[WARN] Novas atualizações disponíveis:
+
+* d8d23cd (origin/main, origin/HEAD) Add execution results to AD security tests                                                                                                                                                              for better reporting
+* 5e5588f Improve threat management for individual objects within security asses                                                                                                                                                             sments
+
+
+[WARN] ⚠️  O serviço será parado temporariamente durante a atualização
+[INFO] Auto-confirmação ativada (AUTO_CONFIRM=true)
+[INFO] Criando backup de segurança...
+[INFO] 📦 Fazendo backup do banco de dados PostgreSQL...
+[SUCCESS] Backup do banco: /opt/samureye/backups/pre_update_db_20260127_151612.s                                                                                                                                                             ql (4.6M)
+[INFO] 📦 Fazendo backup do código fonte...
