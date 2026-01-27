@@ -866,6 +866,14 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
+        // Store execution result for test evidence (ensures test appears in PASSOU/FALHOU list)
+        executionResults.set(test.id, {
+          command: result.command || test.powershell,
+          stdout: result.stdout,
+          stderr: result.stderr,
+          exitCode: result.exitCode,
+        });
+        
         // Process stdout regardless of exitCode (PowerShell may return 1 on success)
         if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
@@ -891,6 +899,14 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         }
       } catch (error: any) {
         console.error(`❌ Erro no teste ${test.id}:`, error.message);
+        // Register error as execution result so test still appears in the list
+        executionResults.set(test.id, {
+          command: test.powershell,
+          stdout: '',
+          stderr: error.message || 'Erro desconhecido',
+          exitCode: -1,
+          error: true,
+        });
       }
     }
 
@@ -972,6 +988,14 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
+        // Store execution result for test evidence (ensures test appears in PASSOU/FALHOU list)
+        executionResults.set(test.id, {
+          command: result.command || test.powershell,
+          stdout: result.stdout,
+          stderr: result.stderr,
+          exitCode: result.exitCode,
+        });
+        
         // Process stdout regardless of exitCode (PowerShell may return 1 on success)
         if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
@@ -997,6 +1021,14 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         }
       } catch (error: any) {
         console.error(`❌ Erro no teste ${test.id}:`, error.message);
+        // Register error as execution result so test still appears in the list
+        executionResults.set(test.id, {
+          command: test.powershell,
+          stdout: '',
+          stderr: error.message || 'Erro desconhecido',
+          exitCode: -1,
+          error: true,
+        });
       }
     }
 
