@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useWebSocket } from "@/lib/websocket";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
@@ -36,6 +37,7 @@ export default function Schedules() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { connected } = useWebSocket();
 
   const { data: schedules = [], isLoading } = useQuery<Schedule[]>({
     queryKey: ["/api/schedules"],
@@ -249,6 +251,7 @@ export default function Schedules() {
         <TopBar 
           title="Gestão de Agendamentos"
           subtitle="Configure execuções automáticas e programadas das jornadas"
+          wsConnected={connected}
           actions={
             <Button
               onClick={() => setShowCreateDialog(true)}

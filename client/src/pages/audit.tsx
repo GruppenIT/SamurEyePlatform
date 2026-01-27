@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useWebSocket } from "@/lib/websocket";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,6 +56,7 @@ export default function Audit() {
   const [objectTypeFilter, setObjectTypeFilter] = useState<string>("all");
   const [selectedEntry, setSelectedEntry] = useState<EnrichedAuditLogEntry | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const { connected } = useWebSocket();
   
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
@@ -182,6 +184,7 @@ export default function Audit() {
         <TopBar 
           title="Log de Auditoria"
           subtitle="Acompanhe todas as ações administrativas do sistema"
+          wsConnected={connected}
         />
         
         <div className="p-6 space-y-6">

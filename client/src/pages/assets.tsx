@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useWebSocket } from "@/lib/websocket";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
@@ -36,6 +37,7 @@ export default function Assets() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { connected } = useWebSocket();
 
   const { data: assets = [], isLoading } = useQuery<Asset[]>({
     queryKey: ["/api/assets"],
@@ -177,6 +179,7 @@ export default function Assets() {
         <TopBar 
           title="Gestão de Alvos"
           subtitle="Configure e gerencie hosts e faixas de IP para monitoramento"
+          wsConnected={connected}
           actions={
             <Button
               onClick={() => setShowCreateDialog(true)}

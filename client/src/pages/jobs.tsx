@@ -35,7 +35,7 @@ export default function Jobs() {
   const [jobResult, setJobResult] = useState<JobResult | null>(null);
   
   const { toast } = useToast();
-  const { lastMessage } = useWebSocket();
+  const { lastMessage, connected } = useWebSocket();
 
   const { data: jobs = [], isLoading, refetch } = useQuery<Job[]>({
     queryKey: ["/api/jobs"],
@@ -152,6 +152,7 @@ export default function Jobs() {
         <TopBar 
           title="Monitoramento de Jobs"
           subtitle="Acompanhe execuções e resultados das jornadas"
+          wsConnected={connected}
           actions={
             <Button
               onClick={() => refetch()}

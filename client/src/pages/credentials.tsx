@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useWebSocket } from "@/lib/websocket";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
@@ -35,6 +36,7 @@ export default function Credentials() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { connected } = useWebSocket();
 
   const { data: credentials = [], isLoading } = useQuery<Omit<Credential, 'secretEncrypted' | 'dekEncrypted'>[]>({
     queryKey: ["/api/credentials"],
@@ -191,6 +193,7 @@ export default function Credentials() {
         <TopBar 
           title="Gestão de Credenciais"
           subtitle="Configure credenciais para acesso seguro aos sistemas"
+          wsConnected={connected}
           actions={
             <Button
               onClick={() => setShowCreateDialog(true)}

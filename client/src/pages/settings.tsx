@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useWebSocket } from "@/lib/websocket";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
@@ -49,6 +50,7 @@ export default function Settings() {
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
+  const { connected } = useWebSocket();
   
   const [formData, setFormData] = useState<SettingsForm>({
     systemName: 'SamurEye',
@@ -307,6 +309,7 @@ export default function Settings() {
         <TopBar 
           title="Configurações do Sistema"
           subtitle="Configure parâmetros globais e comportamentos do sistema"
+          wsConnected={connected}
           actions={
             <Button
               onClick={handleSave}

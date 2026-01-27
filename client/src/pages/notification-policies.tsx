@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/useAuth';
+import { useWebSocket } from '@/lib/websocket';
 import Sidebar from '@/components/layout/sidebar';
 import TopBar from '@/components/layout/topbar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,6 +20,7 @@ import type { NotificationPolicy } from '@shared/schema';
 export default function NotificationPolicies() {
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
+  const { connected } = useWebSocket();
   
   // Redirect if not admin
   useEffect(() => {
@@ -287,6 +289,7 @@ export default function NotificationPolicies() {
         <TopBar 
           title="Políticas de Notificação"
           subtitle="Configure quando e para quem enviar notificações por e-mail"
+          wsConnected={connected}
         />
         
         <div className="p-6 space-y-6">

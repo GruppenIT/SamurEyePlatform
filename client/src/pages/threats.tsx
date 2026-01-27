@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useWebSocket } from "@/lib/websocket";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
@@ -58,6 +59,7 @@ export default function Threats() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { connected } = useWebSocket();
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -402,6 +404,7 @@ export default function Threats() {
         <TopBar 
           title="Threat Intelligence"
           subtitle="Gerencie e analise ameaças identificadas pelo sistema"
+          wsConnected={connected}
         />
         
         <div className="p-6 space-y-6">

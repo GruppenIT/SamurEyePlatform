@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useWebSocket } from "@/lib/websocket";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
@@ -54,6 +55,7 @@ export default function Users() {
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
+  const { connected } = useWebSocket();
 
   const createUserForm = useForm<CreateUserForm>({
     resolver: zodResolver(createUserSchema),
@@ -233,6 +235,7 @@ export default function Users() {
         <TopBar 
           title="Gestão de Usuários"
           subtitle="Gerencie usuários e controle de acesso ao sistema"
+          wsConnected={connected}
         />
         
         <div className="p-6 space-y-6">

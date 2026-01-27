@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useWebSocket } from "@/lib/websocket";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
@@ -839,6 +840,7 @@ export default function Hosts() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { connected } = useWebSocket();
 
   // Build query params for filtering
   const queryParams = new URLSearchParams();
@@ -921,6 +923,7 @@ export default function Hosts() {
         <TopBar 
           title="Gestão de Ativos"
           subtitle="Visualize e gerencie ativos descobertos pelos scans de segurança"
+          wsConnected={connected}
         />
         
         <div className="p-6 space-y-6 overflow-auto h-[calc(100%-4rem)]">

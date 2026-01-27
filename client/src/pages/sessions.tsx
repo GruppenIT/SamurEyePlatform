@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useWebSocket } from "@/lib/websocket";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
@@ -50,6 +51,7 @@ export default function Sessions() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { connected } = useWebSocket();
 
   // Fetch active sessions
   const { data: sessions = [], isLoading } = useQuery<ActiveSession[]>({
@@ -139,7 +141,7 @@ export default function Sessions() {
       <Sidebar />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <TopBar title="Sessões Ativas" subtitle="Gerencie suas sessões" />
+        <TopBar title="Sessões Ativas" subtitle="Gerencie suas sessões" wsConnected={connected} />
         
         <main className="flex-1 overflow-auto p-8">
           <div className="max-w-7xl mx-auto space-y-8">
