@@ -57,6 +57,14 @@ interface ADSecurityCategories {
   contas_inativas?: boolean;
 }
 
+// Template configuration for per-object findings
+interface PerObjectFindingTemplate {
+  titleTemplate: (objectName: string) => string;
+  descriptionTemplate: (objectName: string, details?: Record<string, any>) => string;
+  objectNameField: string; // Field name in PowerShell output to use as object identifier (e.g., 'SamAccountName', 'Name')
+  objectType: 'user' | 'computer' | 'service_account' | 'group' | 'trust' | 'gmsa' | 'dc';
+}
+
 export class ADScanner {
   private readonly commonDCPorts = [389, 636, 3268, 3269];
   private baseDN: string = '';
@@ -695,21 +703,13 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         executionResults.set(test.id, evidence);
         
         // Process stdout regardless of exitCode (PowerShell may return 1 on success)
-        // Process stdout regardless of exitCode (PowerShell may return 1 on success)
         if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
           
           if (hasIssue) {
-            findings.push({
-              type: this.getTypeForTest(test.id),
-              target: domain,
-              name: test.nome,
-              severity: test.severidade,
-              category: 'users',
-              description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
-              recommendation: test.recommendation || 'Revisar configuração conforme melhores práticas de segurança',
-              evidence
-            });
+            // Use per-object findings for tests that return object lists
+            const perObjectFindings = this.createPerObjectFindings(test, domain, result.stdout, result);
+            findings.push(...perObjectFindings);
           }
         }
       } catch (error: any) {
@@ -802,16 +802,9 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
           
           if (hasIssue) {
-            findings.push({
-              type: this.getTypeForTest(test.id),
-              target: domain,
-              name: test.nome,
-              severity: test.severidade,
-              category: 'configuration',
-              description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
-              recommendation: test.recommendation || 'Revisar configuração de Kerberos conforme melhores práticas',
-              evidence
-            });
+            // Use per-object findings for tests that return object lists
+            const perObjectFindings = this.createPerObjectFindings(test, domain, result.stdout, result);
+            findings.push(...perObjectFindings);
           }
         }
       } catch (error: any) {
@@ -1077,27 +1070,22 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
+        // Store execution result for test evidence
+        executionResults.set(test.id, {
+          command: result.command || test.powershell,
+          stdout: result.stdout,
+          stderr: result.stderr,
+          exitCode: result.exitCode,
+        });
+        
         // Process stdout regardless of exitCode (PowerShell may return 1 on success)
         if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
           
           if (hasIssue) {
-            findings.push({
-              type: this.getTypeForTest(test.id),
-              target: domain,
-              name: test.nome,
-              severity: test.severidade,
-              category: 'users',
-              description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
-              recommendation: test.recommendation || 'Revisar e desabilitar contas inativas',
-              evidence: {
-                testId: test.id,
-                command: result.command || test.powershell,
-                stdout: result.stdout.substring(0, 2000),
-                stderr: result.stderr.substring(0, 500),
-                exitCode: result.exitCode,
-              }
-            });
+            // Use per-object findings for tests that return object lists
+            const perObjectFindings = this.createPerObjectFindings(test, domain, result.stdout, result);
+            findings.push(...perObjectFindings);
           }
         }
       } catch (error: any) {
@@ -1234,6 +1222,277 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       category,
       severity: 'medium'
     };
+  }
+
+  /**
+   * Template configurations for per-object findings
+   * Maps testId to template for generating individual findings per object
+   */
+  private getPerObjectTemplate(testId: string): PerObjectFindingTemplate | null {
+    const templates: Record<string, PerObjectFindingTemplate> = {
+      // testContasInativas tests
+      'privileged_inactive': {
+        titleTemplate: (name) => `Conta privilegiada inativa: ${name}`,
+        descriptionTemplate: (name, details) => `A conta privilegiada ${name} está habilitada mas não é utilizada há mais de 90 dias${details?.LastLogonDate ? ` (último login: ${details.LastLogonDate})` : ''}`,
+        objectNameField: 'SamAccountName',
+        objectType: 'user',
+      },
+      'disabled_in_privileged_groups': {
+        titleTemplate: (name) => `Conta desativada em grupo privilegiado: ${name}`,
+        descriptionTemplate: (name) => `A conta ${name} está desabilitada mas ainda é membro de grupos administrativos, representando risco de reativação`,
+        objectNameField: 'SamAccountName',
+        objectType: 'user',
+      },
+      'gmsa_password_old': {
+        titleTemplate: (name) => `Conta gMSA sem rotação de senha: ${name}`,
+        descriptionTemplate: (name, details) => `A conta de serviço gerenciada ${name} não teve sua senha alterada há mais de 90 dias${details?.whenChanged ? ` (última alteração: ${details.whenChanged})` : ''}`,
+        objectNameField: 'SamAccountName',
+        objectType: 'gmsa',
+      },
+      'service_accounts_inactive': {
+        titleTemplate: (name) => `Conta de serviço inativa: ${name}`,
+        descriptionTemplate: (name, details) => `A conta de serviço ${name} não é utilizada há mais de 60 dias${details?.LastLogonDate ? ` (último login: ${details.LastLogonDate})` : ''}`,
+        objectNameField: 'Name',
+        objectType: 'service_account',
+      },
+      'servers_password_old': {
+        titleTemplate: (name) => `Servidor com senha antiga: ${name}`,
+        descriptionTemplate: (name, details) => `O servidor ${name} não teve sua senha de conta de computador rotacionada há mais de 60 dias${details?.PasswordLastSet ? ` (última alteração: ${details.PasswordLastSet})` : ''}`,
+        objectNameField: 'Name',
+        objectType: 'computer',
+      },
+      'dormant_users': {
+        titleTemplate: (name) => `Conta de usuário dormente: ${name}`,
+        descriptionTemplate: (name, details) => `A conta do usuário ${name} está habilitada e sem login há mais de 90 dias${details?.LastLogonDate ? ` (último login: ${details.LastLogonDate})` : ''}`,
+        objectNameField: 'Name',
+        objectType: 'user',
+      },
+      // testGerenciamentoContas tests
+      'privileged_spn': {
+        titleTemplate: (name) => `Usuário privilegiado com SPN: ${name}`,
+        descriptionTemplate: (name, details) => `O usuário privilegiado ${name} possui Service Principal Names (SPN) configurados, tornando-o vulnerável a ataques de Kerberoasting${details?.servicePrincipalName ? ` (SPNs: ${Array.isArray(details.servicePrincipalName) ? details.servicePrincipalName.join(', ') : details.servicePrincipalName})` : ''}`,
+        objectNameField: 'SamAccountName',
+        objectType: 'user',
+      },
+      'password_never_expires': {
+        titleTemplate: (name) => `Conta com senha sem expiração: ${name}`,
+        descriptionTemplate: (name) => `A conta ${name} está configurada com senha que nunca expira, violando políticas de segurança`,
+        objectNameField: 'Name',
+        objectType: 'user',
+      },
+      'preauth_disabled': {
+        titleTemplate: (name) => `Conta sem pré-autenticação Kerberos: ${name}`,
+        descriptionTemplate: (name) => `A conta ${name} está com pré-autenticação Kerberos desativada, vulnerável a ataques AS-REP Roasting`,
+        objectNameField: 'SamAccountName',
+        objectType: 'user',
+      },
+      'admin_count_set': {
+        titleTemplate: (name) => `AdminCount residual: ${name}`,
+        descriptionTemplate: (name) => `A conta ${name} possui atributo AdminCount=1 mas não é mais membro de grupos administrativos, podendo ter permissões residuais`,
+        objectNameField: 'SamAccountName',
+        objectType: 'user',
+      },
+      'hidden_privileged_sid': {
+        titleTemplate: (name) => `SID privilegiado oculto: ${name}`,
+        descriptionTemplate: (name) => `A conta ${name} possui SIDs privilegiados no atributo sidHistory, podendo ter privilégios ocultos não aparentes`,
+        objectNameField: 'SamAccountName',
+        objectType: 'user',
+      },
+      'pre_win2000_access': {
+        titleTemplate: (name) => `Acesso pré-Windows 2000: ${name}`,
+        descriptionTemplate: (name) => `A conta ${name} é membro do grupo "Pre-Windows 2000 Compatible Access", permitindo autenticação legada insegura`,
+        objectNameField: 'SamAccountName',
+        objectType: 'user',
+      },
+      'low_primary_group_id': {
+        titleTemplate: (name) => `PrimaryGroupID privilegiado: ${name}`,
+        descriptionTemplate: (name, details) => `A conta ${name} possui PrimaryGroupID menor que 1000 (${details?.primaryGroupId || 'N/A'}), indicando possíveis privilégios ocultos`,
+        objectNameField: 'Name',
+        objectType: 'user',
+      },
+      // Additional tests that return object lists
+      'unconstrained_delegation': {
+        titleTemplate: (name) => `Delegação irrestrita: ${name}`,
+        descriptionTemplate: (name) => `O computador ${name} está configurado com delegação Kerberos irrestrita, permitindo impersonação de qualquer usuário`,
+        objectNameField: 'Name',
+        objectType: 'computer',
+      },
+      'rbcd_high_privilege': {
+        titleTemplate: (name) => `RBCD de alto privilégio: ${name}`,
+        descriptionTemplate: (name) => `O objeto ${name} possui Resource-Based Constrained Delegation configurada de forma insegura`,
+        objectNameField: 'Name',
+        objectType: 'computer',
+      },
+      'des_encryption': {
+        titleTemplate: (name) => `Criptografia DES habilitada: ${name}`,
+        descriptionTemplate: (name) => `A conta ${name} suporta criptografia DES obsoleta e vulnerável`,
+        objectNameField: 'SamAccountName',
+        objectType: 'user',
+      },
+      'rc4_only_accounts': {
+        titleTemplate: (name) => `Apenas RC4 habilitado: ${name}`,
+        descriptionTemplate: (name) => `A conta ${name} está configurada para usar apenas criptografia RC4 (fraca)`,
+        objectNameField: 'SamAccountName',
+        objectType: 'user',
+      },
+      'duplicate_spn': {
+        titleTemplate: (name) => `SPN duplicado: ${name}`,
+        descriptionTemplate: (name) => `O Service Principal Name ${name} está registrado em múltiplas contas, causando problemas de autenticação Kerberos`,
+        objectNameField: 'Name',
+        objectType: 'user',
+      },
+      'trust_relationships': {
+        titleTemplate: (name) => `Relação de confiança: ${name}`,
+        descriptionTemplate: (name, details) => `Relação de confiança com domínio ${name} identificada${details?.TrustType ? ` (Tipo: ${details.TrustType}, Direção: ${details.TrustDirection || 'N/A'})` : ''}`,
+        objectNameField: 'Name',
+        objectType: 'trust',
+      },
+      'dc_password_old': {
+        titleTemplate: (name) => `DC com senha antiga: ${name}`,
+        descriptionTemplate: (name, details) => `O Controlador de Domínio ${name} não teve sua senha de conta de computador alterada recentemente${details?.PasswordLastSet ? ` (última alteração: ${details.PasswordLastSet})` : ''}`,
+        objectNameField: 'Name',
+        objectType: 'computer',
+      },
+    };
+    
+    return templates[testId] || null;
+  }
+
+  /**
+   * Creates individual findings for each object in the test result
+   * Uses templates for personalized title/description per object
+   * Falls back to generic per-object findings when no template exists
+   */
+  private createPerObjectFindings(
+    test: ADSecurityTest,
+    domain: string,
+    output: string,
+    result: PowerShellExecutionResult
+  ): ADFinding[] {
+    const findings: ADFinding[] = [];
+    const template = this.getPerObjectTemplate(test.id);
+    
+    try {
+      const data = JSON.parse(output);
+      const objects = Array.isArray(data) ? data : [data];
+      
+      if (objects.length === 0) {
+        return [];
+      }
+      
+      // Determine if this test returns a list of objects that should be split
+      // If only 1 object or non-list test, create single finding
+      if (objects.length === 1 && !template) {
+        // Single object without template - use legacy format
+        return [{
+          type: this.getTypeForTest(test.id),
+          target: domain,
+          name: test.nome,
+          severity: test.severidade,
+          category: 'users',
+          description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
+          recommendation: test.recommendation || 'Revisar e corrigir os problemas identificados',
+          evidence: {
+            testId: test.id,
+            domain: domain,
+            command: result.command || test.powershell,
+            stdout: result.stdout.substring(0, 2000),
+            stderr: result.stderr.substring(0, 500),
+            exitCode: result.exitCode,
+          }
+        }];
+      }
+      
+      // Create individual finding for each object
+      for (const obj of objects) {
+        // Get unique identifier - prefer SamAccountName, then Name, then SID
+        const samAccountName = obj.SamAccountName || obj.samAccountName;
+        const objectSid = obj.SID || obj.sid || obj.objectSid;
+        const objectName = samAccountName || obj.Name || obj.name || 'Unknown';
+        // Use the most stable identifier available for correlation
+        const stableId = samAccountName || objectSid || objectName;
+        
+        // Map objectType to appropriate category
+        const objectType = template?.objectType || 'user';
+        let category: ADFinding['category'] = 'users';
+        if (objectType === 'computer' || objectType === 'dc') category = 'computers';
+        else if (objectType === 'group') category = 'groups';
+        else if (objectType === 'trust') category = 'configuration';
+        else if (objectType === 'service_account' || objectType === 'gmsa') category = 'users'; // Service accounts are a type of user
+        
+        if (template) {
+          // Use template for personalized finding
+          findings.push({
+            type: this.getTypeForTest(test.id),
+            target: domain,
+            name: template.titleTemplate(objectName),
+            severity: test.severidade,
+            category,
+            description: template.descriptionTemplate(objectName, obj),
+            recommendation: test.recommendation || 'Revisar e corrigir o problema identificado',
+            evidence: {
+              testId: test.id,
+              objectId: stableId, // Use stable identifier for correlation
+              objectName: objectName,
+              objectType: template.objectType,
+              objectData: obj,
+              domain: domain,
+              command: result.command || test.powershell,
+              stdout: result.stdout.substring(0, 500), // Truncated to avoid huge payloads
+              stderr: result.stderr.substring(0, 200),
+              exitCode: result.exitCode,
+            }
+          });
+        } else {
+          // Generic per-object finding (no template defined)
+          findings.push({
+            type: this.getTypeForTest(test.id),
+            target: domain,
+            name: `${test.nome}: ${objectName}`,
+            severity: test.severidade,
+            category,
+            description: `${test.description || test.nome} - Objeto afetado: ${objectName}`,
+            recommendation: test.recommendation || 'Revisar e corrigir o problema identificado',
+            evidence: {
+              testId: test.id,
+              objectId: stableId, // Use stable identifier for correlation
+              objectName: objectName,
+              objectType: 'user',
+              objectData: obj,
+              domain: domain,
+              command: result.command || test.powershell,
+              stdout: result.stdout.substring(0, 500),
+              stderr: result.stderr.substring(0, 200),
+              exitCode: result.exitCode,
+            }
+          });
+        }
+      }
+      
+      console.log(`✅ Criados ${findings.length} findings individuais para teste ${test.id}`);
+      return findings;
+      
+    } catch (error) {
+      console.error(`⚠️ Erro ao processar objetos para ${test.id}:`, error);
+      // Fallback to single finding with full evidence
+      return [{
+        type: this.getTypeForTest(test.id),
+        target: domain,
+        name: test.nome,
+        severity: test.severidade,
+        category: 'users',
+        description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
+        recommendation: test.recommendation || 'Revisar e corrigir os problemas identificados',
+        evidence: {
+          testId: test.id,
+          domain: domain,
+          command: result.command || test.powershell,
+          stdout: result.stdout.substring(0, 2000),
+          stderr: result.stderr.substring(0, 500),
+          exitCode: result.exitCode,
+        }
+      }];
+    }
   }
 
   /**

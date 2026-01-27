@@ -57,6 +57,12 @@ Vite handles the frontend build, while esbuild bundles the backend.
 - **Email Notification System**: Supports Basic Password, OAuth2 for Google Workspace/Gmail, and OAuth2 for Microsoft 365, with encrypted credentials.
 - **Tag-Based Target Selection**: Allows asset selection by individual assets or by tags, expanding tags into asset IDs at execution time.
 - **AD Security Journey**: Rewritten using Python WinRM wrapper (`pywinrm`) for 28 PowerShell-based tests across 6 categories. Features DC failover, category toggles, Portuguese keyword enhancement for credential scanning, and comprehensive auditability with `adSecurityTestResults` table storing full execution evidence (PowerShell commands, stdout, stderr, exitCode).
+  - **Per-Object Threat Creation**: Tests that return lists of objects (users, computers, trusts) now create individual threats per object instead of a single aggregated threat. This enables:
+    - Individual threat management (close, accept risk, hibernate) per affected object
+    - Automatic closure when object is remediated in subsequent scans
+    - Personalized titles and descriptions (e.g., "Conta de usuário dormente: joao.silva")
+    - Stable correlation keys using SamAccountName/Name for deduplication across scans
+  - **Covered Tests**: privileged_inactive, disabled_in_privileged_groups, gmsa_password_old, service_accounts_inactive, servers_password_old, dormant_users, privileged_spn, password_never_expires, preauth_disabled, admin_count_set, hidden_privileged_sid, pre_win2000_access, low_primary_group_id, trust_relationships, dc_password_old, unconstrained_delegation, rbcd_high_privilege, des_encryption, rc4_only_accounts, duplicate_spn
 - **Authenticated Scanning (Optional Credentials)**: Complete system for optional credential-based host enrichment in Attack Surface journeys (74% reduction in CVE false positives):
   - **Schema**: `journeyCredentials` junction table links journeys to credentials with priority ordering; `hostEnrichments` stores collected data (OS, apps, patches) plus complete audit trail (commands, stdout, stderr, exitCode).
   - **Collectors**: 

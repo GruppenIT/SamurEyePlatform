@@ -888,10 +888,17 @@ class ThreatEngineService {
         break;
       
       case 'ad_security':
-        // For AD findings: ad:{ruleId}:{domainNetBIOS}:{objectId|distinguishedName|samAccountName}
-        const domain = finding.evidence?.domain || finding.target?.split('.')[1]?.toUpperCase() || 'DOMAIN';
-        const objectId = finding.evidence?.username || finding.evidence?.computerName || finding.evidence?.groupName || finding.target;
-        return `ad:${finding.name?.replace(/\s+/g, '_')}:${domain}:${objectId}`;
+        // For AD findings: ad:{testId}:{domain}:{objectId}
+        // objectId comes from per-object findings (e.g., SamAccountName, Name) for unique threat per object
+        const adDomain = finding.target || finding.evidence?.domain || 'DOMAIN';
+        const adTestId = finding.evidence?.testId || finding.name?.replace(/\s+/g, '_') || 'unknown';
+        // Use objectId from per-object findings if available, otherwise fallback to target/username/etc
+        const adObjectId = finding.evidence?.objectId || 
+                           finding.evidence?.username || 
+                           finding.evidence?.computerName || 
+                           finding.evidence?.groupName || 
+                           adDomain;
+        return `ad:${adTestId}:${normalizeHost(adDomain)}:${normalizeHost(adObjectId)}`;
       
       case 'edr_av':
         // For EDR/AV: edr:{hostname}:{testType}
