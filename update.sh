@@ -6,7 +6,7 @@
 #
 # USAGE:
 #   Via pipe (recomendado para atualizações remotas):
-#     curl -fsSL https://raw.githubusercontent.com/GruppenIT/SamurEyePlatform/main/update.sh | sudo AUTO_CONFIRM=true bash
+#     curl -fsSL https://raw.githubusercontent.com/GruppenIT/SamurEyePlatform/claude/review-system-docs-avrm0/update.sh | sudo AUTO_CONFIRM=true bash
 #
 #   Local (com confirmação interativa):
 #     sudo ./update.sh
@@ -33,7 +33,7 @@ BACKUP_DIR="$INSTALL_DIR/backups"
 TEMP_DIR="$INSTALL_DIR/temp"
 SKIP_BACKUP="${SKIP_BACKUP:-false}"
 REPO_URL="${REPO_URL:-https://github.com/GruppenIT/SamurEyePlatform.git}"
-BRANCH="${BRANCH:-main}"
+BRANCH="${BRANCH:-claude/review-system-docs-avrm0}"
 AUTO_CONFIRM="${AUTO_CONFIRM:-false}"
 
 # Função para logging
