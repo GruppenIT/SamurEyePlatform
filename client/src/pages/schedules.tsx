@@ -17,6 +17,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -34,6 +44,8 @@ export default function Schedules() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
+  const [deleteScheduleId, setDeleteScheduleId] = useState<string | null>(null);
+  const [toggleSchedule, setToggleSchedule] = useState<Schedule | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -154,16 +166,11 @@ export default function Schedules() {
   };
 
   const handleDeleteSchedule = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este agendamento?')) {
-      deleteScheduleMutation.mutate(id);
-    }
+    setDeleteScheduleId(id);
   };
 
   const handleToggleEnabled = (schedule: Schedule) => {
-    updateScheduleMutation.mutate({
-      id: schedule.id,
-      data: { enabled: !schedule.enabled }
-    });
+    setToggleSchedule(schedule);
   };
 
   const getScheduleKindLabel = (kind: string) => {
@@ -434,6 +441,65 @@ export default function Schedules() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Schedule Confirmation */}
+      <AlertDialog open={!!deleteScheduleId} onOpenChange={(open) => !open && setDeleteScheduleId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Agendamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este agendamento? Essa ação não pode ser desfeita e jobs futuros não serão mais disparados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteScheduleId) {
+                  deleteScheduleMutation.mutate(deleteScheduleId);
+                  setDeleteScheduleId(null);
+                }
+              }}
+            >
+              Sim, Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Toggle Schedule Confirmation */}
+      <AlertDialog open={!!toggleSchedule} onOpenChange={(open) => !open && setToggleSchedule(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {toggleSchedule?.enabled ? 'Pausar Agendamento' : 'Ativar Agendamento'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {toggleSchedule?.enabled
+                ? `Deseja pausar o agendamento "${toggleSchedule?.name}"? Jobs futuros não serão disparados enquanto estiver pausado.`
+                : `Deseja ativar o agendamento "${toggleSchedule?.name}"? Jobs serão disparados conforme a programação configurada.`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (toggleSchedule) {
+                  updateScheduleMutation.mutate({
+                    id: toggleSchedule.id,
+                    data: { enabled: !toggleSchedule.enabled }
+                  });
+                  setToggleSchedule(null);
+                }
+              }}
+            >
+              {toggleSchedule?.enabled ? 'Sim, Pausar' : 'Sim, Ativar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
