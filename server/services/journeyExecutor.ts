@@ -1175,6 +1175,12 @@ class JourneyExecutorService {
         
         const timeout = setTimeout(() => {
           child.kill('SIGTERM');
+          // Force kill after 5s if SIGTERM doesn't work
+          setTimeout(() => {
+            if (!child.killed) {
+              child.kill('SIGKILL');
+            }
+          }, 5000);
           console.log(`⏱️ Nmap vuln scripts timeout após ${timeoutMs/60000}min para ${host}`);
           resolve([]); // Retorna vazio em caso de timeout
         }, timeoutMs);
@@ -1468,6 +1474,12 @@ class JourneyExecutorService {
           
           const timeout = setTimeout(() => {
             child.kill('SIGTERM');
+            // Force kill after 5s if SIGTERM doesn't work
+            setTimeout(() => {
+              if (!child.killed) {
+                child.kill('SIGKILL');
+              }
+            }, 5000);
             console.log(`⏱️ Nuclei timeout após ${timeoutMs/60000}min para ${url}`);
             resolve(''); // Retorna vazio em caso de timeout
           }, timeoutMs);
@@ -1590,6 +1602,7 @@ class JourneyExecutorService {
       
       const timeout = setTimeout(() => {
         child.kill('SIGTERM');
+        setTimeout(() => { if (!child.killed) child.kill('SIGKILL'); }, 5000);
         reject(new Error('Template download timeout'));
       }, 120000);
       

@@ -885,7 +885,8 @@ class ThreatEngineService {
           }
           return `as:vuln:${normalizeHost(finding.target)}:${templateId}:${path}`;
         }
-        break;
+        // Fallback for other attack_surface finding types (e.g., host discovery)
+        return `as:other:${normalizeHost(finding.target || '')}:${finding.type || 'unknown'}:${finding.name || ''}`;
       
       case 'ad_security':
         // For AD findings: ad:{testId}:{domain}:{objectId}
@@ -905,13 +906,24 @@ class ThreatEngineService {
         const hostname = finding.hostname || finding.target;
         const testType = finding.deploymentMethod || 'eicar_test';
         return `edr:${normalizeHost(hostname)}:${testType}`;
-      
-      default:
-        // Fallback for unknown journey types
-        return `generic:${finding.type}:${normalizeHost(finding.target || finding.hostname)}:${finding.name}`;
-    }
 
-    return `fallback:${Date.now()}:${Math.random()}`;
+      case 'web_application':
+        // For web app: wa:{target}:{template/cve}:{path}
+        const waTemplate = finding.template || finding.cve || finding.name || 'unknown';
+        let waPath = '';
+        try {
+          if (finding.evidence?.url) {
+            waPath = new URL(finding.evidence.url).pathname;
+          }
+        } catch {
+          waPath = '';
+        }
+        return `wa:vuln:${normalizeHost(finding.target)}:${waTemplate}:${waPath}`;
+
+      default:
+        // Deterministic fallback for unknown journey types (no randomness)
+        return `generic:${finding.type || 'unknown'}:${normalizeHost(finding.target || finding.hostname || '')}:${finding.name || finding.template || 'unknown'}`;
+    }
   }
 
   /**
@@ -1583,59 +1595,34 @@ class ThreatEngineService {
    * Checks if a threat is still present based on journey results
    */
   private async isThreatStillPresent(threat: Threat, job: any, journey: any): Promise<boolean> {
-    // This is a simplified implementation - in a real system, you would
-    // need to match the threat's evidence against the new findings
-    
-    // For now, we'll implement a basic correlation using correlationKey
     if (!threat.correlationKey) {
-      return false; // Can't correlate without a key
+      // Without a correlation key we cannot determine presence;
+      // assume still present to avoid accidentally closing threats
+      return true;
     }
 
     try {
       // Get job results
       const jobResults = await storage.getJobResult(job.id);
       if (!jobResults || !jobResults.artifacts?.findings) {
+        // No findings in this run - threat may have been remediated
         return false;
       }
 
-      // Look for the same correlation key in the new findings
       const findings = Array.isArray(jobResults.artifacts.findings) ? jobResults.artifacts.findings : [];
+
+      // Recompute correlationKey for each finding and compare against the threat's key
+      const journeyType = journey.type || 'attack_surface';
       const matchingFinding = findings.find((finding: any) => {
-        if (finding.correlationKey === threat.correlationKey) {
-          return true;
-        }
-        
-        // Additional correlation logic based on threat category
-        switch (threat.category) {
-          case 'port_exposure':
-            return finding.type === 'port' && 
-                   finding.port === threat.evidence?.port &&
-                   finding.target === threat.evidence?.host;
-                   
-          case 'vulnerability':
-            return finding.type === 'vulnerability' &&
-                   finding.template === threat.evidence?.templateId;
-                   
-          case 'ad_misconfiguration':
-          case 'ad_vulnerability':
-          case 'ad_hygiene':
-            return finding.type?.startsWith('ad_') &&
-                   finding.name === threat.title;
-                   
-          case 'edr_failure':
-            return finding.type === 'edr_test' &&
-                   finding.hostname === threat.evidence?.hostname &&
-                   finding.eicarRemoved === false;
-                   
-          default:
-            return false;
-        }
+        const findingKey = this.computeCorrelationKey(finding, journeyType);
+        return findingKey === threat.correlationKey;
       });
 
       return !!matchingFinding;
     } catch (error) {
       console.error(`❌ Error checking threat presence for threat ${threat.id}:`, error);
-      return false;
+      // On error, assume threat is still present to avoid false closure
+      return true;
     }
   }
 

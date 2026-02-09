@@ -256,12 +256,20 @@ class JobQueueService extends EventEmitter {
     setInterval(async () => {
       const runningJobs = await storage.getRunningJobs();
       const now = new Date();
-      
+
       for (const job of runningJobs) {
         if (job.startedAt) {
           const runtime = now.getTime() - job.startedAt.getTime();
           if (runtime > 30 * 60 * 1000) { // 30 minutes
-            await this.updateJobStatus(job.id, 'timeout', undefined, 'Job ultrapassou tempo limite');
+            // Kill all child processes associated with this job
+            const killedCount = processTracker.killAll(job.id);
+            if (killedCount > 0) {
+              console.log(`🔪 Timeout: ${killedCount} processos terminados para job ${job.id}`);
+            }
+
+            await this.updateJobStatus(job.id, 'timeout', undefined, 'Job ultrapassou tempo limite de 30 minutos');
+            // Release concurrency slot
+            this.removeJobFromRunning(job.id);
           }
         }
       }
