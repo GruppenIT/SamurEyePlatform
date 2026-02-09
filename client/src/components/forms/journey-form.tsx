@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   Form,
   FormControl,
@@ -46,6 +47,7 @@ interface JourneyFormProps {
 }
 
 export default function JourneyForm({ onSubmit, onCancel, isLoading = false, initialData }: JourneyFormProps) {
+  const { toast } = useToast();
   const [selectedAssets, setSelectedAssets] = useState<string[]>(
     initialData?.params?.assetIds || []
   );
@@ -98,27 +100,12 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
 
   // Hydrate authentication state when initialData changes (e.g., when editing journey)
   useEffect(() => {
-    console.group('🔍 [DEBUG] JourneyForm Hydration');
-    console.log('1. initialData received:', JSON.stringify(initialData, null, 2));
-    console.log('2. isHydrated.current:', isHydrated.current);
-    console.log('3. credentials from query:', credentials.map(c => ({ id: c.id, name: c.name, type: c.type })));
-    console.log('4. isLoadingCredentials:', isLoadingCredentials);
-    
     if (initialData?.credentials && initialData.credentials.length > 0 && !isHydrated.current) {
-      console.log('✅ HYDRATING selectedCredentials with:', initialData.credentials);
       setSelectedCredentials(initialData.credentials);
       setEnableAuthentication(true);
       isHydrated.current = true;
-    } else {
-      console.log('❌ NOT HYDRATING. Reasons:', {
-        hasCredentials: !!initialData?.credentials,
-        credentialsLength: initialData?.credentials?.length || 0,
-        isAlreadyHydrated: isHydrated.current
-      });
     }
-    console.groupEnd();
-    
-    // Cleanup: Reset hydration flag when component unmounts
+
     return () => {
       isHydrated.current = false;
     };
@@ -136,11 +123,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
     // Validação de alvos selecionados
     if (data.type === 'attack_surface' || (data.type === 'edr_av' && form.getValues('params.edrAvType') === 'network_based')) {
       if (targetSelectionMode === 'individual' && selectedAssets.length === 0) {
-        alert('Por favor, selecione pelo menos um alvo');
+        toast({ title: "Validação", description: "Por favor, selecione pelo menos um alvo", variant: "destructive" });
         return;
       }
       if (targetSelectionMode === 'by_tag' && selectedTags.length === 0) {
-        alert('Por favor, selecione pelo menos uma TAG');
+        toast({ title: "Validação", description: "Por favor, selecione pelo menos uma TAG", variant: "destructive" });
         return;
       }
     }
@@ -284,7 +271,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Perfil Nmap</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue="fast">
+                  <Select onValueChange={field.onChange} value={field.value || 'fast'}>
                     <FormControl>
                       <SelectTrigger data-testid="select-nmap-profile">
                         <SelectValue placeholder="Selecione o perfil" />
@@ -417,14 +404,6 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                         (cred.protocol === 'ssh' && c.type === 'ssh')
                       );
                       
-                      console.log(`🔍 [DEBUG] Credential ${index}:`, {
-                        protocol: cred.protocol,
-                        credentialId: cred.credentialId,
-                        priority: cred.priority,
-                        availableOptions: filteredCredentials.map(c => ({ id: c.id, name: c.name })),
-                        matchFound: filteredCredentials.some(c => c.id === cred.credentialId)
-                      });
-                      
                       return (
                       <div key={index} className="flex gap-3 items-start border rounded-md p-3 bg-muted/10">
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -433,12 +412,9 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                             <Select
                               value={cred.protocol}
                               onValueChange={(value: 'wmi' | 'ssh' | 'snmp') => {
-                                console.log(`📝 Protocol changed to: ${value}`);
-                                setSelectedCredentials(prev => {
-                                  const updated = [...prev];
-                                  updated[index].protocol = value;
-                                  return updated;
-                                });
+                                setSelectedCredentials(prev =>
+                                  prev.map((item, i) => i === index ? { ...item, protocol: value } : item)
+                                );
                               }}
                             >
                               <SelectTrigger data-testid={`select-protocol-${index}`}>
@@ -456,12 +432,9 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                             <Select
                               value={cred.credentialId}
                               onValueChange={(value) => {
-                                console.log(`📝 Credential changed to: ${value}`);
-                                setSelectedCredentials(prev => {
-                                  const updated = [...prev];
-                                  updated[index].credentialId = value;
-                                  return updated;
-                                });
+                                setSelectedCredentials(prev =>
+                                  prev.map((item, i) => i === index ? { ...item, credentialId: value } : item)
+                                );
                               }}
                             >
                               <SelectTrigger data-testid={`select-credential-${index}`}>
@@ -485,11 +458,9 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                               max="99"
                               value={cred.priority}
                               onChange={(e) => {
-                                setSelectedCredentials(prev => {
-                                  const updated = [...prev];
-                                  updated[index].priority = parseInt(e.target.value) || 0;
-                                  return updated;
-                                });
+                                setSelectedCredentials(prev =>
+                                  prev.map((item, i) => i === index ? { ...item, priority: parseInt(e.target.value) || 0 } : item)
+                                );
                               }}
                               data-testid={`input-priority-${index}`}
                               placeholder="0"

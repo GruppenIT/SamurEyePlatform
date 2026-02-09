@@ -141,14 +141,16 @@ export default function RecentThreats() {
                       </p>
                     )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-foreground ml-4"
-                    data-testid={`button-view-threat-${threat.id}`}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
+                  <Link href="/threats">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground hover:text-foreground ml-4"
+                      data-testid={`button-view-threat-${threat.id}`}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
               </div>
             ))}
