@@ -6,6 +6,7 @@ import { DashboardMetrics } from "@/types";
 export default function MetricsOverview() {
   const { data: metrics, isLoading } = useQuery<DashboardMetrics>({
     queryKey: ["/api/dashboard/metrics"],
+    refetchInterval: 10000,
   });
 
   if (isLoading) {

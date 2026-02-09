@@ -30,22 +30,46 @@ interface NavItem {
   adminOnly?: boolean;
 }
 
-const navItems: NavItem[] = [
-  { href: "/", label: "Dashboard", icon: BarChart3 },
-  { href: "/assets", label: "Alvos", icon: Server },
-  { href: "/ativos", label: "Ativos", icon: Monitor },
-  { href: "/credentials", label: "Credenciais", icon: Key },
-  { href: "/journeys", label: "Jornadas", icon: Route },
-  { href: "/schedules", label: "Agendamentos", icon: Clock },
-  { href: "/threats", label: "Ameaças", icon: AlertTriangle },
-  { href: "/jobs", label: "Jobs", icon: List },
-  { href: "/sessions", label: "Sessões Ativas", icon: Smartphone },
+interface NavGroup {
+  title?: string;
+  items: NavItem[];
+}
+
+const navGroups: NavGroup[] = [
+  {
+    items: [
+      { href: "/", label: "Dashboard", icon: BarChart3 },
+    ],
+  },
+  {
+    title: "Superfície",
+    items: [
+      { href: "/assets", label: "Alvos", icon: Server },
+      { href: "/hosts", label: "Hosts", icon: Monitor },
+      { href: "/credentials", label: "Credenciais", icon: Key },
+    ],
+  },
+  {
+    title: "Operações",
+    items: [
+      { href: "/journeys", label: "Jornadas", icon: Route },
+      { href: "/schedules", label: "Agendamentos", icon: Clock },
+      { href: "/jobs", label: "Jobs", icon: List },
+    ],
+  },
+  {
+    title: "Inteligência",
+    items: [
+      { href: "/threats", label: "Ameaças", icon: AlertTriangle },
+    ],
+  },
 ];
 
 const adminItems: NavItem[] = [
   { href: "/users", label: "Usuários", icon: Users, adminOnly: true },
-  { href: "/settings", label: "Configurações", icon: Settings, adminOnly: true },
+  { href: "/sessions", label: "Sessões", icon: Smartphone, adminOnly: true },
   { href: "/notification-policies", label: "Notificações", icon: Bell, adminOnly: true },
+  { href: "/settings", label: "Configurações", icon: Settings, adminOnly: true },
   { href: "/audit", label: "Auditoria", icon: History, adminOnly: true },
 ];
 
@@ -104,46 +128,54 @@ export default function Sidebar() {
       </div>
       
       {/* Navigation Menu */}
-      <nav className="flex-1 py-4">
-        <div className="px-3 space-y-1">
-          {navItems.map((item) => {
-            const isActive = item.href === '/'
-              ? location === '/' || location === '/dashboard'
-              : location === item.href || location.startsWith(item.href + '/');
-            // Mostrar contador de ameaças críticas para o item "Ameaças"
-            const showBadge = item.label === "Ameaças" && criticalThreatCount > 0;
-            const badgeCount = item.label === "Ameaças" ? criticalThreatCount : item.badge;
-            
-            return (
-              <Link key={item.href} href={item.href}>
-                <div
-                  className={cn(
-                    "sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
-                    isActive
-                      ? "active text-sidebar-foreground"
-                      : "text-muted-foreground hover:text-sidebar-foreground"
-                  )}
-                  data-testid={`nav-${item.label.toLowerCase()}`}
-                >
-                  <item.icon className="mr-3 h-4 w-4" />
-                  {item.label}
-                  {(showBadge || item.badge) && (
-                    <span className="ml-auto bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded-full" data-testid={`badge-${item.label.toLowerCase()}`}>
-                      {badgeCount}
-                    </span>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-        
+      <nav className="flex-1 py-4 overflow-y-auto">
+        {navGroups.map((group, groupIndex) => (
+          <div key={groupIndex} className={cn("px-3", groupIndex > 0 && "mt-4")}>
+            {group.title && (
+              <h3 className="px-3 mb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                {group.title}
+              </h3>
+            )}
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const isActive = item.href === '/'
+                  ? location === '/' || location === '/dashboard'
+                  : location === item.href || location.startsWith(item.href + '/');
+                const showBadge = item.label === "Ameaças" && criticalThreatCount > 0;
+                const badgeCount = item.label === "Ameaças" ? criticalThreatCount : item.badge;
+
+                return (
+                  <Link key={item.href} href={item.href}>
+                    <div
+                      className={cn(
+                        "sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+                        isActive
+                          ? "active text-sidebar-foreground"
+                          : "text-muted-foreground hover:text-sidebar-foreground"
+                      )}
+                      data-testid={`nav-${item.label.toLowerCase()}`}
+                    >
+                      <item.icon className="mr-3 h-4 w-4" />
+                      {item.label}
+                      {(showBadge || item.badge) && (
+                        <span className="ml-auto bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded-full" data-testid={`badge-${item.label.toLowerCase()}`}>
+                          {badgeCount}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
         {canViewAdminItems && (
-          <div className="px-3 mt-8">
-            <h3 className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <div className="px-3 mt-4">
+            <h3 className="px-3 mb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Administração
             </h3>
-            <div className="mt-2 space-y-1">
+            <div className="space-y-1">
               {adminItems.map((item) => {
                 const isActive = location === item.href || location.startsWith(item.href + '/');
                 return (
