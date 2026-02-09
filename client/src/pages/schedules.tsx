@@ -323,6 +323,7 @@ export default function Schedules() {
                   )}
                 </div>
               ) : (
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -391,6 +392,7 @@ export default function Schedules() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>

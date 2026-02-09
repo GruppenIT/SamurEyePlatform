@@ -29,6 +29,16 @@ import {
 import { Search, Users as UsersIcon, Shield, User as UserIcon, Crown, Plus } from "lucide-react";
 import type { User, RegisterUser } from "@shared/schema";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -51,6 +61,7 @@ type CreateUserForm = z.infer<typeof createUserSchema>;
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [roleChangeTarget, setRoleChangeTarget] = useState<{ user: User; newRole: string } | null>(null);
   
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
@@ -210,9 +221,7 @@ export default function Users() {
       return;
     }
 
-    if (confirm(`Tem certeza que deseja alterar o papel de ${user.email} para ${getRoleLabel(newRole)}?`)) {
-      updateUserRoleMutation.mutate({ id: user.id, role: newRole });
-    }
+    setRoleChangeTarget({ user, newRole });
   };
 
   const formatUserName = (user: User) => {
@@ -414,6 +423,7 @@ export default function Users() {
                   </p>
                 </div>
               ) : (
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -490,11 +500,37 @@ export default function Users() {
                     })}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
       </main>
+
+      {/* Role Change Confirmation */}
+      <AlertDialog open={!!roleChangeTarget} onOpenChange={(open) => !open && setRoleChangeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Alterar Papel do Usuário</AlertDialogTitle>
+            <AlertDialogDescription>
+              {roleChangeTarget && `Tem certeza que deseja alterar o papel de ${roleChangeTarget.user.email} para ${getRoleLabel(roleChangeTarget.newRole)}?`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (roleChangeTarget) {
+                  updateUserRoleMutation.mutate({ id: roleChangeTarget.user.id, role: roleChangeTarget.newRole });
+                  setRoleChangeTarget(null);
+                }
+              }}
+            >
+              Sim, Alterar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

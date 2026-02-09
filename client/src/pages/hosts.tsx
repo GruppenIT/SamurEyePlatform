@@ -1028,6 +1028,7 @@ export default function Hosts() {
                   </div>
                 </div>
               ) : (
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1173,6 +1174,7 @@ export default function Hosts() {
                     })}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>

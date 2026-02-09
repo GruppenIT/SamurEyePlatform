@@ -683,6 +683,7 @@ export default function Threats() {
                   </p>
                 </div>
               ) : (
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -765,6 +766,7 @@ export default function Threats() {
                     })}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>

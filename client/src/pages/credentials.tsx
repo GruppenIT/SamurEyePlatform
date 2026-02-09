@@ -17,6 +17,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -153,10 +163,10 @@ export default function Credentials() {
     }
   };
 
+  const [deleteCredentialId, setDeleteCredentialId] = useState<string | null>(null);
+
   const handleDeleteCredential = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta credencial?')) {
-      deleteCredentialMutation.mutate(id);
-    }
+    setDeleteCredentialId(id);
   };
 
   const getCredentialTypeLabel = (type: string) => {
@@ -276,6 +286,7 @@ export default function Credentials() {
                   )}
                 </div>
               ) : (
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -332,6 +343,7 @@ export default function Credentials() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -368,6 +380,32 @@ export default function Credentials() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Credential Confirmation */}
+      <AlertDialog open={!!deleteCredentialId} onOpenChange={(open) => !open && setDeleteCredentialId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Credencial</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta credencial? Jornadas que a utilizam perderão o acesso a ela.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteCredentialId) {
+                  deleteCredentialMutation.mutate(deleteCredentialId);
+                  setDeleteCredentialId(null);
+                }
+              }}
+            >
+              Sim, Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
