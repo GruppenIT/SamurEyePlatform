@@ -596,27 +596,62 @@ export async function setupAuth(app: Express) {
       // Update password and clear must change flag
       await storage.updateUserPassword(user.id, newPasswordHash);
       await storage.setMustChangePassword(user.id, false);
-      
+
+      // Audit log for password change
+      const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+      await storage.logAudit({
+        actorId: user.id,
+        action: 'user.change_password',
+        objectType: 'user',
+        objectId: user.id,
+        before: null,
+        after: { ip: clientIP },
+      });
+
       // Regenerate session to prevent session fixation
+      const oldSessionId = req.sessionID;
       req.session.regenerate(async (err: any) => {
         if (err) {
           console.error("Erro ao regenerar sessão:", err);
           return res.status(500).json({ message: 'Erro interno do servidor' });
         }
-        
+
         // Re-login user with updated information
         const updatedUser = await storage.getUser(user.id);
         if (!updatedUser) {
           return res.status(500).json({ message: 'Erro interno do servidor' });
         }
-        
-        req.logIn(updatedUser, (err: any) => {
+
+        req.logIn(updatedUser, async (err: any) => {
           if (err) {
             console.error("Erro ao fazer login:", err);
             return res.status(500).json({ message: 'Erro interno do servidor' });
           }
-          
-          res.json({ 
+
+          try {
+            // Remove old session from tracking
+            await storage.deleteActiveSession(oldSessionId);
+
+            // Create new active session entry for the regenerated session
+            const userAgent = req.get('user-agent') || 'Unknown';
+            const deviceInfo = parseDeviceInfo(userAgent);
+            const currentVersion = await storage.getCurrentSessionVersion();
+            const sessionTtlMs = 8 * 60 * 60 * 1000;
+
+            await storage.createActiveSession({
+              sessionId: req.sessionID,
+              userId: updatedUser.id,
+              sessionVersion: currentVersion,
+              ipAddress: clientIP,
+              userAgent: userAgent,
+              deviceInfo: deviceInfo,
+              expiresAt: new Date(Date.now() + sessionTtlMs),
+            });
+          } catch (sessionError) {
+            console.error('Erro ao rastrear sessão pós-troca de senha:', sessionError);
+          }
+
+          res.json({
             message: 'Senha alterada com sucesso',
             user: {
               id: updatedUser.id,
