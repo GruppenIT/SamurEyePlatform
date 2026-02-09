@@ -18,7 +18,7 @@ export default function ActiveJobs() {
   // Função para cancelar job
   const handleCancelJob = async (jobId: string) => {
     try {
-      await apiRequest(`/api/jobs/${jobId}/cancel-process`, 'POST');
+      await apiRequest('POST', `/api/jobs/${jobId}/cancel-process`);
       
       toast({
         title: "Job cancelado",
@@ -132,9 +132,10 @@ export default function ActiveJobs() {
         ) : (
           <div className="space-y-4">
             {runningJobs.map((job) => {
-              const Icon = getJobIcon();
-              const iconBg = getJobIconBg();
-              const iconColor = getJobIconColor();
+              const journeyType = (job as any).journeyType || (job as any).journey?.type;
+              const Icon = getJobIcon(journeyType);
+              const iconBg = getJobIconBg(journeyType);
+              const iconColor = getJobIconColor(journeyType);
               const pidInfo = extractPidInfo(job.currentTask || undefined);
               
               return (
