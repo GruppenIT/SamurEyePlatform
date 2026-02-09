@@ -11,18 +11,34 @@ import { encryptionService } from "./services/encryption";
 import { processTracker } from "./services/processTracker";
 import { emailService } from "./services/emailService";
 import { notificationService } from "./services/notificationService";
-import { 
-  insertAssetSchema, 
-  insertCredentialSchema, 
-  insertJourneySchema, 
+import {
+  insertAssetSchema,
+  insertCredentialSchema,
+  insertJourneySchema,
   insertScheduleSchema,
   createScheduleSchema,
   registerUserSchema,
   insertHostSchema,
   changeThreatStatusSchema,
   insertEmailSettingsSchema,
-  insertNotificationPolicySchema
+  insertNotificationPolicySchema,
+  userRoleEnum,
+  insertJourneyCredentialSchema,
 } from "@shared/schema";
+import { z } from "zod";
+// Simple cookie parser (avoids extra dependency)
+function parseCookies(cookieHeader: string): Record<string, string> {
+  const cookies: Record<string, string> = {};
+  cookieHeader.split(';').forEach(pair => {
+    const idx = pair.indexOf('=');
+    if (idx > 0) {
+      const key = pair.substring(0, idx).trim();
+      const val = decodeURIComponent(pair.substring(idx + 1).trim());
+      cookies[key] = val;
+    }
+  });
+  return cookies;
+}
 
 // Admin role check middleware
 function requireAdmin(req: any, res: any, next: any) {
@@ -31,6 +47,73 @@ function requireAdmin(req: any, res: any, next: any) {
   }
   next();
 }
+
+// Operator or Admin role check middleware (blocks read_only from write operations)
+function requireOperator(req: any, res: any, next: any) {
+  const role = req.user?.role;
+  if (role !== 'global_administrator' && role !== 'operator') {
+    return res.status(403).json({ message: "Acesso negado. Usuários somente-leitura não podem realizar esta operação." });
+  }
+  next();
+}
+
+// Validation schemas for PATCH operations
+const patchAssetSchema = z.object({
+  type: z.enum(['host', 'range', 'web_application']).optional(),
+  value: z.string().min(1).optional(),
+  tags: z.array(z.string()).optional(),
+}).strict();
+
+const patchJourneySchema = z.object({
+  name: z.string().min(1).optional(),
+  type: z.enum(['attack_surface', 'ad_security', 'edr_av', 'web_application']).optional(),
+  description: z.string().optional(),
+  params: z.record(z.any()).optional(),
+  targetSelectionMode: z.enum(['individual', 'by_tag']).optional(),
+  selectedTags: z.array(z.string()).optional(),
+  credentials: z.array(z.object({
+    credentialId: z.string().uuid(),
+    protocol: z.enum(['ssh', 'wmi', 'snmp']),
+    priority: z.number().int().min(0).default(0),
+  })).optional(),
+}).strict();
+
+const patchCredentialSchema = z.object({
+  name: z.string().min(1).optional(),
+  type: z.enum(['ssh', 'wmi', 'omi', 'ad']).optional(),
+  username: z.string().min(1).optional(),
+  secret: z.string().optional(),
+  hostOverride: z.string().nullable().optional(),
+  port: z.number().int().positive().nullable().optional(),
+  domain: z.string().nullable().optional(),
+}).strict();
+
+const patchThreatSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  severity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  assignedTo: z.string().nullable().optional(),
+}).strict();
+
+// Validate role against enum values
+const validRoles = userRoleEnum.enumValues;
+
+// HTML sanitization for email content
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Journey credential validation schema
+const journeyCredentialInputSchema = z.object({
+  credentialId: z.string().uuid("ID de credencial inválido"),
+  protocol: z.enum(['ssh', 'wmi', 'snmp'] as const, { errorMap: () => ({ message: "Protocolo inválido" }) }),
+  priority: z.number().int().min(0).default(0),
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -423,7 +506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/assets', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/assets', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const assetData = insertAssetSchema.parse(req.body);
@@ -446,13 +529,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/assets/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/assets/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-      const updates = req.body;
-      
+
+      // Validate allowed fields only
+      const updates = patchAssetSchema.parse(req.body);
+
       const beforeAsset = await storage.getAsset(id);
+      if (!beforeAsset) {
+        return res.status(404).json({ message: "Ativo não encontrado" });
+      }
       const asset = await storage.updateAsset(id, updates);
       
       await storage.logAudit({
@@ -471,7 +559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/assets/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.delete('/api/assets/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -582,7 +670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/hosts/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/hosts/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -622,6 +710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/credentials', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const credentials = await storage.getCredentials();
+      // Note: storage.getCredentials() already omits secretEncrypted/dekEncrypted
       res.json(credentials);
     } catch (error) {
       console.error("Erro ao buscar credenciais:", error);
@@ -629,7 +718,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/credentials', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/credentials', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const credentialData = insertCredentialSchema.parse(req.body);
@@ -669,11 +758,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/credentials/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/credentials/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-      const updateData = req.body;
+
+      // Validate allowed fields
+      const updateData = patchCredentialSchema.parse(req.body);
       
       const existingCredential = await storage.getCredential(id);
       if (!existingCredential) {
@@ -723,19 +814,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/credentials/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.delete('/api/credentials/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-      
+
+      // Capture before state for audit (with redacted secrets)
+      const existingCredential = await storage.getCredential(id);
+      if (!existingCredential) {
+        return res.status(404).json({ message: "Credencial não encontrada" });
+      }
+      const beforeState = {
+        ...existingCredential,
+        secretEncrypted: '[ENCRYPTED]',
+        dekEncrypted: '[ENCRYPTED]',
+      };
+
       await storage.deleteCredential(id);
-      
+
       await storage.logAudit({
         actorId: userId,
         action: 'delete',
         objectType: 'credential',
         objectId: id,
-        before: null,
+        before: beforeState,
         after: null,
       });
       
@@ -757,14 +859,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/journeys', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/journeys', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const journeyData = insertJourneySchema.parse(req.body);
       
       // Server-side validation: ensure at least one target or TAG is selected
       if (journeyData.type === 'attack_surface' || 
-          (journeyData.type === 'edr_av' && journeyData.params?.edrAvType === 'network_based')) {
+          (journeyData.type === 'edr_av' && (journeyData.params as any)?.edrAvType === 'network_based')) {
         const mode = journeyData.targetSelectionMode || 'individual';
         const hasAssets = Array.isArray(journeyData.params?.assetIds) && journeyData.params.assetIds.length > 0;
         const hasTags = Array.isArray(journeyData.selectedTags) && journeyData.selectedTags.length > 0;
@@ -785,31 +887,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Handle journey credentials (if provided)
       const credentials = req.body.credentials;
-      console.log('🔍 [DEBUG] POST /api/journeys - credentials from body:', JSON.stringify(credentials, null, 2));
-      
+
       if (Array.isArray(credentials) && credentials.length > 0) {
-        console.log(`✅ [DEBUG] Saving ${credentials.length} credentials for journey ${journey.id}`);
         for (const cred of credentials) {
-          console.log(`  → Saving credential:`, {
-            journeyId: journey.id,
-            credentialId: cred.credentialId,
-            protocol: cred.protocol,
-            priority: cred.priority || 0
-          });
+          // Validate each credential entry
+          const validCred = journeyCredentialInputSchema.parse(cred);
           await storage.createJourneyCredential({
             journeyId: journey.id,
-            credentialId: cred.credentialId,
-            protocol: cred.protocol,
-            priority: cred.priority || 0,
+            credentialId: validCred.credentialId,
+            protocol: validCred.protocol,
+            priority: validCred.priority,
           });
         }
-        console.log(`✅ [DEBUG] Successfully saved ${credentials.length} credentials`);
-      } else {
-        console.log('❌ [DEBUG] No credentials to save:', {
-          isArray: Array.isArray(credentials),
-          length: credentials?.length,
-          value: credentials
-        });
       }
       
       await storage.logAudit({
@@ -828,52 +917,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/journeys/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/journeys/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-      const updates = req.body;
-      
+
+      // Validate allowed fields
+      const updates = patchJourneySchema.parse(req.body);
+
       const beforeJourney = await storage.getJourney(id);
-      const journey = await storage.updateJourney(id, updates);
+      if (!beforeJourney) {
+        return res.status(404).json({ message: "Jornada não encontrada" });
+      }
+      const { credentials, ...journeyUpdates } = updates;
+      const journey = await storage.updateJourney(id, journeyUpdates as any);
       
-      // Handle journey credentials update (if provided)
-      const credentials = req.body.credentials;
-      console.log('🔍 [DEBUG] PATCH /api/journeys/:id - credentials from body:', JSON.stringify(credentials, null, 2));
-      
+      // Handle journey credentials update (if provided in validated data)
       if (Array.isArray(credentials)) {
-        console.log(`✅ [DEBUG] Updating credentials for journey ${id}`);
-        
         // Delete all existing credentials for this journey
         await storage.deleteJourneyCredentials(id);
-        console.log(`  → Deleted existing credentials`);
-        
-        // Create new credentials
+
+        // Create new credentials with validation
         if (credentials.length > 0) {
-          console.log(`  → Creating ${credentials.length} new credentials`);
           for (const cred of credentials) {
-            console.log(`    • Saving:`, {
-              journeyId: id,
-              credentialId: cred.credentialId,
-              protocol: cred.protocol,
-              priority: cred.priority || 0
-            });
+            const validCred = journeyCredentialInputSchema.parse(cred);
             await storage.createJourneyCredential({
               journeyId: id,
-              credentialId: cred.credentialId,
-              protocol: cred.protocol,
-              priority: cred.priority || 0,
+              credentialId: validCred.credentialId,
+              protocol: validCred.protocol,
+              priority: validCred.priority,
             });
           }
-          console.log(`✅ [DEBUG] Successfully saved ${credentials.length} credentials`);
-        } else {
-          console.log(`  → No credentials to create (array is empty)`);
         }
-      } else {
-        console.log('❌ [DEBUG] credentials is not an array:', {
-          type: typeof credentials,
-          value: credentials
-        });
       }
       
       await storage.logAudit({
@@ -892,7 +967,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/journeys/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.delete('/api/journeys/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -920,9 +995,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/journeys/:id/credentials', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const { id } = req.params;
-      console.log(`🔍 [DEBUG] GET /api/journeys/${id}/credentials`);
       const credentials = await storage.getJourneyCredentials(id);
-      console.log(`  → Found ${credentials.length} credentials:`, JSON.stringify(credentials, null, 2));
       res.json(credentials);
     } catch (error) {
       console.error("Erro ao buscar credenciais da jornada:", error);
@@ -941,7 +1014,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/schedules', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/schedules', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const scheduleData = createScheduleSchema.parse(req.body);
@@ -963,7 +1036,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/schedules/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/schedules/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -992,7 +1065,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/schedules/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.delete('/api/schedules/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -1029,7 +1102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/jobs/execute', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/jobs/execute', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { journeyId } = req.body;
@@ -1072,7 +1145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/jobs/:id/cancel-process', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/jobs/:id/cancel-process', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -1149,13 +1222,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/threats/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/threats/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-      const updates = req.body;
-      
+
+      // Validate allowed fields only (no status change here - use /status endpoint)
+      const updates = patchThreatSchema.parse(req.body);
+
       const beforeThreat = await storage.getThreat(id);
+      if (!beforeThreat) {
+        return res.status(404).json({ message: "Ameaça não encontrada" });
+      }
       const threat = await storage.updateThreat(id, updates);
       
       await storage.logAudit({
@@ -1175,7 +1253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Change threat status with justification
-  app.patch('/api/threats/:id/status', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/threats/:id/status', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -1299,7 +1377,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const users = await storage.getAllUsers();
-      res.json(users);
+      // Strip sensitive data before sending to client
+      const sanitizedUsers = users.map(({ passwordHash, ...user }) => user);
+      res.json(sanitizedUsers);
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
       res.status(500).json({ message: "Falha ao buscar usuários" });
@@ -1379,8 +1459,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { role } = req.body;
       const actorId = req.user.id;
-      
+
+      // Validate role against enum
+      if (!role || !validRoles.includes(role)) {
+        return res.status(400).json({
+          message: `Role inválido. Valores permitidos: ${validRoles.join(', ')}`
+        });
+      }
+
+      // Prevent self-demotion
+      if (id === actorId && role !== 'global_administrator') {
+        return res.status(400).json({ message: "Não é possível alterar seu próprio papel" });
+      }
+
       const beforeUser = await storage.getUser(id);
+      if (!beforeUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
       const user = await storage.updateUserRole(id, role);
       
       await storage.logAudit({
@@ -1593,13 +1688,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // WebSocket server for real-time updates
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws' 
+  const wss = new WebSocketServer({
+    server: httpServer,
+    path: '/ws',
+    verifyClient: async (info, callback) => {
+      try {
+        // Extract session cookie from upgrade request
+        const cookieHeader = info.req.headers.cookie;
+        if (!cookieHeader) {
+          console.log('🔒 WebSocket rejeitado: sem cookie de sessão');
+          callback(false, 401, 'Não autorizado');
+          return;
+        }
+
+        const cookies = parseCookies(cookieHeader);
+        const sessionId = cookies['connect.sid'];
+        if (!sessionId) {
+          console.log('🔒 WebSocket rejeitado: cookie connect.sid ausente');
+          callback(false, 401, 'Não autorizado');
+          return;
+        }
+
+        // Decode the signed session ID (format: s:<id>.<signature>)
+        const rawSid = sessionId.startsWith('s:')
+          ? sessionId.slice(2).split('.')[0]
+          : sessionId;
+
+        // Verify session exists in active_sessions
+        const activeSession = await storage.getActiveSessionBySessionId(rawSid);
+        if (!activeSession) {
+          console.log('🔒 WebSocket rejeitado: sessão não encontrada ou revogada');
+          callback(false, 401, 'Sessão inválida');
+          return;
+        }
+
+        callback(true);
+      } catch (error) {
+        console.error('❌ Erro ao verificar WebSocket:', error);
+        callback(false, 500, 'Erro interno');
+      }
+    }
   });
 
   wss.on('connection', (ws) => {
-    console.log('Cliente WebSocket conectado');
+    console.log('Cliente WebSocket conectado (autenticado)');
     connectedClients.add(ws);
 
     ws.on('close', () => {
