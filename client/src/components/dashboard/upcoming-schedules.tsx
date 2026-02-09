@@ -8,6 +8,7 @@ import { Schedule } from "@shared/schema";
 export default function UpcomingSchedules() {
   const { data: schedules = [], isLoading } = useQuery<Schedule[]>({
     queryKey: ["/api/schedules"],
+    refetchInterval: 30000,
   });
 
   const getScheduleIcon = (kind: string) => {
