@@ -107,9 +107,10 @@ export default function CredentialForm({ onSubmit, onCancel, isLoading = false, 
   // Set default port when type changes
   const handleTypeChange = (value: string) => {
     form.setValue('type', value as any);
-    const defaultPort = getDefaultPort();
-    if (defaultPort) {
-      form.setValue('port', defaultPort);
+    const portMap: Record<string, number> = { ssh: 22, wmi: 135, omi: 5985, ad: 389 };
+    const port = portMap[value];
+    if (port) {
+      form.setValue('port', port);
     }
   };
 

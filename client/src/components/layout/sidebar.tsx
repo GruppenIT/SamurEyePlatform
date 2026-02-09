@@ -107,7 +107,9 @@ export default function Sidebar() {
       <nav className="flex-1 py-4">
         <div className="px-3 space-y-1">
           {navItems.map((item) => {
-            const isActive = location === item.href;
+            const isActive = item.href === '/'
+              ? location === '/' || location === '/dashboard'
+              : location === item.href || location.startsWith(item.href + '/');
             // Mostrar contador de ameaças críticas para o item "Ameaças"
             const showBadge = item.label === "Ameaças" && criticalThreatCount > 0;
             const badgeCount = item.label === "Ameaças" ? criticalThreatCount : item.badge;
@@ -143,7 +145,7 @@ export default function Sidebar() {
             </h3>
             <div className="mt-2 space-y-1">
               {adminItems.map((item) => {
-                const isActive = location === item.href;
+                const isActive = location === item.href || location.startsWith(item.href + '/');
                 return (
                   <Link key={item.href} href={item.href}>
                     <div
