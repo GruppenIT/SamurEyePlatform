@@ -39,10 +39,10 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { 
-  Search, 
-  Server, 
-  Globe, 
+import {
+  Search,
+  Server,
+  Globe,
   Router,
   Monitor,
   Filter,
@@ -53,7 +53,11 @@ import {
   Minus,
   Package,
   Shield,
-  Settings
+  Settings,
+  CheckCircle2,
+  XCircle,
+  AlertOctagon,
+  SkipForward,
 } from "lucide-react";
 import { Host, Threat, HostRiskHistory } from "@shared/schema";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
@@ -241,6 +245,163 @@ interface AdSecurityTestResult {
   status: 'pass' | 'fail' | 'error' | 'skipped';
   evidence: Record<string, any>;
   executedAt: string;
+}
+
+interface ADScorecard {
+  overallScore: number;
+  totalTests: number;
+  totalPassed: number;
+  totalFailed: number;
+  totalError: number;
+  totalSkipped: number;
+  failedBySeverity: Record<string, number>;
+  categories: Array<{
+    name: string;
+    total: number;
+    passed: number;
+    failed: number;
+    error: number;
+    skipped: number;
+    score: number;
+  }>;
+  executedAt: string;
+  jobId: string;
+}
+
+function getScoreColor(score: number) {
+  if (score >= 80) return { text: 'text-green-500', bg: 'bg-green-500', bar: 'bg-green-500' };
+  if (score >= 60) return { text: 'text-yellow-500', bg: 'bg-yellow-500', bar: 'bg-yellow-500' };
+  if (score >= 40) return { text: 'text-orange-500', bg: 'bg-orange-500', bar: 'bg-orange-500' };
+  return { text: 'text-red-500', bg: 'bg-red-500', bar: 'bg-red-500' };
+}
+
+const categoryLabels: Record<string, string> = {
+  configuracoes_criticas: 'Configurações Críticas',
+  gerenciamento_contas: 'Gerenciamento de Contas',
+  kerberos_delegacao: 'Kerberos e Delegação',
+  compartilhamentos_gpos: 'Compartilhamentos e GPOs',
+  politicas_configuracao: 'Políticas e Configuração',
+  contas_inativas: 'Contas Inativas',
+};
+
+function ADSecurityScorecard({ hostId }: { hostId: string }) {
+  const { data: scorecard, isLoading } = useQuery<ADScorecard | null>({
+    queryKey: ['/api/hosts', hostId, 'ad-scorecard'],
+    queryFn: async () => {
+      const res = await fetch(`/api/hosts/${hostId}/ad-scorecard`);
+      if (!res.ok) throw new Error('Failed to fetch scorecard');
+      return res.json();
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="border rounded-lg p-4 animate-pulse">
+        <div className="h-4 bg-muted rounded w-1/3 mb-4" />
+        <div className="h-20 bg-muted rounded" />
+      </div>
+    );
+  }
+
+  if (!scorecard) return null;
+
+  const scoreColor = getScoreColor(scorecard.overallScore);
+
+  return (
+    <div className="border rounded-lg p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Shield className="h-4 w-4" />
+        <h3 className="text-sm font-semibold">Scorecard AD Security</h3>
+      </div>
+
+      {/* Overall Score */}
+      <div className="flex items-center gap-6 mb-4">
+        <div className="flex-shrink-0 text-center">
+          <div className={`text-3xl font-bold ${scoreColor.text}`}>
+            {scorecard.overallScore}
+          </div>
+          <div className="text-xs text-muted-foreground">/ 100</div>
+        </div>
+
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+              <span>{scorecard.totalPassed} passou</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <XCircle className="h-3.5 w-3.5 text-red-500" />
+              <span>{scorecard.totalFailed} falhou</span>
+            </div>
+            {scorecard.totalError > 0 && (
+              <div className="flex items-center gap-1">
+                <AlertOctagon className="h-3.5 w-3.5 text-orange-500" />
+                <span>{scorecard.totalError} erro</span>
+              </div>
+            )}
+            {scorecard.totalSkipped > 0 && (
+              <div className="flex items-center gap-1">
+                <SkipForward className="h-3.5 w-3.5 text-slate-400" />
+                <span>{scorecard.totalSkipped} pulado</span>
+              </div>
+            )}
+          </div>
+
+          {/* Failed by severity */}
+          {scorecard.totalFailed > 0 && (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground">Falhas:</span>
+              {scorecard.failedBySeverity.critical > 0 && (
+                <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/30 text-[10px] px-1.5 py-0">
+                  {scorecard.failedBySeverity.critical} crítico
+                </Badge>
+              )}
+              {scorecard.failedBySeverity.high > 0 && (
+                <Badge variant="outline" className="bg-orange-500/10 text-orange-500 border-orange-500/30 text-[10px] px-1.5 py-0">
+                  {scorecard.failedBySeverity.high} alto
+                </Badge>
+              )}
+              {scorecard.failedBySeverity.medium > 0 && (
+                <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30 text-[10px] px-1.5 py-0">
+                  {scorecard.failedBySeverity.medium} médio
+                </Badge>
+              )}
+              {scorecard.failedBySeverity.low > 0 && (
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/30 text-[10px] px-1.5 py-0">
+                  {scorecard.failedBySeverity.low} baixo
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Per-category bars */}
+      <div className="space-y-2">
+        {scorecard.categories.map((cat) => {
+          const catColor = getScoreColor(cat.score);
+          return (
+            <div key={cat.name} className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground truncate">
+                  {categoryLabels[cat.name] || cat.name}
+                </span>
+                <span className={`font-medium ${catColor.text}`}>
+                  {cat.passed}/{cat.total}
+                </span>
+              </div>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${catColor.bar}`}
+                  style={{ width: `${cat.score}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 // Helper to parse PowerShell JSON stdout into object array
@@ -1287,6 +1448,9 @@ export default function Hosts() {
               {/* Risk History Chart */}
               <RiskHistoryChart hostId={selectedHost.id} />
               
+              {/* AD Security Scorecard */}
+              <ADSecurityScorecard hostId={selectedHost.id} />
+
               {/* AD Security Tests */}
               <ADSecurityTests hostId={selectedHost.id} />
               

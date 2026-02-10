@@ -16,6 +16,25 @@ import { type Journey, type Job } from '@shared/schema';
 
 const adScanner = new ADScanner();
 
+// Max size for stdout/stderr stored in job_results artifacts
+const MAX_ARTIFACT_STDOUT = 2_000;
+
+/** Strip verbose fields from findings before storing in artifacts to prevent DB bloat */
+function sanitizeFindingsForArtifacts(findings: any[]): any[] {
+  return findings.map(f => ({
+    ...f,
+    evidence: f.evidence ? {
+      ...f.evidence,
+      stdout: f.evidence.stdout ? f.evidence.stdout.substring(0, MAX_ARTIFACT_STDOUT) : undefined,
+      stderr: f.evidence.stderr ? f.evidence.stderr.substring(0, 500) : undefined,
+      command: undefined,  // Commands already stored in ad_security_test_results
+      objectData: f.evidence.objectData
+        ? { _summary: `${Object.keys(f.evidence.objectData).length} fields` }
+        : undefined,
+    } : undefined,
+  }));
+}
+
 // Register host enrichment collectors
 hostEnricher.registerCollector(new WMICollector());
 hostEnricher.registerCollector(new SSHCollector());
@@ -556,13 +575,13 @@ class JourneyExecutorService {
 
       onProgress({ status: 'running', progress: 80, currentTask: 'Processando resultados' });
 
-      // Store results
+      // Store results (sanitize findings to avoid duplicating large evidence data)
       await storage.createJobResult({
         jobId,
         stdout: `Análise AD concluída para domínio ${domain}. ${findings.length} achados identificados, ${testResults.length} testes executados.`,
         stderr: '',
         artifacts: {
-          findings,
+          findings: sanitizeFindingsForArtifacts(findings),
           testResults,
           summary: {
             domain,

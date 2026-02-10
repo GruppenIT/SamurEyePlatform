@@ -65,6 +65,14 @@ interface PerObjectFindingTemplate {
   objectType: 'user' | 'computer' | 'service_account' | 'group' | 'trust' | 'gmsa' | 'dc';
 }
 
+// Stdout/stderr size limits (bytes) to prevent memory/storage bloat
+const MAX_RAW_STDOUT = 512_000;  // 512KB max raw capture from PowerShell process
+const MAX_RAW_STDERR = 64_000;   // 64KB max raw stderr capture
+const MAX_EVIDENCE_STDOUT = 2_000;  // Truncated stdout stored in evidence (generic tests)
+const MAX_EVIDENCE_STDERR = 500;    // Truncated stderr stored in evidence (generic tests)
+const MAX_PEROBJECT_STDOUT = 500;   // Truncated stdout for per-object findings
+const MAX_PEROBJECT_STDERR = 200;   // Truncated stderr for per-object findings
+
 export class ADScanner {
   private readonly commonDCPorts = [389, 636, 3268, 3269];
   private baseDN: string = '';
@@ -423,11 +431,21 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       let stderr = '';
 
       winrm.stdout.on('data', (data) => {
-        stdout += data.toString();
+        if (stdout.length < MAX_RAW_STDOUT) {
+          stdout += data.toString();
+          if (stdout.length > MAX_RAW_STDOUT) {
+            stdout = stdout.substring(0, MAX_RAW_STDOUT);
+          }
+        }
       });
 
       winrm.stderr.on('data', (data) => {
-        stderr += data.toString();
+        if (stderr.length < MAX_RAW_STDERR) {
+          stderr += data.toString();
+          if (stderr.length > MAX_RAW_STDERR) {
+            stderr = stderr.substring(0, MAX_RAW_STDERR);
+          }
+        }
       });
 
       winrm.on('close', (code) => {
@@ -553,28 +571,35 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         const evidence = {
           testId: test.id,
           command: result.command || test.powershell,
-          stdout: result.stdout.substring(0, 2000),
-          stderr: result.stderr.substring(0, 500),
+          stdout: result.stdout.substring(0, MAX_EVIDENCE_STDOUT),
+          stderr: result.stderr.substring(0, MAX_EVIDENCE_STDERR),
           exitCode: result.exitCode,
         };
         executionResults.set(test.id, evidence);
         
         // Process stdout regardless of exitCode (PowerShell may return 1 on success)
-        // Process stdout regardless of exitCode (PowerShell may return 1 on success)
         if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
-          
+
           if (hasIssue) {
-            findings.push({
-              type: this.getTypeForTest(test.id),
-              target: domain,
-              name: test.nome,
-              severity: test.severidade,
-              category: 'configuration',
-              description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
-              recommendation: test.recommendation || 'Revisar configuração conforme documentação de segurança Microsoft',
-              evidence
-            });
+            // Try per-object findings if template exists
+            const template = this.getPerObjectTemplate(test.id);
+            if (template) {
+              const perObjectFindings = this.createPerObjectFindings(test, domain, result.stdout, result);
+              findings.push(...perObjectFindings);
+            } else {
+              // Domain-level finding with objectId for correlation
+              findings.push({
+                type: this.getTypeForTest(test.id),
+                target: domain,
+                name: test.nome,
+                severity: test.severidade,
+                category: 'configuration',
+                description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
+                recommendation: test.recommendation || 'Revisar configuração conforme documentação de segurança Microsoft',
+                evidence: { ...evidence, objectId: domain, domain }
+              });
+            }
           }
         }
       } catch (error: any) {
@@ -696,8 +721,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         const evidence = {
           testId: test.id,
           command: result.command || test.powershell,
-          stdout: result.stdout.substring(0, 2000),
-          stderr: result.stderr.substring(0, 500),
+          stdout: result.stdout.substring(0, MAX_EVIDENCE_STDOUT),
+          stderr: result.stderr.substring(0, MAX_EVIDENCE_STDERR),
           exitCode: result.exitCode,
         };
         executionResults.set(test.id, evidence);
@@ -791,8 +816,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         const evidence = {
           testId: test.id,
           command: result.command || test.powershell,
-          stdout: result.stdout.substring(0, 2000),
-          stderr: result.stderr.substring(0, 500),
+          stdout: result.stdout.substring(0, MAX_EVIDENCE_STDOUT),
+          stderr: result.stderr.substring(0, MAX_EVIDENCE_STDERR),
           exitCode: result.exitCode,
         };
         executionResults.set(test.id, evidence);
@@ -867,34 +892,36 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
         
         // Store execution result for test evidence (ensures test appears in PASSOU/FALHOU list)
-        executionResults.set(test.id, {
+        const evidence = {
+          testId: test.id,
           command: result.command || test.powershell,
-          stdout: result.stdout,
-          stderr: result.stderr,
+          stdout: result.stdout.substring(0, MAX_EVIDENCE_STDOUT),
+          stderr: result.stderr.substring(0, MAX_EVIDENCE_STDERR),
           exitCode: result.exitCode,
-        });
-        
+        };
+        executionResults.set(test.id, evidence);
+
         // Process stdout regardless of exitCode (PowerShell may return 1 on success)
         if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
-          
+
           if (hasIssue) {
-            findings.push({
-              type: this.getTypeForTest(test.id),
-              target: domain,
-              name: test.nome,
-              severity: test.severidade,
-              category: 'policies',
-              description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
-              recommendation: test.recommendation || 'Revisar permissões e configurações de compartilhamento',
-              evidence: {
-                testId: test.id,
-                command: result.command || test.powershell,
-                stdout: result.stdout.substring(0, 2000),
-                stderr: result.stderr.substring(0, 500),
-                exitCode: result.exitCode,
-              }
-            });
+            const template = this.getPerObjectTemplate(test.id);
+            if (template) {
+              const perObjectFindings = this.createPerObjectFindings(test, domain, result.stdout, result);
+              findings.push(...perObjectFindings);
+            } else {
+              findings.push({
+                type: this.getTypeForTest(test.id),
+                target: domain,
+                name: test.nome,
+                severity: test.severidade,
+                category: 'policies',
+                description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
+                recommendation: test.recommendation || 'Revisar permissões e configurações de compartilhamento',
+                evidence: { ...evidence, objectId: domain, domain }
+              });
+            }
           }
         }
       } catch (error: any) {
@@ -987,36 +1014,38 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
     for (const test of tests) {
       try {
         const result = await this.executePowerShell(dcHost, domain, username, password, test.powershell, test.nome);
-        
+
         // Store execution result for test evidence (ensures test appears in PASSOU/FALHOU list)
-        executionResults.set(test.id, {
+        const evidence = {
+          testId: test.id,
           command: result.command || test.powershell,
-          stdout: result.stdout,
-          stderr: result.stderr,
+          stdout: result.stdout.substring(0, MAX_EVIDENCE_STDOUT),
+          stderr: result.stderr.substring(0, MAX_EVIDENCE_STDERR),
           exitCode: result.exitCode,
-        });
-        
+        };
+        executionResults.set(test.id, evidence);
+
         // Process stdout regardless of exitCode (PowerShell may return 1 on success)
         if (result.stdout && result.stdout.trim()) {
           const hasIssue = this.analyzeTestResult(test.id, result.stdout);
-          
+
           if (hasIssue) {
-            findings.push({
-              type: this.getTypeForTest(test.id),
-              target: domain,
-              name: test.nome,
-              severity: test.severidade,
-              category: 'configuration',
-              description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
-              recommendation: test.recommendation || 'Revisar e corrigir configuração do domínio',
-              evidence: {
-                testId: test.id,
-                command: result.command || test.powershell,
-                stdout: result.stdout.substring(0, 2000),
-                stderr: result.stderr.substring(0, 500),
-                exitCode: result.exitCode,
-              }
-            });
+            const template = this.getPerObjectTemplate(test.id);
+            if (template) {
+              const perObjectFindings = this.createPerObjectFindings(test, domain, result.stdout, result);
+              findings.push(...perObjectFindings);
+            } else {
+              findings.push({
+                type: this.getTypeForTest(test.id),
+                target: domain,
+                name: test.nome,
+                severity: test.severidade,
+                category: 'configuration',
+                description: test.description || `Teste ${test.nome} identificou problemas de segurança`,
+                recommendation: test.recommendation || 'Revisar e corrigir configuração do domínio',
+                evidence: { ...evidence, objectId: domain, domain }
+              });
+            }
           }
         }
       } catch (error: any) {
@@ -1105,8 +1134,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         // Store execution result for test evidence
         executionResults.set(test.id, {
           command: result.command || test.powershell,
-          stdout: result.stdout,
-          stderr: result.stderr,
+          stdout: result.stdout.substring(0, MAX_EVIDENCE_STDOUT),
+          stderr: result.stderr.substring(0, MAX_EVIDENCE_STDERR),
           exitCode: result.exitCode,
         });
         
@@ -1385,8 +1414,53 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         objectNameField: 'Name',
         objectType: 'computer',
       },
+      // testConfiguracoesCriticas - per-object tests
+      'schema_permissions': {
+        titleTemplate: (name) => `Permissão não-padrão no Schema: ${name}`,
+        descriptionTemplate: (name, details) => `A entidade ${name} possui permissões não-padrão na partição do esquema do AD${details?.ActiveDirectoryRights ? ` (Direitos: ${details.ActiveDirectoryRights})` : ''}`,
+        objectNameField: 'IdentityReference',
+        objectType: 'user',
+      },
+      // testCompartilhamentosGPOs - per-object tests
+      'credentials_in_shares': {
+        titleTemplate: (name) => `Credencial exposta em compartilhamento: ${name}`,
+        descriptionTemplate: (name, details) => `Arquivo ${name} contém credenciais ou palavras-chave sensíveis${details?.LineNumber ? ` (linha ${details.LineNumber})` : ''}`,
+        objectNameField: 'Path',
+        objectType: 'computer',
+      },
+      'sysvol_permissions': {
+        titleTemplate: (name) => `Permissão excessiva no SYSVOL: ${name}`,
+        descriptionTemplate: (name, details) => `A entidade ${name} possui permissões não-padrão no compartilhamento SYSVOL${details?.FileSystemRights ? ` (${details.FileSystemRights})` : ''}`,
+        objectNameField: 'IdentityReference',
+        objectType: 'user',
+      },
+      // testPoliticasConfiguracao - per-object tests
+      'risky_uac_params': {
+        titleTemplate: (name) => `UAC arriscado: ${name}`,
+        descriptionTemplate: (name, details) => `A conta ${name} possui flags UserAccountControl arriscadas${details?.userAccountControl ? ` (UAC: ${details.userAccountControl})` : ''}`,
+        objectNameField: 'Name',
+        objectType: 'user',
+      },
+      'dns_admins_standard_users': {
+        titleTemplate: (name) => `Usuário padrão como DnsAdmin: ${name}`,
+        descriptionTemplate: (name) => `O usuário ${name} é membro do grupo DnsAdmins, que tem privilégios elevados no domínio`,
+        objectNameField: 'SamAccountName',
+        objectType: 'user',
+      },
+      'non_canonical_ace': {
+        titleTemplate: (name) => `ACE não-canônico: ${name}`,
+        descriptionTemplate: (name) => `O objeto ${name} possui Access Control Entries em ordem não-canônica, podendo causar comportamento inesperado de permissões`,
+        objectNameField: 'DistinguishedName',
+        objectType: 'computer',
+      },
+      'orphan_krbtgt_rodc': {
+        titleTemplate: (name) => `KRBTGT RODC órfão: ${name}`,
+        descriptionTemplate: (name) => `A conta krbtgt ${name} está órfã, pertencendo a um RODC que não existe mais no domínio`,
+        objectNameField: 'Name',
+        objectType: 'user',
+      },
     };
-    
+
     return templates[testId] || null;
   }
 
@@ -1428,8 +1502,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
             testId: test.id,
             domain: domain,
             command: result.command || test.powershell,
-            stdout: result.stdout.substring(0, 2000),
-            stderr: result.stderr.substring(0, 500),
+            stdout: result.stdout.substring(0, MAX_EVIDENCE_STDOUT),
+            stderr: result.stderr.substring(0, MAX_EVIDENCE_STDERR),
             exitCode: result.exitCode,
           }
         }];
@@ -1470,8 +1544,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
               objectData: obj,
               domain: domain,
               command: result.command || test.powershell,
-              stdout: result.stdout.substring(0, 500), // Truncated to avoid huge payloads
-              stderr: result.stderr.substring(0, 200),
+              stdout: result.stdout.substring(0, MAX_PEROBJECT_STDOUT), // Truncated to avoid huge payloads
+              stderr: result.stderr.substring(0, MAX_PEROBJECT_STDERR),
               exitCode: result.exitCode,
             }
           });
@@ -1493,8 +1567,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
               objectData: obj,
               domain: domain,
               command: result.command || test.powershell,
-              stdout: result.stdout.substring(0, 500),
-              stderr: result.stderr.substring(0, 200),
+              stdout: result.stdout.substring(0, MAX_PEROBJECT_STDOUT),
+              stderr: result.stderr.substring(0, MAX_PEROBJECT_STDERR),
               exitCode: result.exitCode,
             }
           });
@@ -1519,8 +1593,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           testId: test.id,
           domain: domain,
           command: result.command || test.powershell,
-          stdout: result.stdout.substring(0, 2000),
-          stderr: result.stderr.substring(0, 500),
+          stdout: result.stdout.substring(0, MAX_EVIDENCE_STDOUT),
+          stderr: result.stderr.substring(0, MAX_EVIDENCE_STDERR),
           exitCode: result.exitCode,
         }
       }];
