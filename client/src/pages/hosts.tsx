@@ -243,9 +243,40 @@ interface AdSecurityTestResult {
   executedAt: string;
 }
 
+// Helper to parse PowerShell JSON stdout into object array
+function tryParseStdoutObjects(stdout: string | undefined): { objects: Record<string, any>[] | null; keys: string[] } {
+  if (!stdout) return { objects: null, keys: [] };
+  try {
+    const trimmed = stdout.trim();
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
+      const keys = Array.from(new Set(parsed.flatMap((obj: any) => Object.keys(obj))));
+      return { objects: parsed, keys };
+    }
+    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+      return { objects: [parsed], keys: Object.keys(parsed) };
+    }
+    return { objects: null, keys: [] };
+  } catch {
+    return { objects: null, keys: [] };
+  }
+}
+
+function formatCellValue(value: any): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
+  if (Array.isArray(value)) return value.join(', ');
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
 function ADSecurityTests({ hostId }: { hostId: string }) {
   const [selectedTest, setSelectedTest] = useState<AdSecurityTestResult | null>(null);
-  
+
+  const parsedStdout = useMemo(() => {
+    return tryParseStdoutObjects(selectedTest?.evidence?.stdout);
+  }, [selectedTest]);
+
   const { data: testResults = [], isLoading } = useQuery<AdSecurityTestResult[]>({
     queryKey: ['/api/hosts', hostId, 'ad-tests'],
     queryFn: async () => {
@@ -387,41 +418,105 @@ function ADSecurityTests({ hostId }: { hostId: string }) {
           </DialogHeader>
           {selectedTest && (
             <div className="space-y-4">
-              {/* Status */}
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">Status</label>
-                <div className="mt-1">
-                  <Badge
-                    variant="outline"
-                    className={getStatusBadge(selectedTest.status).className}
-                  >
-                    {getStatusBadge(selectedTest.status).label}
-                  </Badge>
-                </div>
+              {/* Status + Severity + Test ID */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <Badge
+                  variant="outline"
+                  className={getStatusBadge(selectedTest.status).className}
+                >
+                  {getStatusBadge(selectedTest.status).label}
+                </Badge>
+                <Badge variant="outline" className={
+                  selectedTest.severityHint === 'critical' ? 'bg-red-500/10 text-red-500 border-red-500/30' :
+                  selectedTest.severityHint === 'high' ? 'bg-orange-500/10 text-orange-500 border-orange-500/30' :
+                  selectedTest.severityHint === 'medium' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30' :
+                  'bg-green-500/10 text-green-500 border-green-500/30'
+                }>
+                  {selectedTest.severityHint === 'critical' ? 'CRÍTICO' :
+                   selectedTest.severityHint === 'high' ? 'ALTO' :
+                   selectedTest.severityHint === 'medium' ? 'MÉDIO' : 'BAIXO'}
+                </Badge>
+                <span className="text-xs text-muted-foreground font-mono ml-auto">
+                  {selectedTest.testId}
+                </span>
               </div>
 
-              {/* Comando PowerShell */}
-              {selectedTest.evidence?.command && (
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">
-                    Comando PowerShell Executado
-                  </label>
-                  <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-x-auto font-mono">
-                    {selectedTest.evidence.command}
-                  </pre>
+              {/* Recommendation Card (M6) */}
+              {selectedTest.evidence?.recommendation && (
+                <div className="p-4 bg-orange-500/10 dark:bg-orange-950/30 border-2 border-orange-600/40 dark:border-orange-700/50 rounded-lg">
+                  <h5 className="font-semibold text-orange-700 dark:text-orange-400 mb-2 flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Recomendação
+                  </h5>
+                  <p className="text-sm text-orange-900 dark:text-orange-100 leading-relaxed">
+                    {selectedTest.evidence.recommendation}
+                  </p>
                 </div>
               )}
 
-              {/* Output (stdout) */}
-              {selectedTest.evidence?.stdout && (
+              {/* Parsed Objects Table (M1) */}
+              {parsedStdout.objects && parsedStdout.objects.length > 0 && (
                 <div>
                   <label className="text-xs font-medium text-muted-foreground">
-                    Output (stdout)
+                    Objetos Afetados ({parsedStdout.objects.length})
                   </label>
+                  <div className="mt-1 max-h-64 overflow-auto border rounded-md">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          {parsedStdout.keys.map(key => (
+                            <TableHead key={key} className="text-xs whitespace-nowrap">{key}</TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {parsedStdout.objects.map((obj, idx) => (
+                          <TableRow key={idx}>
+                            {parsedStdout.keys.map(key => (
+                              <TableCell key={key} className="text-xs font-mono whitespace-nowrap">
+                                {formatCellValue(obj[key])}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
+
+              {/* Raw Output - only if stdout couldn't be parsed */}
+              {selectedTest.evidence?.stdout && (!parsedStdout.objects || parsedStdout.objects.length === 0) && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Output (stdout)</label>
                   <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-x-auto max-h-60 font-mono">
                     {selectedTest.evidence.stdout}
                   </pre>
                 </div>
+              )}
+
+              {/* Raw output as collapsible when objects were parsed */}
+              {selectedTest.evidence?.stdout && parsedStdout.objects && parsedStdout.objects.length > 0 && (
+                <details>
+                  <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                    Ver output bruto
+                  </summary>
+                  <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-x-auto max-h-40 font-mono">
+                    {selectedTest.evidence.stdout}
+                  </pre>
+                </details>
+              )}
+
+              {/* Command - Collapsible */}
+              {selectedTest.evidence?.command && (
+                <details>
+                  <summary className="text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground">
+                    Comando PowerShell Executado
+                  </summary>
+                  <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-x-auto font-mono">
+                    {selectedTest.evidence.command}
+                  </pre>
+                </details>
               )}
 
               {/* Errors (stderr) */}
@@ -436,30 +531,14 @@ function ADSecurityTests({ hostId }: { hostId: string }) {
                 </div>
               )}
 
-              {/* Exit Code */}
-              {selectedTest.evidence?.exitCode !== undefined && (
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Exit Code</label>
-                  <div className="mt-1 text-sm font-mono">
-                    {selectedTest.evidence.exitCode}
-                  </div>
-                </div>
-              )}
-
-              {/* Test ID */}
-              <div className="pt-3 border-t">
-                <label className="text-xs font-medium text-muted-foreground">Test ID</label>
-                <div className="mt-1 text-xs font-mono">{selectedTest.testId}</div>
-              </div>
-
-              {/* Execution Time */}
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">
-                  Data de Execução
-                </label>
-                <div className="mt-1 text-xs">
-                  {new Date(selectedTest.executedAt).toLocaleString('pt-BR')}
-                </div>
+              {/* Footer: Execution Time + Exit Code */}
+              <div className="pt-3 border-t flex items-center justify-between text-xs text-muted-foreground">
+                <span>
+                  Executado em: {new Date(selectedTest.executedAt).toLocaleString('pt-BR')}
+                </span>
+                {selectedTest.evidence?.exitCode !== undefined && (
+                  <span className="font-mono">Exit Code: {selectedTest.evidence.exitCode}</span>
+                )}
               </div>
             </div>
           )}

@@ -38,6 +38,44 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Threat, Host } from "@shared/schema";
 import { ThreatStats } from "@/types";
 
+// Helper to parse PowerShell JSON stdout into object array
+function tryParseStdoutObjects(stdout: string | undefined): { objects: Record<string, any>[] | null; keys: string[] } {
+  if (!stdout) return { objects: null, keys: [] };
+  try {
+    const trimmed = stdout.trim();
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
+      const keys = Array.from(new Set(parsed.flatMap((obj: any) => Object.keys(obj))));
+      return { objects: parsed, keys };
+    }
+    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+      return { objects: [parsed], keys: Object.keys(parsed) };
+    }
+    return { objects: null, keys: [] };
+  } catch {
+    return { objects: null, keys: [] };
+  }
+}
+
+function formatCellValue(value: any): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
+  if (Array.isArray(value)) return value.join(', ');
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+const adCategoryLabels: Record<string, string> = {
+  users: 'Usuários',
+  groups: 'Grupos',
+  computers: 'Computadores',
+  policies: 'Políticas',
+  configuration: 'Configuração',
+  kerberos: 'Kerberos',
+  shares: 'Compartilhamentos',
+  inactive_accounts: 'Contas Inativas',
+};
+
 export default function Threats() {
   const [location] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
@@ -315,6 +353,10 @@ export default function Threats() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  const parsedAdStdout = useMemo(() => {
+    return tryParseStdoutObjects(selectedThreat?.evidence?.stdout);
+  }, [selectedThreat]);
 
   const filteredThreats = threats.filter(threat => {
     // Search filter
@@ -1040,6 +1082,77 @@ export default function Threats() {
                 <div>
                   <h4 className="font-medium text-foreground mb-4">Evidências</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* AD Security Test Info (M2) */}
+                    {selectedThreat.evidence.testId && (
+                      <div className="p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-md md:col-span-2">
+                        <h5 className="font-medium text-sm text-foreground mb-2 flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-indigo-500" />
+                          Teste AD Security
+                        </h5>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Test ID:</span>
+                            <span className="font-mono text-xs">{selectedThreat.evidence.testId}</span>
+                          </div>
+                          {selectedThreat.evidence.category && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Categoria:</span>
+                              <span>{adCategoryLabels[selectedThreat.evidence.category] || selectedThreat.evidence.category}</span>
+                            </div>
+                          )}
+                          {selectedThreat.evidence.target && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Domínio:</span>
+                              <span className="font-mono text-xs">{selectedThreat.evidence.target}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AD Parsed Objects Table (M2) */}
+                    {selectedThreat.evidence.testId && parsedAdStdout.objects && parsedAdStdout.objects.length > 0 && (
+                      <div className="p-4 bg-muted/50 border rounded-md md:col-span-2">
+                        <h5 className="font-medium text-sm text-foreground mb-2">
+                          Objetos Afetados ({parsedAdStdout.objects.length})
+                        </h5>
+                        <div className="max-h-64 overflow-auto border rounded-md bg-background">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                {parsedAdStdout.keys.map(key => (
+                                  <TableHead key={key} className="text-xs whitespace-nowrap">{key}</TableHead>
+                                ))}
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {parsedAdStdout.objects.map((obj, idx) => (
+                                <TableRow key={idx}>
+                                  {parsedAdStdout.keys.map(key => (
+                                    <TableCell key={key} className="text-xs font-mono whitespace-nowrap">
+                                      {formatCellValue(obj[key])}
+                                    </TableCell>
+                                  ))}
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AD Command (collapsible) */}
+                    {selectedThreat.evidence.testId && selectedThreat.evidence.command && (
+                      <details className="p-4 bg-muted/50 border rounded-md md:col-span-2">
+                        <summary className="text-sm font-medium text-foreground cursor-pointer hover:text-foreground/80">
+                          Comando PowerShell Executado
+                        </summary>
+                        <pre className="mt-2 p-3 bg-background rounded-md text-xs overflow-x-auto font-mono">
+                          {selectedThreat.evidence.command}
+                        </pre>
+                      </details>
+                    )}
+
                     {/* Informações de Host/IP */}
                     {(selectedThreat.evidence.host || selectedThreat.evidence.ip) && (
                       <div className="p-4 bg-muted/50 border rounded-md">
