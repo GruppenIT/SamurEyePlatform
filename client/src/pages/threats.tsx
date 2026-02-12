@@ -546,192 +546,93 @@ export default function Threats() {
         />
         
         <div className="p-6 space-y-6">
-          {/* Stats Overview - Severity */}
+          {/* Compact Stats Summary */}
           {stats && (
-            <>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">Distribuição por Severidade</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <Card className="metric-card">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Total</p>
-                          <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-                        </div>
-                        <Shield className="h-8 w-8 text-primary" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${severityFilter === 'critical' ? 'ring-2 ring-destructive' : ''}`}
-                    onClick={() => handleSeverityTileClick('critical')}
-                    data-testid="tile-severity-critical"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Críticas</p>
-                          <p className="text-2xl font-bold text-destructive">{stats.critical}</p>
-                        </div>
-                        <AlertTriangle className="h-8 w-8 text-destructive" />
-                      </div>
-                    </CardContent>
-                  </Card>
+            <div className="space-y-4">
+              {/* Severity summary - single compact row */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm font-medium text-muted-foreground">Total</span>
+                      <span className="text-lg font-bold">{stats.total}</span>
+                    </div>
+                    <div className="h-6 w-px bg-border" />
+                    <div className="flex items-center gap-4 flex-1">
+                      <button
+                        onClick={() => handleSeverityTileClick('critical')}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${severityFilter === 'critical' ? 'ring-1 ring-[var(--severity-critical)]' : ''}`}
+                        style={{ backgroundColor: 'var(--severity-critical-bg)' }}
+                        data-testid="tile-severity-critical"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--severity-critical)' }} />
+                        <span className="text-sm font-medium" style={{ color: 'var(--severity-critical)' }}>Críticas</span>
+                        <span className="text-sm font-bold" style={{ color: 'var(--severity-critical)' }}>{stats.critical}</span>
+                      </button>
+                      <button
+                        onClick={() => handleSeverityTileClick('high')}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${severityFilter === 'high' ? 'ring-1 ring-[var(--severity-high)]' : ''}`}
+                        style={{ backgroundColor: 'var(--severity-high-bg)' }}
+                        data-testid="tile-severity-high"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--severity-high)' }} />
+                        <span className="text-sm font-medium" style={{ color: 'var(--severity-high)' }}>Altas</span>
+                        <span className="text-sm font-bold" style={{ color: 'var(--severity-high)' }}>{stats.high}</span>
+                      </button>
+                      <button
+                        onClick={() => handleSeverityTileClick('medium')}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${severityFilter === 'medium' ? 'ring-1 ring-[var(--severity-medium)]' : ''}`}
+                        style={{ backgroundColor: 'var(--severity-medium-bg)' }}
+                        data-testid="tile-severity-medium"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--severity-medium)' }} />
+                        <span className="text-sm font-medium" style={{ color: 'var(--severity-medium)' }}>Médias</span>
+                        <span className="text-sm font-bold" style={{ color: 'var(--severity-medium)' }}>{stats.medium}</span>
+                      </button>
+                      <button
+                        onClick={() => handleSeverityTileClick('low')}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${severityFilter === 'low' ? 'ring-1 ring-[var(--severity-low)]' : ''}`}
+                        style={{ backgroundColor: 'var(--severity-low-bg)' }}
+                        data-testid="tile-severity-low"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--severity-low)' }} />
+                        <span className="text-sm font-medium" style={{ color: 'var(--severity-low)' }}>Baixas</span>
+                        <span className="text-sm font-bold" style={{ color: 'var(--severity-low)' }}>{stats.low}</span>
+                      </button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${severityFilter === 'high' ? 'ring-2 ring-orange-500' : ''}`}
-                    onClick={() => handleSeverityTileClick('high')}
-                    data-testid="tile-severity-high"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Altas</p>
-                          <p className="text-2xl font-bold text-orange-500">{stats.high}</p>
-                        </div>
-                        <AlertTriangle className="h-8 w-8 text-orange-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${severityFilter === 'medium' ? 'ring-2 ring-accent' : ''}`}
-                    onClick={() => handleSeverityTileClick('medium')}
-                    data-testid="tile-severity-medium"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Médias</p>
-                          <p className="text-2xl font-bold text-accent">{stats.medium}</p>
-                        </div>
-                        <AlertTriangle className="h-8 w-8 text-accent" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${severityFilter === 'low' ? 'ring-2 ring-chart-4' : ''}`}
-                    onClick={() => handleSeverityTileClick('low')}
-                    data-testid="tile-severity-low"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Baixas</p>
-                          <p className="text-2xl font-bold text-chart-4">{stats.low}</p>
-                        </div>
-                        <AlertTriangle className="h-8 w-8 text-chart-4" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              {/* Stats Overview - Status */}
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">Distribuição por Status</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'open' ? 'ring-2 ring-destructive' : ''}`}
-                    onClick={() => handleStatusTileClick('open')}
-                    data-testid="tile-status-open"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Abertas</p>
-                          <p className="text-2xl font-bold text-destructive">{stats.open}</p>
-                        </div>
-                        <AlertTriangle className="h-8 w-8 text-destructive" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'investigating' ? 'ring-2 ring-accent' : ''}`}
-                    onClick={() => handleStatusTileClick('investigating')}
-                    data-testid="tile-status-investigating"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Investigando</p>
-                          <p className="text-2xl font-bold text-accent">{stats.investigating}</p>
-                        </div>
-                        <Clock className="h-8 w-8 text-accent" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'mitigated' ? 'ring-2 ring-primary' : ''}`}
-                    onClick={() => handleStatusTileClick('mitigated')}
-                    data-testid="tile-status-mitigated"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Mitigadas</p>
-                          <p className="text-2xl font-bold text-primary">{stats.mitigated}</p>
-                        </div>
-                        <CheckCircle className="h-8 w-8 text-primary" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'closed' ? 'ring-2 ring-chart-4' : ''}`}
-                    onClick={() => handleStatusTileClick('closed')}
-                    data-testid="tile-status-closed"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Fechadas</p>
-                          <p className="text-2xl font-bold text-chart-4">{stats.closed}</p>
-                        </div>
-                        <CheckCircle className="h-8 w-8 text-chart-4" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'hibernated' ? 'ring-2 ring-amber-600' : ''}`}
-                    onClick={() => handleStatusTileClick('hibernated')}
-                    data-testid="tile-status-hibernated"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Hibernadas</p>
-                          <p className="text-2xl font-bold text-amber-600">{stats.hibernated}</p>
-                        </div>
-                        <Clock className="h-8 w-8 text-amber-600" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'accepted_risk' ? 'ring-2 ring-blue-600' : ''}`}
-                    onClick={() => handleStatusTileClick('accepted_risk')}
-                    data-testid="tile-status-accepted-risk"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Risco Aceito</p>
-                          <p className="text-2xl font-bold text-blue-600">{stats.accepted_risk}</p>
-                        </div>
-                        <Shield className="h-8 w-8 text-blue-600" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </>
+              {/* Status summary - single compact row */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <span className="text-sm font-medium text-muted-foreground">Status:</span>
+                    {[
+                      { key: 'open', label: 'Abertas', count: stats.open, color: 'var(--status-open)' },
+                      { key: 'investigating', label: 'Investigando', count: stats.investigating, color: 'var(--status-investigating)' },
+                      { key: 'mitigated', label: 'Mitigadas', count: stats.mitigated, color: 'var(--status-mitigated)' },
+                      { key: 'closed', label: 'Fechadas', count: stats.closed, color: 'var(--status-closed)' },
+                      { key: 'hibernated', label: 'Hibernadas', count: stats.hibernated, color: 'var(--status-hibernated)' },
+                      { key: 'accepted_risk', label: 'Risco Aceito', count: stats.accepted_risk, color: 'var(--status-accepted)' },
+                    ].map(item => (
+                      <button
+                        key={item.key}
+                        onClick={() => handleStatusTileClick(item.key)}
+                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm transition-colors hover:bg-muted ${statusFilter === item.key ? 'bg-muted ring-1 ring-border' : ''}`}
+                        data-testid={`tile-status-${item.key.replace('_', '-')}`}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                        <span className="text-muted-foreground">{item.label}</span>
+                        <span className="font-semibold" style={{ color: item.color }}>{item.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* Search and Filters */}

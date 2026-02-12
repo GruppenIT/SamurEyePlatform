@@ -63,57 +63,56 @@ import { Host, Threat, HostRiskHistory } from "@shared/schema";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
 // Helper function to get risk score color and label based on CVSS intervals
+// Uses CSS variables from index.css for consistent theming
 function getRiskScoreInfo(score: number) {
-  if (score >= 90) return { 
-    color: 'rgb(239, 68, 68)', // red-500
-    bgColor: 'bg-red-500/10', 
-    borderColor: 'border-red-500/30',
+  if (score >= 90) return {
+    color: 'var(--severity-critical)',
+    bgColor: 'var(--severity-critical-bg)',
+    borderColor: 'var(--severity-critical-border)',
     label: 'CRÍTICO',
-    textColor: 'text-red-500'
   };
-  if (score >= 70) return { 
-    color: 'rgb(249, 115, 22)', // orange-500
-    bgColor: 'bg-orange-500/10', 
-    borderColor: 'border-orange-500/30',
+  if (score >= 70) return {
+    color: 'var(--severity-high)',
+    bgColor: 'var(--severity-high-bg)',
+    borderColor: 'var(--severity-high-border)',
     label: 'ALTO',
-    textColor: 'text-orange-500'
   };
-  if (score >= 40) return { 
-    color: 'rgb(234, 179, 8)', // yellow-500
-    bgColor: 'bg-yellow-500/10', 
-    borderColor: 'border-yellow-500/30',
+  if (score >= 40) return {
+    color: 'var(--severity-medium)',
+    bgColor: 'var(--severity-medium-bg)',
+    borderColor: 'var(--severity-medium-border)',
     label: 'MÉDIO',
-    textColor: 'text-yellow-500'
   };
-  if (score >= 10) return { 
-    color: 'rgb(34, 197, 94)', // green-500
-    bgColor: 'bg-green-500/10', 
-    borderColor: 'border-green-500/30',
+  if (score >= 10) return {
+    color: 'var(--severity-low)',
+    bgColor: 'var(--severity-low-bg)',
+    borderColor: 'var(--severity-low-border)',
     label: 'BAIXO',
-    textColor: 'text-green-500'
   };
-  return { 
-    color: 'rgb(148, 163, 184)', // slate-400
-    bgColor: 'bg-slate-500/10', 
-    borderColor: 'border-slate-500/30',
+  return {
+    color: 'var(--muted-foreground)',
+    bgColor: 'var(--muted)',
+    borderColor: 'var(--border)',
     label: 'MÍNIMO',
-    textColor: 'text-slate-400'
   };
 }
 
 // Risk Score Display Component
 function RiskScoreDisplay({ host }: { host: Host }) {
   const riskInfo = getRiskScoreInfo(host.riskScore || 0);
-  
+
   return (
-    <div className={`p-6 rounded-lg border ${riskInfo.bgColor} ${riskInfo.borderColor}`}>
+    <div
+      className="p-6 rounded-lg border"
+      style={{ backgroundColor: riskInfo.bgColor, borderColor: riskInfo.borderColor }}
+    >
       <div className="flex items-center justify-between">
         <div>
           <div className="text-sm font-medium text-muted-foreground mb-1">Risk Score</div>
-          <div className={`text-4xl font-bold ${riskInfo.textColor}`} data-testid="text-risk-score">
+          <div className="text-4xl font-bold" style={{ color: riskInfo.color }} data-testid="text-risk-score">
             {host.riskScore || 0}
           </div>
-          <div className={`text-xs font-semibold mt-1 ${riskInfo.textColor}`}>
+          <div className="text-xs font-semibold mt-1" style={{ color: riskInfo.color }}>
             {riskInfo.label}
           </div>
         </div>
@@ -801,7 +800,7 @@ function HostEnrichmentTabs({ hostId }: { hostId: string }) {
         </TabsContent>
         
         <TabsContent value="apps" className="mt-4">
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {enrichment.installedApps && enrichment.installedApps.length > 0 ? (
               <Table>
                 <TableHeader>
@@ -830,7 +829,7 @@ function HostEnrichmentTabs({ hostId }: { hostId: string }) {
         </TabsContent>
         
         <TabsContent value="patches" className="mt-4">
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {enrichment.patches && enrichment.patches.length > 0 ? (
               <div className="grid grid-cols-2 gap-2">
                 {enrichment.patches.map((patch, idx) => (
@@ -848,7 +847,7 @@ function HostEnrichmentTabs({ hostId }: { hostId: string }) {
         </TabsContent>
         
         <TabsContent value="services" className="mt-4">
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {enrichment.services && enrichment.services.length > 0 ? (
               <Table>
                 <TableHeader>
@@ -1286,95 +1285,79 @@ export default function Hosts() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Host</TableHead>
-                      <TableHead>Categoria</TableHead>
                       <TableHead>Tipo</TableHead>
-                      <TableHead>Escore de Risco</TableHead>
+                      <TableHead className="text-center">Risco</TableHead>
                       <TableHead>Ameaças</TableHead>
-                      <TableHead>IPs</TableHead>
                       <TableHead>Sistema Operacional</TableHead>
-                      <TableHead>Ações</TableHead>
+                      <TableHead className="w-[60px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredHosts.map((host) => {
                       const Icon = getHostIcon(host.type);
-                      const totalThreats = (host.threatCounts?.critical || 0) + 
-                                         (host.threatCounts?.high || 0) + 
-                                         (host.threatCounts?.medium || 0) + 
+                      const totalThreats = (host.threatCounts?.critical || 0) +
+                                         (host.threatCounts?.high || 0) +
+                                         (host.threatCounts?.medium || 0) +
                                          (host.threatCounts?.low || 0);
-                      
+                      const riskInfo = getRiskScoreInfo(host.riskScore || 0);
+
                       return (
-                        <TableRow key={host.id} data-testid={`host-row-${host.id}`}>
-                          <TableCell className="font-medium">
-                            <div className="flex items-center space-x-3">
-                              <Icon className="h-4 w-4 text-muted-foreground" />
-                              <div>
-                                <div className="font-medium">{host.name}</div>
-                                {host.description && (
-                                  <div className="text-xs text-muted-foreground">
-                                    {host.description}
+                        <TableRow
+                          key={host.id}
+                          className="cursor-pointer"
+                          onClick={() => handleViewHost(host)}
+                          data-testid={`host-row-${host.id}`}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                              <div className="min-w-0">
+                                <div className="font-medium truncate">{host.name}</div>
+                                {host.ips && host.ips.length > 0 && (
+                                  <div className="text-xs text-muted-foreground font-mono truncate">
+                                    {host.ips.slice(0, 2).join(', ')}{host.ips.length > 2 ? ` +${host.ips.length - 2}` : ''}
                                   </div>
                                 )}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge 
-                              variant="outline" 
-                              className="bg-green-500/10 text-green-600 border-green-500/20"
-                            >
-                              Host
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant="secondary" 
-                              className={getHostTypeBadgeColor(host.type)}
-                            >
+                            <Badge variant="secondary" className={getHostTypeBadgeColor(host.type)}>
                               {host.type.replace('_', ' ')}
                             </Badge>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col gap-1">
-                              <div className="text-lg font-bold" data-testid={`text-risk-score-${host.id}`}>
+                          <TableCell className="text-center">
+                            <div className="inline-flex flex-col items-center gap-0.5">
+                              <span className="text-lg font-bold" style={{ color: riskInfo.color }} data-testid={`text-risk-score-${host.id}`}>
                                 {host.riskScore || 0}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                Pontos: {host.rawScore || 0}
-                              </div>
+                              </span>
+                              <span className="text-[10px] font-semibold" style={{ color: riskInfo.color }}>
+                                {riskInfo.label}
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell>
                             {totalThreats > 0 ? (
-                              <div className="flex gap-1.5" data-testid={`threats-badges-${host.id}`}>
+                              <div className="flex gap-1" data-testid={`threats-badges-${host.id}`}>
                                 {host.threatCounts.critical > 0 && (
-                                  <Badge 
-                                    variant="destructive" 
-                                    className="min-w-[28px] h-6 justify-center bg-red-500 hover:bg-red-600"
-                                  >
+                                  <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded text-xs font-semibold text-white" style={{ backgroundColor: 'var(--severity-critical)' }}>
                                     {host.threatCounts.critical}
-                                  </Badge>
+                                  </span>
                                 )}
                                 {host.threatCounts.high > 0 && (
-                                  <Badge 
-                                    className="min-w-[28px] h-6 justify-center bg-orange-500 text-white hover:bg-orange-600"
-                                  >
+                                  <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded text-xs font-semibold text-white" style={{ backgroundColor: 'var(--severity-high)' }}>
                                     {host.threatCounts.high}
-                                  </Badge>
+                                  </span>
                                 )}
                                 {host.threatCounts.medium > 0 && (
-                                  <Badge 
-                                    className="min-w-[28px] h-6 justify-center bg-yellow-500 text-white hover:bg-yellow-600"
-                                  >
+                                  <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded text-xs font-semibold text-white" style={{ backgroundColor: 'var(--severity-medium)' }}>
                                     {host.threatCounts.medium}
-                                  </Badge>
+                                  </span>
                                 )}
                                 {host.threatCounts.low > 0 && (
-                                  <Badge 
-                                    className="min-w-[28px] h-6 justify-center bg-green-600 text-white hover:bg-green-700"
-                                  >
+                                  <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded text-xs font-semibold text-white" style={{ backgroundColor: 'var(--severity-low)' }}>
                                     {host.threatCounts.low}
-                                  </Badge>
+                                  </span>
                                 )}
                               </div>
                             ) : (
@@ -1382,45 +1365,19 @@ export default function Hosts() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm">
-                              {host.ips && host.ips.length > 0 ? (
-                                <div className="space-y-1">
-                                  {host.ips.slice(0, 2).map((ip, index) => (
-                                    <div key={index} className="font-mono text-xs bg-muted px-2 py-1 rounded">
-                                      {ip}
-                                    </div>
-                                  ))}
-                                  {host.ips.length > 2 && (
-                                    <div className="text-xs text-muted-foreground">
-                                      +{host.ips.length - 2} mais
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                            </div>
+                            <span className="text-sm">
+                              {host.operatingSystem || <span className="text-muted-foreground">—</span>}
+                            </span>
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm">
-                              {host.operatingSystem ? (
-                                <div className="font-medium">{host.operatingSystem}</div>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleViewHost(host)}
-                                data-testid={`button-view-${host.id}`}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => { e.stopPropagation(); handleViewHost(host); }}
+                              data-testid={`button-view-${host.id}`}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       );
