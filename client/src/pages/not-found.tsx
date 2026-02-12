@@ -18,10 +18,10 @@ export default function NotFound() {
           </p>
 
           <div className="mt-6">
-            <Link href="/dashboard">
+            <Link href="/">
               <Button variant="default" className="w-full">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar ao Dashboard
+                Voltar ao Início
               </Button>
             </Link>
           </div>

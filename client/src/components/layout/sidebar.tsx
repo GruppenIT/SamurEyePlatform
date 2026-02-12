@@ -4,22 +4,23 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { 
-  Shield, 
-  BarChart3, 
-  Server, 
-  Key, 
-  Route, 
-  Clock, 
-  AlertTriangle, 
-  List, 
-  Users, 
-  Settings, 
+import {
+  Shield,
+  ShieldCheck,
+  Server,
+  Key,
+  Route,
+  Clock,
+  AlertTriangle,
+  List,
+  Users,
+  Settings,
   History,
   LogOut,
   Monitor,
   Bell,
-  Smartphone
+  Smartphone,
+  FileBarChart
 } from "lucide-react";
 
 interface NavItem {
@@ -38,7 +39,7 @@ interface NavGroup {
 const navGroups: NavGroup[] = [
   {
     items: [
-      { href: "/", label: "Dashboard", icon: BarChart3 },
+      { href: "/", label: "Postura", icon: ShieldCheck },
     ],
   },
   {
@@ -61,6 +62,7 @@ const navGroups: NavGroup[] = [
     title: "Inteligência",
     items: [
       { href: "/threats", label: "Ameaças", icon: AlertTriangle },
+      { href: "/relatorios", label: "Relatórios", icon: FileBarChart },
     ],
   },
 ];
@@ -139,7 +141,7 @@ export default function Sidebar() {
             <div className="space-y-1">
               {group.items.map((item) => {
                 const isActive = item.href === '/'
-                  ? location === '/' || location === '/dashboard'
+                  ? location === '/' || location === '/postura'
                   : location === item.href || location.startsWith(item.href + '/');
                 const showBadge = item.label === "Ameaças" && criticalThreatCount > 0;
                 const badgeCount = item.label === "Ameaças" ? criticalThreatCount : item.badge;

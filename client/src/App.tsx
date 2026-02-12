@@ -10,7 +10,8 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import ChangePassword from "@/pages/change-password";
-import Dashboard from "@/pages/dashboard";
+import Postura from "@/pages/postura";
+import Relatorios from "@/pages/relatorios";
 import Assets from "@/pages/assets";
 import Hosts from "@/pages/hosts";
 import Credentials from "@/pages/credentials";
@@ -76,7 +77,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
 function AdminRoute({ component: PageComponent }: { component: React.ComponentType }) {
   const { user } = useAuth();
   if ((user as any)?.role !== 'global_administrator') {
-    return <Redirect to="/dashboard" />;
+    return <Redirect to="/" />;
   }
   return <PageComponent />;
 }
@@ -119,11 +120,12 @@ function Router() {
 
   return (
     <Switch>
-      {/* Public redirect */}
-      <Route path="/" component={Dashboard} />
-      <Route path="/dashboard" component={Dashboard} />
+      {/* Landing */}
+      <Route path="/" component={Postura} />
+      <Route path="/postura" component={Postura} />
 
       {/* Operator+ routes */}
+      <Route path="/relatorios" component={Relatorios} />
       <Route path="/assets" component={Assets} />
       <Route path="/ativos" component={Hosts} />
       <Route path="/hosts" component={Hosts} />
