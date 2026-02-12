@@ -5,66 +5,97 @@
 
 :root {
   --radius: 8px;
-  
-  /* Dark security theme colors */
-  --background: hsl(222, 15%, 7%);
-  --foreground: hsl(210, 20%, 95%);
-  
-  --card: hsl(222, 15%, 10%);
-  --card-foreground: hsl(210, 20%, 95%);
-  
-  --popover: hsl(222, 15%, 10%);
-  --popover-foreground: hsl(210, 20%, 95%);
-  
-  --primary: hsl(197, 100%, 45%);
-  --primary-foreground: hsl(222, 15%, 7%);
-  
-  --secondary: hsl(222, 15%, 15%);
+
+  /* Dark security theme - refined palette */
+  --background: hsl(222, 18%, 8%);
+  --foreground: hsl(210, 20%, 93%);
+
+  --card: hsl(222, 16%, 13%);
+  --card-foreground: hsl(210, 20%, 93%);
+
+  --popover: hsl(222, 16%, 13%);
+  --popover-foreground: hsl(210, 20%, 93%);
+
+  --primary: hsl(197, 75%, 48%);
+  --primary-foreground: hsl(222, 18%, 8%);
+
+  --secondary: hsl(222, 16%, 17%);
   --secondary-foreground: hsl(210, 20%, 85%);
-  
-  --muted: hsl(222, 15%, 12%);
-  --muted-foreground: hsl(210, 10%, 65%);
-  
-  --accent: hsl(45, 100%, 65%);
-  --accent-foreground: hsl(222, 15%, 7%);
-  
-  --destructive: hsl(0, 85%, 60%);
+
+  --muted: hsl(222, 14%, 15%);
+  --muted-foreground: hsl(210, 12%, 72%);
+
+  --accent: hsl(45, 80%, 60%);
+  --accent-foreground: hsl(222, 18%, 8%);
+
+  --destructive: hsl(0, 75%, 55%);
   --destructive-foreground: hsl(210, 20%, 95%);
-  
-  --border: hsl(222, 15%, 18%);
-  --input: hsl(222, 15%, 15%);
-  --ring: hsl(197, 100%, 45%);
-  
-  --chart-1: hsl(197, 100%, 45%);
-  --chart-2: hsl(45, 100%, 65%);
-  --chart-3: hsl(0, 85%, 60%);
-  --chart-4: hsl(142, 76%, 36%);
-  --chart-5: hsl(280, 65%, 60%);
-  
-  --sidebar: hsl(222, 15%, 10%);
-  --sidebar-foreground: hsl(210, 20%, 95%);
-  --sidebar-primary: hsl(197, 100%, 45%);
-  --sidebar-primary-foreground: hsl(222, 15%, 7%);
-  --sidebar-accent: hsl(222, 15%, 15%);
+
+  --border: hsl(222, 14%, 22%);
+  --input: hsl(222, 14%, 17%);
+  --ring: hsl(197, 75%, 48%);
+
+  /* Chart colors - softer */
+  --chart-1: hsl(197, 75%, 48%);
+  --chart-2: hsl(45, 80%, 60%);
+  --chart-3: hsl(0, 75%, 55%);
+  --chart-4: hsl(142, 60%, 40%);
+  --chart-5: hsl(280, 55%, 58%);
+
+  /* Sidebar - slightly darker than content */
+  --sidebar: hsl(222, 18%, 10%);
+  --sidebar-foreground: hsl(210, 20%, 93%);
+  --sidebar-primary: hsl(197, 75%, 48%);
+  --sidebar-primary-foreground: hsl(222, 18%, 8%);
+  --sidebar-accent: hsl(222, 16%, 17%);
   --sidebar-accent-foreground: hsl(210, 20%, 85%);
-  --sidebar-border: hsl(222, 15%, 18%);
-  --sidebar-ring: hsl(197, 100%, 45%);
-  
+  --sidebar-border: hsl(222, 14%, 18%);
+  --sidebar-ring: hsl(197, 75%, 48%);
+
   --font-sans: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  
-  /* Shadow variables */
-  --shadow-2xs: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00), 0px 1px 2px -1px hsl(197, 100%, 45%, 0.00);
-  --shadow: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00), 0px 1px 2px -1px hsl(197, 100%, 45%, 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00), 0px 2px 4px -1px hsl(197, 100%, 45%, 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00), 0px 4px 6px -1px hsl(197, 100%, 45%, 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00), 0px 8px 10px -1px hsl(197, 100%, 45%, 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(197, 100%, 45%, 0.00);
-  
+
+  /* Shadows - real depth for dark theme */
+  --shadow-2xs: 0 1px 2px 0 hsl(0, 0%, 0%, 0.15);
+  --shadow-xs: 0 1px 3px 0 hsl(0, 0%, 0%, 0.2);
+  --shadow-sm: 0 1px 3px 0 hsl(0, 0%, 0%, 0.2), 0 1px 2px -1px hsl(0, 0%, 0%, 0.15);
+  --shadow: 0 2px 4px 0 hsl(0, 0%, 0%, 0.2), 0 1px 3px -1px hsl(0, 0%, 0%, 0.15);
+  --shadow-md: 0 4px 6px -1px hsl(0, 0%, 0%, 0.25), 0 2px 4px -2px hsl(0, 0%, 0%, 0.2);
+  --shadow-lg: 0 8px 16px -4px hsl(0, 0%, 0%, 0.3), 0 4px 6px -2px hsl(0, 0%, 0%, 0.2);
+  --shadow-xl: 0 16px 32px -8px hsl(0, 0%, 0%, 0.35), 0 8px 16px -4px hsl(0, 0%, 0%, 0.2);
+  --shadow-2xl: 0 24px 48px -12px hsl(0, 0%, 0%, 0.4);
+
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+
+  /* Semantic severity colors - single source of truth */
+  --severity-critical: hsl(0, 75%, 55%);
+  --severity-critical-bg: hsl(0, 75%, 55%, 0.12);
+  --severity-critical-border: hsl(0, 75%, 55%, 0.25);
+
+  --severity-high: hsl(25, 85%, 50%);
+  --severity-high-bg: hsl(25, 85%, 50%, 0.12);
+  --severity-high-border: hsl(25, 85%, 50%, 0.25);
+
+  --severity-medium: hsl(45, 80%, 55%);
+  --severity-medium-bg: hsl(45, 80%, 55%, 0.12);
+  --severity-medium-border: hsl(45, 80%, 55%, 0.25);
+
+  --severity-low: hsl(142, 60%, 40%);
+  --severity-low-bg: hsl(142, 60%, 40%, 0.12);
+  --severity-low-border: hsl(142, 60%, 40%, 0.25);
+
+  --severity-info: hsl(210, 50%, 55%);
+  --severity-info-bg: hsl(210, 50%, 55%, 0.12);
+  --severity-info-border: hsl(210, 50%, 55%, 0.25);
+
+  /* Status colors */
+  --status-open: hsl(0, 75%, 55%);
+  --status-investigating: hsl(45, 80%, 55%);
+  --status-mitigated: hsl(197, 75%, 48%);
+  --status-closed: hsl(142, 60%, 40%);
+  --status-hibernated: hsl(280, 55%, 58%);
+  --status-accepted: hsl(210, 50%, 55%);
 }
 
 @layer base {
@@ -77,107 +108,78 @@
   }
 }
 
-/* Custom security theme styles */
+/* Status indicators */
 .status-indicator {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   display: inline-block;
 }
 
-.status-success { 
-  background-color: hsl(142, 76%, 36%); 
-}
+.status-success { background-color: var(--severity-low); }
+.status-warning { background-color: var(--severity-medium); }
+.status-error { background-color: var(--severity-critical); }
+.status-info { background-color: var(--primary); }
+.status-pending { background-color: var(--muted-foreground); }
 
-.status-warning { 
-  background-color: hsl(45, 100%, 65%); 
-}
-
-.status-error { 
-  background-color: hsl(0, 85%, 60%); 
-}
-
-.status-info { 
-  background-color: hsl(197, 100%, 45%); 
-}
-
-.status-pending { 
-  background-color: hsl(210, 10%, 65%); 
-}
-
+/* Sidebar styles */
 .sidebar-item:hover {
-  background-color: hsl(222, 15%, 15%);
+  background-color: hsl(222, 16%, 17%);
 }
 
 .sidebar-item.active {
-  background-color: hsl(197, 100%, 45%, 0.1);
-  border-right: 3px solid hsl(197, 100%, 45%);
+  background-color: hsl(197, 75%, 48%, 0.15);
+  border-right: 3px solid hsl(197, 75%, 48%);
 }
 
+/* Metric card gradient */
 .metric-card {
-  background: linear-gradient(135deg, hsl(222, 15%, 10%) 0%, hsl(222, 15%, 12%) 100%);
-  border: 1px solid hsl(222, 15%, 18%);
+  background: linear-gradient(135deg, var(--card) 0%, hsl(222, 14%, 15%) 100%);
+  border: 1px solid var(--border);
 }
 
-.threat-critical { 
-  border-left: 4px solid hsl(0, 85%, 60%); 
-}
+/* Threat severity left-border indicators */
+.threat-critical { border-left: 4px solid var(--severity-critical); }
+.threat-high { border-left: 4px solid var(--severity-high); }
+.threat-medium { border-left: 4px solid var(--severity-medium); }
+.threat-low { border-left: 4px solid var(--severity-low); }
 
-.threat-high { 
-  border-left: 4px solid hsl(25, 95%, 53%); 
-}
-
-.threat-medium { 
-  border-left: 4px solid hsl(45, 100%, 65%); 
-}
-
-.threat-low { 
-  border-left: 4px solid hsl(142, 76%, 36%); 
-}
-
+/* Animations */
 .pulse-animation {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { 
-    opacity: 1; 
-  }
-  50% { 
-    opacity: .5; 
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
 }
 
 .job-running {
-  background: linear-gradient(90deg, transparent, hsl(197, 100%, 45%, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, hsl(197, 75%, 48%, 0.08), transparent);
   background-size: 200% 100%;
   animation: shimmer 2s ease-in-out infinite;
 }
 
 @keyframes shimmer {
-  0% { 
-    background-position: -200% 0; 
-  }
-  100% { 
-    background-position: 200% 0; 
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-/* Scrollbar styles for dark theme */
+/* Scrollbar - refined */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(222, 15%, 10%);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(222, 15%, 18%);
-  border-radius: 4px;
+  background: hsl(222, 14%, 22%);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(222, 15%, 25%);
+  background: hsl(222, 14%, 30%);
 }
