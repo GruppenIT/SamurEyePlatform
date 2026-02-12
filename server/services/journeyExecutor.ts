@@ -703,8 +703,8 @@ class JourneyExecutorService {
         // Modo AD Based: Descobrir workstations via PowerShell/WinRM
         console.log('🔍 Modo AD Based: Descobrindo workstations via PowerShell/WinRM...');
         
-        if (credential.type !== 'ad') {
-          throw new Error('Para jornada AD Based é necessário usar credencial do tipo AD/LDAP');
+        if (credential.type !== 'ad' && credential.type !== 'wmi' && credential.type !== 'omi') {
+          throw new Error('Para jornada AD Based é necessário usar credencial do tipo WMI (Windows)');
         }
 
         const domainName = params.domainName || credential.domain;

@@ -172,11 +172,11 @@ export default function Credentials() {
   const getCredentialTypeLabel = (type: string) => {
     switch (type) {
       case 'ssh':
-        return 'SSH';
+        return 'SSH (Linux/Unix)';
       case 'wmi':
-        return 'WMI (Windows)';
       case 'omi':
-        return 'OMI (Linux/Unix)';
+      case 'ad':
+        return 'WMI (Windows)';
       default:
         return type.toUpperCase();
     }
@@ -187,9 +187,9 @@ export default function Credentials() {
       case 'ssh':
         return 'bg-primary/20 text-primary';
       case 'wmi':
-        return 'bg-accent/20 text-accent';
       case 'omi':
-        return 'bg-chart-4/20 text-chart-4';
+      case 'ad':
+        return 'bg-accent/20 text-accent';
       default:
         return 'bg-muted text-muted-foreground';
     }
