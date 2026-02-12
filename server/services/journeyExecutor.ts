@@ -143,7 +143,7 @@ class JourneyExecutorService {
     console.log(`🚀 Iniciando Attack Surface Journey - Descoberta de Infraestrutura`);
     console.log(`⏱️  Timeout Fase 2 (nmap vuln): ${vulnScriptTimeoutMinutes} minutos`);
 
-    onProgress({ status: 'running', progress: 20, currentTask: 'Carregando ativos' });
+    onProgress({ status: 'running', progress: 5, currentTask: 'Carregando ativos' });
 
     // Get assets
     const assets = [];
@@ -155,6 +155,12 @@ class JourneyExecutorService {
     const findings = [];
     let currentAsset = 0;
 
+    // Progress distribution: 5-85% split evenly across assets
+    // Within each asset slice: Phase1=0-40%, Phase1.5=40-50%, Phase2A=50-60%, Phase2B=60-80%, Phase2C=80-100%
+    const SCAN_START = 5;
+    const SCAN_END = 85;
+    const assetSlice = (SCAN_END - SCAN_START) / assets.length;
+
     for (const asset of assets) {
       // Check if job was cancelled
       if (this.isJobCancelled(jobId)) {
@@ -162,13 +168,13 @@ class JourneyExecutorService {
         throw new Error('Job cancelado pelo usuário');
       }
 
+      const assetBase = SCAN_START + currentAsset * assetSlice;
       currentAsset++;
-      const baseProgress = 20 + (currentAsset / assets.length) * 60;
-      
-      onProgress({ 
-        status: 'running', 
-        progress: baseProgress, 
-        currentTask: `Fase 1: Descobrindo serviços em ${asset.value} (${currentAsset}/${assets.length})` 
+
+      onProgress({
+        status: 'running',
+        progress: Math.round(assetBase),
+        currentTask: `Fase 1: Descobrindo serviços em ${asset.value} (${currentAsset}/${assets.length})`
       });
 
       try {
@@ -190,10 +196,10 @@ class JourneyExecutorService {
         const journeyCredentials = await storage.getJourneyCredentials(journey.id);
         
         if (journeyCredentials.length > 0) {
-          onProgress({ 
-            status: 'running', 
-            progress: baseProgress + 1, 
-            currentTask: `Fase 1.5: Enriquecendo hosts com credenciais (${journeyCredentials.length} credenciais)` 
+          onProgress({
+            status: 'running',
+            progress: Math.round(assetBase + assetSlice * 0.40),
+            currentTask: `Fase 1.5: Enriquecendo hosts com credenciais (${journeyCredentials.length} credenciais)`
           });
           
           console.log(`🔑 FASE 1.5: Enriquecimento de hosts com ${journeyCredentials.length} credenciais`);
@@ -277,10 +283,10 @@ class JourneyExecutorService {
         
         if (enableCveDetection) {
           // ==================== PHASE 2A: CVE LOOKUP FROM NVD ====================
-          onProgress({ 
-            status: 'running', 
-            progress: baseProgress + 3, 
-            currentTask: `Fase 2A: Buscando CVEs conhecidos para ${asset.value}` 
+          onProgress({
+            status: 'running',
+            progress: Math.round(assetBase + assetSlice * 0.50),
+            currentTask: `Fase 2A: Buscando CVEs conhecidos para ${asset.value}`
           });
           
           console.log(`🔍 FASE 2A: Buscando CVEs conhecidos na base NVD`);
@@ -314,10 +320,10 @@ class JourneyExecutorService {
 
             if (data.ports.length === 0) continue;
 
-            onProgress({ 
-              status: 'running', 
-              progress: baseProgress + 5, 
-              currentTask: `Fase 2B: Validando vulnerabilidades ativamente em ${host}` 
+            onProgress({
+              status: 'running',
+              progress: Math.round(assetBase + assetSlice * 0.60),
+              currentTask: `Fase 2B: Validando vulnerabilidades ativamente em ${host}`
             });
 
             console.log(`🔍 FASE 2B: Validação ativa de vulnerabilidades em ${host}`);
@@ -357,7 +363,7 @@ class JourneyExecutorService {
           if (webUrls.length > 0) {
             onProgress({
               status: 'running',
-              progress: baseProgress + 8,
+              progress: Math.round(assetBase + assetSlice * 0.80),
               currentTask: `Fase 2C: Nuclei - Analisando ${webUrls.length} URLs web em ${asset.value}`
             });
 
@@ -406,6 +412,7 @@ class JourneyExecutorService {
     console.log(`🌐 FASE 3: ${createdWebApps.length} aplicações web criadas como ativos`);
 
     // Store results
+    onProgress({ status: 'running', progress: 95, currentTask: 'Salvando resultados' });
     const webScanWasEnabled = params.webScanEnabled === true;
     await storage.createJobResult({
       jobId,
@@ -447,7 +454,7 @@ class JourneyExecutorService {
     console.log(`🌐 Iniciando Web Application Journey - Análise OWASP Top 10`);
     console.log(`⏱️  Timeout por processo: ${processTimeoutMinutes} minutos`);
 
-    onProgress({ status: 'running', progress: 20, currentTask: 'Carregando aplicações web' });
+    onProgress({ status: 'running', progress: 5, currentTask: 'Carregando aplicações web' });
 
     // Get web application assets
     const webApps = [];
@@ -479,13 +486,14 @@ class JourneyExecutorService {
         throw new Error('Job cancelado pelo usuário');
       }
 
+      // Distribute 5-90% evenly across web apps
+      const appProgress = Math.round(5 + (currentApp / webApps.length) * 85);
       currentApp++;
-      const baseProgress = 20 + (currentApp / webApps.length) * 70;
-      
-      onProgress({ 
-        status: 'running', 
-        progress: baseProgress, 
-        currentTask: `Analisando ${app.value} (${currentApp}/${webApps.length})` 
+
+      onProgress({
+        status: 'running',
+        progress: appProgress,
+        currentTask: `Analisando ${app.value} (${currentApp}/${webApps.length})`
       });
 
       try {

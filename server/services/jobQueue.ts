@@ -65,6 +65,7 @@ class JobQueueService extends EventEmitter {
       const jobUpdate: JobUpdate = {
         jobId: update.jobId,
         status: job.status, // Preservar status atual do job
+        progress: job.progress ?? undefined, // Incluir progresso atual do DB
         currentTask,
         pid: update.pid,
         processName: update.processName,
