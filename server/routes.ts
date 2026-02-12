@@ -1261,23 +1261,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Marcar job como cancelado para cooperative cancellation
       jobQueue.markJobAsCancelled(id);
-      
-      // Cancelar todos os processos do job
+
+      // Matar todos os processos do job (pode ser 0 entre fases)
       const killedCount = processTracker.killAll(id);
-      
-      if (killedCount === 0) {
-        return res.status(404).json({ 
-          message: "Nenhum processo ativo encontrado para este job" 
-        });
-      }
-      
-      // Marcar job como cancelado
-      await storage.updateJob(id, { 
+
+      // Marcar job como cancelado no DB
+      await storage.updateJob(id, {
         status: 'failed',
         error: 'Job cancelado pelo usuário',
         finishedAt: new Date()
       });
-      
+
+      // Emitir update WebSocket para atualizar UI imediatamente
+      jobQueue.emit('jobUpdate', {
+        jobId: id,
+        status: 'failed',
+        progress: job.progress,
+        currentTask: 'Job cancelado pelo usuário',
+        error: 'Job cancelado pelo usuário',
+      });
+
       // Log de auditoria
       await storage.logAudit({
         actorId: userId,
@@ -1287,11 +1290,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         before: null,
         after: { status: 'failed', error: 'Job cancelado pelo usuário' },
       });
-      
+
       console.log(`🔪 Job ${id} cancelado pelo usuário ${userId} - ${killedCount} processos terminados`);
-      
-      res.json({ 
-        message: `Job cancelado com sucesso. ${killedCount} processo(s) terminado(s).`,
+
+      res.json({
+        message: `Job cancelado com sucesso.${killedCount > 0 ? ` ${killedCount} processo(s) terminado(s).` : ' Cancelamento cooperativo ativado.'}`,
         killedProcesses: killedCount
       });
       
