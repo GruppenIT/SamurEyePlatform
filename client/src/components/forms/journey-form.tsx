@@ -428,8 +428,8 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                     )}
 
                     {!isLoadingCredentials && selectedCredentials.map((cred, index) => {
-                      const filteredCredentials = credentials.filter(c => 
-                        (cred.protocol === 'wmi' && c.type === 'wmi') ||
+                      const filteredCredentials = credentials.filter(c =>
+                        (cred.protocol === 'wmi' && (c.type === 'wmi' || c.type === 'omi' || c.type === 'ad')) ||
                         (cred.protocol === 'ssh' && c.type === 'ssh')
                       );
                       
@@ -566,13 +566,13 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                         .filter(cred => cred.type === 'wmi' || cred.type === 'omi' || cred.type === 'ad')
                         .map((credential) => (
                           <SelectItem key={credential.id} value={credential.id}>
-                            {credential.name} ({credential.type})
+                            {credential.name}{credential.domain ? ` (${credential.domain})` : ''}
                           </SelectItem>
                         ))}
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Credencial com privilégios de leitura no AD (recomendado: tipo AD/LDAP)
+                    Credencial WMI com privilégios de leitura no AD. Conecta via WinRM para executar PowerShell no DC.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -825,16 +825,16 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                   name="params.credentialId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Credencial LDAP/AD</FormLabel>
+                      <FormLabel>Credencial WMI</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-ad-credential">
-                            <SelectValue placeholder="Selecione uma credencial AD" />
+                            <SelectValue placeholder="Selecione uma credencial WMI" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {credentials
-                            .filter(cred => cred.type === 'ad')
+                            .filter(cred => cred.type === 'wmi' || cred.type === 'omi' || cred.type === 'ad')
                             .map((credential) => (
                               <SelectItem key={credential.id} value={credential.id}>
                                 {credential.name}{credential.domain ? ` (${credential.domain})` : ''}
@@ -843,7 +843,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Credencial com privilégios para consultar LDAP e acessar compartilhamentos administrativos
+                        Credencial WMI com privilégios para consultar AD e acessar compartilhamentos administrativos
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -894,13 +894,13 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                             .filter(cred => cred.type === 'wmi' || cred.type === 'omi' || cred.type === 'ad')
                             .map((credential) => (
                               <SelectItem key={credential.id} value={credential.id}>
-                                {credential.name} ({credential.type})
+                                {credential.name}{credential.domain ? ` (${credential.domain})` : ''}
                               </SelectItem>
                             ))}
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Credencial com privilégios administrativos para acessar compartilhamentos C$
+                        Credencial WMI com privilégios administrativos para acessar compartilhamentos C$
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
