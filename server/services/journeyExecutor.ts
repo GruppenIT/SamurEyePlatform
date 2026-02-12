@@ -331,10 +331,55 @@ class JourneyExecutorService {
         } else {
           console.log(`⏭️  FASE 2: Detecção de CVEs desabilitada - pulando Fases 2A e 2B`);
         }
-        
+
+        // ==================== PHASE 2C: WEB VULNERABILITY SCAN (OPTIONAL) ====================
+        const webScanEnabled = params.webScanEnabled === true;
+        if (webScanEnabled) {
+          // Collect HTTP/HTTPS URLs from discovered open ports
+          const webUrls: string[] = [];
+          const webPorts = new Set(['80', '443', '8080', '8443', '8000', '8888', '8008', '9443', '3000', '4443']);
+          const httpServices = new Set(['http', 'https', 'http-proxy', 'http-alt', 'https-alt', 'nginx', 'apache']);
+
+          for (const result of portResults) {
+            if (result.state !== 'open') continue;
+            const cleanPort = String(result.port).replace(/\/(tcp|udp)$/i, '');
+            const svcLower = (result.service || '').toLowerCase();
+            const isWeb = webPorts.has(cleanPort) || httpServices.has(svcLower);
+            if (!isWeb) continue;
+
+            const host = result.ip || result.target || asset.value;
+            const isHttps = cleanPort === '443' || cleanPort === '8443' || cleanPort === '9443' || cleanPort === '4443' || svcLower === 'https';
+            const scheme = isHttps ? 'https' : 'http';
+            const portSuffix = (scheme === 'http' && cleanPort === '80') || (scheme === 'https' && cleanPort === '443') ? '' : `:${cleanPort}`;
+            webUrls.push(`${scheme}://${host}${portSuffix}`);
+          }
+
+          if (webUrls.length > 0) {
+            onProgress({
+              status: 'running',
+              progress: baseProgress + 8,
+              currentTask: `Fase 2C: Nuclei - Analisando ${webUrls.length} URLs web em ${asset.value}`
+            });
+
+            console.log(`🌐 FASE 2C: Executando Nuclei em ${webUrls.length} URLs web`);
+            try {
+              const nucleiTimeoutMs = vulnScriptTimeoutMs; // Reutilizar timeout configurado
+              const nucleiFindings = await this.runNucleiWebScan(webUrls, jobId, nucleiTimeoutMs);
+              findings.push(...nucleiFindings);
+              console.log(`✅ FASE 2C: ${nucleiFindings.length} vulnerabilidades web encontradas via Nuclei`);
+            } catch (error) {
+              console.error(`❌ FASE 2C: Erro durante scan Nuclei:`, error);
+            }
+          } else {
+            console.log(`⏭️  FASE 2C: Nenhum serviço web encontrado para análise Nuclei`);
+          }
+        } else {
+          console.log(`⏭️  FASE 2C: Varredura web desabilitada`);
+        }
+
       } catch (error) {
         console.error(`❌ Erro ao escanear ${asset.value}:`, error);
-        
+
         const errorMessage = error instanceof Error ? error.message : String(error);
         findings.push({
           type: 'error',
@@ -361,9 +406,10 @@ class JourneyExecutorService {
     console.log(`🌐 FASE 3: ${createdWebApps.length} aplicações web criadas como ativos`);
 
     // Store results
+    const webScanWasEnabled = params.webScanEnabled === true;
     await storage.createJobResult({
       jobId,
-      stdout: `Varredura ativa concluída. ${findings.length} achados encontrados. ${createdWebApps.length} aplicações web descobertas.`,
+      stdout: `Varredura concluída. ${findings.length} achados encontrados. ${createdWebApps.length} aplicações web descobertas.${webScanWasEnabled ? ' Nuclei habilitado.' : ''}`,
       stderr: '',
       artifacts: {
         findings,
@@ -371,10 +417,11 @@ class JourneyExecutorService {
           totalAssets: assets.length,
           totalFindings: findings.length,
           webApplicationsDiscovered: createdWebApps.length,
+          webScanEnabled: webScanWasEnabled,
         },
       },
     });
-    
+
     console.log(`✅ Attack Surface concluído: ${findings.length} findings, ${createdWebApps.length} web apps criadas`);
   }
 

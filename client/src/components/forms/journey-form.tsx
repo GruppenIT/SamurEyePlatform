@@ -72,6 +72,8 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
       description: initialData?.description || '',
       params: {
         ...initialData?.params,
+        nmapProfile: initialData?.params?.nmapProfile || 'leve',
+        webScanEnabled: initialData?.params?.webScanEnabled || false,
         edrAvType: initialData?.params?.edrAvType || 'network_based',
         sampleRate: initialData?.params?.sampleRate || '15',
         timeout: initialData?.params?.timeout || 30,
@@ -142,9 +144,10 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         } else {
           params.assetIds = selectedAssets;
         }
-        params.nmapProfile = form.getValues('params.nmapProfile') || 'fast';
+        params.nmapProfile = form.getValues('params.nmapProfile') || 'leve';
         params.vulnScriptTimeout = parseInt(form.getValues('params.vulnScriptTimeout')) || 60;
-        
+        params.webScanEnabled = form.getValues('params.webScanEnabled') === true;
+
         // Add credentials if authentication is enabled
         if (enableAuthentication && selectedCredentials.length > 0) {
           (data as any).credentials = selectedCredentials;
@@ -270,19 +273,21 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
               name="params.nmapProfile"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Perfil Nmap</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || 'fast'}>
+                  <FormLabel>Perfil de Varredura</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || 'leve'}>
                     <FormControl>
                       <SelectTrigger data-testid="select-nmap-profile">
                         <SelectValue placeholder="Selecione o perfil" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="fast">Rápido (Top 1000 portas)</SelectItem>
-                      <SelectItem value="comprehensive">Completo (Todas as portas)</SelectItem>
-                      <SelectItem value="stealth">Stealth (SYN scan)</SelectItem>
+                      <SelectItem value="leve">Leve (Top 1000 portas, ~5 min/host)</SelectItem>
+                      <SelectItem value="profundo">Profundo (Todas 65.536 portas, ~30 min/host)</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormDescription>
+                    Leve: identifica serviços nas portas mais comuns. Profundo: varre todas as portas possíveis.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -306,7 +311,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                     />
                   </FormControl>
                   <FormDescription>
-                    Tempo máximo para Fase 2 (nmap vuln scripts) por host. Padrão: 60 minutos
+                    Tempo máximo para validação de CVEs e varredura web por host. Padrão: 60 minutos
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -327,10 +332,34 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>
-                      Buscar CVEs Associados (Fase 2)
+                      Buscar CVEs Associados
                     </FormLabel>
                     <FormDescription>
-                      Quando marcado, após a descoberta de hosts (Fase 1), o sistema buscará CVEs associados às versões detectadas usando a base NIST NVD. Desmarcando, apenas a Fase 1 será executada.
+                      Após a descoberta de serviços, busca CVEs associados às versões detectadas usando a base NIST NVD e validação ativa via nmap vuln scripts.
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="params.webScanEnabled"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value === true}
+                      onCheckedChange={field.onChange}
+                      data-testid="checkbox-web-scan-enabled"
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Avaliar Aplicações Web Identificadas
+                    </FormLabel>
+                    <FormDescription>
+                      Quando marcado, executa o Nuclei nas URLs HTTP/HTTPS descobertas durante a varredura de portas, identificando vulnerabilidades web (OWASP Top 10, misconfigurations, etc.).
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -346,10 +375,10 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                 />
                 <div className="space-y-1 leading-none">
                   <FormLabel>
-                    Varredura Autenticada (Fase 1.5 - Opcional)
+                    Varredura Autenticada (Opcional)
                   </FormLabel>
                   <FormDescription>
-                    Habilita coleta de dados detalhados usando credenciais (WMI/SSH). Melhora precisão na detecção de CVEs em até 74%, eliminando falsos positivos através de matching exato de versões de OS e patches instalados.
+                    Coleta dados do SO via WMI (Windows) ou SSH (Linux) para enriquecer hosts com versão exata do OS e patches instalados, melhorando a precisão na detecção de CVEs.
                   </FormDescription>
                 </div>
               </div>
@@ -359,10 +388,10 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                   <div className="text-sm text-muted-foreground bg-muted/30 rounded-md p-3 border">
                     <strong>Como funciona:</strong>
                     <ul className="list-disc list-inside mt-1 space-y-1">
-                      <li>WMI (Windows): Coleta versão exata do OS, patches KB instalados, aplicações</li>
-                      <li>SSH (Linux): Coleta kernel, versão do OS, pacotes instalados</li>
+                      <li>WMI (Windows): Coleta versão exata do OS e patches KB instalados</li>
+                      <li>SSH (Linux): Coleta kernel e versão do OS</li>
                       <li>Múltiplas credenciais por protocolo com prioridade (0 = maior prioridade)</li>
-                      <li>Falha silenciosa: se credencial não funcionar, continua sem autenticação</li>
+                      <li>Falha silenciosa: se a credencial não funcionar, continua sem autenticação</li>
                     </ul>
                   </div>
 
