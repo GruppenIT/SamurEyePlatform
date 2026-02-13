@@ -4,6 +4,159 @@ import { promisify } from 'util';
 
 const dnsResolve = promisify(dns.resolve);
 
+// ═══════════════════════════════════════════════════════════════════
+// UAC (UserAccountControl) flag decoder
+// Translates numeric UAC values into human-readable security flags
+// ═══════════════════════════════════════════════════════════════════
+const UAC_FLAGS: Record<number, { name: string; risk: string }> = {
+  0x0001:   { name: 'SCRIPT', risk: '' },
+  0x0002:   { name: 'ACCOUNTDISABLE', risk: 'Conta desabilitada' },
+  0x0008:   { name: 'HOMEDIR_REQUIRED', risk: '' },
+  0x0010:   { name: 'LOCKOUT', risk: 'Conta bloqueada' },
+  0x0020:   { name: 'PASSWD_NOTREQD', risk: 'Senha não obrigatória - qualquer pessoa pode autenticar sem senha' },
+  0x0040:   { name: 'PASSWD_CANT_CHANGE', risk: 'Usuário não pode alterar a senha' },
+  0x0080:   { name: 'ENCRYPTED_TEXT_PWD_ALLOWED', risk: 'Permite armazenar senha com criptografia reversível - atacante pode recuperar a senha em texto claro' },
+  0x0100:   { name: 'TEMP_DUPLICATE_ACCOUNT', risk: '' },
+  0x0200:   { name: 'NORMAL_ACCOUNT', risk: '' },
+  0x0800:   { name: 'INTERDOMAIN_TRUST_ACCOUNT', risk: '' },
+  0x1000:   { name: 'WORKSTATION_TRUST_ACCOUNT', risk: '' },
+  0x2000:   { name: 'SERVER_TRUST_ACCOUNT', risk: '' },
+  0x10000:  { name: 'DONT_EXPIRE_PASSWORD', risk: 'Senha nunca expira - se comprometida, o atacante mantém acesso indefinidamente' },
+  0x20000:  { name: 'MNS_LOGON_ACCOUNT', risk: '' },
+  0x40000:  { name: 'SMARTCARD_REQUIRED', risk: '' },
+  0x80000:  { name: 'TRUSTED_FOR_DELEGATION', risk: 'Delegação Kerberos irrestrita - atacante pode impersonar qualquer usuário do domínio' },
+  0x100000: { name: 'NOT_DELEGATED', risk: '' },
+  0x200000: { name: 'USE_DES_KEY_ONLY', risk: 'Apenas criptografia DES (obsoleta) - vulnerável a ataques de força bruta' },
+  0x400000: { name: 'DONT_REQ_PREAUTH', risk: 'Pré-autenticação Kerberos desativada - vulnerável a AS-REP Roasting' },
+  0x800000: { name: 'PASSWORD_EXPIRED', risk: 'Senha expirada' },
+  0x1000000: { name: 'TRUSTED_TO_AUTH_FOR_DELEGATION', risk: 'Protocol Transition habilitado - pode impersonar usuários sem que eles autentiquem' },
+  0x4000000: { name: 'PARTIAL_SECRETS_ACCOUNT', risk: '' },
+};
+
+function decodeUacFlags(uacValue: number): { flags: string[]; risks: string[] } {
+  const flags: string[] = [];
+  const risks: string[] = [];
+
+  for (const [bit, info] of Object.entries(UAC_FLAGS)) {
+    const bitNum = Number(bit);
+    if (uacValue & bitNum) {
+      flags.push(info.name);
+      if (info.risk) risks.push(info.risk);
+    }
+  }
+
+  return { flags, risks };
+}
+
+function formatUacDescription(name: string, uacValue: number): string {
+  const { flags, risks } = decodeUacFlags(uacValue);
+  const riskyFlags = flags.filter(f => {
+    const entry = Object.values(UAC_FLAGS).find(e => e.name === f);
+    return entry && entry.risk;
+  });
+
+  let desc = `A conta ${name} possui configurações UserAccountControl arriscadas (valor: ${uacValue})`;
+
+  if (riskyFlags.length > 0) {
+    desc += `.\n\nFlags de risco encontradas:\n${riskyFlags.map(f => {
+      const entry = Object.values(UAC_FLAGS).find(e => e.name === f);
+      return `• ${f}: ${entry?.risk}`;
+    }).join('\n')}`;
+  }
+
+  return desc;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PrimaryGroupID decoder
+// Maps common well-known group IDs to names
+// ═══════════════════════════════════════════════════════════════════
+const WELL_KNOWN_GROUPS: Record<number, string> = {
+  512: 'Domain Admins',
+  513: 'Domain Users',
+  514: 'Domain Guests',
+  515: 'Domain Computers',
+  516: 'Domain Controllers',
+  517: 'Cert Publishers',
+  518: 'Schema Admins',
+  519: 'Enterprise Admins',
+  520: 'Group Policy Creator Owners',
+  521: 'Read-only Domain Controllers',
+  544: 'Administrators (Builtin)',
+  545: 'Users (Builtin)',
+  546: 'Guests (Builtin)',
+};
+
+function resolveGroupName(groupId: number): string {
+  return WELL_KNOWN_GROUPS[groupId] || `Grupo desconhecido (ID: ${groupId})`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Kerberos Encryption Types decoder
+// ═══════════════════════════════════════════════════════════════════
+const KERBEROS_ETYPES: Record<number, { name: string; secure: boolean }> = {
+  0x1: { name: 'DES-CBC-CRC', secure: false },
+  0x2: { name: 'DES-CBC-MD5', secure: false },
+  0x4: { name: 'RC4-HMAC (NTLM)', secure: false },
+  0x8: { name: 'AES128-CTS-HMAC-SHA1', secure: true },
+  0x10: { name: 'AES256-CTS-HMAC-SHA1', secure: true },
+};
+
+function decodeKerberosEtypes(value: number): { all: string[]; weak: string[]; strong: string[] } {
+  const all: string[] = [];
+  const weak: string[] = [];
+  const strong: string[] = [];
+
+  for (const [bit, info] of Object.entries(KERBEROS_ETYPES)) {
+    if (value & Number(bit)) {
+      all.push(info.name);
+      if (info.secure) strong.push(info.name);
+      else weak.push(info.name);
+    }
+  }
+
+  return { all, weak, strong };
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Trust Direction decoder
+// ═══════════════════════════════════════════════════════════════════
+function decodeTrustDirection(direction: number | string): string {
+  const map: Record<string, string> = {
+    '0': 'Desabilitada',
+    '1': 'Entrada (Inbound) - o outro domínio confia em nós',
+    '2': 'Saída (Outbound) - nós confiamos no outro domínio',
+    '3': 'Bidirecional (Inbound + Outbound)',
+  };
+  return map[String(direction)] || `Desconhecida (${direction})`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Domain Functional Level decoder
+// ═══════════════════════════════════════════════════════════════════
+function decodeDomainMode(mode: string | number): { name: string; outdated: boolean } {
+  const modeStr = String(mode);
+  const levels: Record<string, { name: string; outdated: boolean }> = {
+    '0': { name: 'Windows 2000', outdated: true },
+    '1': { name: 'Windows Server 2003 Interim', outdated: true },
+    '2': { name: 'Windows Server 2003', outdated: true },
+    '3': { name: 'Windows Server 2008', outdated: true },
+    '4': { name: 'Windows Server 2008 R2', outdated: true },
+    '5': { name: 'Windows Server 2012', outdated: true },
+    '6': { name: 'Windows Server 2012 R2', outdated: true },
+    '7': { name: 'Windows Server 2016', outdated: false },
+    'Windows2000Domain': { name: 'Windows 2000', outdated: true },
+    'Windows2003InterimDomain': { name: 'Windows Server 2003 Interim', outdated: true },
+    'Windows2003Domain': { name: 'Windows Server 2003', outdated: true },
+    'Windows2008Domain': { name: 'Windows Server 2008', outdated: true },
+    'Windows2008R2Domain': { name: 'Windows Server 2008 R2', outdated: true },
+    'Windows2012Domain': { name: 'Windows Server 2012', outdated: true },
+    'Windows2012R2Domain': { name: 'Windows Server 2012 R2', outdated: true },
+    'Windows2016Domain': { name: 'Windows Server 2016', outdated: false },
+  };
+  return levels[modeStr] || { name: modeStr, outdated: false };
+}
+
 export interface ADFinding {
   type: 'ad_hygiene' | 'ad_vulnerability' | 'ad_misconfiguration';
   target: string;
@@ -59,7 +212,7 @@ interface ADSecurityCategories {
 
 // Template configuration for per-object findings
 interface PerObjectFindingTemplate {
-  titleTemplate: (objectName: string) => string;
+  titleTemplate: (objectName: string, details?: Record<string, any>) => string;
   descriptionTemplate: (objectName: string, details?: Record<string, any>) => string;
   objectNameField: string; // Field name in PowerShell output to use as object identifier (e.g., 'SamAccountName', 'Name')
   objectType: 'user' | 'computer' | 'service_account' | 'group' | 'trust' | 'gmsa' | 'dc';
@@ -1366,8 +1519,16 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         objectType: 'user',
       },
       'low_primary_group_id': {
-        titleTemplate: (name) => `PrimaryGroupID privilegiado: ${name}`,
-        descriptionTemplate: (name, details) => `A conta ${name} possui PrimaryGroupID menor que 1000 (${details?.primaryGroupId || 'N/A'}), indicando possíveis privilégios ocultos`,
+        titleTemplate: (name, details) => {
+          const gid = details?.primaryGroupId;
+          const groupName = gid ? resolveGroupName(Number(gid)) : '';
+          return groupName ? `Grupo primário privilegiado: ${name} (${groupName})` : `Grupo primário privilegiado: ${name}`;
+        },
+        descriptionTemplate: (name, details) => {
+          const gid = details?.primaryGroupId;
+          const groupName = gid ? resolveGroupName(Number(gid)) : 'desconhecido';
+          return `A conta ${name} tem o grupo primário definido como "${groupName}" (ID: ${gid || 'N/A'}). Grupos primários com ID menor que 1000 são grupos built-in do AD e podem conceder privilégios elevados de forma oculta, pois não aparecem no atributo memberOf.`;
+        },
         objectNameField: 'Name',
         objectType: 'user',
       },
@@ -1404,7 +1565,12 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       },
       'trust_relationships': {
         titleTemplate: (name) => `Relação de confiança: ${name}`,
-        descriptionTemplate: (name, details) => `Relação de confiança com domínio ${name} identificada${details?.TrustType ? ` (Tipo: ${details.TrustType}, Direção: ${details.TrustDirection || 'N/A'})` : ''}`,
+        descriptionTemplate: (name, details) => {
+          const direction = details?.TrustDirection != null ? decodeTrustDirection(details.TrustDirection) : 'N/A';
+          const trustType = details?.TrustType || 'N/A';
+          const transitive = details?.ForestTransitive ? 'Sim (transitiva entre florestas)' : 'Não';
+          return `Relação de confiança com o domínio ${name}.\n\n• Tipo: ${trustType}\n• Direção: ${direction}\n• Transitiva: ${transitive}\n\nRelações de confiança ampliam a superfície de ataque. Se o domínio confiável for comprometido, o atacante pode escalar privilégios para este domínio.`;
+        },
         objectNameField: 'Name',
         objectType: 'trust',
       },
@@ -1436,8 +1602,23 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       },
       // testPoliticasConfiguracao - per-object tests
       'risky_uac_params': {
-        titleTemplate: (name) => `UAC arriscado: ${name}`,
-        descriptionTemplate: (name, details) => `A conta ${name} possui flags UserAccountControl arriscadas${details?.userAccountControl ? ` (UAC: ${details.userAccountControl})` : ''}`,
+        titleTemplate: (name, details) => {
+          const uac = details?.userAccountControl;
+          if (!uac) return `Configuração UAC arriscada: ${name}`;
+          const { flags } = decodeUacFlags(Number(uac));
+          const riskyFlags = flags.filter(f => {
+            const entry = Object.values(UAC_FLAGS).find(e => e.name === f);
+            return entry && entry.risk;
+          });
+          return riskyFlags.length > 0
+            ? `Configuração UAC arriscada: ${name} (${riskyFlags.join(', ')})`
+            : `Configuração UAC arriscada: ${name}`;
+        },
+        descriptionTemplate: (name, details) => {
+          const uac = details?.userAccountControl;
+          if (!uac) return `A conta ${name} possui configurações UserAccountControl arriscadas.`;
+          return formatUacDescription(name, Number(uac));
+        },
         objectNameField: 'Name',
         objectType: 'user',
       },
@@ -1455,9 +1636,71 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       },
       'orphan_krbtgt_rodc': {
         titleTemplate: (name) => `KRBTGT RODC órfão: ${name}`,
-        descriptionTemplate: (name) => `A conta krbtgt ${name} está órfã, pertencendo a um RODC que não existe mais no domínio`,
+        descriptionTemplate: (name) => `A conta krbtgt ${name} está órfã, pertencendo a um RODC que não existe mais no domínio. Contas krbtgt órfãs podem ser abusadas por atacantes para forjar tickets Kerberos.`,
         objectNameField: 'Name',
         objectType: 'user',
+      },
+      // Kerberos encryption types (no template previously - fell back to generic)
+      'kerberos_vulnerabilities': {
+        titleTemplate: (name, details) => {
+          const etypes = details?.['msDS-SupportedEncryptionTypes'];
+          if (etypes != null) {
+            const { weak } = decodeKerberosEtypes(Number(etypes));
+            if (weak.length > 0) return `Criptografia Kerberos fraca: ${name} (${weak.join(', ')})`;
+          }
+          return `Criptografia Kerberos fraca: ${name}`;
+        },
+        descriptionTemplate: (name, details) => {
+          const etypes = details?.['msDS-SupportedEncryptionTypes'];
+          if (etypes == null) return `A conta ${name} está configurada com tipos de criptografia Kerberos fracos.`;
+          const { all, weak, strong } = decodeKerberosEtypes(Number(etypes));
+          let desc = `A conta ${name} suporta criptografia Kerberos insegura (valor: ${etypes}).\n\n`;
+          desc += `Algoritmos habilitados:\n`;
+          for (const a of all) {
+            const isWeak = weak.includes(a);
+            desc += `• ${a} ${isWeak ? '⚠ FRACO' : '✓ Seguro'}\n`;
+          }
+          if (weak.length > 0) {
+            desc += `\nAlgoritmos fracos (${weak.join(', ')}) permitem que atacantes quebrem tickets Kerberos offline via Kerberoasting ou força bruta.`;
+          }
+          desc += `\n\nValor recomendado: 24 (AES128 + AES256) ou 28 (AES128 + AES256 + RC4 para compatibilidade).`;
+          return desc;
+        },
+        objectNameField: 'SamAccountName',
+        objectType: 'user',
+      },
+      'kerberos_rbcd_computers': {
+        titleTemplate: (name) => `Delegação RBCD configurada: ${name}`,
+        descriptionTemplate: (name, details) => {
+          let desc = `O computador ${name} possui Resource-Based Constrained Delegation (RBCD) configurada. `;
+          desc += `Isto permite que certas contas impersonem qualquer usuário ao acessar este computador. `;
+          desc += `Um atacante que comprometa uma dessas contas pode obter acesso elevado.`;
+          if (details?.PrincipalsAllowedToDelegateToAccount) {
+            const principals = Array.isArray(details.PrincipalsAllowedToDelegateToAccount)
+              ? details.PrincipalsAllowedToDelegateToAccount.map((p: any) => typeof p === 'string' ? p : p?.Name || p?.SamAccountName || JSON.stringify(p))
+              : [String(details.PrincipalsAllowedToDelegateToAccount)];
+            desc += `\n\nContas com permissão de delegação:\n${principals.map((p: string) => `• ${p}`).join('\n')}`;
+          }
+          return desc;
+        },
+        objectNameField: 'Name',
+        objectType: 'computer',
+      },
+      'gmsa_read_permissions': {
+        titleTemplate: (name) => `Leitura de senha gMSA exposta: ${name}`,
+        descriptionTemplate: (name, details) => {
+          let desc = `A conta de serviço gerenciada (gMSA) ${name} tem permissões de leitura de senha configuradas. `;
+          if (details?.PrincipalsAllowedToRetrieveManagedPassword) {
+            const principals = Array.isArray(details.PrincipalsAllowedToRetrieveManagedPassword)
+              ? details.PrincipalsAllowedToRetrieveManagedPassword.map((p: any) => typeof p === 'string' ? p : p?.Name || JSON.stringify(p))
+              : [String(details.PrincipalsAllowedToRetrieveManagedPassword)];
+            desc += `As seguintes contas podem recuperar a senha:\n${principals.map((p: string) => `• ${p}`).join('\n')}`;
+            desc += `\n\nVerifique se todas essas contas são autorizadas. Contas desnecessárias devem ser removidas.`;
+          }
+          return desc;
+        },
+        objectNameField: 'Name',
+        objectType: 'gmsa',
       },
     };
 
@@ -1531,7 +1774,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           findings.push({
             type: this.getTypeForTest(test.id),
             target: domain,
-            name: template.titleTemplate(objectName),
+            name: template.titleTemplate(objectName, obj),
             severity: test.severidade,
             category,
             description: template.descriptionTemplate(objectName, obj),
