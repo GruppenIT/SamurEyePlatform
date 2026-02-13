@@ -425,7 +425,38 @@ export class NetworkScanner {
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      
+      const trimmed = line.trim();
+
+      // Update host context when encountering a new host section (critical for CIDR range scans)
+      const hostMatchInner = trimmed.match(/^Nmap scan report for (.+?)(?: \((\d{1,3}(?:\.\d{1,3}){3})\))?$/);
+      if (hostMatchInner) {
+        const [, hostPart, ipPart] = hostMatchInner;
+        if (ipPart) {
+          hostContext.host = hostPart;
+          hostContext.ip = ipPart;
+        } else if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostPart)) {
+          hostContext.ip = hostPart;
+          hostContext.host = hostPart;
+        } else {
+          hostContext.host = hostPart;
+        }
+        // Reset OS info for new host (each host may have different OS)
+        hostContext.osInfo = '';
+        continue;
+      }
+
+      // Update OS info within the port parsing loop (for multi-host output)
+      if (trimmed.startsWith('OS details:')) {
+        hostContext.osInfo = trimmed.replace('OS details:', '').trim();
+      } else if (trimmed.startsWith('Running:') && !hostContext.osInfo) {
+        hostContext.osInfo = trimmed.replace('Running:', '').trim();
+      } else if (trimmed.startsWith('Service Info:') && !hostContext.osInfo) {
+        const osMatch2 = trimmed.match(/OS:\s*([^;,]+)/i);
+        if (osMatch2) {
+          hostContext.osInfo = osMatch2[1].trim();
+        }
+      }
+
       // Procurar por linhas de porta: "22/tcp open ssh OpenSSH 8.2" ou "3389/tcp open|filtered ms-wbt-server"
       const portMatch = line.match(/^(\d+)\/(tcp|udp)\s+(open|closed|filtered|open\|filtered|closed\|filtered)\s+(\S+)(?:\s+(.+))?/);
       if (portMatch) {
@@ -652,16 +683,65 @@ export class NetworkScanner {
   }
 
   /**
-   * Scan de range CIDR
+   * Scan de range CIDR - usa nmap diretamente com suporte nativo a CIDR
+   * para descoberta paralela de hosts e scan de portas
    */
   async scanCidrRange(cidr: string, nmapProfile?: string, jobId?: string): Promise<PortScanResult[]> {
+    // Validate CIDR format
+    const cidrMatch = cidr.match(/^(\d+\.\d+\.\d+\.\d+)\/(\d+)$/);
+    if (!cidrMatch) {
+      throw new Error(`Range CIDR inválido: ${cidr}`);
+    }
+
+    const prefix = parseInt(cidrMatch[2], 10);
+    if (prefix < 16) {
+      throw new Error('Range CIDR muito grande. Use /16 ou maior.');
+    }
+
+    const totalHosts = 2 ** (32 - prefix) - 2; // Exclude network and broadcast
+    console.log(`📡 Escaneando range CIDR ${cidr} (${totalHosts} hosts possíveis) diretamente via nmap`);
+
+    // Use nmap directly with the CIDR range - nmap natively handles
+    // parallel host discovery and only port-scans alive hosts
+    const args = this.buildNmapArgs(cidr, [], nmapProfile, true);
+
+    // Longer timeout for range scans - scale with number of hosts
+    const baseTimeoutMs = 600000; // 10 min base
+    const maxWaitTime = Math.min(baseTimeoutMs + totalHosts * 5000, 3600000); // Up to 1 hour
+
+    const context: ProcessContext = {
+      jobId,
+      processName: 'nmap',
+      stage: `Escaneando range ${cidr}... nmap`,
+      maxWaitTime
+    };
+
+    try {
+      const stdout = await this.spawnCommand('nmap', args, context);
+      const results = this.parseNmapOutput(stdout, cidr, cidr);
+
+      // Count unique hosts discovered
+      const uniqueHosts = new Set(results.filter(r => r.state === 'open').map(r => r.ip || r.target));
+      console.log(`✅ Scan CIDR concluído: ${results.length} portas encontradas em ${uniqueHosts.size} hosts ativos de ${cidr}`);
+      return results;
+    } catch (error) {
+      console.error(`❌ Erro no scan CIDR via nmap: ${error}`);
+      console.log(`🔄 Tentando fallback: expandindo range manualmente`);
+      return this.scanCidrFallback(cidr, nmapProfile, jobId);
+    }
+  }
+
+  /**
+   * Fallback para scan CIDR quando nmap não suporta range diretamente
+   * Expande o CIDR e escaneia todos os hosts individualmente
+   */
+  private async scanCidrFallback(cidr: string, nmapProfile?: string, jobId?: string): Promise<PortScanResult[]> {
     const hosts = this.expandCidrRange(cidr);
     const results: PortScanResult[] = [];
 
-    // Limitar para primeiros 10 hosts para evitar sobrecarga
-    const hostsToScan = hosts.slice(0, 10);
-    
-    for (const host of hostsToScan) {
+    console.log(`🔄 Fallback CIDR: escaneando ${hosts.length} hosts individualmente`);
+
+    for (const host of hosts) {
       try {
         const hostResults = await this.scanPorts(host, undefined, nmapProfile, jobId);
         results.push(...hostResults);
@@ -674,25 +754,28 @@ export class NetworkScanner {
   }
 
   /**
-   * Expande range CIDR em lista de IPs
+   * Expande range CIDR em lista de IPs (todos os hosts utilizáveis)
    */
   private expandCidrRange(cidr: string): string[] {
     const [network, prefixLength] = cidr.split('/');
     const prefix = parseInt(prefixLength, 10);
-    
-    if (prefix < 24) {
-      throw new Error('Range CIDR muito grande. Use /24 ou maior.');
+
+    if (prefix < 16) {
+      throw new Error('Range CIDR muito grande. Use /16 ou maior.');
     }
 
     const networkParts = network.split('.').map(Number);
     const hosts: string[] = [];
-    
-    // Para /24, escanear apenas primeiros 10 hosts
-    const maxHosts = Math.min(2 ** (32 - prefix), 10);
-    
-    for (let i = 1; i < maxHosts; i++) {
-      const lastOctet = (networkParts[3] + i) % 256;
-      const host = `${networkParts[0]}.${networkParts[1]}.${networkParts[2]}.${lastOctet}`;
+
+    // Calculate total usable hosts (exclude network and broadcast addresses)
+    const totalAddresses = 2 ** (32 - prefix);
+    const maxHost = totalAddresses - 1; // Exclude broadcast
+
+    for (let i = 1; i < maxHost; i++) {
+      const offset = networkParts[3] + i;
+      const thirdOctet = networkParts[2] + Math.floor(offset / 256);
+      const lastOctet = offset % 256;
+      const host = `${networkParts[0]}.${networkParts[1]}.${thirdOctet}.${lastOctet}`;
       hosts.push(host);
     }
 
