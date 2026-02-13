@@ -130,55 +130,121 @@ fi
 echo ""
 log "Removendo $LABEL..."
 
-# Também limpa o histórico de risco dos hosts afetados
+# ─── Função SQL para recalcular risk score de TODOS os hosts ───
+# Replica a lógica CVSS do threatEngine.ts:
+#   - critical present → riskScore = min(100, 90 + critical*2)
+#   - high present     → riskScore = min(89,  70 + high*3)
+#   - medium present   → riskScore = min(69,  40 + medium*5)
+#   - low present      → riskScore = min(39,  10 + low*5)
+#   - no threats       → riskScore = 0
+#   - rawScore = critical*10 + high*8.5 + medium*5.5 + low*2.5
+RECALC_RISK_SQL=$(cat <<'RISKSQL'
+
+-- ═══════════════════════════════════════════════════════════════════
+-- Recalcula risk_score e raw_score de TODOS os hosts
+-- Lógica CVSS idêntica ao threatEngine.ts:calculateHostRiskScore()
+--   CVSS weights: critical=10, high=8.5, medium=5.5, low=2.5
+--   Risk bands:   critical→90-100, high→70-89, medium→40-69, low→10-39
+-- ═══════════════════════════════════════════════════════════════════
+WITH risk_calc AS (
+    SELECT
+        h.id AS host_id,
+        COUNT(*) FILTER (WHERE t.severity = 'critical' AND t.status IN ('open','investigating')) AS cnt_critical,
+        COUNT(*) FILTER (WHERE t.severity = 'high'     AND t.status IN ('open','investigating')) AS cnt_high,
+        COUNT(*) FILTER (WHERE t.severity = 'medium'   AND t.status IN ('open','investigating')) AS cnt_medium,
+        COUNT(*) FILTER (WHERE t.severity = 'low'      AND t.status IN ('open','investigating')) AS cnt_low,
+        -- raw_score: soma ponderada CVSS
+        ROUND(
+            COUNT(*) FILTER (WHERE t.severity = 'critical' AND t.status IN ('open','investigating')) * 10.0 +
+            COUNT(*) FILTER (WHERE t.severity = 'high'     AND t.status IN ('open','investigating')) * 8.5  +
+            COUNT(*) FILTER (WHERE t.severity = 'medium'   AND t.status IN ('open','investigating')) * 5.5  +
+            COUNT(*) FILTER (WHERE t.severity = 'low'      AND t.status IN ('open','investigating')) * 2.5
+        )::int AS new_raw_score,
+        -- risk_score: faixas CVSS
+        CASE
+            WHEN COUNT(*) FILTER (WHERE t.severity = 'critical' AND t.status IN ('open','investigating')) > 0
+                THEN LEAST(100, 90 + COUNT(*) FILTER (WHERE t.severity = 'critical' AND t.status IN ('open','investigating'))::int * 2)
+            WHEN COUNT(*) FILTER (WHERE t.severity = 'high' AND t.status IN ('open','investigating')) > 0
+                THEN LEAST(89,  70 + COUNT(*) FILTER (WHERE t.severity = 'high' AND t.status IN ('open','investigating'))::int * 3)
+            WHEN COUNT(*) FILTER (WHERE t.severity = 'medium' AND t.status IN ('open','investigating')) > 0
+                THEN LEAST(69,  40 + COUNT(*) FILTER (WHERE t.severity = 'medium' AND t.status IN ('open','investigating'))::int * 5)
+            WHEN COUNT(*) FILTER (WHERE t.severity = 'low' AND t.status IN ('open','investigating')) > 0
+                THEN LEAST(39,  10 + COUNT(*) FILTER (WHERE t.severity = 'low' AND t.status IN ('open','investigating'))::int * 5)
+            ELSE 0
+        END AS new_risk_score
+    FROM hosts h
+    LEFT JOIN threats t ON t.host_id = h.id
+    GROUP BY h.id
+),
+-- Step 1: Atualiza hosts
+do_update AS (
+    UPDATE hosts
+    SET risk_score = rc.new_risk_score,
+        raw_score  = rc.new_raw_score
+    FROM risk_calc rc
+    WHERE hosts.id = rc.host_id
+    RETURNING hosts.id
+)
+-- Step 2: Registra snapshot no histórico de risco para trend analysis
+INSERT INTO host_risk_history (id, host_id, risk_score, raw_score, critical_count, high_count, medium_count, low_count, recorded_at)
+SELECT
+    gen_random_uuid(),
+    rc.host_id,
+    rc.new_risk_score,
+    rc.new_raw_score,
+    rc.cnt_critical,
+    rc.cnt_high,
+    rc.cnt_medium,
+    rc.cnt_low,
+    NOW()
+FROM risk_calc rc;
+
+RISKSQL
+)
+
 if [[ -z "$WHERE_CLAUSE" ]]; then
-    # Limpar tudo
+    # Limpar TODAS as ameaças
     DELETED=$(PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -t -A <<'EOSQL'
-    BEGIN;
-
-    -- Salva contagem antes de deletar
-    SELECT COUNT(*) FROM threats;
-EOSQL
-    )
-
-    PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" <<'EOSQL'
-    -- Remove histórico de status das ameaças
-    DELETE FROM threat_status_history
-    WHERE threat_id IN (SELECT id FROM threats);
-
-    -- Remove todas as ameaças
-    DELETE FROM threats;
-
-    -- Recalcula risk score dos hosts (zera todos)
-    UPDATE hosts SET risk_score = 0, raw_score = 0;
-
-    COMMIT;
-EOSQL
-else
-    DELETED=$(PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -t -A <<EOSQL
-    SELECT COUNT(*) FROM threats $WHERE_CLAUSE;
+SELECT COUNT(*) FROM threats;
 EOSQL
     )
 
     PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" <<EOSQL
-    BEGIN;
+BEGIN;
 
-    -- Remove histórico de status das ameaças desta categoria
-    DELETE FROM threat_status_history
-    WHERE threat_id IN (SELECT id FROM threats $WHERE_CLAUSE);
+-- Remove histórico de status das ameaças
+DELETE FROM threat_status_history
+WHERE threat_id IN (SELECT id FROM threats);
 
-    -- Remove ameaças da categoria
-    DELETE FROM threats $WHERE_CLAUSE;
+-- Remove todas as ameaças
+DELETE FROM threats;
 
-    -- Recalcula risk score dos hosts que tinham ameaças desta categoria
-    -- Zera hosts que não têm mais nenhuma ameaça aberta
-    UPDATE hosts SET risk_score = 0, raw_score = 0
-    WHERE id NOT IN (
-        SELECT DISTINCT host_id FROM threats
-        WHERE host_id IS NOT NULL AND status IN ('open', 'investigating')
-    );
+-- Recalcula risk scores (vai zerar todos pois não há mais ameaças)
+$RECALC_RISK_SQL
 
-    COMMIT;
+COMMIT;
+EOSQL
+else
+    # Limpar ameaças de uma categoria específica
+    DELETED=$(PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -t -A <<EOSQL
+SELECT COUNT(*) FROM threats $WHERE_CLAUSE;
+EOSQL
+    )
+
+    PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" <<EOSQL
+BEGIN;
+
+-- Remove histórico de status das ameaças desta categoria
+DELETE FROM threat_status_history
+WHERE threat_id IN (SELECT id FROM threats $WHERE_CLAUSE);
+
+-- Remove ameaças da categoria
+DELETE FROM threats $WHERE_CLAUSE;
+
+-- Recalcula risk scores (baseado nas ameaças restantes de outras categorias)
+$RECALC_RISK_SQL
+
+COMMIT;
 EOSQL
 fi
 
@@ -190,8 +256,22 @@ REMAINING=$(PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATAB
 SELECT COUNT(*) FROM threats;
 EOSQL
 )
-
 log "Ameaças restantes no banco: $REMAINING"
+
+# Mostra risk scores atualizados dos hosts
+echo ""
+log "Risk scores recalculados:"
+echo ""
+PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -t <<'EOSQL'
+SELECT
+    '  ' || name ||
+    ' → risk_score=' || risk_score ||
+    ', raw_score=' || raw_score
+FROM hosts
+ORDER BY risk_score DESC
+LIMIT 20;
+EOSQL
+
 echo ""
 echo -e "${GREEN}As ameaças limpas só voltarão a aparecer na próxima execução da jornada.${NC}"
 echo ""
