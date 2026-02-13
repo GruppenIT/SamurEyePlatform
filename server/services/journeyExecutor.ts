@@ -127,21 +127,21 @@ class JourneyExecutorService {
    * Phase 3: Host discovery and web application asset creation
    */
   private async executeAttackSurface(
-    journey: Journey, 
-    jobId: string, 
+    journey: Journey,
+    jobId: string,
     onProgress: ProgressCallback
   ): Promise<void> {
     const params = journey.params;
     const assetIds = await this.resolveAssetIds(journey);
-    const vulnScriptTimeoutMinutes = params.vulnScriptTimeout || 60; // Default 60 minutos (Fase 2 - nmap vuln)
-    const vulnScriptTimeoutMs = vulnScriptTimeoutMinutes * 60 * 1000; // Converter para ms
-    
+    const vulnScriptTimeoutMinutes = params.vulnScriptTimeout || 60;
+    const vulnScriptTimeoutMs = vulnScriptTimeoutMinutes * 60 * 1000;
+
     if (assetIds.length === 0) {
       throw new Error('Nenhum ativo selecionado para varredura');
     }
 
     console.log(`🚀 Iniciando Attack Surface Journey - Descoberta de Infraestrutura`);
-    console.log(`⏱️  Timeout Fase 2 (nmap vuln): ${vulnScriptTimeoutMinutes} minutos`);
+    console.log(`⏱️  Timeout Fase 3 (nmap vuln): ${vulnScriptTimeoutMinutes} minutos`);
 
     onProgress({ status: 'running', progress: 5, currentTask: 'Carregando ativos' });
 
@@ -152,13 +152,19 @@ class JourneyExecutorService {
       if (asset) assets.push(asset);
     }
 
-    const findings = [];
+    const findings: any[] = [];
     let currentAsset = 0;
 
-    // Progress distribution: 5-85% split evenly across assets
-    // Within each asset slice: Phase1=0-40%, Phase1.5=40-50%, Phase2A=50-60%, Phase2B=60-80%, Phase2C=80-100%
+    // Progress distribution: 5-90% split evenly across assets
+    // Within each asset slice:
+    //   Phase 1A (Host Discovery): 0-10%
+    //   Phase 1B (Port Scan):     10-35%
+    //   Phase 2 (Enrichment):     35-45%
+    //   Phase 3A (CVE Lookup):    45-55%
+    //   Phase 3B (Nmap Vuln):     55-75%
+    //   Phase 3C (Nuclei Web):    75-100%
     const SCAN_START = 5;
-    const SCAN_END = 85;
+    const SCAN_END = 90;
     const assetSlice = (SCAN_END - SCAN_START) / assets.length;
 
     for (const asset of assets) {
@@ -171,148 +177,186 @@ class JourneyExecutorService {
       const assetBase = SCAN_START + currentAsset * assetSlice;
       currentAsset++;
 
-      onProgress({
-        status: 'running',
-        progress: Math.round(assetBase),
-        currentTask: `Fase 1: Descobrindo serviços em ${asset.value} (${currentAsset}/${assets.length})`
-      });
-
       try {
-        // ==================== PHASE 1: DISCOVERY ====================
-        console.log(`📡 FASE 1: Descoberta de serviços em ${asset.value}`);
-        
-        let portResults;
+        // ==================== PHASE 1A: HOST DISCOVERY ====================
+        // Discover alive hosts first and register them immediately in the database.
+        // This ensures hosts exist before any port scanning or vulnerability analysis.
+        onProgress({
+          status: 'running',
+          progress: Math.round(assetBase),
+          currentTask: `Fase 1A: Descobrindo hosts ativos em ${asset.value} (${currentAsset}/${assets.length})`
+        });
+
+        console.log(`📡 FASE 1A: Descoberta de hosts ativos em ${asset.value}`);
+
+        // Determine target IPs for this asset
+        let aliveHosts: { ip: string; hostname?: string }[];
+
         if (asset.type === 'range') {
+          // CIDR range: use nmap ping sweep to discover alive hosts
+          aliveHosts = await networkScanner.discoverAliveHosts(asset.value, jobId);
+        } else {
+          // Single host: treat as alive directly
+          aliveHosts = [{ ip: asset.value }];
+        }
+
+        console.log(`✅ FASE 1A: ${aliveHosts.length} hosts ativos descobertos em ${asset.value}`);
+
+        // Register discovered hosts immediately in the database
+        // This creates hosts early so they can be linked to threats later
+        const registeredHostMap = new Map<string, string>(); // ip -> hostId
+        for (const aliveHost of aliveHosts) {
+          if (this.isJobCancelled(jobId)) {
+            throw new Error('Job cancelado pelo usuário');
+          }
+
+          try {
+            const hostData: any = {
+              name: aliveHost.hostname || `host-${aliveHost.ip.replace(/\./g, '-')}`,
+              description: `Host descoberto via ping sweep (Job ID: ${jobId?.substring(0, 8) || 'unknown'})`,
+              type: 'other',
+              family: 'other',
+              ips: [aliveHost.ip],
+              aliases: aliveHost.hostname ? [aliveHost.hostname.toLowerCase()] : [],
+            };
+            const host = await storage.upsertHost(hostData);
+            registeredHostMap.set(aliveHost.ip, host.id);
+            console.log(`🏠 FASE 1A: Host registrado: ${host.name} (${aliveHost.ip}) - ID: ${host.id}`);
+          } catch (error) {
+            console.error(`❌ FASE 1A: Erro ao registrar host ${aliveHost.ip}:`, error);
+          }
+        }
+
+        console.log(`🏠 FASE 1A: ${registeredHostMap.size} hosts cadastrados no inventário`);
+
+        // ==================== PHASE 1B: PORT/SERVICE SCAN ====================
+        // Scan ports and services on each discovered host, then update host info
+        onProgress({
+          status: 'running',
+          progress: Math.round(assetBase + assetSlice * 0.10),
+          currentTask: `Fase 1B: Escaneando serviços em ${aliveHosts.length} hosts de ${asset.value}`
+        });
+
+        console.log(`🔍 FASE 1B: Escaneando serviços em ${aliveHosts.length} hosts`);
+
+        let portResults: any[];
+        if (asset.type === 'range') {
+          // For ranges, scan the full CIDR via nmap (nmap handles alive hosts internally)
           portResults = await networkScanner.scanCidrRange(asset.value, params.nmapProfile, jobId);
         } else {
           portResults = await networkScanner.scanPorts(asset.value, undefined, params.nmapProfile, jobId);
         }
-        
-        findings.push(...portResults);
-        console.log(`✅ FASE 1: ${portResults.length} portas descobertas`);
 
-        // ==================== PHASE 1.5: HOST ENRICHMENT (OPTIONAL) ====================
+        findings.push(...portResults);
+        console.log(`✅ FASE 1B: ${portResults.length} portas descobertas`);
+
+        // Update hosts with service/OS information from port scan results
+        // Group port results by IP to update each host
+        const hostPortGroups = new Map<string, any[]>();
+        for (const result of portResults) {
+          const hostIp = result.ip || result.target || asset.value;
+          if (!hostPortGroups.has(hostIp)) {
+            hostPortGroups.set(hostIp, []);
+          }
+          hostPortGroups.get(hostIp)!.push(result);
+        }
+
+        // Update each host with discovered services and OS info
+        for (const [hostIp, hostFindings] of Array.from(hostPortGroups.entries())) {
+          try {
+            const updatedHosts = await hostService.discoverHostsFromFindings(hostFindings, jobId);
+            if (updatedHosts.length > 0) {
+              // Update our map with the (potentially new/merged) host ID
+              registeredHostMap.set(hostIp, updatedHosts[0].id);
+              console.log(`🔄 FASE 1B: Host ${hostIp} atualizado: ${updatedHosts[0].name} (type: ${updatedHosts[0].type}, family: ${updatedHosts[0].family})`);
+            }
+          } catch (error) {
+            console.error(`❌ FASE 1B: Erro ao atualizar host ${hostIp}:`, error);
+          }
+        }
+
+        // ==================== PHASE 2: HOST ENRICHMENT (OPTIONAL) ====================
         // Try to enrich discovered hosts using credentials (WMI/SSH/SNMP)
         const journeyCredentials = await storage.getJourneyCredentials(journey.id);
-        
+
         if (journeyCredentials.length > 0) {
           onProgress({
             status: 'running',
-            progress: Math.round(assetBase + assetSlice * 0.40),
-            currentTask: `Fase 1.5: Enriquecendo hosts com credenciais (${journeyCredentials.length} credenciais)`
+            progress: Math.round(assetBase + assetSlice * 0.35),
+            currentTask: `Fase 2: Enriquecendo ${registeredHostMap.size} hosts com credenciais`
           });
-          
-          console.log(`🔑 FASE 1.5: Enriquecimento de hosts com ${journeyCredentials.length} credenciais`);
-          
-          // Group port results by IP to get unique hosts
-          // CRITICAL: Use IP address (not hostname) for WinRM/SSH connections
-          const uniqueHosts = new Map<string, string>();
-          for (const result of portResults) {
-            if (result.state === 'open') {
-              // Prefer IP over target (hostname)
-              const hostIp = result.ip || result.target || asset.value;
-              const hostTarget = result.target || result.ip || asset.value;
-              
-              if (!uniqueHosts.has(hostIp)) {
-                uniqueHosts.set(hostIp, hostTarget);
-              }
-            }
-          }
-          
-          console.log(`🖥️  FASE 1.5: ${uniqueHosts.size} hosts únicos detectados para enriquecimento`);
-          
-          // Enrich each discovered host
-          for (const [hostIp, hostTarget] of Array.from(uniqueHosts.entries())) {
+
+          console.log(`🔑 FASE 2: Enriquecimento de ${registeredHostMap.size} hosts com ${journeyCredentials.length} credenciais`);
+
+          for (const [hostIp, hostId] of Array.from(registeredHostMap.entries())) {
             if (this.isJobCancelled(jobId)) {
               throw new Error('Job cancelado pelo usuário');
             }
-            
+
             try {
-              // First, discover/create the host to get hostId
-              // Use target (hostname) for discovery, but IP for connection
-              const tempFindings = portResults.filter(r => {
-                const findingIp = r.ip || r.target || asset.value;
-                return findingIp === hostIp;
-              });
-              const hosts = await hostService.discoverHostsFromFindings(tempFindings, jobId);
-              
-              if (hosts.length > 0) {
-                const hostId = hosts[0].id;
-                
-                console.log(`🔍 FASE 1.5: Tentando enriquecer host ${hostTarget} usando IP ${hostIp} (ID: ${hostId})`);
-                
-                // CRITICAL: Always use IP for WinRM/SSH connections (not hostname)
-                // This bypasses DNS/Kerberos issues
-                const enrichmentResult = await hostEnricher.enrichHost(
-                  hostId,
-                  hostIp, // Always use IP here
-                  jobId,
-                  journeyCredentials
-                );
-                
-                // Persist enrichments to database
-                for (const enrichment of enrichmentResult.enrichments) {
-                  await storage.createHostEnrichment(enrichment);
-                }
-                
-                console.log(`✅ FASE 1.5: Host ${hostIp} enriquecido - ${enrichmentResult.successCount} sucessos, ${enrichmentResult.failureCount} falhas`);
-                
-                if (enrichmentResult.successCount > 0) {
-                  console.log(`📊 FASE 1.5: Dados coletados para ${hostIp}`);
-                  for (const e of enrichmentResult.enrichments) {
-                    if (e.success) {
-                      console.log(`   ✓ ${e.protocol}: OS=${e.osVersion || 'N/A'}, Apps=${e.installedApps?.length || 0}, Patches=${e.patches?.length || 0}`);
-                    }
+              console.log(`🔍 FASE 2: Tentando enriquecer host ${hostIp} (ID: ${hostId})`);
+
+              const enrichmentResult = await hostEnricher.enrichHost(
+                hostId,
+                hostIp,
+                jobId,
+                journeyCredentials
+              );
+
+              // Persist enrichments to database
+              for (const enrichment of enrichmentResult.enrichments) {
+                await storage.createHostEnrichment(enrichment);
+              }
+
+              console.log(`✅ FASE 2: Host ${hostIp} enriquecido - ${enrichmentResult.successCount} sucessos, ${enrichmentResult.failureCount} falhas`);
+
+              if (enrichmentResult.successCount > 0) {
+                for (const e of enrichmentResult.enrichments) {
+                  if (e.success) {
+                    console.log(`   ✓ ${e.protocol}: OS=${e.osVersion || 'N/A'}, Apps=${e.installedApps?.length || 0}, Patches=${e.patches?.length || 0}`);
                   }
                 }
               }
             } catch (error) {
-              console.error(`❌ FASE 1.5: Erro ao enriquecer host ${hostIp}:`, error);
-              // Continue with next host even if enrichment fails
+              console.error(`❌ FASE 2: Erro ao enriquecer host ${hostIp}:`, error);
             }
           }
-          
-          console.log(`✅ FASE 1.5: Enriquecimento concluído para ${uniqueHosts.size} hosts`);
+
+          console.log(`✅ FASE 2: Enriquecimento concluído para ${registeredHostMap.size} hosts`);
         } else {
-          console.log(`⏭️  FASE 1.5: Nenhuma credencial vinculada - pulando enriquecimento`);
+          console.log(`⏭️  FASE 2: Nenhuma credencial vinculada - pulando enriquecimento`);
         }
 
-        // ==================== PHASE 2: CVE DETECTION (OPTIONAL) ====================
-        // Check if CVE detection is enabled (default: true)
+        // ==================== PHASE 3: VULNERABILITY DETECTION (OPTIONAL) ====================
         const enableCveDetection = journey.enableCveDetection !== false;
-        
+
         if (enableCveDetection) {
-          // ==================== PHASE 2A: CVE LOOKUP FROM NVD ====================
+          // ==================== PHASE 3A: CVE LOOKUP FROM NVD ====================
           onProgress({
             status: 'running',
-            progress: Math.round(assetBase + assetSlice * 0.50),
-            currentTask: `Fase 2A: Buscando CVEs conhecidos para ${asset.value}`
+            progress: Math.round(assetBase + assetSlice * 0.45),
+            currentTask: `Fase 3A: Buscando CVEs conhecidos para ${asset.value}`
           });
-          
-          console.log(`🔍 FASE 2A: Buscando CVEs conhecidos na base NVD`);
+
+          console.log(`🔍 FASE 3A: Buscando CVEs conhecidos na base NVD`);
           const cveFindings = await this.searchKnownCVEs(portResults, jobId);
           findings.push(...cveFindings);
-          console.log(`✅ FASE 2A: ${cveFindings.length} CVEs encontrados na base NVD`);
+          console.log(`✅ FASE 3A: ${cveFindings.length} CVEs encontrados na base NVD`);
 
-          // ==================== PHASE 2B: ACTIVE VALIDATION ====================
-          // Group by host for vulnerability scanning
+          // ==================== PHASE 3B: ACTIVE VALIDATION ====================
           const hostPortMap = new Map<string, { ports: string[], portResults: any[] }>();
-          
+
           for (const result of portResults) {
             if (result.state === 'open') {
               const target = result.target || asset.value;
               const existing = hostPortMap.get(target) || { ports: [], portResults: [] };
-              
-              // Sanitize port: remove /tcp or /udp suffix
-              // result.port can be "443" or "443/tcp", nmap needs just "443"
               const cleanPort = result.port.toString().replace(/\/(tcp|udp)$/i, '');
               existing.ports.push(cleanPort);
               existing.portResults.push(result);
               hostPortMap.set(target, existing);
             }
           }
-          
-          // Validate vulnerabilities for each discovered host
+
           for (const [host, data] of Array.from(hostPortMap.entries())) {
             if (this.isJobCancelled(jobId)) {
               throw new Error('Job cancelado pelo usuário');
@@ -322,26 +366,22 @@ class JourneyExecutorService {
 
             onProgress({
               status: 'running',
-              progress: Math.round(assetBase + assetSlice * 0.60),
-              currentTask: `Fase 2B: Validando vulnerabilidades ativamente em ${host}`
+              progress: Math.round(assetBase + assetSlice * 0.55),
+              currentTask: `Fase 3B: Validando vulnerabilidades ativamente em ${host}`
             });
 
-            console.log(`🔍 FASE 2B: Validação ativa de vulnerabilidades em ${host}`);
-            
-            // Phase 2B: Nmap vuln scripts for active CVE detection
-            console.log(`🎯 FASE 2B: Executando nmap vuln scripts em ${host}`);
+            console.log(`🎯 FASE 3B: Executando nmap vuln scripts em ${host}`);
             const nmapVulnResults = await this.runNmapVulnScripts(host, data.ports, jobId, vulnScriptTimeoutMs);
             findings.push(...nmapVulnResults);
-            console.log(`✅ FASE 2B: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
+            console.log(`✅ FASE 3B: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
           }
         } else {
-          console.log(`⏭️  FASE 2: Detecção de CVEs desabilitada - pulando Fases 2A e 2B`);
+          console.log(`⏭️  FASE 3: Detecção de CVEs desabilitada - pulando Fases 3A e 3B`);
         }
 
-        // ==================== PHASE 2C: WEB VULNERABILITY SCAN (OPTIONAL) ====================
+        // ==================== PHASE 3C: WEB VULNERABILITY SCAN (OPTIONAL) ====================
         const webScanEnabled = params.webScanEnabled === true;
         if (webScanEnabled) {
-          // Collect HTTP/HTTPS URLs from discovered open ports
           const webUrls: string[] = [];
           const webPorts = new Set(['80', '443', '8080', '8443', '8000', '8888', '8008', '9443', '3000', '4443']);
           const httpServices = new Set(['http', 'https', 'http-proxy', 'http-alt', 'https-alt', 'nginx', 'apache']);
@@ -363,24 +403,24 @@ class JourneyExecutorService {
           if (webUrls.length > 0) {
             onProgress({
               status: 'running',
-              progress: Math.round(assetBase + assetSlice * 0.80),
-              currentTask: `Fase 2C: Nuclei - Analisando ${webUrls.length} URLs web em ${asset.value}`
+              progress: Math.round(assetBase + assetSlice * 0.75),
+              currentTask: `Fase 3C: Nuclei - Analisando ${webUrls.length} URLs web em ${asset.value}`
             });
 
-            console.log(`🌐 FASE 2C: Executando Nuclei em ${webUrls.length} URLs web`);
+            console.log(`🌐 FASE 3C: Executando Nuclei em ${webUrls.length} URLs web`);
             try {
-              const nucleiTimeoutMs = vulnScriptTimeoutMs; // Reutilizar timeout configurado
+              const nucleiTimeoutMs = vulnScriptTimeoutMs;
               const nucleiFindings = await this.runNucleiWebScan(webUrls, jobId, nucleiTimeoutMs);
               findings.push(...nucleiFindings);
-              console.log(`✅ FASE 2C: ${nucleiFindings.length} vulnerabilidades web encontradas via Nuclei`);
+              console.log(`✅ FASE 3C: ${nucleiFindings.length} vulnerabilidades web encontradas via Nuclei`);
             } catch (error) {
-              console.error(`❌ FASE 2C: Erro durante scan Nuclei:`, error);
+              console.error(`❌ FASE 3C: Erro durante scan Nuclei:`, error);
             }
           } else {
-            console.log(`⏭️  FASE 2C: Nenhum serviço web encontrado para análise Nuclei`);
+            console.log(`⏭️  FASE 3C: Nenhum serviço web encontrado para análise Nuclei`);
           }
         } else {
-          console.log(`⏭️  FASE 2C: Varredura web desabilitada`);
+          console.log(`⏭️  FASE 3C: Varredura web desabilitada`);
         }
 
       } catch (error) {
@@ -396,20 +436,20 @@ class JourneyExecutorService {
       }
     }
 
-    // ==================== PHASE 3: HOST DISCOVERY & WEB APP ASSET CREATION ====================
-    onProgress({ status: 'running', progress: 85, currentTask: 'Fase 3: Descobrindo hosts e aplicações web' });
-    
-    // Discover hosts from findings
+    // ==================== PHASE 4: FINALIZE & WEB APP ASSET CREATION ====================
+    onProgress({ status: 'running', progress: 90, currentTask: 'Fase 4: Finalizando e criando ativos web' });
+
+    // Final pass: ensure all hosts from findings are registered (catches any missed during scan)
     try {
-      const discoveredHosts = await hostService.discoverHostsFromFindings(findings, jobId);
-      console.log(`🏠 FASE 3: ${discoveredHosts.length} hosts descobertos/atualizados`);
+      const finalHosts = await hostService.discoverHostsFromFindings(findings, jobId);
+      console.log(`🏠 FASE 4: ${finalHosts.length} hosts verificados/atualizados no inventário`);
     } catch (error) {
-      console.error('❌ Erro ao descobrir hosts:', error);
+      console.error('❌ Erro ao verificar hosts:', error);
     }
 
     // Auto-discover and create web application assets from HTTP/HTTPS services
     const createdWebApps = await this.createWebApplicationAssets(findings, journey.createdBy, jobId);
-    console.log(`🌐 FASE 3: ${createdWebApps.length} aplicações web criadas como ativos`);
+    console.log(`🌐 FASE 4: ${createdWebApps.length} aplicações web criadas como ativos`);
 
     // Store results
     onProgress({ status: 'running', progress: 95, currentTask: 'Salvando resultados' });

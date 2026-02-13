@@ -20,6 +20,15 @@ export interface PortScanResult {
   versionAccuracy?: 'high' | 'medium' | 'low'; // Indica precisão da detecção
 }
 
+/**
+ * Result from host discovery (ping sweep)
+ */
+export interface AliveHostResult {
+  ip: string;
+  hostname?: string;
+  latency?: string;
+}
+
 export interface ServiceInfo {
   name: string;
   version?: string;
@@ -680,6 +689,88 @@ export class NetworkScanner {
 
       socket.connect(port, host);
     });
+  }
+
+  /**
+   * Discovers alive hosts in a CIDR range using nmap ping sweep (-sn).
+   * This is a fast preliminary scan that only finds which hosts are up,
+   * without port scanning. Returns a list of alive IPs/hostnames.
+   */
+  async discoverAliveHosts(target: string, jobId?: string): Promise<AliveHostResult[]> {
+    console.log(`🔍 Descoberta de hosts ativos em ${target} (ping sweep)`);
+
+    const args = [
+      '-sn',       // Ping sweep only - no port scan
+      '-T4',       // Aggressive timing for speed
+      '--max-rtt-timeout', '2s',
+      '--initial-rtt-timeout', '500ms',
+      target
+    ];
+
+    const context: ProcessContext = {
+      jobId,
+      processName: 'nmap',
+      stage: `Descobrindo hosts ativos em ${target}... nmap -sn`,
+      maxWaitTime: 300000 // 5 min max for discovery
+    };
+
+    try {
+      const stdout = await this.spawnCommand('nmap', args, context);
+      const aliveHosts = this.parseNmapDiscoveryOutput(stdout);
+      console.log(`✅ Descoberta concluída: ${aliveHosts.length} hosts ativos em ${target}`);
+      return aliveHosts;
+    } catch (error) {
+      console.error(`❌ Erro na descoberta de hosts: ${error}`);
+      // Fallback: if target is a single IP/hostname, return it as-is
+      if (!target.includes('/')) {
+        return [{ ip: target }];
+      }
+      return [];
+    }
+  }
+
+  /**
+   * Parses nmap -sn output to extract alive hosts.
+   * Output format:
+   *   Nmap scan report for hostname (IP)
+   *   Host is up (0.0015s latency).
+   *   -or-
+   *   Nmap scan report for IP
+   *   Host is up (0.0015s latency).
+   */
+  private parseNmapDiscoveryOutput(output: string): AliveHostResult[] {
+    const hosts: AliveHostResult[] = [];
+    const lines = output.split('\n');
+
+    let currentHost: Partial<AliveHostResult> | null = null;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      // Match: "Nmap scan report for hostname (IP)" or "Nmap scan report for IP"
+      const reportMatch = trimmed.match(/^Nmap scan report for (.+?)(?: \((\d{1,3}(?:\.\d{1,3}){3})\))?$/);
+      if (reportMatch) {
+        const [, hostPart, ipPart] = reportMatch;
+        if (ipPart) {
+          currentHost = { ip: ipPart, hostname: hostPart };
+        } else if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostPart)) {
+          currentHost = { ip: hostPart };
+        } else {
+          currentHost = { ip: hostPart, hostname: hostPart };
+        }
+        continue;
+      }
+
+      // Match: "Host is up (0.0015s latency)."
+      const upMatch = trimmed.match(/^Host is up(?: \((.+?) latency\))?/);
+      if (upMatch && currentHost && currentHost.ip) {
+        currentHost.latency = upMatch[1];
+        hosts.push(currentHost as AliveHostResult);
+        currentHost = null;
+      }
+    }
+
+    return hosts;
   }
 
   /**
