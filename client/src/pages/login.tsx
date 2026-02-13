@@ -37,12 +37,12 @@ export default function Login() {
   const loginMutation = useMutation({
     mutationFn: async (data: LoginForm) => {
       const response = await apiRequest('POST', '/api/auth/login', data);
-      return response;
+      return await response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       // Invalida cache de usuário e redireciona
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      
+
       // Verifica se precisa trocar senha
       if (data?.user?.mustChangePassword) {
         setLocation("/change-password");

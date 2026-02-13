@@ -4,6 +4,9 @@ import type { IHostCollector, EnrichmentData } from "../hostEnricher";
 import { log } from "../../vite";
 import { encryptionService } from "../encryption";
 
+const MAX_RAW_STDOUT = 512_000;
+const MAX_RAW_STDERR = 64_000;
+
 /**
  * SSH Collector for Linux/Unix hosts
  * Uses ssh2 library to execute commands via SSH
@@ -317,11 +320,17 @@ export class SSHCollector implements IHostCollector {
           });
 
           stream.on('data', (data: Buffer) => {
-            stdout += data.toString('utf8');
+            if (stdout.length < MAX_RAW_STDOUT) {
+              stdout += data.toString('utf8');
+              if (stdout.length > MAX_RAW_STDOUT) stdout = stdout.substring(0, MAX_RAW_STDOUT);
+            }
           });
 
           stream.stderr.on('data', (data: Buffer) => {
-            stderr += data.toString('utf8');
+            if (stderr.length < MAX_RAW_STDERR) {
+              stderr += data.toString('utf8');
+              if (stderr.length > MAX_RAW_STDERR) stderr = stderr.substring(0, MAX_RAW_STDERR);
+            }
           });
         });
       });

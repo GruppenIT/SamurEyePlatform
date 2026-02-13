@@ -19,6 +19,16 @@ export class EmailService {
     this.encryptionService = new EncryptionService();
   }
 
+  // Sanitize user-provided strings to prevent HTML injection in emails
+  private escapeHtml(str: string): string {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   private translateStatus(status: string): string {
     const statusMap: Record<string, string> = {
       'open': 'Aberta',
@@ -333,8 +343,8 @@ export class EmailService {
                 <strong>Status Anterior:</strong> <span style="color: #6b7280;">${this.translateStatus(details.oldStatus || '')}</span><br>
                 <strong>Status Atual:</strong> <span style="color: #6b7280;">${this.translateStatus(details.newStatus || '')}</span><br>
                 <strong>Data/Hora da Alteração:</strong> <span style="color: #6b7280;">${currentDate}</span>
-                ${details.user ? `<br><strong>Analista Responsável:</strong> <span style="color: #6b7280;">${details.user.firstName} ${details.user.lastName}</span>` : ''}
-                ${details.justification ? `<br><strong>Justificativa Técnica:</strong> <span style="color: #6b7280;">${details.justification}</span>` : ''}
+                ${details.user ? `<br><strong>Analista Responsável:</strong> <span style="color: #6b7280;">${this.escapeHtml(details.user.firstName)} ${this.escapeHtml(details.user.lastName)}</span>` : ''}
+                ${details.justification ? `<br><strong>Justificativa Técnica:</strong> <span style="color: #6b7280;">${this.escapeHtml(details.justification)}</span>` : ''}
               </p>
             </td>
           </tr>
@@ -386,11 +396,11 @@ export class EmailService {
                             </tr>
                           </table>
                           
-                          <h3 style="margin: 0 0 10px 0; color: #111827; font-size: 18px;">${threat.title}</h3>
-                          
+                          <h3 style="margin: 0 0 10px 0; color: #111827; font-size: 18px;">${this.escapeHtml(threat.title)}</h3>
+
                           ${threat.description ? `
                             <p style="margin: 0 0 15px 0; color: #6b7280; line-height: 1.5;">
-                              ${threat.description}
+                              ${this.escapeHtml(threat.description)}
                             </p>
                           ` : ''}
                           

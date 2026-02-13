@@ -18,6 +18,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -153,10 +163,10 @@ export default function Assets() {
     }
   };
 
+  const [deleteAssetId, setDeleteAssetId] = useState<string | null>(null);
+
   const handleDeleteAsset = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este alvo?')) {
-      deleteAssetMutation.mutate(id);
-    }
+    setDeleteAssetId(id);
   };
 
   const getAssetIcon = (type: string) => {
@@ -244,6 +254,7 @@ export default function Assets() {
                   )}
                 </div>
               ) : (
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -306,6 +317,7 @@ export default function Assets() {
                     })}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -346,6 +358,32 @@ export default function Assets() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Asset Confirmation */}
+      <AlertDialog open={!!deleteAssetId} onOpenChange={(open) => !open && setDeleteAssetId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Alvo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este alvo? Hosts descobertos por este alvo não serão removidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteAssetId) {
+                  deleteAssetMutation.mutate(deleteAssetId);
+                  setDeleteAssetId(null);
+                }
+              }}
+            >
+              Sim, Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

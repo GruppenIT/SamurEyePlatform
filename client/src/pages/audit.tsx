@@ -31,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, History, User, Edit, Trash2, Plus, Settings, Shield, Eye } from "lucide-react";
+import { Search, History, User, Edit, Trash2, Plus, Settings, Shield, Eye, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { AuditLogEntry } from "@shared/schema";
 
 interface EnrichedAuditLogEntry extends AuditLogEntry {
@@ -56,6 +56,8 @@ export default function Audit() {
   const [objectTypeFilter, setObjectTypeFilter] = useState<string>("all");
   const [selectedEntry, setSelectedEntry] = useState<EnrichedAuditLogEntry | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 25;
   const { connected } = useWebSocket();
   
   const { toast } = useToast();
@@ -83,12 +85,21 @@ export default function Audit() {
     const matchesSearch = entry.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.objectType.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (entry.objectId && entry.objectId.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     const matchesAction = actionFilter === "all" || entry.action === actionFilter;
     const matchesObjectType = objectTypeFilter === "all" || entry.objectType === objectTypeFilter;
-    
+
     return matchesSearch && matchesAction && matchesObjectType;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredAuditLog.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedAuditLog = filteredAuditLog.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, actionFilter, objectTypeFilter]);
 
   const getActionIcon = (action: string) => {
     switch (action) {
@@ -171,6 +182,26 @@ export default function Audit() {
   const uniqueActions = Array.from(new Set(auditLog.map(entry => entry.action)));
   const uniqueObjectTypes = Array.from(new Set(auditLog.map(entry => entry.objectType)));
 
+  const handleExportCSV = () => {
+    const headers = ['Data/Hora', 'Ação', 'Tipo', 'ID Objeto', 'Usuário', 'Email'];
+    const rows = filteredAuditLog.map(entry => [
+      formatTimestamp(entry.createdAt),
+      getActionLabel(entry.action),
+      getObjectTypeLabel(entry.objectType),
+      entry.objectId || '',
+      entry.actorName || '',
+      entry.actorEmail || '',
+    ]);
+    const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `audit-log-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // Don't render if not admin
   if (currentUser?.role !== 'global_administrator') {
     return null;
@@ -181,10 +212,21 @@ export default function Audit() {
       <Sidebar />
       
       <main className="flex-1 overflow-auto">
-        <TopBar 
+        <TopBar
           title="Log de Auditoria"
           subtitle="Acompanhe todas as ações administrativas do sistema"
           wsConnected={connected}
+          actions={
+            <Button
+              variant="outline"
+              onClick={handleExportCSV}
+              disabled={filteredAuditLog.length === 0}
+              data-testid="button-export-csv"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Exportar CSV
+            </Button>
+          }
         />
         
         <div className="p-6 space-y-6">
@@ -293,7 +335,7 @@ export default function Audit() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredAuditLog.map((entry) => {
+                      {paginatedAuditLog.map((entry) => {
                         const ActionIcon = getActionIcon(entry.action);
                         return (
                           <TableRow key={entry.id} data-testid={`audit-row-${entry.id}`}>
@@ -368,6 +410,55 @@ export default function Audit() {
                       })}
                     </TableBody>
                   </Table>
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between pt-4 border-t border-border mt-4">
+                      <p className="text-sm text-muted-foreground">
+                        Mostrando {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredAuditLog.length)} de {filteredAuditLog.length} entradas
+                      </p>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          disabled={safePage <= 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                          let page: number;
+                          if (totalPages <= 5) {
+                            page = i + 1;
+                          } else if (safePage <= 3) {
+                            page = i + 1;
+                          } else if (safePage >= totalPages - 2) {
+                            page = totalPages - 4 + i;
+                          } else {
+                            page = safePage - 2 + i;
+                          }
+                          return (
+                            <Button
+                              key={page}
+                              variant={safePage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(page)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {page}
+                            </Button>
+                          );
+                        })}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          disabled={safePage >= totalPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

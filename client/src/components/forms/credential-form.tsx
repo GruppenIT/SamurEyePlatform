@@ -31,10 +31,17 @@ const createCredentialSchema = (isEditing: boolean) => z.object({
   port: z.number().min(1).max(65535).optional(),
   domain: z.string().optional(),
   username: z.string().min(1, "Usuário é obrigatório"),
-  secret: isEditing 
+  secret: isEditing
     ? z.string().optional()
     : z.string().min(1, "Senha/chave é obrigatória"),
 });
+
+// Map legacy credential types to current types
+const normalizeLegacyType = (type?: string): 'ssh' | 'wmi' => {
+  if (type === 'omi' || type === 'ad') return 'wmi';
+  if (type === 'ssh') return 'ssh';
+  return 'wmi';
+};
 
 interface CredentialFormProps {
   onSubmit: (data: CredentialFormData) => void;
@@ -51,7 +58,7 @@ export default function CredentialForm({ onSubmit, onCancel, isLoading = false, 
     resolver: zodResolver(credentialSchema),
     defaultValues: {
       name: initialData?.name || '',
-      type: initialData?.type || 'ssh',
+      type: initialData ? normalizeLegacyType(initialData.type) : 'ssh',
       hostOverride: initialData?.hostOverride || '',
       port: initialData?.port || undefined,
       domain: initialData?.domain || '',
@@ -64,52 +71,29 @@ export default function CredentialForm({ onSubmit, onCancel, isLoading = false, 
 
   const getDefaultPort = () => {
     switch (watchedType) {
-      case 'ssh':
-        return 22;
-      case 'wmi':
-        return 135;
-      case 'omi':
-        return 5985;
-      case 'ad':
-        return 389;
-      default:
-        return undefined;
+      case 'ssh': return 22;
+      case 'wmi': return 5985;
+      default: return undefined;
     }
   };
 
   const getSecretLabel = () => {
-    switch (watchedType) {
-      case 'ssh':
-        return 'Senha ou Chave Privada';
-      case 'wmi':
-      case 'omi':
-      case 'ad':
-        return 'Senha';
-      default:
-        return 'Senha/Chave';
-    }
+    return watchedType === 'ssh' ? 'Senha ou Chave Privada' : 'Senha';
   };
 
   const getSecretPlaceholder = () => {
-    switch (watchedType) {
-      case 'ssh':
-        return 'Senha ou conteúdo da chave privada';
-      case 'wmi':
-      case 'omi':
-        return 'Senha do usuário';
-      case 'ad':
-        return 'Senha do usuário Active Directory';
-      default:
-        return '';
-    }
+    return watchedType === 'ssh'
+      ? 'Senha ou conteúdo da chave privada'
+      : 'Senha do usuário Windows';
   };
 
   // Set default port when type changes
   const handleTypeChange = (value: string) => {
     form.setValue('type', value as any);
-    const defaultPort = getDefaultPort();
-    if (defaultPort) {
-      form.setValue('port', defaultPort);
+    const portMap: Record<string, number> = { ssh: 22, wmi: 5985 };
+    const port = portMap[value];
+    if (port) {
+      form.setValue('port', port);
     }
   };
 
@@ -150,10 +134,8 @@ export default function CredentialForm({ onSubmit, onCancel, isLoading = false, 
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="ssh">SSH</SelectItem>
-                  <SelectItem value="wmi">WMI (Windows)</SelectItem>
-                  <SelectItem value="omi">OMI (Linux/Unix)</SelectItem>
-                  <SelectItem value="ad">AD/LDAP</SelectItem>
+                  <SelectItem value="ssh">SSH (Linux/Unix)</SelectItem>
+                  <SelectItem value="wmi">WMI (Windows/AD)</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

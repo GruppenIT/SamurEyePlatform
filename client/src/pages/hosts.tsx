@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -38,10 +39,10 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { 
-  Search, 
-  Server, 
-  Globe, 
+import {
+  Search,
+  Server,
+  Globe,
   Router,
   Monitor,
   Filter,
@@ -52,63 +53,66 @@ import {
   Minus,
   Package,
   Shield,
-  Settings
+  Settings,
+  CheckCircle2,
+  XCircle,
+  AlertOctagon,
+  SkipForward,
 } from "lucide-react";
 import { Host, Threat, HostRiskHistory } from "@shared/schema";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
 // Helper function to get risk score color and label based on CVSS intervals
+// Uses CSS variables from index.css for consistent theming
 function getRiskScoreInfo(score: number) {
-  if (score >= 90) return { 
-    color: 'rgb(239, 68, 68)', // red-500
-    bgColor: 'bg-red-500/10', 
-    borderColor: 'border-red-500/30',
+  if (score >= 90) return {
+    color: 'var(--severity-critical)',
+    bgColor: 'var(--severity-critical-bg)',
+    borderColor: 'var(--severity-critical-border)',
     label: 'CRÍTICO',
-    textColor: 'text-red-500'
   };
-  if (score >= 70) return { 
-    color: 'rgb(249, 115, 22)', // orange-500
-    bgColor: 'bg-orange-500/10', 
-    borderColor: 'border-orange-500/30',
+  if (score >= 70) return {
+    color: 'var(--severity-high)',
+    bgColor: 'var(--severity-high-bg)',
+    borderColor: 'var(--severity-high-border)',
     label: 'ALTO',
-    textColor: 'text-orange-500'
   };
-  if (score >= 40) return { 
-    color: 'rgb(234, 179, 8)', // yellow-500
-    bgColor: 'bg-yellow-500/10', 
-    borderColor: 'border-yellow-500/30',
+  if (score >= 40) return {
+    color: 'var(--severity-medium)',
+    bgColor: 'var(--severity-medium-bg)',
+    borderColor: 'var(--severity-medium-border)',
     label: 'MÉDIO',
-    textColor: 'text-yellow-500'
   };
-  if (score >= 10) return { 
-    color: 'rgb(34, 197, 94)', // green-500
-    bgColor: 'bg-green-500/10', 
-    borderColor: 'border-green-500/30',
+  if (score >= 10) return {
+    color: 'var(--severity-low)',
+    bgColor: 'var(--severity-low-bg)',
+    borderColor: 'var(--severity-low-border)',
     label: 'BAIXO',
-    textColor: 'text-green-500'
   };
-  return { 
-    color: 'rgb(148, 163, 184)', // slate-400
-    bgColor: 'bg-slate-500/10', 
-    borderColor: 'border-slate-500/30',
+  return {
+    color: 'var(--muted-foreground)',
+    bgColor: 'var(--muted)',
+    borderColor: 'var(--border)',
     label: 'MÍNIMO',
-    textColor: 'text-slate-400'
   };
 }
 
 // Risk Score Display Component
 function RiskScoreDisplay({ host }: { host: Host }) {
   const riskInfo = getRiskScoreInfo(host.riskScore || 0);
-  
+
   return (
-    <div className={`p-6 rounded-lg border ${riskInfo.bgColor} ${riskInfo.borderColor}`}>
+    <div
+      className="p-6 rounded-lg border"
+      style={{ backgroundColor: riskInfo.bgColor, borderColor: riskInfo.borderColor }}
+    >
       <div className="flex items-center justify-between">
         <div>
           <div className="text-sm font-medium text-muted-foreground mb-1">Risk Score</div>
-          <div className={`text-4xl font-bold ${riskInfo.textColor}`} data-testid="text-risk-score">
+          <div className="text-4xl font-bold" style={{ color: riskInfo.color }} data-testid="text-risk-score">
             {host.riskScore || 0}
           </div>
-          <div className={`text-xs font-semibold mt-1 ${riskInfo.textColor}`}>
+          <div className="text-xs font-semibold mt-1" style={{ color: riskInfo.color }}>
             {riskInfo.label}
           </div>
         </div>
@@ -242,9 +246,197 @@ interface AdSecurityTestResult {
   executedAt: string;
 }
 
+interface ADScorecard {
+  overallScore: number;
+  totalTests: number;
+  totalPassed: number;
+  totalFailed: number;
+  totalError: number;
+  totalSkipped: number;
+  failedBySeverity: Record<string, number>;
+  categories: Array<{
+    name: string;
+    total: number;
+    passed: number;
+    failed: number;
+    error: number;
+    skipped: number;
+    score: number;
+  }>;
+  executedAt: string;
+  jobId: string;
+}
+
+function getScoreColor(score: number) {
+  if (score >= 80) return { text: 'text-green-500', bg: 'bg-green-500', bar: 'bg-green-500' };
+  if (score >= 60) return { text: 'text-yellow-500', bg: 'bg-yellow-500', bar: 'bg-yellow-500' };
+  if (score >= 40) return { text: 'text-orange-500', bg: 'bg-orange-500', bar: 'bg-orange-500' };
+  return { text: 'text-red-500', bg: 'bg-red-500', bar: 'bg-red-500' };
+}
+
+const categoryLabels: Record<string, string> = {
+  configuracoes_criticas: 'Configurações Críticas',
+  gerenciamento_contas: 'Gerenciamento de Contas',
+  kerberos_delegacao: 'Kerberos e Delegação',
+  compartilhamentos_gpos: 'Compartilhamentos e GPOs',
+  politicas_configuracao: 'Políticas e Configuração',
+  contas_inativas: 'Contas Inativas',
+};
+
+function ADSecurityScorecard({ hostId }: { hostId: string }) {
+  const { data: scorecard, isLoading } = useQuery<ADScorecard | null>({
+    queryKey: ['/api/hosts', hostId, 'ad-scorecard'],
+    queryFn: async () => {
+      const res = await fetch(`/api/hosts/${hostId}/ad-scorecard`);
+      if (!res.ok) throw new Error('Failed to fetch scorecard');
+      return res.json();
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="border rounded-lg p-4 animate-pulse">
+        <div className="h-4 bg-muted rounded w-1/3 mb-4" />
+        <div className="h-20 bg-muted rounded" />
+      </div>
+    );
+  }
+
+  if (!scorecard) return null;
+
+  const scoreColor = getScoreColor(scorecard.overallScore);
+
+  return (
+    <div className="border rounded-lg p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Shield className="h-4 w-4" />
+        <h3 className="text-sm font-semibold">Scorecard AD Security</h3>
+      </div>
+
+      {/* Overall Score */}
+      <div className="flex items-center gap-6 mb-4">
+        <div className="flex-shrink-0 text-center">
+          <div className={`text-3xl font-bold ${scoreColor.text}`}>
+            {scorecard.overallScore}
+          </div>
+          <div className="text-xs text-muted-foreground">/ 100</div>
+        </div>
+
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+              <span>{scorecard.totalPassed} passou</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <XCircle className="h-3.5 w-3.5 text-red-500" />
+              <span>{scorecard.totalFailed} falhou</span>
+            </div>
+            {scorecard.totalError > 0 && (
+              <div className="flex items-center gap-1">
+                <AlertOctagon className="h-3.5 w-3.5 text-orange-500" />
+                <span>{scorecard.totalError} erro</span>
+              </div>
+            )}
+            {scorecard.totalSkipped > 0 && (
+              <div className="flex items-center gap-1">
+                <SkipForward className="h-3.5 w-3.5 text-slate-400" />
+                <span>{scorecard.totalSkipped} pulado</span>
+              </div>
+            )}
+          </div>
+
+          {/* Failed by severity */}
+          {scorecard.totalFailed > 0 && (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground">Falhas:</span>
+              {scorecard.failedBySeverity.critical > 0 && (
+                <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/30 text-[10px] px-1.5 py-0">
+                  {scorecard.failedBySeverity.critical} crítico
+                </Badge>
+              )}
+              {scorecard.failedBySeverity.high > 0 && (
+                <Badge variant="outline" className="bg-orange-500/10 text-orange-500 border-orange-500/30 text-[10px] px-1.5 py-0">
+                  {scorecard.failedBySeverity.high} alto
+                </Badge>
+              )}
+              {scorecard.failedBySeverity.medium > 0 && (
+                <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30 text-[10px] px-1.5 py-0">
+                  {scorecard.failedBySeverity.medium} médio
+                </Badge>
+              )}
+              {scorecard.failedBySeverity.low > 0 && (
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/30 text-[10px] px-1.5 py-0">
+                  {scorecard.failedBySeverity.low} baixo
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Per-category bars */}
+      <div className="space-y-2">
+        {scorecard.categories.map((cat) => {
+          const catColor = getScoreColor(cat.score);
+          return (
+            <div key={cat.name} className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground truncate">
+                  {categoryLabels[cat.name] || cat.name}
+                </span>
+                <span className={`font-medium ${catColor.text}`}>
+                  {cat.passed}/{cat.total}
+                </span>
+              </div>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${catColor.bar}`}
+                  style={{ width: `${cat.score}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Helper to parse PowerShell JSON stdout into object array
+function tryParseStdoutObjects(stdout: string | undefined): { objects: Record<string, any>[] | null; keys: string[] } {
+  if (!stdout) return { objects: null, keys: [] };
+  try {
+    const trimmed = stdout.trim();
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
+      const keys = Array.from(new Set(parsed.flatMap((obj: any) => Object.keys(obj))));
+      return { objects: parsed, keys };
+    }
+    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+      return { objects: [parsed], keys: Object.keys(parsed) };
+    }
+    return { objects: null, keys: [] };
+  } catch {
+    return { objects: null, keys: [] };
+  }
+}
+
+function formatCellValue(value: any): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
+  if (Array.isArray(value)) return value.join(', ');
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
 function ADSecurityTests({ hostId }: { hostId: string }) {
   const [selectedTest, setSelectedTest] = useState<AdSecurityTestResult | null>(null);
-  
+
+  const parsedStdout = useMemo(() => {
+    return tryParseStdoutObjects(selectedTest?.evidence?.stdout);
+  }, [selectedTest]);
+
   const { data: testResults = [], isLoading } = useQuery<AdSecurityTestResult[]>({
     queryKey: ['/api/hosts', hostId, 'ad-tests'],
     queryFn: async () => {
@@ -386,41 +578,105 @@ function ADSecurityTests({ hostId }: { hostId: string }) {
           </DialogHeader>
           {selectedTest && (
             <div className="space-y-4">
-              {/* Status */}
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">Status</label>
-                <div className="mt-1">
-                  <Badge
-                    variant="outline"
-                    className={getStatusBadge(selectedTest.status).className}
-                  >
-                    {getStatusBadge(selectedTest.status).label}
-                  </Badge>
-                </div>
+              {/* Status + Severity + Test ID */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <Badge
+                  variant="outline"
+                  className={getStatusBadge(selectedTest.status).className}
+                >
+                  {getStatusBadge(selectedTest.status).label}
+                </Badge>
+                <Badge variant="outline" className={
+                  selectedTest.severityHint === 'critical' ? 'bg-red-500/10 text-red-500 border-red-500/30' :
+                  selectedTest.severityHint === 'high' ? 'bg-orange-500/10 text-orange-500 border-orange-500/30' :
+                  selectedTest.severityHint === 'medium' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30' :
+                  'bg-green-500/10 text-green-500 border-green-500/30'
+                }>
+                  {selectedTest.severityHint === 'critical' ? 'CRÍTICO' :
+                   selectedTest.severityHint === 'high' ? 'ALTO' :
+                   selectedTest.severityHint === 'medium' ? 'MÉDIO' : 'BAIXO'}
+                </Badge>
+                <span className="text-xs text-muted-foreground font-mono ml-auto">
+                  {selectedTest.testId}
+                </span>
               </div>
 
-              {/* Comando PowerShell */}
-              {selectedTest.evidence?.command && (
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">
-                    Comando PowerShell Executado
-                  </label>
-                  <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-x-auto font-mono">
-                    {selectedTest.evidence.command}
-                  </pre>
+              {/* Recommendation Card (M6) */}
+              {selectedTest.evidence?.recommendation && (
+                <div className="p-4 bg-orange-500/10 dark:bg-orange-950/30 border-2 border-orange-600/40 dark:border-orange-700/50 rounded-lg">
+                  <h5 className="font-semibold text-orange-700 dark:text-orange-400 mb-2 flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Recomendação
+                  </h5>
+                  <p className="text-sm text-orange-900 dark:text-orange-100 leading-relaxed">
+                    {selectedTest.evidence.recommendation}
+                  </p>
                 </div>
               )}
 
-              {/* Output (stdout) */}
-              {selectedTest.evidence?.stdout && (
+              {/* Parsed Objects Table (M1) */}
+              {parsedStdout.objects && parsedStdout.objects.length > 0 && (
                 <div>
                   <label className="text-xs font-medium text-muted-foreground">
-                    Output (stdout)
+                    Objetos Afetados ({parsedStdout.objects.length})
                   </label>
+                  <div className="mt-1 max-h-64 overflow-auto border rounded-md">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          {parsedStdout.keys.map(key => (
+                            <TableHead key={key} className="text-xs whitespace-nowrap">{key}</TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {parsedStdout.objects.map((obj, idx) => (
+                          <TableRow key={idx}>
+                            {parsedStdout.keys.map(key => (
+                              <TableCell key={key} className="text-xs font-mono whitespace-nowrap">
+                                {formatCellValue(obj[key])}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
+
+              {/* Raw Output - only if stdout couldn't be parsed */}
+              {selectedTest.evidence?.stdout && (!parsedStdout.objects || parsedStdout.objects.length === 0) && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Output (stdout)</label>
                   <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-x-auto max-h-60 font-mono">
                     {selectedTest.evidence.stdout}
                   </pre>
                 </div>
+              )}
+
+              {/* Raw output as collapsible when objects were parsed */}
+              {selectedTest.evidence?.stdout && parsedStdout.objects && parsedStdout.objects.length > 0 && (
+                <details>
+                  <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                    Ver output bruto
+                  </summary>
+                  <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-x-auto max-h-40 font-mono">
+                    {selectedTest.evidence.stdout}
+                  </pre>
+                </details>
+              )}
+
+              {/* Command - Collapsible */}
+              {selectedTest.evidence?.command && (
+                <details>
+                  <summary className="text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground">
+                    Comando PowerShell Executado
+                  </summary>
+                  <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-x-auto font-mono">
+                    {selectedTest.evidence.command}
+                  </pre>
+                </details>
               )}
 
               {/* Errors (stderr) */}
@@ -435,30 +691,14 @@ function ADSecurityTests({ hostId }: { hostId: string }) {
                 </div>
               )}
 
-              {/* Exit Code */}
-              {selectedTest.evidence?.exitCode !== undefined && (
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Exit Code</label>
-                  <div className="mt-1 text-sm font-mono">
-                    {selectedTest.evidence.exitCode}
-                  </div>
-                </div>
-              )}
-
-              {/* Test ID */}
-              <div className="pt-3 border-t">
-                <label className="text-xs font-medium text-muted-foreground">Test ID</label>
-                <div className="mt-1 text-xs font-mono">{selectedTest.testId}</div>
-              </div>
-
-              {/* Execution Time */}
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">
-                  Data de Execução
-                </label>
-                <div className="mt-1 text-xs">
-                  {new Date(selectedTest.executedAt).toLocaleString('pt-BR')}
-                </div>
+              {/* Footer: Execution Time + Exit Code */}
+              <div className="pt-3 border-t flex items-center justify-between text-xs text-muted-foreground">
+                <span>
+                  Executado em: {new Date(selectedTest.executedAt).toLocaleString('pt-BR')}
+                </span>
+                {selectedTest.evidence?.exitCode !== undefined && (
+                  <span className="font-mono">Exit Code: {selectedTest.evidence.exitCode}</span>
+                )}
               </div>
             </div>
           )}
@@ -560,7 +800,7 @@ function HostEnrichmentTabs({ hostId }: { hostId: string }) {
         </TabsContent>
         
         <TabsContent value="apps" className="mt-4">
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {enrichment.installedApps && enrichment.installedApps.length > 0 ? (
               <Table>
                 <TableHeader>
@@ -589,7 +829,7 @@ function HostEnrichmentTabs({ hostId }: { hostId: string }) {
         </TabsContent>
         
         <TabsContent value="patches" className="mt-4">
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {enrichment.patches && enrichment.patches.length > 0 ? (
               <div className="grid grid-cols-2 gap-2">
                 {enrichment.patches.map((patch, idx) => (
@@ -607,7 +847,7 @@ function HostEnrichmentTabs({ hostId }: { hostId: string }) {
         </TabsContent>
         
         <TabsContent value="services" className="mt-4">
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {enrichment.services && enrichment.services.length > 0 ? (
               <Table>
                 <TableHeader>
@@ -1002,8 +1242,20 @@ export default function Hosts() {
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <div className="space-y-4">
-                  <p className="text-muted-foreground">Carregando ativos...</p>
+                <div className="space-y-3">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="flex items-center space-x-4 p-3">
+                      <Skeleton className="h-10 w-10 rounded-lg" />
+                      <div className="flex-1 space-y-1">
+                        <Skeleton className="h-4 w-1/3" />
+                        <Skeleton className="h-3 w-1/4" />
+                      </div>
+                      <Skeleton className="h-6 w-16 rounded-full" />
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-8 w-8 rounded" />
+                    </div>
+                  ))}
                 </div>
               ) : error ? (
                 <div className="text-center py-8">
@@ -1028,99 +1280,84 @@ export default function Hosts() {
                   </div>
                 </div>
               ) : (
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Host</TableHead>
-                      <TableHead>Categoria</TableHead>
                       <TableHead>Tipo</TableHead>
-                      <TableHead>Escore de Risco</TableHead>
+                      <TableHead className="text-center">Risco</TableHead>
                       <TableHead>Ameaças</TableHead>
-                      <TableHead>IPs</TableHead>
                       <TableHead>Sistema Operacional</TableHead>
-                      <TableHead>Ações</TableHead>
+                      <TableHead className="w-[60px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredHosts.map((host) => {
                       const Icon = getHostIcon(host.type);
-                      const totalThreats = (host.threatCounts?.critical || 0) + 
-                                         (host.threatCounts?.high || 0) + 
-                                         (host.threatCounts?.medium || 0) + 
+                      const totalThreats = (host.threatCounts?.critical || 0) +
+                                         (host.threatCounts?.high || 0) +
+                                         (host.threatCounts?.medium || 0) +
                                          (host.threatCounts?.low || 0);
-                      
+                      const riskInfo = getRiskScoreInfo(host.riskScore || 0);
+
                       return (
-                        <TableRow key={host.id} data-testid={`host-row-${host.id}`}>
-                          <TableCell className="font-medium">
-                            <div className="flex items-center space-x-3">
-                              <Icon className="h-4 w-4 text-muted-foreground" />
-                              <div>
-                                <div className="font-medium">{host.name}</div>
-                                {host.description && (
-                                  <div className="text-xs text-muted-foreground">
-                                    {host.description}
+                        <TableRow
+                          key={host.id}
+                          className="cursor-pointer"
+                          onClick={() => handleViewHost(host)}
+                          data-testid={`host-row-${host.id}`}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                              <div className="min-w-0">
+                                <div className="font-medium truncate">{host.name}</div>
+                                {host.ips && host.ips.length > 0 && (
+                                  <div className="text-xs text-muted-foreground font-mono truncate">
+                                    {host.ips.slice(0, 2).join(', ')}{host.ips.length > 2 ? ` +${host.ips.length - 2}` : ''}
                                   </div>
                                 )}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge 
-                              variant="outline" 
-                              className="bg-green-500/10 text-green-600 border-green-500/20"
-                            >
-                              Host
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant="secondary" 
-                              className={getHostTypeBadgeColor(host.type)}
-                            >
+                            <Badge variant="secondary" className={getHostTypeBadgeColor(host.type)}>
                               {host.type.replace('_', ' ')}
                             </Badge>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col gap-1">
-                              <div className="text-lg font-bold" data-testid={`text-risk-score-${host.id}`}>
+                          <TableCell className="text-center">
+                            <div className="inline-flex flex-col items-center gap-0.5">
+                              <span className="text-lg font-bold" style={{ color: riskInfo.color }} data-testid={`text-risk-score-${host.id}`}>
                                 {host.riskScore || 0}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                Pontos: {host.rawScore || 0}
-                              </div>
+                              </span>
+                              <span className="text-[10px] font-semibold" style={{ color: riskInfo.color }}>
+                                {riskInfo.label}
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell>
                             {totalThreats > 0 ? (
-                              <div className="flex gap-1.5" data-testid={`threats-badges-${host.id}`}>
+                              <div className="flex gap-1" data-testid={`threats-badges-${host.id}`}>
                                 {host.threatCounts.critical > 0 && (
-                                  <Badge 
-                                    variant="destructive" 
-                                    className="min-w-[28px] h-6 justify-center bg-red-500 hover:bg-red-600"
-                                  >
+                                  <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded text-xs font-semibold text-white" style={{ backgroundColor: 'var(--severity-critical)' }}>
                                     {host.threatCounts.critical}
-                                  </Badge>
+                                  </span>
                                 )}
                                 {host.threatCounts.high > 0 && (
-                                  <Badge 
-                                    className="min-w-[28px] h-6 justify-center bg-orange-500 text-white hover:bg-orange-600"
-                                  >
+                                  <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded text-xs font-semibold text-white" style={{ backgroundColor: 'var(--severity-high)' }}>
                                     {host.threatCounts.high}
-                                  </Badge>
+                                  </span>
                                 )}
                                 {host.threatCounts.medium > 0 && (
-                                  <Badge 
-                                    className="min-w-[28px] h-6 justify-center bg-yellow-500 text-white hover:bg-yellow-600"
-                                  >
+                                  <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded text-xs font-semibold text-white" style={{ backgroundColor: 'var(--severity-medium)' }}>
                                     {host.threatCounts.medium}
-                                  </Badge>
+                                  </span>
                                 )}
                                 {host.threatCounts.low > 0 && (
-                                  <Badge 
-                                    className="min-w-[28px] h-6 justify-center bg-green-600 text-white hover:bg-green-700"
-                                  >
+                                  <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded text-xs font-semibold text-white" style={{ backgroundColor: 'var(--severity-low)' }}>
                                     {host.threatCounts.low}
-                                  </Badge>
+                                  </span>
                                 )}
                               </div>
                             ) : (
@@ -1128,51 +1365,26 @@ export default function Hosts() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm">
-                              {host.ips && host.ips.length > 0 ? (
-                                <div className="space-y-1">
-                                  {host.ips.slice(0, 2).map((ip, index) => (
-                                    <div key={index} className="font-mono text-xs bg-muted px-2 py-1 rounded">
-                                      {ip}
-                                    </div>
-                                  ))}
-                                  {host.ips.length > 2 && (
-                                    <div className="text-xs text-muted-foreground">
-                                      +{host.ips.length - 2} mais
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                            </div>
+                            <span className="text-sm">
+                              {host.operatingSystem || <span className="text-muted-foreground">—</span>}
+                            </span>
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm">
-                              {host.operatingSystem ? (
-                                <div className="font-medium">{host.operatingSystem}</div>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleViewHost(host)}
-                                data-testid={`button-view-${host.id}`}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => { e.stopPropagation(); handleViewHost(host); }}
+                              data-testid={`button-view-${host.id}`}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       );
                     })}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -1193,6 +1405,9 @@ export default function Hosts() {
               {/* Risk History Chart */}
               <RiskHistoryChart hostId={selectedHost.id} />
               
+              {/* AD Security Scorecard */}
+              <ADSecurityScorecard hostId={selectedHost.id} />
+
               {/* AD Security Tests */}
               <ADSecurityTests hostId={selectedHost.id} />
               

@@ -16,6 +16,25 @@ import { type Journey, type Job } from '@shared/schema';
 
 const adScanner = new ADScanner();
 
+// Max size for stdout/stderr stored in job_results artifacts
+const MAX_ARTIFACT_STDOUT = 2_000;
+
+/** Strip verbose fields from findings before storing in artifacts to prevent DB bloat */
+function sanitizeFindingsForArtifacts(findings: any[]): any[] {
+  return findings.map(f => ({
+    ...f,
+    evidence: f.evidence ? {
+      ...f.evidence,
+      stdout: f.evidence.stdout ? f.evidence.stdout.substring(0, MAX_ARTIFACT_STDOUT) : undefined,
+      stderr: f.evidence.stderr ? f.evidence.stderr.substring(0, 500) : undefined,
+      command: undefined,  // Commands already stored in ad_security_test_results
+      objectData: f.evidence.objectData
+        ? { _summary: `${Object.keys(f.evidence.objectData).length} fields` }
+        : undefined,
+    } : undefined,
+  }));
+}
+
 // Register host enrichment collectors
 hostEnricher.registerCollector(new WMICollector());
 hostEnricher.registerCollector(new SSHCollector());
@@ -124,7 +143,7 @@ class JourneyExecutorService {
     console.log(`🚀 Iniciando Attack Surface Journey - Descoberta de Infraestrutura`);
     console.log(`⏱️  Timeout Fase 2 (nmap vuln): ${vulnScriptTimeoutMinutes} minutos`);
 
-    onProgress({ status: 'running', progress: 20, currentTask: 'Carregando ativos' });
+    onProgress({ status: 'running', progress: 5, currentTask: 'Carregando ativos' });
 
     // Get assets
     const assets = [];
@@ -136,6 +155,12 @@ class JourneyExecutorService {
     const findings = [];
     let currentAsset = 0;
 
+    // Progress distribution: 5-85% split evenly across assets
+    // Within each asset slice: Phase1=0-40%, Phase1.5=40-50%, Phase2A=50-60%, Phase2B=60-80%, Phase2C=80-100%
+    const SCAN_START = 5;
+    const SCAN_END = 85;
+    const assetSlice = (SCAN_END - SCAN_START) / assets.length;
+
     for (const asset of assets) {
       // Check if job was cancelled
       if (this.isJobCancelled(jobId)) {
@@ -143,13 +168,13 @@ class JourneyExecutorService {
         throw new Error('Job cancelado pelo usuário');
       }
 
+      const assetBase = SCAN_START + currentAsset * assetSlice;
       currentAsset++;
-      const baseProgress = 20 + (currentAsset / assets.length) * 60;
-      
-      onProgress({ 
-        status: 'running', 
-        progress: baseProgress, 
-        currentTask: `Fase 1: Descobrindo serviços em ${asset.value} (${currentAsset}/${assets.length})` 
+
+      onProgress({
+        status: 'running',
+        progress: Math.round(assetBase),
+        currentTask: `Fase 1: Descobrindo serviços em ${asset.value} (${currentAsset}/${assets.length})`
       });
 
       try {
@@ -171,10 +196,10 @@ class JourneyExecutorService {
         const journeyCredentials = await storage.getJourneyCredentials(journey.id);
         
         if (journeyCredentials.length > 0) {
-          onProgress({ 
-            status: 'running', 
-            progress: baseProgress + 1, 
-            currentTask: `Fase 1.5: Enriquecendo hosts com credenciais (${journeyCredentials.length} credenciais)` 
+          onProgress({
+            status: 'running',
+            progress: Math.round(assetBase + assetSlice * 0.40),
+            currentTask: `Fase 1.5: Enriquecendo hosts com credenciais (${journeyCredentials.length} credenciais)`
           });
           
           console.log(`🔑 FASE 1.5: Enriquecimento de hosts com ${journeyCredentials.length} credenciais`);
@@ -258,10 +283,10 @@ class JourneyExecutorService {
         
         if (enableCveDetection) {
           // ==================== PHASE 2A: CVE LOOKUP FROM NVD ====================
-          onProgress({ 
-            status: 'running', 
-            progress: baseProgress + 3, 
-            currentTask: `Fase 2A: Buscando CVEs conhecidos para ${asset.value}` 
+          onProgress({
+            status: 'running',
+            progress: Math.round(assetBase + assetSlice * 0.50),
+            currentTask: `Fase 2A: Buscando CVEs conhecidos para ${asset.value}`
           });
           
           console.log(`🔍 FASE 2A: Buscando CVEs conhecidos na base NVD`);
@@ -295,10 +320,10 @@ class JourneyExecutorService {
 
             if (data.ports.length === 0) continue;
 
-            onProgress({ 
-              status: 'running', 
-              progress: baseProgress + 5, 
-              currentTask: `Fase 2B: Validando vulnerabilidades ativamente em ${host}` 
+            onProgress({
+              status: 'running',
+              progress: Math.round(assetBase + assetSlice * 0.60),
+              currentTask: `Fase 2B: Validando vulnerabilidades ativamente em ${host}`
             });
 
             console.log(`🔍 FASE 2B: Validação ativa de vulnerabilidades em ${host}`);
@@ -312,10 +337,55 @@ class JourneyExecutorService {
         } else {
           console.log(`⏭️  FASE 2: Detecção de CVEs desabilitada - pulando Fases 2A e 2B`);
         }
-        
+
+        // ==================== PHASE 2C: WEB VULNERABILITY SCAN (OPTIONAL) ====================
+        const webScanEnabled = params.webScanEnabled === true;
+        if (webScanEnabled) {
+          // Collect HTTP/HTTPS URLs from discovered open ports
+          const webUrls: string[] = [];
+          const webPorts = new Set(['80', '443', '8080', '8443', '8000', '8888', '8008', '9443', '3000', '4443']);
+          const httpServices = new Set(['http', 'https', 'http-proxy', 'http-alt', 'https-alt', 'nginx', 'apache']);
+
+          for (const result of portResults) {
+            if (result.state !== 'open') continue;
+            const cleanPort = String(result.port).replace(/\/(tcp|udp)$/i, '');
+            const svcLower = (result.service || '').toLowerCase();
+            const isWeb = webPorts.has(cleanPort) || httpServices.has(svcLower);
+            if (!isWeb) continue;
+
+            const host = result.ip || result.target || asset.value;
+            const isHttps = cleanPort === '443' || cleanPort === '8443' || cleanPort === '9443' || cleanPort === '4443' || svcLower === 'https';
+            const scheme = isHttps ? 'https' : 'http';
+            const portSuffix = (scheme === 'http' && cleanPort === '80') || (scheme === 'https' && cleanPort === '443') ? '' : `:${cleanPort}`;
+            webUrls.push(`${scheme}://${host}${portSuffix}`);
+          }
+
+          if (webUrls.length > 0) {
+            onProgress({
+              status: 'running',
+              progress: Math.round(assetBase + assetSlice * 0.80),
+              currentTask: `Fase 2C: Nuclei - Analisando ${webUrls.length} URLs web em ${asset.value}`
+            });
+
+            console.log(`🌐 FASE 2C: Executando Nuclei em ${webUrls.length} URLs web`);
+            try {
+              const nucleiTimeoutMs = vulnScriptTimeoutMs; // Reutilizar timeout configurado
+              const nucleiFindings = await this.runNucleiWebScan(webUrls, jobId, nucleiTimeoutMs);
+              findings.push(...nucleiFindings);
+              console.log(`✅ FASE 2C: ${nucleiFindings.length} vulnerabilidades web encontradas via Nuclei`);
+            } catch (error) {
+              console.error(`❌ FASE 2C: Erro durante scan Nuclei:`, error);
+            }
+          } else {
+            console.log(`⏭️  FASE 2C: Nenhum serviço web encontrado para análise Nuclei`);
+          }
+        } else {
+          console.log(`⏭️  FASE 2C: Varredura web desabilitada`);
+        }
+
       } catch (error) {
         console.error(`❌ Erro ao escanear ${asset.value}:`, error);
-        
+
         const errorMessage = error instanceof Error ? error.message : String(error);
         findings.push({
           type: 'error',
@@ -342,9 +412,11 @@ class JourneyExecutorService {
     console.log(`🌐 FASE 3: ${createdWebApps.length} aplicações web criadas como ativos`);
 
     // Store results
+    onProgress({ status: 'running', progress: 95, currentTask: 'Salvando resultados' });
+    const webScanWasEnabled = params.webScanEnabled === true;
     await storage.createJobResult({
       jobId,
-      stdout: `Varredura ativa concluída. ${findings.length} achados encontrados. ${createdWebApps.length} aplicações web descobertas.`,
+      stdout: `Varredura concluída. ${findings.length} achados encontrados. ${createdWebApps.length} aplicações web descobertas.${webScanWasEnabled ? ' Nuclei habilitado.' : ''}`,
       stderr: '',
       artifacts: {
         findings,
@@ -352,10 +424,11 @@ class JourneyExecutorService {
           totalAssets: assets.length,
           totalFindings: findings.length,
           webApplicationsDiscovered: createdWebApps.length,
+          webScanEnabled: webScanWasEnabled,
         },
       },
     });
-    
+
     console.log(`✅ Attack Surface concluído: ${findings.length} findings, ${createdWebApps.length} web apps criadas`);
   }
 
@@ -381,7 +454,7 @@ class JourneyExecutorService {
     console.log(`🌐 Iniciando Web Application Journey - Análise OWASP Top 10`);
     console.log(`⏱️  Timeout por processo: ${processTimeoutMinutes} minutos`);
 
-    onProgress({ status: 'running', progress: 20, currentTask: 'Carregando aplicações web' });
+    onProgress({ status: 'running', progress: 5, currentTask: 'Carregando aplicações web' });
 
     // Get web application assets
     const webApps = [];
@@ -413,13 +486,14 @@ class JourneyExecutorService {
         throw new Error('Job cancelado pelo usuário');
       }
 
+      // Distribute 5-90% evenly across web apps
+      const appProgress = Math.round(5 + (currentApp / webApps.length) * 85);
       currentApp++;
-      const baseProgress = 20 + (currentApp / webApps.length) * 70;
-      
-      onProgress({ 
-        status: 'running', 
-        progress: baseProgress, 
-        currentTask: `Analisando ${app.value} (${currentApp}/${webApps.length})` 
+
+      onProgress({
+        status: 'running',
+        progress: appProgress,
+        currentTask: `Analisando ${app.value} (${currentApp}/${webApps.length})`
       });
 
       try {
@@ -556,13 +630,13 @@ class JourneyExecutorService {
 
       onProgress({ status: 'running', progress: 80, currentTask: 'Processando resultados' });
 
-      // Store results
+      // Store results (sanitize findings to avoid duplicating large evidence data)
       await storage.createJobResult({
         jobId,
         stdout: `Análise AD concluída para domínio ${domain}. ${findings.length} achados identificados, ${testResults.length} testes executados.`,
         stderr: '',
         artifacts: {
-          findings,
+          findings: sanitizeFindingsForArtifacts(findings),
           testResults,
           summary: {
             domain,
@@ -637,8 +711,8 @@ class JourneyExecutorService {
         // Modo AD Based: Descobrir workstations via PowerShell/WinRM
         console.log('🔍 Modo AD Based: Descobrindo workstations via PowerShell/WinRM...');
         
-        if (credential.type !== 'ad') {
-          throw new Error('Para jornada AD Based é necessário usar credencial do tipo AD/LDAP');
+        if (credential.type !== 'ad' && credential.type !== 'wmi' && credential.type !== 'omi') {
+          throw new Error('Para jornada AD Based é necessário usar credencial do tipo WMI (Windows)');
         }
 
         const domainName = params.domainName || credential.domain;
@@ -1175,6 +1249,12 @@ class JourneyExecutorService {
         
         const timeout = setTimeout(() => {
           child.kill('SIGTERM');
+          // Force kill after 5s if SIGTERM doesn't work
+          setTimeout(() => {
+            if (!child.killed) {
+              child.kill('SIGKILL');
+            }
+          }, 5000);
           console.log(`⏱️ Nmap vuln scripts timeout após ${timeoutMs/60000}min para ${host}`);
           resolve([]); // Retorna vazio em caso de timeout
         }, timeoutMs);
@@ -1468,6 +1548,12 @@ class JourneyExecutorService {
           
           const timeout = setTimeout(() => {
             child.kill('SIGTERM');
+            // Force kill after 5s if SIGTERM doesn't work
+            setTimeout(() => {
+              if (!child.killed) {
+                child.kill('SIGKILL');
+              }
+            }, 5000);
             console.log(`⏱️ Nuclei timeout após ${timeoutMs/60000}min para ${url}`);
             resolve(''); // Retorna vazio em caso de timeout
           }, timeoutMs);
@@ -1590,6 +1676,7 @@ class JourneyExecutorService {
       
       const timeout = setTimeout(() => {
         child.kill('SIGTERM');
+        setTimeout(() => { if (!child.killed) child.kill('SIGKILL'); }, 5000);
         reject(new Error('Template download timeout'));
       }, 120000);
       

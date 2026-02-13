@@ -8,6 +8,7 @@ import { Schedule } from "@shared/schema";
 export default function UpcomingSchedules() {
   const { data: schedules = [], isLoading } = useQuery<Schedule[]>({
     queryKey: ["/api/schedules"],
+    refetchInterval: 30000,
   });
 
   const getScheduleIcon = (kind: string) => {
@@ -25,7 +26,8 @@ export default function UpcomingSchedules() {
     if (schedule.kind === 'once' && schedule.onceAt) {
       const date = new Date(schedule.onceAt);
       const now = new Date();
-      const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const diffMs = date.getTime() - now.getTime();
+      const diffDays = diffMs < 0 ? -1 : Math.floor(diffMs / (1000 * 60 * 60 * 24));
       
       if (diffDays === 0) {
         return `Hoje, ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;

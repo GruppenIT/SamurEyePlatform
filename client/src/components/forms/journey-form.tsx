@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   Form,
   FormControl,
@@ -46,6 +47,7 @@ interface JourneyFormProps {
 }
 
 export default function JourneyForm({ onSubmit, onCancel, isLoading = false, initialData }: JourneyFormProps) {
+  const { toast } = useToast();
   const [selectedAssets, setSelectedAssets] = useState<string[]>(
     initialData?.params?.assetIds || []
   );
@@ -70,6 +72,8 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
       description: initialData?.description || '',
       params: {
         ...initialData?.params,
+        nmapProfile: initialData?.params?.nmapProfile || 'leve',
+        webScanEnabled: initialData?.params?.webScanEnabled || false,
         edrAvType: initialData?.params?.edrAvType || 'network_based',
         sampleRate: initialData?.params?.sampleRate || '15',
         timeout: initialData?.params?.timeout || 30,
@@ -98,27 +102,12 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
 
   // Hydrate authentication state when initialData changes (e.g., when editing journey)
   useEffect(() => {
-    console.group('🔍 [DEBUG] JourneyForm Hydration');
-    console.log('1. initialData received:', JSON.stringify(initialData, null, 2));
-    console.log('2. isHydrated.current:', isHydrated.current);
-    console.log('3. credentials from query:', credentials.map(c => ({ id: c.id, name: c.name, type: c.type })));
-    console.log('4. isLoadingCredentials:', isLoadingCredentials);
-    
     if (initialData?.credentials && initialData.credentials.length > 0 && !isHydrated.current) {
-      console.log('✅ HYDRATING selectedCredentials with:', initialData.credentials);
       setSelectedCredentials(initialData.credentials);
       setEnableAuthentication(true);
       isHydrated.current = true;
-    } else {
-      console.log('❌ NOT HYDRATING. Reasons:', {
-        hasCredentials: !!initialData?.credentials,
-        credentialsLength: initialData?.credentials?.length || 0,
-        isAlreadyHydrated: isHydrated.current
-      });
     }
-    console.groupEnd();
-    
-    // Cleanup: Reset hydration flag when component unmounts
+
     return () => {
       isHydrated.current = false;
     };
@@ -136,11 +125,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
     // Validação de alvos selecionados
     if (data.type === 'attack_surface' || (data.type === 'edr_av' && form.getValues('params.edrAvType') === 'network_based')) {
       if (targetSelectionMode === 'individual' && selectedAssets.length === 0) {
-        alert('Por favor, selecione pelo menos um alvo');
+        toast({ title: "Validação", description: "Por favor, selecione pelo menos um alvo", variant: "destructive" });
         return;
       }
       if (targetSelectionMode === 'by_tag' && selectedTags.length === 0) {
-        alert('Por favor, selecione pelo menos uma TAG');
+        toast({ title: "Validação", description: "Por favor, selecione pelo menos uma TAG", variant: "destructive" });
         return;
       }
     }
@@ -155,9 +144,10 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         } else {
           params.assetIds = selectedAssets;
         }
-        params.nmapProfile = form.getValues('params.nmapProfile') || 'fast';
+        params.nmapProfile = form.getValues('params.nmapProfile') || 'leve';
         params.vulnScriptTimeout = parseInt(form.getValues('params.vulnScriptTimeout')) || 60;
-        
+        params.webScanEnabled = form.getValues('params.webScanEnabled') === true;
+
         // Add credentials if authentication is enabled
         if (enableAuthentication && selectedCredentials.length > 0) {
           (data as any).credentials = selectedCredentials;
@@ -215,386 +205,351 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
     switch (watchedType) {
       case 'attack_surface':
         return (
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <FormLabel>Modo de Seleção de Alvos</FormLabel>
-              <RadioGroup
-                value={targetSelectionMode}
-                onValueChange={(value) => setTargetSelectionMode(value as 'individual' | 'by_tag')}
-                className="flex flex-col space-y-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="individual" id="mode-individual" data-testid="radio-mode-individual" />
-                  <label htmlFor="mode-individual" className="text-sm cursor-pointer">
-                    Seleção Individual - Escolher alvos específicos
-                  </label>
+          <div className="space-y-6">
+            {/* Seção: Alvos */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">
+                Alvos
+              </h3>
+              <div className="space-y-3">
+                <FormLabel>Modo de Seleção</FormLabel>
+                <RadioGroup
+                  value={targetSelectionMode}
+                  onValueChange={(value) => setTargetSelectionMode(value as 'individual' | 'by_tag')}
+                  className="flex flex-col space-y-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="individual" id="mode-individual" data-testid="radio-mode-individual" />
+                    <label htmlFor="mode-individual" className="text-sm cursor-pointer">
+                      Seleção Individual - Escolher alvos específicos
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="by_tag" id="mode-by-tag" data-testid="radio-mode-by-tag" />
+                    <label htmlFor="mode-by-tag" className="text-sm cursor-pointer">
+                      Seleção por TAG - Escolher grupos de alvos
+                    </label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {targetSelectionMode === 'individual' ? (
+                <div>
+                  <FormLabel>Alvos Selecionados</FormLabel>
+                  <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                    {assets.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        Nenhum alvo disponível. Crie alvos primeiro.
+                      </p>
+                    ) : (
+                      assets.map((asset) => (
+                        <div key={asset.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={asset.id}
+                            checked={selectedAssets.includes(asset.id)}
+                            onCheckedChange={(checked) =>
+                              handleAssetSelection(asset.id, checked as boolean)
+                            }
+                            data-testid={`checkbox-asset-${asset.id}`}
+                          />
+                          <label htmlFor={asset.id} className="text-sm cursor-pointer">
+                            {asset.value} ({asset.type})
+                          </label>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="by_tag" id="mode-by-tag" data-testid="radio-mode-by-tag" />
-                  <label htmlFor="mode-by-tag" className="text-sm cursor-pointer">
-                    Seleção por TAG - Escolher grupos de alvos com TAGs
-                  </label>
-                </div>
-              </RadioGroup>
-              <FormDescription>
-                Escolha como selecionar os alvos para a varredura
-              </FormDescription>
+              ) : (
+                <TagSelector
+                  selectedTags={selectedTags}
+                  onTagsChange={setSelectedTags}
+                />
+              )}
             </div>
 
-            {targetSelectionMode === 'individual' ? (
-              <div>
-                <FormLabel>Alvos Selecionados</FormLabel>
-                <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
-                  {assets.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      Nenhum alvo disponível. Crie alvos primeiro.
-                    </p>
-                  ) : (
-                    assets.map((asset) => (
-                      <div key={asset.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={asset.id}
-                          checked={selectedAssets.includes(asset.id)}
-                          onCheckedChange={(checked) => 
-                            handleAssetSelection(asset.id, checked as boolean)
-                          }
-                          data-testid={`checkbox-asset-${asset.id}`}
-                        />
-                        <label htmlFor={asset.id} className="text-sm cursor-pointer">
-                          {asset.value} ({asset.type})
-                        </label>
-                      </div>
-                    ))
+            {/* Seção: Configuração da Varredura */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">
+                Configuração da Varredura
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="params.nmapProfile"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Perfil</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || 'leve'}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-nmap-profile">
+                            <SelectValue placeholder="Selecione o perfil" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="leve">Leve (Top 1000 portas)</SelectItem>
+                          <SelectItem value="profundo">Profundo (65.536 portas)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </div>
-                <FormDescription>
-                  Selecione os alvos individualmente
-                </FormDescription>
+                />
+
+                <FormField
+                  control={form.control}
+                  name="params.vulnScriptTimeout"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Timeout CVE (min)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="5"
+                          max="180"
+                          placeholder="60"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 60)}
+                          data-testid="input-vuln-timeout"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            ) : (
-              <TagSelector
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-              />
-            )}
+            </div>
 
-            <FormField
-              control={form.control}
-              name="params.nmapProfile"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Perfil Nmap</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue="fast">
+            {/* Seção: Opções de Detecção */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">
+                Opções de Detecção
+              </h3>
+
+              <FormField
+                control={form.control}
+                name="enableCveDetection"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
                     <FormControl>
-                      <SelectTrigger data-testid="select-nmap-profile">
-                        <SelectValue placeholder="Selecione o perfil" />
-                      </SelectTrigger>
+                      <Checkbox
+                        checked={field.value !== false}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-enable-cve-detection"
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="fast">Rápido (Top 1000 portas)</SelectItem>
-                      <SelectItem value="comprehensive">Completo (Todas as portas)</SelectItem>
-                      <SelectItem value="stealth">Stealth (SYN scan)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Buscar CVEs Associados</FormLabel>
+                      <FormDescription>
+                        Busca CVEs via NIST NVD e validação ativa com nmap vuln scripts
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="params.vulnScriptTimeout"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Timeout de Validação de CVEs (minutos)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min="5"
-                      max="180"
-                      placeholder="60"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 60)}
-                      data-testid="input-vuln-timeout"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Tempo máximo para Fase 2 (nmap vuln scripts) por host. Padrão: 60 minutos
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="params.webScanEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value === true}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-web-scan-enabled"
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Avaliar Aplicações Web</FormLabel>
+                      <FormDescription>
+                        Executa Nuclei nas URLs HTTP/HTTPS descobertas (OWASP Top 10, misconfigurations)
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="enableCveDetection"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value !== false}
-                      onCheckedChange={field.onChange}
-                      data-testid="checkbox-enable-cve-detection"
-                    />
-                  </FormControl>
+            {/* Seção: Varredura Autenticada */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">
+                Varredura Autenticada (Opcional)
+              </h3>
+
+              <div className="rounded-md border p-4 space-y-4">
+                <div className="flex flex-row items-start space-x-3 space-y-0">
+                  <Checkbox
+                    checked={enableAuthentication}
+                    onCheckedChange={(checked) => setEnableAuthentication(checked === true)}
+                    data-testid="checkbox-enable-authentication"
+                  />
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Buscar CVEs Associados (Fase 2)
-                    </FormLabel>
+                    <FormLabel>Habilitar Autenticação</FormLabel>
                     <FormDescription>
-                      Quando marcado, após a descoberta de hosts (Fase 1), o sistema buscará CVEs associados às versões detectadas usando a base NIST NVD. Desmarcando, apenas a Fase 1 será executada.
+                      Coleta dados do SO via WMI/SSH para enriquecer hosts e melhorar precisão de CVEs
                     </FormDescription>
                   </div>
-                </FormItem>
-              )}
-            />
-
-            <div className="rounded-md border p-4 space-y-4">
-              <div className="flex flex-row items-start space-x-3 space-y-0">
-                <Checkbox
-                  checked={enableAuthentication}
-                  onCheckedChange={(checked) => setEnableAuthentication(checked === true)}
-                  data-testid="checkbox-enable-authentication"
-                />
-                <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    Varredura Autenticada (Fase 1.5 - Opcional)
-                  </FormLabel>
-                  <FormDescription>
-                    Habilita coleta de dados detalhados usando credenciais (WMI/SSH). Melhora precisão na detecção de CVEs em até 74%, eliminando falsos positivos através de matching exato de versões de OS e patches instalados.
-                  </FormDescription>
                 </div>
-              </div>
 
-              {enableAuthentication && (
-                <div className="space-y-4 pl-7 pt-2">
-                  <div className="text-sm text-muted-foreground bg-muted/30 rounded-md p-3 border">
-                    <strong>Como funciona:</strong>
-                    <ul className="list-disc list-inside mt-1 space-y-1">
-                      <li>WMI (Windows): Coleta versão exata do OS, patches KB instalados, aplicações</li>
-                      <li>SSH (Linux): Coleta kernel, versão do OS, pacotes instalados</li>
-                      <li>Múltiplas credenciais por protocolo com prioridade (0 = maior prioridade)</li>
-                      <li>Falha silenciosa: se credencial não funcionar, continua sem autenticação</li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Credenciais Configuradas ({selectedCredentials.length})</FormLabel>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedCredentials(prev => [...prev, {
-                            credentialId: '',
-                            protocol: 'wmi',
-                            priority: prev.length
-                          }]);
-                        }}
-                        data-testid="button-add-credential"
-                      >
-                        + Adicionar Credencial
-                      </Button>
-                    </div>
-
-                    {selectedCredentials.length === 0 && (
-                      <div className="text-sm text-muted-foreground text-center py-4 border-2 border-dashed rounded-md">
-                        Nenhuma credencial configurada. Clique em "Adicionar Credencial" para começar.
-                      </div>
-                    )}
-
-                    {isLoadingCredentials && selectedCredentials.length > 0 && (
-                      <div className="text-sm text-muted-foreground text-center py-4">
-                        Carregando opções de credenciais...
-                      </div>
-                    )}
-
-                    {!isLoadingCredentials && selectedCredentials.map((cred, index) => {
-                      const filteredCredentials = credentials.filter(c => 
-                        (cred.protocol === 'wmi' && c.type === 'wmi') ||
-                        (cred.protocol === 'ssh' && c.type === 'ssh')
-                      );
-                      
-                      console.log(`🔍 [DEBUG] Credential ${index}:`, {
-                        protocol: cred.protocol,
-                        credentialId: cred.credentialId,
-                        priority: cred.priority,
-                        availableOptions: filteredCredentials.map(c => ({ id: c.id, name: c.name })),
-                        matchFound: filteredCredentials.some(c => c.id === cred.credentialId)
-                      });
-                      
-                      return (
-                      <div key={index} className="flex gap-3 items-start border rounded-md p-3 bg-muted/10">
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">Protocolo</label>
-                            <Select
-                              value={cred.protocol}
-                              onValueChange={(value: 'wmi' | 'ssh' | 'snmp') => {
-                                console.log(`📝 Protocol changed to: ${value}`);
-                                setSelectedCredentials(prev => {
-                                  const updated = [...prev];
-                                  updated[index].protocol = value;
-                                  return updated;
-                                });
-                              }}
-                            >
-                              <SelectTrigger data-testid={`select-protocol-${index}`}>
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="wmi">WMI (Windows)</SelectItem>
-                                <SelectItem value="ssh">SSH (Linux/Unix)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">Credencial</label>
-                            <Select
-                              value={cred.credentialId}
-                              onValueChange={(value) => {
-                                console.log(`📝 Credential changed to: ${value}`);
-                                setSelectedCredentials(prev => {
-                                  const updated = [...prev];
-                                  updated[index].credentialId = value;
-                                  return updated;
-                                });
-                              }}
-                            >
-                              <SelectTrigger data-testid={`select-credential-${index}`}>
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {filteredCredentials.map((credential) => (
-                                  <SelectItem key={credential.id} value={credential.id}>
-                                    {credential.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">Prioridade</label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max="99"
-                              value={cred.priority}
-                              onChange={(e) => {
-                                setSelectedCredentials(prev => {
-                                  const updated = [...prev];
-                                  updated[index].priority = parseInt(e.target.value) || 0;
-                                  return updated;
-                                });
-                              }}
-                              data-testid={`input-priority-${index}`}
-                              placeholder="0"
-                            />
-                          </div>
-                        </div>
-
+                {enableAuthentication && (
+                  <div className="space-y-4 pl-7 pt-2">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <FormLabel>Credenciais ({selectedCredentials.length})</FormLabel>
                         <Button
                           type="button"
                           size="sm"
-                          variant="ghost"
+                          variant="outline"
                           onClick={() => {
-                            setSelectedCredentials(prev => prev.filter((_, i) => i !== index));
+                            setSelectedCredentials(prev => [...prev, {
+                              credentialId: '',
+                              protocol: 'wmi',
+                              priority: prev.length
+                            }]);
                           }}
-                          data-testid={`button-remove-credential-${index}`}
-                          className="mt-6"
+                          data-testid="button-add-credential"
                         >
-                          ✕
+                          + Adicionar
                         </Button>
                       </div>
-                    );
-                    })}
 
-                    {selectedCredentials.length > 0 && (
-                      <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/20 rounded-md p-2 border border-blue-200 dark:border-blue-900">
-                        💡 <strong>Dica:</strong> Prioridade 0 = mais alta. O sistema tenta credenciais em ordem crescente de prioridade. Ao suceder, para de tentar outras credenciais daquele protocolo.
-                      </div>
-                    )}
+                      {selectedCredentials.length === 0 && (
+                        <div className="text-sm text-muted-foreground text-center py-4 border-2 border-dashed rounded-md">
+                          Clique em "+ Adicionar" para configurar credenciais.
+                        </div>
+                      )}
+
+                      {isLoadingCredentials && selectedCredentials.length > 0 && (
+                        <div className="text-sm text-muted-foreground text-center py-4">
+                          Carregando credenciais...
+                        </div>
+                      )}
+
+                      {!isLoadingCredentials && selectedCredentials.map((cred, index) => {
+                        const filteredCredentials = credentials.filter(c =>
+                          (cred.protocol === 'wmi' && (c.type === 'wmi' || c.type === 'omi' || c.type === 'ad')) ||
+                          (cred.protocol === 'ssh' && c.type === 'ssh')
+                        );
+
+                        return (
+                        <div key={index} className="flex gap-3 items-start border rounded-md p-3 bg-muted/10">
+                          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-muted-foreground">Protocolo</label>
+                              <Select
+                                value={cred.protocol}
+                                onValueChange={(value: 'wmi' | 'ssh' | 'snmp') => {
+                                  setSelectedCredentials(prev =>
+                                    prev.map((item, i) => i === index ? { ...item, protocol: value } : item)
+                                  );
+                                }}
+                              >
+                                <SelectTrigger data-testid={`select-protocol-${index}`}>
+                                  <SelectValue placeholder="Selecione..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="wmi">WMI (Windows)</SelectItem>
+                                  <SelectItem value="ssh">SSH (Linux)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-muted-foreground">Credencial</label>
+                              <Select
+                                value={cred.credentialId}
+                                onValueChange={(value) => {
+                                  setSelectedCredentials(prev =>
+                                    prev.map((item, i) => i === index ? { ...item, credentialId: value } : item)
+                                  );
+                                }}
+                              >
+                                <SelectTrigger data-testid={`select-credential-${index}`}>
+                                  <SelectValue placeholder="Selecione..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {filteredCredentials.map((credential) => (
+                                    <SelectItem key={credential.id} value={credential.id}>
+                                      {credential.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-muted-foreground">Prioridade</label>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="99"
+                                value={cred.priority}
+                                onChange={(e) => {
+                                  setSelectedCredentials(prev =>
+                                    prev.map((item, i) => i === index ? { ...item, priority: parseInt(e.target.value) || 0 } : item)
+                                  );
+                                }}
+                                data-testid={`input-priority-${index}`}
+                                placeholder="0"
+                              />
+                            </div>
+                          </div>
+
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setSelectedCredentials(prev => prev.filter((_, i) => i !== index));
+                            }}
+                            data-testid={`button-remove-credential-${index}`}
+                            className="mt-5"
+                          >
+                            ✕
+                          </Button>
+                        </div>
+                      );
+                      })}
+
+                      {selectedCredentials.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Prioridade 0 = mais alta. O sistema tenta em ordem crescente.
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         );
 
       case 'ad_security':
         return (
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="params.domain"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Domínio AD</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ex: corp.local"
-                      {...field}
-                      data-testid="input-ad-domain"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    FQDN do domínio Active Directory
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <div className="space-y-6">
+            {/* Seção: Domínio e Conexão */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">
+                Domínio e Conexão
+              </h3>
 
-            <FormField
-              control={form.control}
-              name="params.credentialId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Credencial</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger data-testid="select-ad-credential">
-                        <SelectValue placeholder="Selecione uma credencial" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {credentials
-                        .filter(cred => cred.type === 'wmi' || cred.type === 'omi' || cred.type === 'ad')
-                        .map((credential) => (
-                          <SelectItem key={credential.id} value={credential.id}>
-                            {credential.name} ({credential.type})
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Credencial com privilégios de leitura no AD (recomendado: tipo AD/LDAP)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="params.primaryDC"
+                name="params.domain"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>DC Primário (Opcional)</FormLabel>
+                    <FormLabel>Domínio AD</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Ex: 192.168.1.10"
+                        placeholder="Ex: corp.local"
                         {...field}
-                        data-testid="input-primary-dc"
+                        data-testid="input-ad-domain"
                       />
                     </FormControl>
                     <FormDescription>
-                      IP do DC primário (autodescoberta se vazio)
+                      FQDN do domínio Active Directory
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -603,32 +558,85 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
 
               <FormField
                 control={form.control}
-                name="params.secondaryDC"
+                name="params.credentialId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>DC Secundário (Opcional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ex: 192.168.1.11"
-                        {...field}
-                        data-testid="input-secondary-dc"
-                      />
-                    </FormControl>
+                    <FormLabel>Credencial WMI</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-ad-credential">
+                          <SelectValue placeholder="Selecione uma credencial" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {credentials
+                          .filter(cred => cred.type === 'wmi' || cred.type === 'omi' || cred.type === 'ad')
+                          .map((credential) => (
+                            <SelectItem key={credential.id} value={credential.id}>
+                              {credential.name}{credential.domain ? ` (${credential.domain})` : ''}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                     <FormDescription>
-                      IP do DC secundário (fallback)
+                      Conecta via WinRM para executar PowerShell no DC
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="params.primaryDC"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>DC Primário (Opcional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ex: 192.168.1.10"
+                          {...field}
+                          data-testid="input-primary-dc"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Autodescoberta se vazio
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="params.secondaryDC"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>DC Secundário (Opcional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ex: 192.168.1.11"
+                          {...field}
+                          data-testid="input-secondary-dc"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Fallback
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
-            <div>
-              <FormLabel>Categorias de Testes de Segurança AD</FormLabel>
-              <div className="mt-3 space-y-3 border rounded-md p-4 bg-muted/10">
-                <div className="text-sm font-medium text-foreground mb-2">
-                  Selecione as categorias para executar (28 testes organizados):
-                </div>
+            {/* Seção: Categorias de Testes */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">
+                Categorias de Testes (28 testes)
+              </h3>
+              <div className="space-y-3 border rounded-md p-4 bg-muted/10">
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                   <FormField
@@ -764,26 +772,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                   />
                 </div>
 
-                <div className="mt-4 pt-3 border-t">
-                  <div className="text-sm font-medium text-foreground mb-2">
-                    Total: 28 testes de segurança AD organizados em 6 categorias
-                  </div>
-                  <div className="grid grid-cols-1 gap-1 text-xs">
-                    <div className="text-red-600 dark:text-red-400">
-                      🔴 5 testes críticos: PrintNightmare, KRBTGT, SMBv1, LDAP, Schema
-                    </div>
-                    <div className="text-orange-600 dark:text-orange-400">
-                      🟠 10 testes de contas: SPNs, senhas, privilégios, trusts
-                    </div>
-                    <div className="text-blue-600 dark:text-blue-400">
-                      🔵 13 testes de configuração, Kerberos, GPOs e contas inativas
-                    </div>
-                  </div>
-                </div>
               </div>
-              <FormDescription>
-                Selecione os módulos de análise para executar. Os limites são configuráveis nas configurações do sistema.
-              </FormDescription>
             </div>
           </div>
         );
@@ -825,16 +814,16 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                   name="params.credentialId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Credencial LDAP/AD</FormLabel>
+                      <FormLabel>Credencial WMI</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-ad-credential">
-                            <SelectValue placeholder="Selecione uma credencial AD" />
+                            <SelectValue placeholder="Selecione uma credencial WMI" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {credentials
-                            .filter(cred => cred.type === 'ad')
+                            .filter(cred => cred.type === 'wmi' || cred.type === 'omi' || cred.type === 'ad')
                             .map((credential) => (
                               <SelectItem key={credential.id} value={credential.id}>
                                 {credential.name}{credential.domain ? ` (${credential.domain})` : ''}
@@ -843,7 +832,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Credencial com privilégios para consultar LDAP e acessar compartilhamentos administrativos
+                        Credencial WMI com privilégios para consultar AD e acessar compartilhamentos administrativos
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -894,13 +883,13 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                             .filter(cred => cred.type === 'wmi' || cred.type === 'omi' || cred.type === 'ad')
                             .map((credential) => (
                               <SelectItem key={credential.id} value={credential.id}>
-                                {credential.name} ({credential.type})
+                                {credential.name}{credential.domain ? ` (${credential.domain})` : ''}
                               </SelectItem>
                             ))}
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Credencial com privilégios administrativos para acessar compartilhamentos C$
+                        Credencial WMI com privilégios administrativos para acessar compartilhamentos C$
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
