@@ -324,20 +324,21 @@ class HostService {
    */
   async findHostsByTarget(target: string): Promise<Host[]> {
     const isIpAddress = /^\d+\.\d+\.\d+\.\d+$/.test(target);
-    
+
     if (isIpAddress) {
-      // Search by IP
-      const host = await storage.findHostByTarget(target);
+      // Search by IP - pass target as both name and ip parameter
+      // so storage searches the ips JSON array, not just the host name
+      const host = await storage.findHostByTarget(target, target);
       return host ? [host] : [];
     } else {
       // Search by name first
       let host = await storage.getHostByName(target.toLowerCase());
-      
+
       // If not found by name, search in aliases (for renamed hosts)
       if (!host) {
         host = await storage.findHostByTarget(target.toLowerCase());
       }
-      
+
       return host ? [host] : [];
     }
   }
