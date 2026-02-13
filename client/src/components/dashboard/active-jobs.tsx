@@ -1,7 +1,18 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Search, Users, Worm, X, AlertCircle, Cpu } from "lucide-react";
 import { Job } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -9,7 +20,8 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function ActiveJobs() {
   const { toast } = useToast();
-  
+  const [cancelJobId, setCancelJobId] = useState<string | null>(null);
+
   const { data: runningJobs = [], isLoading } = useQuery<Job[]>({
     queryKey: ["/api/dashboard/running-jobs"],
     refetchInterval: 5000, // Refresh every 5 seconds
@@ -18,7 +30,7 @@ export default function ActiveJobs() {
   // Função para cancelar job
   const handleCancelJob = async (jobId: string) => {
     try {
-      await apiRequest(`/api/jobs/${jobId}/cancel-process`, 'POST');
+      await apiRequest('POST', `/api/jobs/${jobId}/cancel-process`);
       
       toast({
         title: "Job cancelado",
@@ -132,9 +144,10 @@ export default function ActiveJobs() {
         ) : (
           <div className="space-y-4">
             {runningJobs.map((job) => {
-              const Icon = getJobIcon();
-              const iconBg = getJobIconBg();
-              const iconColor = getJobIconColor();
+              const journeyType = (job as any).journeyType || (job as any).journey?.type;
+              const Icon = getJobIcon(journeyType);
+              const iconBg = getJobIconBg(journeyType);
+              const iconColor = getJobIconColor(journeyType);
               const pidInfo = extractPidInfo(job.currentTask || undefined);
               
               return (
@@ -162,7 +175,7 @@ export default function ActiveJobs() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleCancelJob(job.id)}
+                      onClick={() => setCancelJobId(job.id)}
                       className="h-8 px-3 text-destructive hover:text-destructive-foreground hover:bg-destructive"
                       data-testid={`button-cancel-${job.id}`}
                     >
@@ -205,6 +218,31 @@ export default function ActiveJobs() {
           </div>
         )}
       </CardContent>
+
+      <AlertDialog open={!!cancelJobId} onOpenChange={(open) => !open && setCancelJobId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Job</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja cancelar este job? Os processos em execução (nmap, nuclei, etc.) serão interrompidos e os resultados parciais serão descartados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (cancelJobId) {
+                  handleCancelJob(cancelJobId);
+                  setCancelJobId(null);
+                }
+              }}
+            >
+              Sim, Cancelar Job
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

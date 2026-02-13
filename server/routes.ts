@@ -11,18 +11,34 @@ import { encryptionService } from "./services/encryption";
 import { processTracker } from "./services/processTracker";
 import { emailService } from "./services/emailService";
 import { notificationService } from "./services/notificationService";
-import { 
-  insertAssetSchema, 
-  insertCredentialSchema, 
-  insertJourneySchema, 
+import {
+  insertAssetSchema,
+  insertCredentialSchema,
+  insertJourneySchema,
   insertScheduleSchema,
   createScheduleSchema,
   registerUserSchema,
   insertHostSchema,
   changeThreatStatusSchema,
   insertEmailSettingsSchema,
-  insertNotificationPolicySchema
+  insertNotificationPolicySchema,
+  userRoleEnum,
+  insertJourneyCredentialSchema,
 } from "@shared/schema";
+import { z } from "zod";
+// Simple cookie parser (avoids extra dependency)
+function parseCookies(cookieHeader: string): Record<string, string> {
+  const cookies: Record<string, string> = {};
+  cookieHeader.split(';').forEach(pair => {
+    const idx = pair.indexOf('=');
+    if (idx > 0) {
+      const key = pair.substring(0, idx).trim();
+      const val = decodeURIComponent(pair.substring(idx + 1).trim());
+      cookies[key] = val;
+    }
+  });
+  return cookies;
+}
 
 // Admin role check middleware
 function requireAdmin(req: any, res: any, next: any) {
@@ -31,6 +47,73 @@ function requireAdmin(req: any, res: any, next: any) {
   }
   next();
 }
+
+// Operator or Admin role check middleware (blocks read_only from write operations)
+function requireOperator(req: any, res: any, next: any) {
+  const role = req.user?.role;
+  if (role !== 'global_administrator' && role !== 'operator') {
+    return res.status(403).json({ message: "Acesso negado. Usuários somente-leitura não podem realizar esta operação." });
+  }
+  next();
+}
+
+// Validation schemas for PATCH operations
+const patchAssetSchema = z.object({
+  type: z.enum(['host', 'range', 'web_application']).optional(),
+  value: z.string().min(1).optional(),
+  tags: z.array(z.string()).optional(),
+}).strict();
+
+const patchJourneySchema = z.object({
+  name: z.string().min(1).optional(),
+  type: z.enum(['attack_surface', 'ad_security', 'edr_av', 'web_application']).optional(),
+  description: z.string().optional(),
+  params: z.record(z.any()).optional(),
+  targetSelectionMode: z.enum(['individual', 'by_tag']).optional(),
+  selectedTags: z.array(z.string()).optional(),
+  credentials: z.array(z.object({
+    credentialId: z.string().uuid(),
+    protocol: z.enum(['ssh', 'wmi', 'snmp']),
+    priority: z.number().int().min(0).default(0),
+  })).optional(),
+}).strict();
+
+const patchCredentialSchema = z.object({
+  name: z.string().min(1).optional(),
+  type: z.enum(['ssh', 'wmi', 'omi', 'ad']).optional(),
+  username: z.string().min(1).optional(),
+  secret: z.string().optional(),
+  hostOverride: z.string().nullable().optional(),
+  port: z.number().int().positive().nullable().optional(),
+  domain: z.string().nullable().optional(),
+}).strict();
+
+const patchThreatSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  severity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  assignedTo: z.string().nullable().optional(),
+}).strict();
+
+// Validate role against enum values
+const validRoles = userRoleEnum.enumValues;
+
+// HTML sanitization for email content
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Journey credential validation schema
+const journeyCredentialInputSchema = z.object({
+  credentialId: z.string().uuid("ID de credencial inválido"),
+  protocol: z.enum(['ssh', 'wmi', 'snmp'] as const, { errorMap: () => ({ message: "Protocolo inválido" }) }),
+  priority: z.number().int().min(0).default(0),
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -56,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth routes are now handled in localAuth.ts
 
-  // Dashboard routes
+  // Dashboard routes (legacy - kept for backward compat)
   app.get('/api/dashboard/metrics', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const metrics = await storage.getDashboardMetrics();
@@ -85,6 +168,267 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao buscar ameaças recentes:", error);
       res.status(500).json({ message: "Falha ao buscar ameaças" });
+    }
+  });
+
+  // ===================== POSTURE & REPORTS APIs =====================
+
+  // Posture score: consolidated risk score + 30-day history
+  app.get('/api/posture/score', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const hosts = await storage.getHosts();
+      const hostsWithRisk = hosts.filter(h => h.riskScore != null && h.riskScore > 0);
+      const avgRisk = hostsWithRisk.length > 0
+        ? hostsWithRisk.reduce((sum, h) => sum + (h.riskScore || 0), 0) / hostsWithRisk.length
+        : 0;
+      const postureScore = Math.round(100 - avgRisk);
+
+      // 30-day history from host_risk_history
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const historyRows = await db.execute(sql`
+        SELECT DATE(recorded_at) as day, AVG(risk_score) as avg_risk
+        FROM host_risk_history
+        WHERE recorded_at >= ${thirtyDaysAgo}
+        GROUP BY DATE(recorded_at)
+        ORDER BY day ASC
+      `);
+
+      const history = (historyRows.rows || []).map((r: any) => ({
+        day: r.day,
+        score: Math.round(100 - Number(r.avg_risk || 0)),
+      }));
+
+      res.json({
+        score: postureScore,
+        totalHosts: hosts.length,
+        hostsAtRisk: hostsWithRisk.length,
+        history,
+      });
+    } catch (error) {
+      console.error("Erro ao calcular postura:", error);
+      res.status(500).json({ message: "Falha ao calcular postura" });
+    }
+  });
+
+  // Threat stats grouped by category + severity
+  app.get('/api/threats/stats-by-category', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const rows = await db.execute(sql`
+        SELECT
+          COALESCE(category, 'uncategorized') as category,
+          severity,
+          status,
+          COUNT(*)::int as count
+        FROM threats
+        GROUP BY category, severity, status
+      `);
+      // Organize into { category: { severity: { status: count } } }
+      const result: Record<string, any> = {};
+      for (const r of (rows.rows || []) as any[]) {
+        if (!result[r.category]) result[r.category] = { open: 0, total: 0, critical: 0, high: 0 };
+        const cat = result[r.category];
+        cat.total += r.count;
+        if (r.status === 'open') cat.open += r.count;
+        if (r.severity === 'critical') cat.critical += r.count;
+        if (r.severity === 'high') cat.high += r.count;
+      }
+      res.json(result);
+    } catch (error) {
+      console.error("Erro ao buscar stats por categoria:", error);
+      res.status(500).json({ message: "Falha ao buscar stats" });
+    }
+  });
+
+  // Activity feed: unified recent activity
+  app.get('/api/activity/feed', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 15;
+
+      // Recent threats (critical/high)
+      const recentThreats = await db.execute(sql`
+        SELECT id, title, severity, status, created_at as "createdAt", 'threat' as type
+        FROM threats
+        WHERE severity IN ('critical', 'high')
+        ORDER BY created_at DESC
+        LIMIT ${Math.ceil(limit / 2)}
+      `);
+
+      // Recent jobs
+      const recentJobs = await db.execute(sql`
+        SELECT id, status, current_task as "currentTask", journey_id as "journeyId",
+               started_at as "startedAt", finished_at as "finishedAt", 'job' as type
+        FROM jobs
+        ORDER BY created_at DESC
+        LIMIT ${Math.ceil(limit / 2)}
+      `);
+
+      // Merge and sort by date
+      const feed = [
+        ...(recentThreats.rows || []).map((r: any) => ({
+          type: 'threat' as const,
+          id: r.id,
+          title: r.title,
+          severity: r.severity,
+          status: r.status,
+          timestamp: r.createdAt,
+        })),
+        ...(recentJobs.rows || []).map((r: any) => ({
+          type: 'job' as const,
+          id: r.id,
+          status: r.status,
+          task: r.currentTask,
+          journeyId: r.journeyId,
+          timestamp: r.finishedAt || r.startedAt,
+        })),
+      ]
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, limit);
+
+      res.json(feed);
+    } catch (error) {
+      console.error("Erro ao buscar feed:", error);
+      res.status(500).json({ message: "Falha ao buscar feed" });
+    }
+  });
+
+  // Threat trend: count by day/week grouped by severity
+  app.get('/api/reports/threat-trend', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const periodDays = parseInt(req.query.period as string) || 30;
+      const since = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000);
+
+      const rows = await db.execute(sql`
+        SELECT DATE(created_at) as day, severity, COUNT(*)::int as count
+        FROM threats
+        WHERE created_at >= ${since}
+        GROUP BY DATE(created_at), severity
+        ORDER BY day ASC
+      `);
+
+      // Group by day
+      const byDay: Record<string, Record<string, number>> = {};
+      for (const r of (rows.rows || []) as any[]) {
+        const dayStr = String(r.day).slice(0, 10);
+        if (!byDay[dayStr]) byDay[dayStr] = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+        byDay[dayStr][r.severity] = r.count;
+      }
+
+      const trend = Object.entries(byDay).map(([day, counts]) => ({ day, ...counts }));
+      res.json(trend);
+    } catch (error) {
+      console.error("Erro ao buscar trend:", error);
+      res.status(500).json({ message: "Falha ao buscar trend" });
+    }
+  });
+
+  // Summary by journey type with MTTR
+  app.get('/api/reports/summary-by-journey', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const periodDays = parseInt(req.query.period as string) || 30;
+      const since = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000);
+
+      const rows = await db.execute(sql`
+        SELECT
+          COALESCE(category, 'uncategorized') as category,
+          COUNT(*)::int as total,
+          COUNT(*) FILTER (WHERE status = 'open')::int as open,
+          COUNT(*) FILTER (WHERE severity = 'critical')::int as critical,
+          COUNT(*) FILTER (WHERE severity = 'high')::int as high,
+          COUNT(*) FILTER (WHERE status IN ('closed', 'mitigated') AND created_at >= ${since})::int as resolved,
+          AVG(EXTRACT(EPOCH FROM (status_changed_at - created_at)) / 86400)
+            FILTER (WHERE status IN ('closed', 'mitigated') AND created_at >= ${since}) as mttr_days
+        FROM threats
+        GROUP BY category
+      `);
+
+      const summary = (rows.rows || []).map((r: any) => ({
+        category: r.category,
+        total: r.total,
+        open: r.open,
+        critical: r.critical,
+        high: r.high,
+        resolved: r.resolved,
+        mttrDays: r.mttr_days ? Math.round(Number(r.mttr_days) * 10) / 10 : null,
+      }));
+
+      res.json(summary);
+    } catch (error) {
+      console.error("Erro ao buscar summary:", error);
+      res.status(500).json({ message: "Falha ao buscar summary" });
+    }
+  });
+
+  // AD Security history: score evolution per execution
+  app.get('/api/reports/ad-security/history', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const rows = await db.execute(sql`
+        SELECT
+          r.job_id as "jobId",
+          j.started_at as "executedAt",
+          COUNT(*)::int as total_tests,
+          COUNT(*) FILTER (WHERE r.status = 'pass')::int as passed,
+          COUNT(*) FILTER (WHERE r.status = 'fail')::int as failed,
+          COUNT(*) FILTER (WHERE r.severity = 'critical' AND r.status = 'fail')::int as critical_failures
+        FROM ad_security_test_results r
+        JOIN jobs j ON j.id = r.job_id
+        GROUP BY r.job_id, j.started_at
+        ORDER BY j.started_at DESC
+        LIMIT 20
+      `);
+
+      const history = (rows.rows || []).map((r: any) => ({
+        jobId: r.jobId,
+        executedAt: r.executedAt,
+        totalTests: r.total_tests,
+        passed: r.passed,
+        failed: r.failed,
+        criticalFailures: r.critical_failures,
+        score: r.total_tests > 0 ? Math.round((r.passed / r.total_tests) * 100) : 0,
+      }));
+
+      res.json(history);
+    } catch (error) {
+      console.error("Erro ao buscar histórico AD:", error);
+      res.status(500).json({ message: "Falha ao buscar histórico AD" });
+    }
+  });
+
+  // EDR/AV coverage: detection rates per execution
+  app.get('/api/reports/edr-coverage', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      // Get edr_av jobs with their results
+      const rows = await db.execute(sql`
+        SELECT
+          j.id as "jobId",
+          j.started_at as "executedAt",
+          jr.artifacts
+        FROM jobs j
+        JOIN journeys jy ON jy.id = j.journey_id
+        LEFT JOIN job_results jr ON jr.job_id = j.id
+        WHERE jy.type = 'edr_av' AND j.status = 'completed'
+        ORDER BY j.started_at DESC
+        LIMIT 20
+      `);
+
+      const history = (rows.rows || []).map((r: any) => {
+        const stats = r.artifacts?.statistics || {};
+        return {
+          jobId: r.jobId,
+          executedAt: r.executedAt,
+          totalDiscovered: stats.totalDiscovered || 0,
+          tested: stats.successfulDeployments || 0,
+          protected: stats.eicarRemovedCount || 0,
+          unprotected: stats.eicarPersistedCount || 0,
+          rate: stats.successfulDeployments > 0
+            ? Math.round((stats.eicarRemovedCount || 0) / stats.successfulDeployments * 100)
+            : 0,
+        };
+      });
+
+      res.json(history);
+    } catch (error) {
+      console.error("Erro ao buscar cobertura EDR:", error);
+      res.status(500).json({ message: "Falha ao buscar cobertura EDR" });
     }
   });
 
@@ -423,7 +767,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/assets', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/assets', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const assetData = insertAssetSchema.parse(req.body);
@@ -446,13 +790,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/assets/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/assets/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-      const updates = req.body;
-      
+
+      // Validate allowed fields only
+      const updates = patchAssetSchema.parse(req.body);
+
       const beforeAsset = await storage.getAsset(id);
+      if (!beforeAsset) {
+        return res.status(404).json({ message: "Ativo não encontrado" });
+      }
       const asset = await storage.updateAsset(id, updates);
       
       await storage.logAudit({
@@ -471,7 +820,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/assets/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.delete('/api/assets/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -563,10 +912,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AD Security Scorecard - aggregated security metrics from latest test results
+  app.get('/api/hosts/:id/ad-scorecard', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const host = await storage.getHost(id);
+      if (!host) {
+        return res.status(404).json({ message: "Host não encontrado" });
+      }
+
+      const testResults = await storage.getAdSecurityLatestTestResults(id);
+      if (testResults.length === 0) {
+        return res.json(null);
+      }
+
+      // Severity weights for score calculation
+      const severityWeight: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 };
+
+      // Aggregate per category
+      const categories: Record<string, { total: number; passed: number; failed: number; error: number; skipped: number; maxWeight: number; failedWeight: number }> = {};
+      let totalWeighted = 0;
+      let failedWeighted = 0;
+      let totalPassed = 0;
+      let totalFailed = 0;
+      let totalError = 0;
+      let totalSkipped = 0;
+
+      for (const test of testResults) {
+        const cat = test.category;
+        if (!categories[cat]) {
+          categories[cat] = { total: 0, passed: 0, failed: 0, error: 0, skipped: 0, maxWeight: 0, failedWeight: 0 };
+        }
+        const w = severityWeight[test.severityHint] || 1;
+        categories[cat].total++;
+        categories[cat].maxWeight += w;
+        totalWeighted += w;
+
+        if (test.status === 'pass') {
+          categories[cat].passed++;
+          totalPassed++;
+        } else if (test.status === 'fail') {
+          categories[cat].failed++;
+          categories[cat].failedWeight += w;
+          failedWeighted += w;
+          totalFailed++;
+        } else if (test.status === 'error') {
+          categories[cat].error++;
+          totalError++;
+        } else {
+          categories[cat].skipped++;
+          totalSkipped++;
+        }
+      }
+
+      // Overall score: 0-100, higher is better
+      const overallScore = totalWeighted > 0
+        ? Math.round(((totalWeighted - failedWeighted) / totalWeighted) * 100)
+        : 0;
+
+      // Per-category scores
+      const categoryScores = Object.entries(categories).map(([name, data]) => ({
+        name,
+        total: data.total,
+        passed: data.passed,
+        failed: data.failed,
+        error: data.error,
+        skipped: data.skipped,
+        score: data.maxWeight > 0
+          ? Math.round(((data.maxWeight - data.failedWeight) / data.maxWeight) * 100)
+          : 0,
+      }));
+
+      // Severity distribution of failures
+      const failedBySeverity: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0 };
+      for (const test of testResults) {
+        if (test.status === 'fail') {
+          failedBySeverity[test.severityHint] = (failedBySeverity[test.severityHint] || 0) + 1;
+        }
+      }
+
+      res.json({
+        overallScore,
+        totalTests: testResults.length,
+        totalPassed,
+        totalFailed,
+        totalError,
+        totalSkipped,
+        failedBySeverity,
+        categories: categoryScores,
+        executedAt: testResults[0]?.executedAt,
+        jobId: testResults[0]?.jobId,
+      });
+    } catch (error) {
+      console.error("Erro ao calcular scorecard AD:", error);
+      res.status(500).json({ message: "Falha ao calcular scorecard de segurança AD" });
+    }
+  });
+
   app.get('/api/hosts/:id/enrichments', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // Check if host exists
       const host = await storage.getHost(id);
       if (!host) {
@@ -582,7 +1029,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/hosts/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/hosts/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -622,6 +1069,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/credentials', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const credentials = await storage.getCredentials();
+      // Note: storage.getCredentials() already omits secretEncrypted/dekEncrypted
       res.json(credentials);
     } catch (error) {
       console.error("Erro ao buscar credenciais:", error);
@@ -629,7 +1077,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/credentials', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/credentials', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const credentialData = insertCredentialSchema.parse(req.body);
@@ -669,11 +1117,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/credentials/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/credentials/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-      const updateData = req.body;
+
+      // Validate allowed fields
+      const updateData = patchCredentialSchema.parse(req.body);
       
       const existingCredential = await storage.getCredential(id);
       if (!existingCredential) {
@@ -723,19 +1173,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/credentials/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.delete('/api/credentials/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-      
+
+      // Capture before state for audit (with redacted secrets)
+      const existingCredential = await storage.getCredential(id);
+      if (!existingCredential) {
+        return res.status(404).json({ message: "Credencial não encontrada" });
+      }
+      const beforeState = {
+        ...existingCredential,
+        secretEncrypted: '[ENCRYPTED]',
+        dekEncrypted: '[ENCRYPTED]',
+      };
+
       await storage.deleteCredential(id);
-      
+
       await storage.logAudit({
         actorId: userId,
         action: 'delete',
         objectType: 'credential',
         objectId: id,
-        before: null,
+        before: beforeState,
         after: null,
       });
       
@@ -757,14 +1218,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/journeys', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/journeys', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const journeyData = insertJourneySchema.parse(req.body);
       
       // Server-side validation: ensure at least one target or TAG is selected
       if (journeyData.type === 'attack_surface' || 
-          (journeyData.type === 'edr_av' && journeyData.params?.edrAvType === 'network_based')) {
+          (journeyData.type === 'edr_av' && (journeyData.params as any)?.edrAvType === 'network_based')) {
         const mode = journeyData.targetSelectionMode || 'individual';
         const hasAssets = Array.isArray(journeyData.params?.assetIds) && journeyData.params.assetIds.length > 0;
         const hasTags = Array.isArray(journeyData.selectedTags) && journeyData.selectedTags.length > 0;
@@ -785,31 +1246,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Handle journey credentials (if provided)
       const credentials = req.body.credentials;
-      console.log('🔍 [DEBUG] POST /api/journeys - credentials from body:', JSON.stringify(credentials, null, 2));
-      
+
       if (Array.isArray(credentials) && credentials.length > 0) {
-        console.log(`✅ [DEBUG] Saving ${credentials.length} credentials for journey ${journey.id}`);
         for (const cred of credentials) {
-          console.log(`  → Saving credential:`, {
-            journeyId: journey.id,
-            credentialId: cred.credentialId,
-            protocol: cred.protocol,
-            priority: cred.priority || 0
-          });
+          // Validate each credential entry
+          const validCred = journeyCredentialInputSchema.parse(cred);
           await storage.createJourneyCredential({
             journeyId: journey.id,
-            credentialId: cred.credentialId,
-            protocol: cred.protocol,
-            priority: cred.priority || 0,
+            credentialId: validCred.credentialId,
+            protocol: validCred.protocol,
+            priority: validCred.priority,
           });
         }
-        console.log(`✅ [DEBUG] Successfully saved ${credentials.length} credentials`);
-      } else {
-        console.log('❌ [DEBUG] No credentials to save:', {
-          isArray: Array.isArray(credentials),
-          length: credentials?.length,
-          value: credentials
-        });
       }
       
       await storage.logAudit({
@@ -828,52 +1276,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/journeys/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/journeys/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-      const updates = req.body;
-      
+
+      // Validate allowed fields
+      const updates = patchJourneySchema.parse(req.body);
+
       const beforeJourney = await storage.getJourney(id);
-      const journey = await storage.updateJourney(id, updates);
+      if (!beforeJourney) {
+        return res.status(404).json({ message: "Jornada não encontrada" });
+      }
+      const { credentials, ...journeyUpdates } = updates;
+      const journey = await storage.updateJourney(id, journeyUpdates as any);
       
-      // Handle journey credentials update (if provided)
-      const credentials = req.body.credentials;
-      console.log('🔍 [DEBUG] PATCH /api/journeys/:id - credentials from body:', JSON.stringify(credentials, null, 2));
-      
+      // Handle journey credentials update (if provided in validated data)
       if (Array.isArray(credentials)) {
-        console.log(`✅ [DEBUG] Updating credentials for journey ${id}`);
-        
         // Delete all existing credentials for this journey
         await storage.deleteJourneyCredentials(id);
-        console.log(`  → Deleted existing credentials`);
-        
-        // Create new credentials
+
+        // Create new credentials with validation
         if (credentials.length > 0) {
-          console.log(`  → Creating ${credentials.length} new credentials`);
           for (const cred of credentials) {
-            console.log(`    • Saving:`, {
-              journeyId: id,
-              credentialId: cred.credentialId,
-              protocol: cred.protocol,
-              priority: cred.priority || 0
-            });
+            const validCred = journeyCredentialInputSchema.parse(cred);
             await storage.createJourneyCredential({
               journeyId: id,
-              credentialId: cred.credentialId,
-              protocol: cred.protocol,
-              priority: cred.priority || 0,
+              credentialId: validCred.credentialId,
+              protocol: validCred.protocol,
+              priority: validCred.priority,
             });
           }
-          console.log(`✅ [DEBUG] Successfully saved ${credentials.length} credentials`);
-        } else {
-          console.log(`  → No credentials to create (array is empty)`);
         }
-      } else {
-        console.log('❌ [DEBUG] credentials is not an array:', {
-          type: typeof credentials,
-          value: credentials
-        });
       }
       
       await storage.logAudit({
@@ -892,7 +1326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/journeys/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.delete('/api/journeys/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -920,9 +1354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/journeys/:id/credentials', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const { id } = req.params;
-      console.log(`🔍 [DEBUG] GET /api/journeys/${id}/credentials`);
       const credentials = await storage.getJourneyCredentials(id);
-      console.log(`  → Found ${credentials.length} credentials:`, JSON.stringify(credentials, null, 2));
       res.json(credentials);
     } catch (error) {
       console.error("Erro ao buscar credenciais da jornada:", error);
@@ -941,7 +1373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/schedules', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/schedules', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const scheduleData = createScheduleSchema.parse(req.body);
@@ -963,7 +1395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/schedules/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/schedules/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -992,7 +1424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/schedules/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.delete('/api/schedules/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -1029,7 +1461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/jobs/execute', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/jobs/execute', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { journeyId } = req.body;
@@ -1072,7 +1504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/jobs/:id/cancel-process', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.post('/api/jobs/:id/cancel-process', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -1090,23 +1522,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Marcar job como cancelado para cooperative cancellation
       jobQueue.markJobAsCancelled(id);
-      
-      // Cancelar todos os processos do job
+
+      // Matar todos os processos do job (pode ser 0 entre fases)
       const killedCount = processTracker.killAll(id);
-      
-      if (killedCount === 0) {
-        return res.status(404).json({ 
-          message: "Nenhum processo ativo encontrado para este job" 
-        });
-      }
-      
-      // Marcar job como cancelado
-      await storage.updateJob(id, { 
+
+      // Marcar job como cancelado no DB
+      await storage.updateJob(id, {
         status: 'failed',
         error: 'Job cancelado pelo usuário',
         finishedAt: new Date()
       });
-      
+
+      // Emitir update WebSocket para atualizar UI imediatamente
+      jobQueue.emit('jobUpdate', {
+        jobId: id,
+        status: 'failed',
+        progress: job.progress,
+        currentTask: 'Job cancelado pelo usuário',
+        error: 'Job cancelado pelo usuário',
+      });
+
       // Log de auditoria
       await storage.logAudit({
         actorId: userId,
@@ -1116,11 +1551,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         before: null,
         after: { status: 'failed', error: 'Job cancelado pelo usuário' },
       });
-      
+
       console.log(`🔪 Job ${id} cancelado pelo usuário ${userId} - ${killedCount} processos terminados`);
-      
-      res.json({ 
-        message: `Job cancelado com sucesso. ${killedCount} processo(s) terminado(s).`,
+
+      res.json({
+        message: `Job cancelado com sucesso.${killedCount > 0 ? ` ${killedCount} processo(s) terminado(s).` : ' Cancelamento cooperativo ativado.'}`,
         killedProcesses: killedCount
       });
       
@@ -1149,13 +1584,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/threats/:id', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/threats/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
-      const updates = req.body;
-      
+
+      // Validate allowed fields only (no status change here - use /status endpoint)
+      const updates = patchThreatSchema.parse(req.body);
+
       const beforeThreat = await storage.getThreat(id);
+      if (!beforeThreat) {
+        return res.status(404).json({ message: "Ameaça não encontrada" });
+      }
       const threat = await storage.updateThreat(id, updates);
       
       await storage.logAudit({
@@ -1175,7 +1615,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Change threat status with justification
-  app.patch('/api/threats/:id/status', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+  app.patch('/api/threats/:id/status', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { id } = req.params;
@@ -1299,7 +1739,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const users = await storage.getAllUsers();
-      res.json(users);
+      // Strip sensitive data before sending to client
+      const sanitizedUsers = users.map(({ passwordHash, ...user }) => user);
+      res.json(sanitizedUsers);
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
       res.status(500).json({ message: "Falha ao buscar usuários" });
@@ -1379,8 +1821,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { role } = req.body;
       const actorId = req.user.id;
-      
+
+      // Validate role against enum
+      if (!role || !validRoles.includes(role)) {
+        return res.status(400).json({
+          message: `Role inválido. Valores permitidos: ${validRoles.join(', ')}`
+        });
+      }
+
+      // Prevent self-demotion
+      if (id === actorId && role !== 'global_administrator') {
+        return res.status(400).json({ message: "Não é possível alterar seu próprio papel" });
+      }
+
       const beforeUser = await storage.getUser(id);
+      if (!beforeUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
       const user = await storage.updateUserRole(id, role);
       
       await storage.logAudit({
@@ -1593,13 +2050,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // WebSocket server for real-time updates
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws' 
+  const wss = new WebSocketServer({
+    server: httpServer,
+    path: '/ws',
+    verifyClient: async (info, callback) => {
+      try {
+        // Extract session cookie from upgrade request
+        const cookieHeader = info.req.headers.cookie;
+        if (!cookieHeader) {
+          console.log('🔒 WebSocket rejeitado: sem cookie de sessão');
+          callback(false, 401, 'Não autorizado');
+          return;
+        }
+
+        const cookies = parseCookies(cookieHeader);
+        const sessionId = cookies['connect.sid'];
+        if (!sessionId) {
+          console.log('🔒 WebSocket rejeitado: cookie connect.sid ausente');
+          callback(false, 401, 'Não autorizado');
+          return;
+        }
+
+        // Decode the signed session ID (format: s:<id>.<signature>)
+        const rawSid = sessionId.startsWith('s:')
+          ? sessionId.slice(2).split('.')[0]
+          : sessionId;
+
+        // Verify session exists in active_sessions
+        const activeSession = await storage.getActiveSessionBySessionId(rawSid);
+        if (!activeSession) {
+          console.log('🔒 WebSocket rejeitado: sessão não encontrada ou revogada');
+          callback(false, 401, 'Sessão inválida');
+          return;
+        }
+
+        callback(true);
+      } catch (error) {
+        console.error('❌ Erro ao verificar WebSocket:', error);
+        callback(false, 500, 'Erro interno');
+      }
+    }
   });
 
   wss.on('connection', (ws) => {
-    console.log('Cliente WebSocket conectado');
+    console.log('Cliente WebSocket conectado (autenticado)');
     connectedClients.add(ws);
 
     ws.on('close', () => {

@@ -12,19 +12,15 @@ export default function RecentThreats() {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical':
-        return 'bg-destructive text-destructive-foreground';
-      case 'high':
-        return 'bg-orange-600 text-white';
-      case 'medium':
-        return 'bg-accent text-accent-foreground';
-      case 'low':
-        return 'bg-chart-4 text-white';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
+  const getSeverityStyle = (severity: string): React.CSSProperties => {
+    const map: Record<string, { bg: string; color: string }> = {
+      critical: { bg: 'var(--severity-critical)', color: '#fff' },
+      high: { bg: 'var(--severity-high)', color: '#fff' },
+      medium: { bg: 'var(--severity-medium)', color: 'var(--background)' },
+      low: { bg: 'var(--severity-low)', color: '#fff' },
+    };
+    const s = map[severity] || { bg: 'var(--muted)', color: 'var(--muted-foreground)' };
+    return { backgroundColor: s.bg, color: s.color };
   };
 
   const getSeverityLabel = (severity: string) => {
@@ -57,9 +53,9 @@ export default function RecentThreats() {
     }
   };
 
-  const formatTimeAgo = (date: string) => {
+  const formatTimeAgo = (date: string | Date) => {
     const now = new Date();
-    const threatDate = new Date(date);
+    const threatDate = typeof date === 'string' ? new Date(date) : date;
     const diffInMinutes = Math.floor((now.getTime() - threatDate.getTime()) / (1000 * 60));
     
     if (diffInMinutes < 60) {
@@ -120,7 +116,7 @@ export default function RecentThreats() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2">
-                      <Badge className={getSeverityColor(threat.severity)}>
+                      <Badge style={getSeverityStyle(threat.severity)}>
                         {getSeverityLabel(threat.severity)}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
@@ -141,14 +137,16 @@ export default function RecentThreats() {
                       </p>
                     )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-foreground ml-4"
-                    data-testid={`button-view-threat-${threat.id}`}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
+                  <Link href="/threats">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground hover:text-foreground ml-4"
+                      data-testid={`button-view-threat-${threat.id}`}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
               </div>
             ))}

@@ -6,12 +6,13 @@ import { DashboardMetrics } from "@/types";
 export default function MetricsOverview() {
   const { data: metrics, isLoading } = useQuery<DashboardMetrics>({
     queryKey: ["/api/dashboard/metrics"],
+    refetchInterval: 10000,
   });
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(3)].map((_, i) => (
           <Card key={i} className="metric-card animate-pulse">
             <CardContent className="p-6">
               <div className="h-20 bg-muted rounded"></div>
@@ -29,8 +30,8 @@ export default function MetricsOverview() {
       icon: Server,
       iconBg: "bg-primary/20",
       iconColor: "text-primary",
-      change: "+12%",
-      changeText: "vs. mês anterior",
+      change: `${metrics?.activeAssets || 0}`,
+      changeText: "alvos cadastrados",
       changeColor: "text-chart-4",
     },
     {
@@ -39,8 +40,8 @@ export default function MetricsOverview() {
       icon: AlertTriangle,
       iconBg: "bg-destructive/20",
       iconColor: "text-destructive",
-      change: `+${metrics?.criticalThreats || 0}`,
-      changeText: "novas nas últimas 24h",
+      change: `${metrics?.criticalThreats || 0}`,
+      changeText: "abertas no momento",
       changeColor: "text-destructive",
     },
     {

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Search, Plus, Shield } from "lucide-react";
+import { Link } from "wouter";
 
 interface TopBarProps {
   title: string;
@@ -35,21 +36,25 @@ export default function TopBar({ title, subtitle, wsConnected = false, actions }
           {/* Default actions or custom actions */}
           {actions || (
             <>
-              <Button 
-                className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" 
-                data-testid="button-quick-scan"
-              >
-                <Search className="mr-2 h-4 w-4" />
-                Varredura Rápida
-              </Button>
-              
-              <Button 
-                variant="secondary"
-                data-testid="button-new-journey"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Nova Jornada
-              </Button>
+              <Link href="/journeys">
+                <Button
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                  data-testid="button-quick-scan"
+                >
+                  <Search className="mr-2 h-4 w-4" />
+                  Varredura Rápida
+                </Button>
+              </Link>
+
+              <Link href="/journeys">
+                <Button
+                  variant="secondary"
+                  data-testid="button-new-journey"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nova Jornada
+                </Button>
+              </Link>
             </>
           )}
         </div>

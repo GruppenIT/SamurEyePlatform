@@ -14,6 +14,16 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Bell, Plus, Trash2, Edit, X } from 'lucide-react';
 import type { NotificationPolicy } from '@shared/schema';
 
@@ -251,10 +261,10 @@ export default function NotificationPolicies() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta política?')) {
-      await deletePolicyMutation.mutateAsync(id);
-    }
+  const [deletePolicyId, setDeletePolicyId] = useState<string | null>(null);
+
+  const handleDelete = (id: string) => {
+    setDeletePolicyId(id);
   };
 
   const handleToggleEnabled = async (id: string, currentEnabled: boolean) => {
@@ -550,6 +560,32 @@ export default function NotificationPolicies() {
         </div>
         </div>
       </main>
+
+      {/* Delete Policy Confirmation */}
+      <AlertDialog open={!!deletePolicyId} onOpenChange={(open) => !open && setDeletePolicyId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Política</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta política de notificação? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deletePolicyId) {
+                  deletePolicyMutation.mutateAsync(deletePolicyId);
+                  setDeletePolicyId(null);
+                }
+              }}
+            >
+              Sim, Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

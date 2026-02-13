@@ -12,6 +12,59 @@ export interface ThreatRule {
   createThreat: (finding: any, assetId?: string, jobId?: string) => InsertThreat;
 }
 
+// Service category classification for universal exposed-service rule
+type ServiceCategory = 'admin' | 'database' | 'sharing' | 'web' | 'email' | 'infrastructure' | 'other';
+
+const SERVICE_CATEGORIES: Record<ServiceCategory, {
+  label: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  ports: Set<string>;
+  serviceNames: Set<string>;
+}> = {
+  admin: {
+    label: 'Administração',
+    severity: 'high',
+    ports: new Set(['22', '23', '3389', '5900', '5901', '5902', '5985', '5986']),
+    serviceNames: new Set(['ssh', 'telnet', 'ms-wbt-server', 'rdp', 'vnc', 'vnc-http', 'winrm']),
+  },
+  database: {
+    label: 'Banco de Dados',
+    severity: 'high',
+    ports: new Set(['1433', '1521', '3306', '5432', '6379', '9042', '9200', '9300', '27017', '5984', '8086', '7474', '7687', '26257', '28015']),
+    serviceNames: new Set(['ms-sql-s', 'mssql', 'mysql', 'mariadb', 'postgresql', 'postgres', 'oracle-tns', 'redis', 'mongodb', 'mongod', 'elasticsearch', 'cassandra', 'couchdb', 'influxdb', 'neo4j', 'cockroachdb', 'rethinkdb', 'memcached']),
+  },
+  sharing: {
+    label: 'Compartilhamento',
+    severity: 'high',
+    ports: new Set(['21', '69', '139', '445', '873', '2049']),
+    serviceNames: new Set(['ftp', 'tftp', 'microsoft-ds', 'netbios-ssn', 'smb', 'nfs', 'rsync']),
+  },
+  web: {
+    label: 'Web',
+    severity: 'medium',
+    ports: new Set(['80', '443', '8080', '8443', '8000', '8888', '8008', '9443', '3000', '4443']),
+    serviceNames: new Set(['http', 'https', 'http-proxy', 'http-alt', 'https-alt', 'nginx', 'apache']),
+  },
+  email: {
+    label: 'E-mail',
+    severity: 'medium',
+    ports: new Set(['25', '110', '143', '465', '587', '993', '995']),
+    serviceNames: new Set(['smtp', 'pop3', 'pop3s', 'imap', 'imaps', 'smtps', 'submission']),
+  },
+  infrastructure: {
+    label: 'Infraestrutura',
+    severity: 'medium',
+    ports: new Set(['53', '88', '123', '161', '162', '389', '514', '636', '853']),
+    serviceNames: new Set(['domain', 'dns', 'kerberos', 'ntp', 'snmp', 'ldap', 'ldaps', 'syslog']),
+  },
+  other: {
+    label: 'Outro',
+    severity: 'low',
+    ports: new Set(),
+    serviceNames: new Set(),
+  },
+};
+
 class ThreatEngineService {
   private rules: ThreatRule[] = [];
 
@@ -20,204 +73,116 @@ class ThreatEngineService {
   }
 
   /**
+   * Classifies a port/service into a category for severity assignment
+   */
+  private classifyServiceCategory(port: string, service?: string): { category: ServiceCategory; label: string; severity: 'low' | 'medium' | 'high' | 'critical' } {
+    const cleanPort = String(port).replace(/\/(tcp|udp)$/i, '');
+    const svcLower = (service || '').toLowerCase();
+
+    // Try to match by port first, then by service name
+    for (const [cat, cfg] of Object.entries(SERVICE_CATEGORIES) as [ServiceCategory, typeof SERVICE_CATEGORIES[ServiceCategory]][]) {
+      if (cat === 'other') continue;
+      if (cfg.ports.has(cleanPort)) return { category: cat, label: cfg.label, severity: cfg.severity };
+    }
+    for (const [cat, cfg] of Object.entries(SERVICE_CATEGORIES) as [ServiceCategory, typeof SERVICE_CATEGORIES[ServiceCategory]][]) {
+      if (cat === 'other') continue;
+      if (svcLower && cfg.serviceNames.has(svcLower)) return { category: cat, label: cfg.label, severity: cfg.severity };
+    }
+
+    return { category: 'other', label: SERVICE_CATEGORIES.other.label, severity: SERVICE_CATEGORIES.other.severity };
+  }
+
+  /**
    * Initialize threat detection rules
    */
   private initializeRules(): void {
     this.rules = [
-      // Attack Surface Rules
-      // NVD CVE Lookup - Known vulnerabilities from NIST database
+      // ===================== ATTACK SURFACE RULES =====================
+
+      // Universal Exposed Service Rule - Every open port generates a threat
+      // categorized by service type for risk acceptance by the operator
       {
-        id: 'nvd-cve-detected',
-        name: 'Vulnerabilidade CVE Conhecida (NVD)',
-        description: 'CVE conhecido encontrado na base NIST NVD',
-        severity: 'high', // Will be overridden by finding.severity
-        matcher: (finding) => finding.type === 'nvd_cve' && finding.cve,
-        createThreat: (finding, assetId, jobId) => ({
-          title: `${finding.cve}: ${finding.service} ${finding.version}`,
-          description: finding.description || `CVE ${finding.cve} identificado para ${finding.service} ${finding.version}. ${finding.remediation || ''}`,
-          severity: finding.severity || 'high',
-          source: 'journey',
-          assetId,
-          jobId,
-          evidence: {
-            cve: finding.cve,
-            cvssScore: finding.cvssScore,
-            service: finding.service,
-            version: finding.version,
-            port: finding.port,
-            host: finding.target,
-            publishedDate: finding.publishedDate,
-            remediation: finding.remediation,
-            detectionMethod: 'nvd_api_lookup',
-          },
-        }),
-      },
-      // Nmap Vuln Script Detection - Active CVE validation
-      {
-        id: 'nmap-vuln-detected',
-        name: 'Vulnerabilidade CVE Validada (Nmap)',
-        description: 'CVE validado ativamente via nmap vuln scripts',
-        severity: 'high', // Will be overridden by finding.severity
-        matcher: (finding) => finding.type === 'nmap_vuln' && finding.cve,
-        createThreat: (finding, assetId, jobId) => ({
-          title: `${finding.cve}: ${finding.name || 'Vulnerabilidade confirmada'}`,
-          description: finding.description || `CVE ${finding.cve} validado ativamente via nmap vuln scripts. ${finding.details || ''}`,
-          severity: finding.severity || 'high',
-          source: 'journey',
-          assetId,
-          jobId,
-          evidence: {
-            cve: finding.cve,
-            name: finding.name,
-            service: finding.service,
-            port: finding.port,
-            host: finding.target,
-            details: finding.details,
-            validationMethod: 'nmap_vuln_scripts',
-          },
-        }),
-      },
-      {
-        id: 'critical-cve',
-        name: 'CVE Crítico Detectado',
-        description: 'Vulnerabilidade crítica identificada por nuclei',
-        severity: 'critical',
-        matcher: (finding) => finding.severity === 'critical' && finding.cve,
-        createThreat: (finding, assetId, jobId) => ({
-          title: `${finding.cve} detectado em servidor`,
-          description: `Vulnerabilidade crítica: ${finding.description}`,
-          severity: 'critical',
-          source: 'journey',
-          assetId,
-          jobId,
-          evidence: {
-            cve: finding.cve,
-            cvss: finding.cvss,
-            service: finding.service,
-            port: finding.port,
-            details: finding.details,
-          },
-        }),
-      },
-      {
-        id: 'open-admin-ports',
-        name: 'Portas Administrativas Expostas',
-        description: 'Portas de administração abertas na internet',
-        severity: 'high',
-        matcher: (finding) => 
-          finding.type === 'port' && 
-          ['22', '3389', '5985', '5986'].includes(finding.port) &&
+        id: 'exposed-service',
+        name: 'Serviço Exposto',
+        description: 'Serviço identificado exposto na rede',
+        severity: 'medium', // Overridden by category
+        matcher: (finding) =>
+          finding.type === 'port' &&
           finding.state === 'open',
-        createThreat: (finding, assetId, jobId) => ({
-          title: `Porta administrativa ${finding.port} exposta`,
-          description: `Porta ${finding.port} (${finding.service}) está aberta e acessível`,
-          severity: 'high',
-          source: 'journey',
-          assetId,
-          jobId,
-          evidence: {
-            host: finding.target,
-            ip: finding.ip,
-            port: finding.port,
-            service: finding.service,
-            state: finding.state,
-            version: finding.version,
-            banner: finding.banner,
-            osInfo: finding.osInfo,
-          },
-        }),
+        createThreat: (finding, assetId, jobId) => {
+          const cat = this.classifyServiceCategory(finding.port, finding.service);
+          const serviceName = finding.service || 'desconhecido';
+          const versionStr = finding.version ? ` ${finding.version}` : '';
+          return {
+            title: `Serviço Exposto: ${serviceName}${versionStr} (porta ${finding.port})`,
+            description: `Serviço ${serviceName}${versionStr} está exposto na porta ${finding.port}. Categoria: ${cat.label}. Avalie a necessidade deste serviço e considere restringir o acesso.`,
+            severity: cat.severity,
+            source: 'journey',
+            assetId,
+            jobId,
+            evidence: {
+              host: finding.target,
+              ip: finding.ip,
+              port: finding.port,
+              service: finding.service,
+              state: finding.state,
+              version: finding.version,
+              banner: finding.banner,
+              osInfo: finding.osInfo,
+              serviceCategory: cat.category as any,
+              serviceCategoryLabel: cat.label as any,
+            },
+          };
+        },
       },
+
+      // Unified CVE Rule - Both NVD lookup and nmap vuln scripts produce
+      // the same threat type with unified correlation key
       {
-        id: 'web-ports-exposed',
-        name: 'Portas Web Expostas',
-        description: 'Portas de serviços web abertas na internet',
-        severity: 'medium',
-        matcher: (finding) => 
-          finding.type === 'port' && 
-          ['80', '443', '8080', '8443'].includes(finding.port) &&
-          finding.state === 'open',
-        createThreat: (finding, assetId, jobId) => ({
-          title: `Porta web ${finding.port} exposta`,
-          description: `Serviço web na porta ${finding.port} (${finding.service}) está acessível`,
-          severity: 'medium',
-          source: 'journey',
-          assetId,
-          jobId,
-          evidence: {
-            host: finding.target,
-            ip: finding.ip,
-            port: finding.port,
-            service: finding.service,
-            state: finding.state,
-            version: finding.version,
-            banner: finding.banner,
-            osInfo: finding.osInfo,
-          },
-        }),
+        id: 'cve-detected',
+        name: 'Vulnerabilidade CVE Detectada',
+        description: 'CVE conhecido identificado em serviço exposto',
+        severity: 'high', // Overridden by finding.severity
+        matcher: (finding) =>
+          (finding.type === 'nvd_cve' || finding.type === 'nmap_vuln') && finding.cve,
+        createThreat: (finding, assetId, jobId) => {
+          const isNmapValidated = finding.type === 'nmap_vuln';
+          const method = isNmapValidated ? 'Validação ativa (nmap vuln scripts)' : 'Consulta NVD';
+          const serviceName = finding.service || 'serviço';
+          const versionStr = finding.version ? ` ${finding.version}` : '';
+          return {
+            title: `${finding.cve}: ${serviceName}${versionStr}`,
+            description: finding.description
+              || `CVE ${finding.cve} identificado para ${serviceName}${versionStr}. Método: ${method}. ${finding.remediation || ''}`,
+            severity: finding.severity || 'high',
+            source: 'journey',
+            assetId,
+            jobId,
+            evidence: {
+              cve: finding.cve,
+              cvssScore: finding.cvssScore,
+              service: finding.service,
+              version: finding.version,
+              port: finding.port,
+              host: finding.target,
+              publishedDate: finding.publishedDate,
+              remediation: finding.remediation,
+              detectionMethod: (isNmapValidated ? 'nmap_vuln_scripts' : 'nvd_api_lookup') as any,
+              nmapValidated: isNmapValidated as any,
+              details: finding.details,
+            },
+          };
+        },
       },
-      {
-        id: 'smb-ports-exposed',
-        name: 'Portas SMB/NetBIOS Expostas',
-        description: 'Portas de compartilhamento SMB abertas na internet',
-        severity: 'high',
-        matcher: (finding) => 
-          finding.type === 'port' && 
-          ['139', '445'].includes(finding.port) &&
-          finding.state === 'open',
-        createThreat: (finding, assetId, jobId) => ({
-          title: `Porta SMB ${finding.port} exposta`,
-          description: `Serviço de compartilhamento na porta ${finding.port} (${finding.service}) está acessível`,
-          severity: 'high',
-          source: 'journey',
-          assetId,
-          jobId,
-          evidence: {
-            host: finding.target,
-            ip: finding.ip,
-            port: finding.port,
-            service: finding.service,
-            state: finding.state,
-            version: finding.version,
-            banner: finding.banner,
-            osInfo: finding.osInfo,
-          },
-        }),
-      },
-      {
-        id: 'database-ports-exposed',
-        name: 'Portas de Banco de Dados Expostas',
-        description: 'Portas de bancos de dados abertas na internet',
-        severity: 'high',
-        matcher: (finding) => 
-          finding.type === 'port' && 
-          ['1433', '3306', '5432', '1521', '27017'].includes(finding.port) &&
-          finding.state === 'open',
-        createThreat: (finding, assetId, jobId) => ({
-          title: `Porta de banco ${finding.port} exposta`,
-          description: `Banco de dados na porta ${finding.port} (${finding.service}) está acessível`,
-          severity: 'high',
-          source: 'journey',
-          assetId,
-          jobId,
-          evidence: {
-            host: finding.target,
-            ip: finding.ip,
-            port: finding.port,
-            service: finding.service,
-            state: finding.state,
-            version: finding.version,
-            banner: finding.banner,
-            osInfo: finding.osInfo,
-          },
-        }),
-      },
+
+      // Nuclei vulnerability findings
       {
         id: 'nuclei-vulnerability',
         name: 'Vulnerabilidade Detectada pelo Nuclei',
-        description: 'Vulnerabilidade identificada por nuclei',
+        description: 'Vulnerabilidade identificada por nuclei scanner',
         severity: 'high',
-        matcher: (finding) => 
-          finding.type === 'vulnerability' && 
+        matcher: (finding) =>
+          finding.type === 'vulnerability' &&
           finding.evidence?.source === 'nuclei',
         createThreat: (finding, assetId, jobId) => ({
           title: `${finding.name || finding.template} detectado`,
@@ -228,6 +193,7 @@ class ThreatEngineService {
           jobId,
           evidence: {
             templateId: finding.template,
+            cve: finding.cve,
             url: finding.evidence?.url,
             matcher: finding.evidence?.matcher,
             extractedResults: finding.evidence?.extractedResults,
@@ -236,12 +202,14 @@ class ThreatEngineService {
           },
         }),
       },
+
+      // Web vulnerability (built-in checks)
       {
         id: 'web-vulnerability',
         name: 'Vulnerabilidade Web Detectada',
         description: 'Vulnerabilidade identificada em serviço web',
         severity: 'medium',
-        matcher: (finding) => 
+        matcher: (finding) =>
           finding.type === 'web_vulnerability',
         createThreat: (finding, assetId, jobId) => ({
           title: `${finding.name} detectado`,
@@ -869,9 +837,17 @@ class ThreatEngineService {
 
     switch (journeyType) {
       case 'attack_surface':
+        // Exposed service: one threat per host:port
         if (finding.type === 'port') {
-          return `as:port:${normalizeHost(finding.target)}:${finding.port}`;
+          const cleanPort = String(finding.port).replace(/\/(tcp|udp)$/i, '');
+          return `as:svc:${normalizeHost(finding.target)}:${cleanPort}`;
         }
+        // CVE findings: unified key for both nvd_cve and nmap_vuln
+        if ((finding.type === 'nvd_cve' || finding.type === 'nmap_vuln') && finding.cve) {
+          const cleanPort = String(finding.port || '0').replace(/\/(tcp|udp)$/i, '');
+          return `as:cve:${normalizeHost(finding.target)}:${cleanPort}:${finding.cve.toUpperCase()}`;
+        }
+        // Nuclei / web vulnerability findings
         if (finding.type === 'vulnerability' || finding.type === 'web_vulnerability') {
           const templateId = finding.template || finding.cve || finding.name;
           let path = '';
@@ -880,12 +856,12 @@ class ThreatEngineService {
               path = new URL(finding.evidence.url).pathname;
             }
           } catch {
-            // If URL is invalid, use empty path
             path = '';
           }
-          return `as:vuln:${normalizeHost(finding.target)}:${templateId}:${path}`;
+          return `as:web:${normalizeHost(finding.target)}:${templateId}:${path}`;
         }
-        break;
+        // Fallback for other attack_surface finding types (e.g., host discovery)
+        return `as:other:${normalizeHost(finding.target || '')}:${finding.type || 'unknown'}:${finding.name || ''}`;
       
       case 'ad_security':
         // For AD findings: ad:{testId}:{domain}:{objectId}
@@ -905,13 +881,24 @@ class ThreatEngineService {
         const hostname = finding.hostname || finding.target;
         const testType = finding.deploymentMethod || 'eicar_test';
         return `edr:${normalizeHost(hostname)}:${testType}`;
-      
-      default:
-        // Fallback for unknown journey types
-        return `generic:${finding.type}:${normalizeHost(finding.target || finding.hostname)}:${finding.name}`;
-    }
 
-    return `fallback:${Date.now()}:${Math.random()}`;
+      case 'web_application':
+        // For web app: wa:{target}:{template/cve}:{path}
+        const waTemplate = finding.template || finding.cve || finding.name || 'unknown';
+        let waPath = '';
+        try {
+          if (finding.evidence?.url) {
+            waPath = new URL(finding.evidence.url).pathname;
+          }
+        } catch {
+          waPath = '';
+        }
+        return `wa:vuln:${normalizeHost(finding.target)}:${waTemplate}:${waPath}`;
+
+      default:
+        // Deterministic fallback for unknown journey types (no randomness)
+        return `generic:${finding.type || 'unknown'}:${normalizeHost(finding.target || finding.hostname || '')}:${finding.name || finding.template || 'unknown'}`;
+    }
   }
 
   /**
@@ -1583,59 +1570,34 @@ class ThreatEngineService {
    * Checks if a threat is still present based on journey results
    */
   private async isThreatStillPresent(threat: Threat, job: any, journey: any): Promise<boolean> {
-    // This is a simplified implementation - in a real system, you would
-    // need to match the threat's evidence against the new findings
-    
-    // For now, we'll implement a basic correlation using correlationKey
     if (!threat.correlationKey) {
-      return false; // Can't correlate without a key
+      // Without a correlation key we cannot determine presence;
+      // assume still present to avoid accidentally closing threats
+      return true;
     }
 
     try {
       // Get job results
       const jobResults = await storage.getJobResult(job.id);
       if (!jobResults || !jobResults.artifacts?.findings) {
+        // No findings in this run - threat may have been remediated
         return false;
       }
 
-      // Look for the same correlation key in the new findings
       const findings = Array.isArray(jobResults.artifacts.findings) ? jobResults.artifacts.findings : [];
+
+      // Recompute correlationKey for each finding and compare against the threat's key
+      const journeyType = journey.type || 'attack_surface';
       const matchingFinding = findings.find((finding: any) => {
-        if (finding.correlationKey === threat.correlationKey) {
-          return true;
-        }
-        
-        // Additional correlation logic based on threat category
-        switch (threat.category) {
-          case 'port_exposure':
-            return finding.type === 'port' && 
-                   finding.port === threat.evidence?.port &&
-                   finding.target === threat.evidence?.host;
-                   
-          case 'vulnerability':
-            return finding.type === 'vulnerability' &&
-                   finding.template === threat.evidence?.templateId;
-                   
-          case 'ad_misconfiguration':
-          case 'ad_vulnerability':
-          case 'ad_hygiene':
-            return finding.type?.startsWith('ad_') &&
-                   finding.name === threat.title;
-                   
-          case 'edr_failure':
-            return finding.type === 'edr_test' &&
-                   finding.hostname === threat.evidence?.hostname &&
-                   finding.eicarRemoved === false;
-                   
-          default:
-            return false;
-        }
+        const findingKey = this.computeCorrelationKey(finding, journeyType);
+        return findingKey === threat.correlationKey;
       });
 
       return !!matchingFinding;
     } catch (error) {
       console.error(`❌ Error checking threat presence for threat ${threat.id}:`, error);
-      return false;
+      // On error, assume threat is still present to avoid false closure
+      return true;
     }
   }
 

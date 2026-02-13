@@ -32,9 +32,49 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Search, AlertTriangle, Eye, CheckCircle, Clock, Shield } from "lucide-react";
+import { Search, AlertTriangle, Eye, CheckCircle, Clock, Shield, Download } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Threat, Host } from "@shared/schema";
 import { ThreatStats } from "@/types";
+
+// Helper to parse PowerShell JSON stdout into object array
+function tryParseStdoutObjects(stdout: string | undefined): { objects: Record<string, any>[] | null; keys: string[] } {
+  if (!stdout) return { objects: null, keys: [] };
+  try {
+    const trimmed = stdout.trim();
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
+      const keys = Array.from(new Set(parsed.flatMap((obj: any) => Object.keys(obj))));
+      return { objects: parsed, keys };
+    }
+    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+      return { objects: [parsed], keys: Object.keys(parsed) };
+    }
+    return { objects: null, keys: [] };
+  } catch {
+    return { objects: null, keys: [] };
+  }
+}
+
+function formatCellValue(value: any): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
+  if (Array.isArray(value)) return value.join(', ');
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+const adCategoryLabels: Record<string, string> = {
+  users: 'Usuários',
+  groups: 'Grupos',
+  computers: 'Computadores',
+  policies: 'Políticas',
+  configuration: 'Configuração',
+  kerberos: 'Kerberos',
+  shares: 'Compartilhamentos',
+  inactive_accounts: 'Contas Inativas',
+};
 
 export default function Threats() {
   const [location] = useLocation();
@@ -43,6 +83,18 @@ export default function Threats() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [hostFilter, setHostFilter] = useState<string>("all");
   const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkStatusModal, setBulkStatusModal] = useState<{
+    isOpen: boolean;
+    newStatus: string;
+    justification: string;
+    hibernatedUntil: string;
+  }>({
+    isOpen: false,
+    newStatus: '',
+    justification: '',
+    hibernatedUntil: '',
+  });
   const [statusChangeModal, setStatusChangeModal] = useState<{
     threat: Threat | null;
     isOpen: boolean;
@@ -231,6 +283,81 @@ export default function Threats() {
     },
   });
 
+  const handleBulkStatusSubmit = async () => {
+    if (!bulkStatusModal.justification.trim() || bulkStatusModal.justification.length < 10) {
+      toast({ title: "Erro", description: "Justificativa mínima de 10 caracteres", variant: "destructive" });
+      return;
+    }
+    if (bulkStatusModal.newStatus === 'hibernated' && !bulkStatusModal.hibernatedUntil) {
+      toast({ title: "Erro", description: "Data limite é obrigatória para hibernação", variant: "destructive" });
+      return;
+    }
+    const hibernatedUntilISO = bulkStatusModal.hibernatedUntil
+      ? new Date(bulkStatusModal.hibernatedUntil).toISOString()
+      : undefined;
+
+    try {
+      await Promise.all(
+        Array.from(selectedIds).map(id =>
+          apiRequest('PATCH', `/api/threats/${id}/status`, {
+            status: bulkStatusModal.newStatus,
+            justification: bulkStatusModal.justification,
+            ...(hibernatedUntilISO ? { hibernatedUntil: hibernatedUntilISO } : {}),
+          })
+        )
+      );
+      toast({ title: "Sucesso", description: `${selectedIds.size} ameaças atualizadas` });
+      queryClient.invalidateQueries({ queryKey: ["/api/threats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/threats/stats"] });
+      setSelectedIds(new Set());
+      setBulkStatusModal({ isOpen: false, newStatus: '', justification: '', hibernatedUntil: '' });
+    } catch {
+      toast({ title: "Erro", description: "Falha ao atualizar ameaças em lote", variant: "destructive" });
+    }
+  };
+
+  const toggleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredThreats.map(t => t.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const toggleSelectOne = (id: string, checked: boolean) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['Severidade', 'Título', 'Host', 'IP', 'Status', 'Fonte', 'Detectado em'];
+    const rows = filteredThreats.map(t => [
+      getSeverityLabel(t.severity),
+      t.title,
+      t.host?.name || '',
+      t.host?.ips?.[0] || '',
+      getStatusLabel(t.status),
+      t.source,
+      new Date(t.createdAt).toLocaleString('pt-BR'),
+    ]);
+    const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `threats-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const parsedAdStdout = useMemo(() => {
+    return tryParseStdoutObjects(selectedThreat?.evidence?.stdout);
+  }, [selectedThreat]);
+
   const filteredThreats = threats.filter(threat => {
     // Search filter
     const matchesSearch = threat.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -401,199 +528,111 @@ export default function Threats() {
       <Sidebar />
       
       <main className="flex-1 overflow-auto">
-        <TopBar 
+        <TopBar
           title="Threat Intelligence"
           subtitle="Gerencie e analise ameaças identificadas pelo sistema"
           wsConnected={connected}
+          actions={
+            <Button
+              variant="outline"
+              onClick={handleExportCSV}
+              disabled={filteredThreats.length === 0}
+              data-testid="button-export-threats-csv"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Exportar CSV
+            </Button>
+          }
         />
         
         <div className="p-6 space-y-6">
-          {/* Stats Overview - Severity */}
+          {/* Compact Stats Summary */}
           {stats && (
-            <>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">Distribuição por Severidade</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <Card className="metric-card">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Total</p>
-                          <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-                        </div>
-                        <Shield className="h-8 w-8 text-primary" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${severityFilter === 'critical' ? 'ring-2 ring-destructive' : ''}`}
-                    onClick={() => handleSeverityTileClick('critical')}
-                    data-testid="tile-severity-critical"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Críticas</p>
-                          <p className="text-2xl font-bold text-destructive">{stats.critical}</p>
-                        </div>
-                        <AlertTriangle className="h-8 w-8 text-destructive" />
-                      </div>
-                    </CardContent>
-                  </Card>
+            <div className="space-y-4">
+              {/* Severity summary - single compact row */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm font-medium text-muted-foreground">Total</span>
+                      <span className="text-lg font-bold">{stats.total}</span>
+                    </div>
+                    <div className="h-6 w-px bg-border" />
+                    <div className="flex items-center gap-4 flex-1">
+                      <button
+                        onClick={() => handleSeverityTileClick('critical')}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${severityFilter === 'critical' ? 'ring-1 ring-[var(--severity-critical)]' : ''}`}
+                        style={{ backgroundColor: 'var(--severity-critical-bg)' }}
+                        data-testid="tile-severity-critical"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--severity-critical)' }} />
+                        <span className="text-sm font-medium" style={{ color: 'var(--severity-critical)' }}>Críticas</span>
+                        <span className="text-sm font-bold" style={{ color: 'var(--severity-critical)' }}>{stats.critical}</span>
+                      </button>
+                      <button
+                        onClick={() => handleSeverityTileClick('high')}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${severityFilter === 'high' ? 'ring-1 ring-[var(--severity-high)]' : ''}`}
+                        style={{ backgroundColor: 'var(--severity-high-bg)' }}
+                        data-testid="tile-severity-high"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--severity-high)' }} />
+                        <span className="text-sm font-medium" style={{ color: 'var(--severity-high)' }}>Altas</span>
+                        <span className="text-sm font-bold" style={{ color: 'var(--severity-high)' }}>{stats.high}</span>
+                      </button>
+                      <button
+                        onClick={() => handleSeverityTileClick('medium')}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${severityFilter === 'medium' ? 'ring-1 ring-[var(--severity-medium)]' : ''}`}
+                        style={{ backgroundColor: 'var(--severity-medium-bg)' }}
+                        data-testid="tile-severity-medium"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--severity-medium)' }} />
+                        <span className="text-sm font-medium" style={{ color: 'var(--severity-medium)' }}>Médias</span>
+                        <span className="text-sm font-bold" style={{ color: 'var(--severity-medium)' }}>{stats.medium}</span>
+                      </button>
+                      <button
+                        onClick={() => handleSeverityTileClick('low')}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${severityFilter === 'low' ? 'ring-1 ring-[var(--severity-low)]' : ''}`}
+                        style={{ backgroundColor: 'var(--severity-low-bg)' }}
+                        data-testid="tile-severity-low"
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--severity-low)' }} />
+                        <span className="text-sm font-medium" style={{ color: 'var(--severity-low)' }}>Baixas</span>
+                        <span className="text-sm font-bold" style={{ color: 'var(--severity-low)' }}>{stats.low}</span>
+                      </button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${severityFilter === 'high' ? 'ring-2 ring-orange-500' : ''}`}
-                    onClick={() => handleSeverityTileClick('high')}
-                    data-testid="tile-severity-high"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Altas</p>
-                          <p className="text-2xl font-bold text-orange-500">{stats.high}</p>
-                        </div>
-                        <AlertTriangle className="h-8 w-8 text-orange-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${severityFilter === 'medium' ? 'ring-2 ring-accent' : ''}`}
-                    onClick={() => handleSeverityTileClick('medium')}
-                    data-testid="tile-severity-medium"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Médias</p>
-                          <p className="text-2xl font-bold text-accent">{stats.medium}</p>
-                        </div>
-                        <AlertTriangle className="h-8 w-8 text-accent" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${severityFilter === 'low' ? 'ring-2 ring-chart-4' : ''}`}
-                    onClick={() => handleSeverityTileClick('low')}
-                    data-testid="tile-severity-low"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Baixas</p>
-                          <p className="text-2xl font-bold text-chart-4">{stats.low}</p>
-                        </div>
-                        <AlertTriangle className="h-8 w-8 text-chart-4" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              {/* Stats Overview - Status */}
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">Distribuição por Status</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'open' ? 'ring-2 ring-destructive' : ''}`}
-                    onClick={() => handleStatusTileClick('open')}
-                    data-testid="tile-status-open"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Abertas</p>
-                          <p className="text-2xl font-bold text-destructive">{stats.open}</p>
-                        </div>
-                        <AlertTriangle className="h-8 w-8 text-destructive" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'investigating' ? 'ring-2 ring-accent' : ''}`}
-                    onClick={() => handleStatusTileClick('investigating')}
-                    data-testid="tile-status-investigating"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Investigando</p>
-                          <p className="text-2xl font-bold text-accent">{stats.investigating}</p>
-                        </div>
-                        <Clock className="h-8 w-8 text-accent" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'mitigated' ? 'ring-2 ring-primary' : ''}`}
-                    onClick={() => handleStatusTileClick('mitigated')}
-                    data-testid="tile-status-mitigated"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Mitigadas</p>
-                          <p className="text-2xl font-bold text-primary">{stats.mitigated}</p>
-                        </div>
-                        <CheckCircle className="h-8 w-8 text-primary" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'closed' ? 'ring-2 ring-chart-4' : ''}`}
-                    onClick={() => handleStatusTileClick('closed')}
-                    data-testid="tile-status-closed"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Fechadas</p>
-                          <p className="text-2xl font-bold text-chart-4">{stats.closed}</p>
-                        </div>
-                        <CheckCircle className="h-8 w-8 text-chart-4" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'hibernated' ? 'ring-2 ring-amber-600' : ''}`}
-                    onClick={() => handleStatusTileClick('hibernated')}
-                    data-testid="tile-status-hibernated"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Hibernadas</p>
-                          <p className="text-2xl font-bold text-amber-600">{stats.hibernated}</p>
-                        </div>
-                        <Clock className="h-8 w-8 text-amber-600" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`metric-card cursor-pointer transition-all hover:scale-105 ${statusFilter === 'accepted_risk' ? 'ring-2 ring-blue-600' : ''}`}
-                    onClick={() => handleStatusTileClick('accepted_risk')}
-                    data-testid="tile-status-accepted-risk"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Risco Aceito</p>
-                          <p className="text-2xl font-bold text-blue-600">{stats.accepted_risk}</p>
-                        </div>
-                        <Shield className="h-8 w-8 text-blue-600" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </>
+              {/* Status summary - single compact row */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <span className="text-sm font-medium text-muted-foreground">Status:</span>
+                    {[
+                      { key: 'open', label: 'Abertas', count: stats.open, color: 'var(--status-open)' },
+                      { key: 'investigating', label: 'Investigando', count: stats.investigating, color: 'var(--status-investigating)' },
+                      { key: 'mitigated', label: 'Mitigadas', count: stats.mitigated, color: 'var(--status-mitigated)' },
+                      { key: 'closed', label: 'Fechadas', count: stats.closed, color: 'var(--status-closed)' },
+                      { key: 'hibernated', label: 'Hibernadas', count: stats.hibernated, color: 'var(--status-hibernated)' },
+                      { key: 'accepted_risk', label: 'Risco Aceito', count: stats.accepted_risk, color: 'var(--status-accepted)' },
+                    ].map(item => (
+                      <button
+                        key={item.key}
+                        onClick={() => handleStatusTileClick(item.key)}
+                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm transition-colors hover:bg-muted ${statusFilter === item.key ? 'bg-muted ring-1 ring-border' : ''}`}
+                        data-testid={`tile-status-${item.key.replace('_', '-')}`}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                        <span className="text-muted-foreground">{item.label}</span>
+                        <span className="font-semibold" style={{ color: item.color }}>{item.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* Search and Filters */}
@@ -663,9 +702,20 @@ export default function Threats() {
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">Carregando ameaças...</p>
+                <div className="space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center space-x-4 p-3">
+                      <Skeleton className="h-4 w-4 rounded" />
+                      <Skeleton className="h-6 w-16 rounded-full" />
+                      <div className="flex-1 space-y-1">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                      </div>
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-8 w-32 rounded-md" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  ))}
                 </div>
               ) : filteredThreats.length === 0 ? (
                 <div className="text-center py-8">
@@ -683,9 +733,41 @@ export default function Threats() {
                   </p>
                 </div>
               ) : (
+                <>
+                {/* Bulk Action Bar */}
+                {selectedIds.size > 0 && (
+                  <div className="flex items-center justify-between p-3 mb-4 bg-primary/10 border border-primary/20 rounded-lg">
+                    <span className="text-sm font-medium">{selectedIds.size} ameaça(s) selecionada(s)</span>
+                    <div className="flex items-center space-x-2">
+                      <Select onValueChange={(value) => setBulkStatusModal({ isOpen: true, newStatus: value, justification: '', hibernatedUntil: '' })}>
+                        <SelectTrigger className="w-44 h-8">
+                          <SelectValue placeholder="Alterar status..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="open">Aberta</SelectItem>
+                          <SelectItem value="investigating">Investigando</SelectItem>
+                          <SelectItem value="mitigated">Mitigada</SelectItem>
+                          <SelectItem value="hibernated">Hibernada</SelectItem>
+                          <SelectItem value="accepted_risk">Risco Aceito</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
+                        Limpar seleção
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">
+                        <Checkbox
+                          checked={filteredThreats.length > 0 && selectedIds.size === filteredThreats.length}
+                          onCheckedChange={(checked) => toggleSelectAll(!!checked)}
+                          aria-label="Selecionar todas"
+                        />
+                      </TableHead>
                       <TableHead>Severidade</TableHead>
                       <TableHead>Título</TableHead>
                       <TableHead>Host</TableHead>
@@ -698,7 +780,14 @@ export default function Threats() {
                     {filteredThreats.map((threat) => {
                       const StatusIcon = getStatusIcon(threat.status);
                       return (
-                        <TableRow key={threat.id} data-testid={`threat-row-${threat.id}`}>
+                        <TableRow key={threat.id} data-testid={`threat-row-${threat.id}`} className={selectedIds.has(threat.id) ? 'bg-primary/5' : ''}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedIds.has(threat.id)}
+                              onCheckedChange={(checked) => toggleSelectOne(threat.id, !!checked)}
+                              aria-label={`Selecionar ${threat.title}`}
+                            />
+                          </TableCell>
                           <TableCell>
                             <Badge className={getSeverityColor(threat.severity)}>
                               {getSeverityLabel(threat.severity)}
@@ -765,6 +854,8 @@ export default function Threats() {
                     })}
                   </TableBody>
                 </Table>
+                </div>
+                </>
               )}
             </CardContent>
           </Card>
@@ -892,6 +983,77 @@ export default function Threats() {
                 <div>
                   <h4 className="font-medium text-foreground mb-4">Evidências</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* AD Security Test Info (M2) */}
+                    {selectedThreat.evidence.testId && (
+                      <div className="p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-md md:col-span-2">
+                        <h5 className="font-medium text-sm text-foreground mb-2 flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-indigo-500" />
+                          Teste AD Security
+                        </h5>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Test ID:</span>
+                            <span className="font-mono text-xs">{selectedThreat.evidence.testId}</span>
+                          </div>
+                          {selectedThreat.evidence.category && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Categoria:</span>
+                              <span>{adCategoryLabels[selectedThreat.evidence.category] || selectedThreat.evidence.category}</span>
+                            </div>
+                          )}
+                          {selectedThreat.evidence.target && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Domínio:</span>
+                              <span className="font-mono text-xs">{selectedThreat.evidence.target}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AD Parsed Objects Table (M2) */}
+                    {selectedThreat.evidence.testId && parsedAdStdout.objects && parsedAdStdout.objects.length > 0 && (
+                      <div className="p-4 bg-muted/50 border rounded-md md:col-span-2">
+                        <h5 className="font-medium text-sm text-foreground mb-2">
+                          Objetos Afetados ({parsedAdStdout.objects.length})
+                        </h5>
+                        <div className="max-h-64 overflow-auto border rounded-md bg-background">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                {parsedAdStdout.keys.map(key => (
+                                  <TableHead key={key} className="text-xs whitespace-nowrap">{key}</TableHead>
+                                ))}
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {parsedAdStdout.objects.map((obj, idx) => (
+                                <TableRow key={idx}>
+                                  {parsedAdStdout.keys.map(key => (
+                                    <TableCell key={key} className="text-xs font-mono whitespace-nowrap">
+                                      {formatCellValue(obj[key])}
+                                    </TableCell>
+                                  ))}
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AD Command (collapsible) */}
+                    {selectedThreat.evidence.testId && selectedThreat.evidence.command && (
+                      <details className="p-4 bg-muted/50 border rounded-md md:col-span-2">
+                        <summary className="text-sm font-medium text-foreground cursor-pointer hover:text-foreground/80">
+                          Comando PowerShell Executado
+                        </summary>
+                        <pre className="mt-2 p-3 bg-background rounded-md text-xs overflow-x-auto font-mono">
+                          {selectedThreat.evidence.command}
+                        </pre>
+                      </details>
+                    )}
+
                     {/* Informações de Host/IP */}
                     {(selectedThreat.evidence.host || selectedThreat.evidence.ip) && (
                       <div className="p-4 bg-muted/50 border rounded-md">
@@ -1155,6 +1317,83 @@ export default function Threats() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Status Change Modal */}
+      <Dialog open={bulkStatusModal.isOpen} onOpenChange={(open) =>
+        !open && setBulkStatusModal({ isOpen: false, newStatus: '', justification: '', hibernatedUntil: '' })
+      }>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Alterar Status em Lote</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Alterar <strong>{selectedIds.size}</strong> ameaça(s) para <Badge className={getStatusColor(bulkStatusModal.newStatus)}>{getStatusLabel(bulkStatusModal.newStatus)}</Badge>
+            </p>
+
+            <div>
+              <label className="text-sm font-medium text-foreground">
+                Justificativa *
+              </label>
+              <textarea
+                className={`mt-1 w-full min-h-[80px] px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 ${
+                  bulkStatusModal.justification.length > 0 && bulkStatusModal.justification.length < 10
+                    ? 'border-red-500 focus:ring-red-500 bg-red-50 dark:bg-red-950/20 text-gray-900 dark:text-gray-100'
+                    : 'border-input focus:ring-ring bg-background text-foreground'
+                }`}
+                placeholder="Descreva o motivo da mudança de status em lote..."
+                value={bulkStatusModal.justification}
+                onChange={(e) => setBulkStatusModal(prev => ({ ...prev, justification: e.target.value }))}
+                data-testid="textarea-bulk-justification"
+              />
+              <div className="flex items-center justify-between mt-1">
+                {bulkStatusModal.justification.length < 10 ? (
+                  <p className="text-xs text-red-600 dark:text-red-400">Mínimo de 10 caracteres</p>
+                ) : (
+                  <p className="text-xs text-green-600 dark:text-green-400">Justificativa válida</p>
+                )}
+                <span className={`text-xs ${bulkStatusModal.justification.length < 10 ? 'text-red-600 dark:text-red-400 font-medium' : 'text-muted-foreground'}`}>
+                  {bulkStatusModal.justification.length}/10
+                </span>
+              </div>
+            </div>
+
+            {bulkStatusModal.newStatus === 'hibernated' && (
+              <div>
+                <label className="text-sm font-medium text-foreground">Data limite para reativação *</label>
+                <Input
+                  type="datetime-local"
+                  className="mt-1"
+                  value={bulkStatusModal.hibernatedUntil}
+                  onChange={(e) => setBulkStatusModal(prev => ({ ...prev, hibernatedUntil: e.target.value }))}
+                  min={new Date().toISOString().slice(0, 16)}
+                  data-testid="input-bulk-hibernated-until"
+                />
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setBulkStatusModal({ isOpen: false, newStatus: '', justification: '', hibernatedUntil: '' })}
+                data-testid="button-cancel-bulk-status"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleBulkStatusSubmit}
+                disabled={
+                  bulkStatusModal.justification.length < 10 ||
+                  (bulkStatusModal.newStatus === 'hibernated' && !bulkStatusModal.hibernatedUntil)
+                }
+                data-testid="button-confirm-bulk-status"
+              >
+                Alterar {selectedIds.size} Ameaças
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

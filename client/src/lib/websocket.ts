@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 export interface WebSocketMessage {
   type: string;
@@ -10,24 +10,30 @@ export function useWebSocket() {
   const [connected, setConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   const ws = useRef<WebSocket | null>(null);
-  const reconnectTimer = useRef<NodeJS.Timeout>();
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout>>();
+  const isMounted = useRef(true);
 
-  const connect = () => {
+  const connect = useCallback(() => {
+    // Don't reconnect if component is unmounted
+    if (!isMounted.current) return;
+
     try {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = `${protocol}//${window.location.host}/ws`;
-      
+
       ws.current = new WebSocket(wsUrl);
 
       ws.current.onopen = () => {
-        console.log('WebSocket conectado');
+        if (!isMounted.current) return;
         setConnected(true);
         if (reconnectTimer.current) {
           clearTimeout(reconnectTimer.current);
+          reconnectTimer.current = undefined;
         }
       };
 
       ws.current.onmessage = (event) => {
+        if (!isMounted.current) return;
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
           setLastMessage(message);
@@ -37,45 +43,54 @@ export function useWebSocket() {
       };
 
       ws.current.onclose = () => {
-        console.log('WebSocket desconectado');
+        if (!isMounted.current) return;
         setConnected(false);
-        
-        // Attempt to reconnect after 5 seconds
+
+        // Attempt to reconnect after 5 seconds (only if still mounted)
         reconnectTimer.current = setTimeout(() => {
-          console.log('Tentando reconectar WebSocket...');
-          connect();
+          if (isMounted.current) {
+            connect();
+          }
         }, 5000);
       };
 
-      ws.current.onerror = (error) => {
-        console.error('Erro WebSocket:', error);
+      ws.current.onerror = () => {
+        if (!isMounted.current) return;
         setConnected(false);
       };
 
     } catch (error) {
       console.error('Erro ao conectar WebSocket:', error);
-      setConnected(false);
+      if (isMounted.current) {
+        setConnected(false);
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
+    isMounted.current = true;
     connect();
 
     return () => {
+      isMounted.current = false;
       if (reconnectTimer.current) {
         clearTimeout(reconnectTimer.current);
+        reconnectTimer.current = undefined;
       }
       if (ws.current) {
+        // Remove onclose to prevent reconnection attempt after cleanup
+        ws.current.onclose = null;
         ws.current.close();
+        ws.current = null;
       }
     };
-  }, []);
+  }, [connect]);
 
-  const sendMessage = (message: any) => {
+  const sendMessage = useCallback((message: any) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(message));
     }
-  };
+  }, []);
 
   return {
     connected,

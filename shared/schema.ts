@@ -629,9 +629,9 @@ export const insertCredentialSchema = createInsertSchema(credentials).omit({
 export const attackSurfaceParamsSchema = z.object({
   targets: z.array(z.string()).min(1, "Pelo menos um alvo é obrigatório"),
   credentials: z.array(z.string()).optional(),
-  nmapProfile: z.enum(['fast', 'comprehensive', 'stealth']).optional(),
-  webScanEnabled: z.boolean().default(false), // Nova opção para varredura web com Nuclei
-  processTimeout: z.number().min(5).max(180).default(60), // Timeout por processo em minutos (5-180min)
+  nmapProfile: z.enum(['leve', 'profundo', 'fast', 'comprehensive', 'stealth']).optional(), // fast/comprehensive/stealth são legados
+  webScanEnabled: z.boolean().default(false), // Varredura web com Nuclei nas URLs HTTP/HTTPS descobertas
+  vulnScriptTimeout: z.number().min(5).max(180).default(60), // Timeout por processo em minutos (5-180min)
 });
 
 // Schema de validação para parâmetros de jornada AD Security

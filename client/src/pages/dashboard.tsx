@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/lib/websocket";
@@ -9,14 +9,37 @@ import TopBar from "@/components/layout/topbar";
 import MetricsOverview from "@/components/dashboard/metrics-overview";
 import ActiveJobs from "@/components/dashboard/active-jobs";
 import RecentThreats from "@/components/dashboard/recent-threats";
-import QuickActions from "@/components/dashboard/quick-actions";
+import AttentionRequired from "@/components/dashboard/attention-required";
 import SystemHealth from "@/components/dashboard/system-health";
 import UpcomingSchedules from "@/components/dashboard/upcoming-schedules";
+
+function useLastUpdated() {
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+  const refresh = useCallback(() => {
+    setLastUpdated(new Date());
+  }, []);
+
+  // Update every 10 seconds to keep timestamp fresh
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdated(new Date());
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTime = () => {
+    return lastUpdated.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  return { formatTime, refresh };
+}
 
 export default function Dashboard() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const { connected, lastMessage } = useWebSocket();
+  const { formatTime } = useLastUpdated();
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -48,7 +71,6 @@ export default function Dashboard() {
           });
           break;
         case 'connected':
-          console.log('WebSocket conectado ao SamurEye');
           break;
       }
     }
@@ -72,32 +94,30 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
-      
+
       <main className="flex-1 overflow-auto">
-        <TopBar 
+        <TopBar
           title="Dashboard de Segurança"
-          subtitle="Visão geral da postura de segurança organizacional"
+          subtitle={`Visão geral da postura de segurança \u2022 Atualizado às ${formatTime()}`}
           wsConnected={connected}
         />
-        
+
         <div className="p-6 space-y-6">
           {/* Metrics Overview */}
           <MetricsOverview />
-          
+
+          {/* Attention Required (only renders if there are alerts) */}
+          <AttentionRequired />
+
           {/* Current Jobs and Threats */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ActiveJobs />
             <RecentThreats />
           </div>
-          
-          {/* Journey Management and Quick Actions */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <QuickActions />
-            <div className="lg:col-span-2">
-              <SystemHealth />
-            </div>
-          </div>
-          
+
+          {/* System Health */}
+          <SystemHealth />
+
           {/* Schedule Overview */}
           <UpcomingSchedules />
         </div>

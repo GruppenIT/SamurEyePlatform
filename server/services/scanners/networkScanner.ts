@@ -708,26 +708,39 @@ export class NetworkScanner {
       return customPorts;
     }
 
+    // Normalizar perfis legados para novos nomes
+    const profile = this.normalizeProfile(nmapProfile);
+
     // Aplicar perfil de escaneamento
-    switch (nmapProfile) {
-      case 'fast':
+    switch (profile) {
+      case 'leve':
         // Top 1000 portas (usar --top-ports 1000 do nmap)
-        console.log('🚀 Perfil rápido selecionado: escaneando top 1000 portas');
+        console.log('🚀 Perfil Leve selecionado: escaneando top 1000 portas');
         return [];
-      
-      case 'comprehensive':
-        // Todas as portas (1-65535) - pode ser muito lento
-        console.log('⚠️  Perfil completo selecionado: escaneando TODAS as portas (1-65535)');
+
+      case 'profundo':
+        // Todas as portas (1-65535)
+        console.log('⚠️  Perfil Profundo selecionado: escaneando TODAS as portas (1-65535)');
         return [];
-      
-      case 'stealth':
-        // Portas comuns com varredura SYN stealth
-        console.log('🥷 Perfil stealth selecionado: escaneando portas comuns discretamente');
-        return this.commonPorts.map(p => p.port);
-      
+
       default:
-        // Padrão: portas comuns
-        return this.commonPorts.map(p => p.port);
+        // Padrão: top 1000 portas (leve)
+        console.log('🚀 Perfil padrão: escaneando top 1000 portas');
+        return [];
+    }
+  }
+
+  /**
+   * Normaliza nomes de perfis legados para os novos nomes
+   */
+  private normalizeProfile(nmapProfile?: string): string {
+    switch (nmapProfile) {
+      case 'fast': return 'leve';
+      case 'comprehensive': return 'profundo';
+      case 'stealth': return 'leve'; // stealth depreciado, usa leve
+      case 'leve': return 'leve';
+      case 'profundo': return 'profundo';
+      default: return 'leve';
     }
   }
 
@@ -736,27 +749,22 @@ export class NetworkScanner {
    */
   private buildNmapArgs(target: string, ports: number[], nmapProfile?: string, skipOsDetection: boolean = false): string[] {
     const args = [];
+    const profile = this.normalizeProfile(nmapProfile);
 
     // Sempre adicionar flag para pular ping discovery
     args.push('-Pn'); // Muitos hosts bloqueiam ping mas têm portas abertas
 
     // Determinar tipo de scan baseado no perfil
-    switch (nmapProfile) {
-      case 'stealth':
-        args.push('-sS'); // SYN stealth scan
-        break;
-      case 'tcp-fallback':
-        args.push('-sT'); // TCP connect scan forçado (fallback de privilégios)
-        console.log('🔄 Usando TCP connect scan como fallback por falta de privilégios root');
-        break;
-      default:
-        args.push('-sT'); // TCP connect scan (não requer root)
-        break;
+    if (nmapProfile === 'tcp-fallback') {
+      args.push('-sT'); // TCP connect scan forçado (fallback de privilégios)
+      console.log('🔄 Usando TCP connect scan como fallback por falta de privilégios root');
+    } else {
+      args.push('-sT'); // TCP connect scan (não requer root)
     }
 
     // Configurar agressividade baseada no perfil
-    if (nmapProfile === 'fast') {
-      // Perfil rápido: apenas detecção de portas, sem scripts pesados
+    if (profile === 'leve') {
+      // Perfil Leve: detecção rápida de serviços, sem scripts pesados
       args.push(
         '-sV', // Version detection básica
         '--max-hostgroup', '1',
@@ -767,28 +775,24 @@ export class NetworkScanner {
         '--initial-rtt-timeout', '500ms',
         '--version-intensity', '5'  // Intensidade reduzida
       );
-      
-      // Adicionar OS detection se não for explicitamente desabilitado
+
       if (!skipOsDetection) {
-        args.push(
-          '-O', // OS detection para melhor precisão
-          '--osscan-guess' // Tentar adivinhar OS mesmo com incerteza
-        );
+        args.push('-O', '--osscan-guess');
       }
     } else if (nmapProfile === 'tcp-fallback') {
       // Fallback sem privilégios: apenas scan TCP básico, sem OS detection
       args.push(
-        '-sV', // Version detection
+        '-sV',
         '--max-hostgroup', '1',
         '--max-parallelism', '5',
         '--min-rate', '50',
         '--max-rate', '500',
         '--max-rtt-timeout', '5s',
         '--initial-rtt-timeout', '1s',
-        '--version-intensity', '5'  // Intensidade reduzida no fallback
+        '--version-intensity', '5'
       );
     } else {
-      // Perfis normais/stealth: scan completo
+      // Perfil Profundo: scan completo com scripts de vulnerabilidade
       args.push(
         '-sV', // Version detection
         '--script=vuln', // Scripts de vulnerabilidade
@@ -801,34 +805,24 @@ export class NetworkScanner {
         '--initial-rtt-timeout', '1s',
         '--version-intensity', '7'
       );
-      
-      // Adicionar OS detection se não for explicitamente desabilitado
+
       if (!skipOsDetection) {
-        args.push(
-          '-O', // OS detection para melhor precisão
-          '--osscan-guess' // Tentar adivinhar OS mesmo com incerteza
-        );
+        args.push('-O', '--osscan-guess');
       }
     }
 
     // Timing template baseado no perfil
-    switch (nmapProfile) {
-      case 'fast':
-        args.push('-T4'); // Timing agressivo
-        break;
-      case 'stealth':
-        args.push('-T2'); // Timing mais lento e discreto
-        break;
-      default:
-        args.push('-T3'); // Timing normal
-        break;
+    if (profile === 'leve') {
+      args.push('-T4'); // Timing agressivo
+    } else {
+      args.push('-T3'); // Timing normal
     }
 
     // Configurar portas
-    if (nmapProfile === 'comprehensive') {
-      // Scan completo: todas as portas
+    if (profile === 'profundo') {
+      // Scan profundo: todas as portas
       args.push('-p', '1-65535');
-      console.log('🔍 Executando nmap com scan completo: portas 1-65535');
+      console.log('🔍 Executando nmap profundo: portas 1-65535');
     } else if (ports.length > 0) {
       // Portas específicas
       const portList = ports.join(',');
@@ -837,7 +831,7 @@ export class NetworkScanner {
     } else {
       // Top 1000 portas (padrão do nmap)
       args.push('--top-ports', '1000');
-      console.log('🔍 Executando nmap com top 1000 portas');
+      console.log('🔍 Executando nmap leve: top 1000 portas');
     }
 
     args.push(target);

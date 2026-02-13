@@ -93,7 +93,7 @@ export default function ScheduleForm({ onSubmit, onCancel, isLoading = false, in
       onceAt: initialData?.onceAt || undefined,
       // Campos para execução recorrente
       recurrenceType: initialData?.recurrenceType || undefined,
-      hour: initialData?.hour || 9, // 9h por padrão
+      hour: initialData?.hour ?? 9, // 9h por padrão
       minute: initialData?.minute || 0,
       dayOfWeek: initialData?.dayOfWeek || 1, // Segunda-feira por padrão
       dayOfMonth: initialData?.dayOfMonth || 1, // Dia 1 por padrão

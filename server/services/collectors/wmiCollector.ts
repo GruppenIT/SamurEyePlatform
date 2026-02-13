@@ -4,6 +4,9 @@ import type { IHostCollector, EnrichmentData } from "../hostEnricher";
 import { log } from "../../vite";
 import { encryptionService } from "../encryption";
 
+const MAX_RAW_STDOUT = 512_000;
+const MAX_RAW_STDERR = 64_000;
+
 /**
  * WMI Collector for Windows hosts
  * Uses pywinrm wrapper to execute PowerShell commands via WinRM
@@ -334,11 +337,17 @@ export class WMICollector implements IHostCollector {
       let stderr = '';
 
       winrm.stdout.on('data', (data) => {
-        stdout += data.toString();
+        if (stdout.length < MAX_RAW_STDOUT) {
+          stdout += data.toString();
+          if (stdout.length > MAX_RAW_STDOUT) stdout = stdout.substring(0, MAX_RAW_STDOUT);
+        }
       });
 
       winrm.stderr.on('data', (data) => {
-        stderr += data.toString();
+        if (stderr.length < MAX_RAW_STDERR) {
+          stderr += data.toString();
+          if (stderr.length > MAX_RAW_STDERR) stderr = stderr.substring(0, MAX_RAW_STDERR);
+        }
       });
 
       winrm.on('close', (code) => {
