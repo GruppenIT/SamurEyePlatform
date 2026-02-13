@@ -22,7 +22,9 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings as SettingsIcon, Save, Shield, Clock, Globe, Mail } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Settings as SettingsIcon, Save, Shield, Clock, Globe, Mail, Key, CheckCircle, AlertTriangle, XCircle, Wifi, WifiOff, Loader2, Copy } from "lucide-react";
 import { Setting } from "@shared/schema";
 
 interface SettingsForm {
@@ -331,7 +333,7 @@ export default function Settings() {
             </div>
           ) : (
             <Tabs defaultValue="geral" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="geral" className="flex items-center gap-2">
                   <SettingsIcon className="h-4 w-4" />
                   Geral
@@ -351,6 +353,10 @@ export default function Settings() {
                 <TabsTrigger value="smtp" className="flex items-center gap-2">
                   <Globe className="h-4 w-4" />
                   SMTP
+                </TabsTrigger>
+                <TabsTrigger value="subscricao" className="flex items-center gap-2">
+                  <Key className="h-4 w-4" />
+                  Subscrição
                 </TabsTrigger>
               </TabsList>
 
@@ -827,10 +833,326 @@ export default function Settings() {
                   </CardContent>
                 </Card>
               </TabsContent>
+
+              {/* Tab: Subscrição */}
+              <TabsContent value="subscricao">
+                <SubscriptionTab />
+              </TabsContent>
             </Tabs>
           )}
         </div>
       </main>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// Subscription Tab Component
+// ═══════════════════════════════════════════════════════════
+
+interface SubscriptionStatus {
+  configured: boolean;
+  applianceId: string | null;
+  status: string;
+  tenantName: string | null;
+  plan: string | null;
+  expiresAt: string | null;
+  features: string[];
+  lastHeartbeatAt: string | null;
+  lastHeartbeatError: string | null;
+  consecutiveFailures: number;
+  graceDeadline: string | null;
+  consoleBaseUrl: string;
+  activatedAt: string | null;
+  readOnly: boolean;
+}
+
+function SubscriptionTab() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [apiKeyInput, setApiKeyInput] = useState('');
+
+  const { data: subscription, isLoading } = useQuery<SubscriptionStatus>({
+    queryKey: ['/api/subscription/status'],
+    refetchInterval: 60_000, // Refresh every minute
+  });
+
+  const activateMutation = useMutation({
+    mutationFn: async (apiKey: string) => {
+      const res = await apiRequest('POST', '/api/subscription/activate', { apiKey });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/subscription/status'] });
+      setApiKeyInput('');
+      toast({ title: "Sucesso", description: data.message || "Subscrição ativada com sucesso" });
+    },
+    onError: (error: any) => {
+      if (isUnauthorizedError(error)) return;
+      toast({ title: "Erro", description: error.message || "Falha ao ativar subscrição", variant: "destructive" });
+    },
+  });
+
+  const deactivateMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/subscription/deactivate');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/subscription/status'] });
+      toast({ title: "Sucesso", description: "Subscrição desativada" });
+    },
+    onError: (error: any) => {
+      if (isUnauthorizedError(error)) return;
+      toast({ title: "Erro", description: error.message || "Falha ao desativar", variant: "destructive" });
+    },
+  });
+
+  const heartbeatMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/subscription/heartbeat');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/subscription/status'] });
+      toast({ title: "Sucesso", description: "Heartbeat enviado com sucesso" });
+    },
+    onError: (error: any) => {
+      if (isUnauthorizedError(error)) return;
+      toast({ title: "Erro", description: error.message || "Falha no heartbeat", variant: "destructive" });
+    },
+  });
+
+  const handleActivate = () => {
+    if (!apiKeyInput.trim()) {
+      toast({ title: "Erro", description: "Informe a chave de API", variant: "destructive" });
+      return;
+    }
+    activateMutation.mutate(apiKeyInput);
+  };
+
+  const handleDeactivate = () => {
+    if (!confirm('Tem certeza que deseja desativar a subscrição? O appliance perderá a conexão com a console central.')) return;
+    deactivateMutation.mutate();
+  };
+
+  const getStatusBadge = (status: string) => {
+    const map: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: any }> = {
+      not_configured: { label: 'Não configurada', variant: 'secondary', icon: WifiOff },
+      active: { label: 'Ativa', variant: 'default', icon: CheckCircle },
+      expired: { label: 'Expirada', variant: 'destructive', icon: XCircle },
+      grace_period: { label: 'Período de graça', variant: 'outline', icon: AlertTriangle },
+      unreachable: { label: 'Console inacessível', variant: 'destructive', icon: WifiOff },
+    };
+    const config = map[status] || map.not_configured;
+    const Icon = config.icon;
+    return (
+      <Badge variant={config.variant} className="text-sm py-1 px-3">
+        <Icon className="h-3.5 w-3.5 mr-1.5" />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const formatDate = (iso: string | null) => {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  };
+
+  const copyApplianceId = () => {
+    if (subscription?.applianceId) {
+      navigator.clipboard.writeText(subscription.applianceId);
+      toast({ title: "Copiado", description: "ID do appliance copiado" });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const isConfigured = subscription?.configured;
+
+  return (
+    <div className="space-y-6">
+      {/* Status Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Key className="h-5 w-5" />
+            Status da Subscrição
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Status</span>
+            {getStatusBadge(subscription?.status || 'not_configured')}
+          </div>
+
+          {isConfigured && (
+            <>
+              <Separator />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm text-muted-foreground">Tenant</span>
+                  <p className="font-medium">{subscription?.tenantName || '—'}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">Plano</span>
+                  <p className="font-medium">{subscription?.plan || '—'}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">Validade</span>
+                  <p className="font-medium">{formatDate(subscription?.expiresAt || null)}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">Ativado em</span>
+                  <p className="font-medium">{formatDate(subscription?.activatedAt || null)}</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm text-muted-foreground">Último heartbeat</span>
+                  <p className="font-medium flex items-center gap-1.5">
+                    {subscription?.lastHeartbeatAt ? (
+                      <>
+                        <Wifi className="h-3.5 w-3.5 text-green-500" />
+                        {formatDate(subscription.lastHeartbeatAt)}
+                      </>
+                    ) : '—'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">Falhas consecutivas</span>
+                  <p className="font-medium">
+                    {subscription?.consecutiveFailures || 0}
+                    {subscription?.graceDeadline && (
+                      <span className="text-xs text-muted-foreground ml-2">
+                        (graça até {formatDate(subscription.graceDeadline)})
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {subscription?.lastHeartbeatError && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>{subscription.lastHeartbeatError}</AlertDescription>
+                </Alert>
+              )}
+
+              {subscription?.readOnly && (
+                <Alert variant="destructive">
+                  <XCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    O SamurEye está em modo somente-leitura. Atualize sua subscrição na console central para restaurar o acesso completo.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <Separator />
+
+              <div>
+                <span className="text-sm text-muted-foreground">Appliance ID</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
+                    {subscription?.applianceId}
+                  </code>
+                  <Button variant="ghost" size="sm" onClick={copyApplianceId} data-testid="btn-copy-appliance-id">
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => heartbeatMutation.mutate()}
+                  disabled={heartbeatMutation.isPending}
+                  data-testid="btn-force-heartbeat"
+                >
+                  {heartbeatMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Wifi className="h-4 w-4 mr-2" />}
+                  Testar Conexão
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeactivate}
+                  disabled={deactivateMutation.isPending}
+                  data-testid="btn-deactivate-subscription"
+                >
+                  Desativar Subscrição
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Activation Card (shown when not configured) */}
+      {!isConfigured && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              Ativar Subscrição
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Insira a chave de API fornecida pela console central SamurEye para conectar este appliance.
+              A chave habilita a comunicação com a plataforma de gestão centralizada.
+            </p>
+
+            <div>
+              <Label htmlFor="apiKey">Chave de API</Label>
+              <Input
+                id="apiKey"
+                type="password"
+                placeholder="se-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                data-testid="input-api-key"
+              />
+            </div>
+
+            <Button
+              onClick={handleActivate}
+              disabled={activateMutation.isPending || !apiKeyInput.trim()}
+              data-testid="btn-activate-subscription"
+            >
+              {activateMutation.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Ativando...</>
+              ) : (
+                <><Key className="h-4 w-4 mr-2" /> Ativar Subscrição</>
+              )}
+            </Button>
+
+            {subscription?.applianceId && (
+              <div>
+                <span className="text-sm text-muted-foreground">Appliance ID</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
+                    {subscription.applianceId}
+                  </code>
+                  <Button variant="ghost" size="sm" onClick={copyApplianceId} data-testid="btn-copy-appliance-id-2">
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

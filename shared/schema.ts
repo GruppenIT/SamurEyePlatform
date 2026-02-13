@@ -57,6 +57,9 @@ export const threatStatusEnum = pgEnum('threat_status', ['open', 'investigating'
 // Email auth type enum
 export const emailAuthTypeEnum = pgEnum('email_auth_type', ['password', 'oauth2_gmail', 'oauth2_microsoft']);
 
+// Subscription status enum
+export const subscriptionStatusEnum = pgEnum('subscription_status', ['not_configured', 'active', 'expired', 'grace_period', 'unreachable']);
+
 // Notification status enum
 export const notificationStatusEnum = pgEnum('notification_status', ['sent', 'failed']);
 
@@ -433,6 +436,31 @@ export const notificationLog = pgTable("notification_log", {
   index("IDX_notification_log_threat_id").on(table.threatId),
   index("IDX_notification_log_sent_at").on(table.sentAt),
 ]);
+
+// Appliance subscription table - manages connection to SamurEye central console
+export const applianceSubscription = pgTable("appliance_subscription", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  applianceId: varchar("appliance_id").notNull().unique(), // UUID generated on first activation, immutable
+  apiKey: text("api_key"),                                 // Encrypted API key provided by console
+  apiKeyDek: text("api_key_dek"),                          // DEK for API key decryption
+  // Cached subscription data from console
+  status: subscriptionStatusEnum("status").default('not_configured').notNull(),
+  tenantId: varchar("tenant_id"),
+  tenantName: text("tenant_name"),
+  plan: text("plan"),
+  expiresAt: timestamp("expires_at"),
+  features: jsonb("features").$type<string[]>().default([]),
+  // Communication state
+  lastHeartbeatAt: timestamp("last_heartbeat_at"),          // Last successful heartbeat
+  lastHeartbeatError: text("last_heartbeat_error"),         // Last error message
+  consecutiveFailures: integer("consecutive_failures").default(0).notNull(),
+  graceDeadline: timestamp("grace_deadline"),               // When grace period expires (72h after first failure)
+  consoleBaseUrl: text("console_base_url").default('https://api.samureye.com.br'),
+  // Metadata
+  activatedAt: timestamp("activated_at"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedBy: varchar("updated_by").references(() => users.id),
+});
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -878,3 +906,50 @@ export type JourneyCredential = typeof journeyCredentials.$inferSelect;
 export type InsertJourneyCredential = z.infer<typeof insertJourneyCredentialSchema>;
 export type HostEnrichment = typeof hostEnrichments.$inferSelect;
 export type InsertHostEnrichment = z.infer<typeof insertHostEnrichmentSchema>;
+export type ApplianceSubscription = typeof applianceSubscription.$inferSelect;
+
+// API contract types for appliance ↔ console communication
+export const activateApplianceSchema = z.object({
+  apiKey: z.string().min(1, "Chave de API é obrigatória"),
+});
+
+export const heartbeatRequestSchema = z.object({
+  applianceId: z.string(),
+  version: z.string(),
+  timestamp: z.string().datetime(),
+  performance: z.object({
+    uptimeSeconds: z.number(),
+    hostCount: z.number(),
+    assetCount: z.number(),
+  }),
+  threatStats: z.object({
+    total: z.number(),
+    bySeverity: z.object({
+      critical: z.number(),
+      high: z.number(),
+      medium: z.number(),
+      low: z.number(),
+    }),
+    byCategory: z.record(z.string(), z.number()),
+    byStatus: z.record(z.string(), z.number()),
+  }),
+  usage: z.object({
+    activeUsers24h: z.number(),
+    jobsExecuted24h: z.number(),
+    loginsToday: z.number(),
+  }),
+});
+
+export const heartbeatResponseSchema = z.object({
+  subscription: z.object({
+    active: z.boolean(),
+    plan: z.string(),
+    expiresAt: z.string().datetime(),
+    features: z.array(z.string()),
+    message: z.string().optional(),
+  }),
+});
+
+export type ActivateAppliance = z.infer<typeof activateApplianceSchema>;
+export type HeartbeatRequest = z.infer<typeof heartbeatRequestSchema>;
+export type HeartbeatResponse = z.infer<typeof heartbeatResponseSchema>;
