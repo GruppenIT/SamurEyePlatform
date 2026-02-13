@@ -1325,7 +1325,8 @@ class JourneyExecutorService {
       }
       
       // Detectar início de bloco de vulnerabilidade
-      if (line.includes('|') && (line.includes('CVE-') || line.includes('VULNERABLE') || line.includes('State: VULNERABLE'))) {
+      // IMPORTANT: Skip "NOT VULNERABLE" entries - only match actual VULNERABLE state
+      if (line.includes('|') && (line.includes('CVE-') || line.includes('VULNERABLE')) && !line.includes('NOT VULNERABLE')) {
         isInVulnBlock = true;
       }
       
@@ -1362,6 +1363,11 @@ class JourneyExecutorService {
    * Extrai informações de vulnerabilidade de um bloco de output do nmap
    */
   private extractVulnerabilityFromBuffer(buffer: string, host: string, port: string, service: string): any | null {
+    // Skip NOT VULNERABLE entries - nmap with vulns.showall reports non-vulnerable services too
+    if (buffer.includes('NOT VULNERABLE') || buffer.includes('State: NOT VULNERABLE')) {
+      return null;
+    }
+
     // Extrair CVE IDs
     const cveMatches = buffer.match(/CVE-\d{4}-\d{4,7}/g);
     if (!cveMatches || cveMatches.length === 0) {
