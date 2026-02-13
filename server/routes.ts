@@ -11,6 +11,8 @@ import { encryptionService } from "./services/encryption";
 import { processTracker } from "./services/processTracker";
 import { emailService } from "./services/emailService";
 import { notificationService } from "./services/notificationService";
+import { subscriptionService } from "./services/subscriptionService";
+import { activateApplianceSchema } from "@shared/schema";
 import {
   insertAssetSchema,
   insertCredentialSchema,
@@ -54,6 +56,29 @@ function requireOperator(req: any, res: any, next: any) {
   if (role !== 'global_administrator' && role !== 'operator') {
     return res.status(403).json({ message: "Acesso negado. Usuários somente-leitura não podem realizar esta operação." });
   }
+  next();
+}
+
+// Subscription read-only middleware: blocks write operations when subscription is expired
+// Allows: GET requests, login/logout, subscription management, settings reads
+function requireActiveSubscription(req: any, res: any, next: any) {
+  // Always allow GET/HEAD/OPTIONS (read operations)
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+
+  // Always allow auth routes (login, logout, password change)
+  if (req.path.startsWith('/api/login') || req.path.startsWith('/api/logout') || req.path.startsWith('/api/change-password')) return next();
+
+  // Always allow subscription management (so admin can fix it)
+  if (req.path.startsWith('/api/subscription')) return next();
+
+  // Check if read-only mode is active
+  if (subscriptionService.isReadOnly()) {
+    return res.status(403).json({
+      message: "Subscrição expirada. O SamurEye está em modo somente-leitura. Atualize sua subscrição para continuar.",
+      code: "SUBSCRIPTION_EXPIRED",
+    });
+  }
+
   next();
 }
 
@@ -118,6 +143,9 @@ const journeyCredentialInputSchema = z.object({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+
+  // Subscription read-only enforcement (global, before all API routes)
+  app.use('/api', requireActiveSubscription);
 
   // WebSocket connections for real-time updates
   const connectedClients = new Set<WebSocket>();
@@ -625,6 +653,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Erro ao testar configurações de e-mail:", error);
       res.status(400).json({ message: error.message || "Falha ao testar configurações de e-mail" });
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // Subscription management routes
+  // ═══════════════════════════════════════════════════════════
+
+  // Get subscription status (available to all authenticated users for banner display)
+  app.get('/api/subscription/status', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const status = await subscriptionService.getStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Erro ao buscar status da subscrição:", error);
+      res.status(500).json({ message: "Falha ao buscar status da subscrição" });
+    }
+  });
+
+  // Activate subscription with API key (admin only)
+  app.post('/api/subscription/activate', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
+    try {
+      const { apiKey } = activateApplianceSchema.parse(req.body);
+      const userId = req.user.id;
+
+      const result = await subscriptionService.activate(apiKey, userId);
+
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      // Audit log
+      await storage.logAudit({
+        actorId: userId,
+        action: 'subscription.activate',
+        objectType: 'subscription',
+        objectId: result.subscription?.applianceId || 'unknown',
+        before: null,
+        after: {
+          tenantName: result.subscription?.tenantName,
+          plan: result.subscription?.plan,
+        },
+      });
+
+      res.json({
+        message: "Subscrição ativada com sucesso",
+        subscription: await subscriptionService.getStatus(),
+      });
+    } catch (error: any) {
+      console.error("Erro ao ativar subscrição:", error);
+      res.status(400).json({ message: error.message || "Falha ao ativar subscrição" });
+    }
+  });
+
+  // Deactivate subscription (admin only)
+  app.post('/api/subscription/deactivate', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+
+      await subscriptionService.deactivate(userId);
+
+      // Audit log
+      await storage.logAudit({
+        actorId: userId,
+        action: 'subscription.deactivate',
+        objectType: 'subscription',
+        objectId: 'appliance',
+        before: null,
+        after: null,
+      });
+
+      res.json({
+        message: "Subscrição desativada",
+        subscription: await subscriptionService.getStatus(),
+      });
+    } catch (error: any) {
+      console.error("Erro ao desativar subscrição:", error);
+      res.status(400).json({ message: error.message || "Falha ao desativar subscrição" });
+    }
+  });
+
+  // Force heartbeat (admin only, for testing)
+  app.post('/api/subscription/heartbeat', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
+    try {
+      await subscriptionService.sendHeartbeat();
+      const status = await subscriptionService.getStatus();
+      res.json({ message: "Heartbeat enviado", subscription: status });
+    } catch (error: any) {
+      console.error("Erro ao enviar heartbeat:", error);
+      res.status(500).json({ message: error.message || "Falha ao enviar heartbeat" });
     }
   });
 

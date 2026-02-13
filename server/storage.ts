@@ -60,6 +60,8 @@ import {
   type InsertJourneyCredential,
   type HostEnrichment,
   type InsertHostEnrichment,
+  applianceSubscription,
+  type ApplianceSubscription,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, count, like, inArray } from "drizzle-orm";
@@ -2068,6 +2070,99 @@ export class DatabaseStorage implements IStorage {
     const newVersion = currentVersion + 1;
     await this.setSetting('session_version', newVersion, userId);
     return newVersion;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // Appliance Subscription
+  // ═══════════════════════════════════════════════════════════
+
+  async getSubscription(): Promise<ApplianceSubscription | undefined> {
+    const [sub] = await db.select().from(applianceSubscription).limit(1);
+    return sub;
+  }
+
+  async upsertSubscription(data: Partial<Omit<ApplianceSubscription, 'id'>>, userId?: string): Promise<ApplianceSubscription> {
+    const existing = await this.getSubscription();
+
+    if (existing) {
+      const [updated] = await db
+        .update(applianceSubscription)
+        .set({
+          ...data,
+          updatedAt: new Date(),
+          ...(userId ? { updatedBy: userId } : {}),
+        })
+        .where(eq(applianceSubscription.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    // First time: generate appliance ID
+    const applianceId = data.applianceId || crypto.randomUUID();
+    const [created] = await db
+      .insert(applianceSubscription)
+      .values({
+        applianceId,
+        ...data,
+        ...(userId ? { updatedBy: userId } : {}),
+      })
+      .returning();
+    return created;
+  }
+
+  async updateHeartbeatSuccess(consoleResponse: {
+    active: boolean;
+    plan: string;
+    expiresAt: string;
+    features: string[];
+    tenantId?: string;
+    tenantName?: string;
+  }): Promise<ApplianceSubscription> {
+    const isActive = consoleResponse.active;
+    const expiresAt = new Date(consoleResponse.expiresAt);
+    const now = new Date();
+    const isExpired = expiresAt < now;
+
+    return this.upsertSubscription({
+      status: isActive && !isExpired ? 'active' : 'expired',
+      tenantId: consoleResponse.tenantId,
+      tenantName: consoleResponse.tenantName,
+      plan: consoleResponse.plan,
+      expiresAt,
+      features: consoleResponse.features,
+      lastHeartbeatAt: now,
+      lastHeartbeatError: null,
+      consecutiveFailures: 0,
+      graceDeadline: null,
+    });
+  }
+
+  async updateHeartbeatFailure(error: string): Promise<ApplianceSubscription> {
+    const existing = await this.getSubscription();
+    const failures = (existing?.consecutiveFailures || 0) + 1;
+    const now = new Date();
+
+    // Set grace deadline on first failure (72h from now)
+    let graceDeadline = existing?.graceDeadline;
+    let status = existing?.status || 'not_configured' as const;
+
+    if (failures === 1 && !graceDeadline) {
+      graceDeadline = new Date(now.getTime() + 72 * 60 * 60 * 1000); // 72h
+    }
+
+    // Check if grace period has expired
+    if (graceDeadline && now > graceDeadline && status === 'active') {
+      status = 'unreachable';
+    } else if (status === 'active') {
+      status = 'grace_period';
+    }
+
+    return this.upsertSubscription({
+      consecutiveFailures: failures,
+      lastHeartbeatError: error,
+      graceDeadline,
+      status,
+    });
   }
 }
 

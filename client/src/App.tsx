@@ -24,6 +24,7 @@ import Sessions from "@/pages/sessions";
 import Settings from "@/pages/settings";
 import Audit from "@/pages/audit";
 import NotificationPolicies from "@/pages/notification-policies";
+import SubscriptionBanner from "@/components/subscription-banner";
 
 // Error Boundary to prevent full white screen on render errors
 interface ErrorBoundaryState {
@@ -152,9 +153,12 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <div className="min-h-screen bg-background text-foreground">
+          <div className="min-h-screen bg-background text-foreground flex flex-col">
+            <SubscriptionBanner />
             <Toaster />
-            <Router />
+            <div className="flex-1">
+              <Router />
+            </div>
           </div>
         </TooltipProvider>
       </QueryClientProvider>

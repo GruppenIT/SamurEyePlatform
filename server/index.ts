@@ -6,6 +6,7 @@ import { pool } from "./db";
 import { settingsService } from "./services/settingsService";
 import { threatEngine } from "./services/threatEngine";
 import { schedulerService } from "./services/scheduler";
+import { subscriptionService } from "./services/subscriptionService";
 import { storage } from "./storage";
 
 const app = express();
@@ -84,6 +85,9 @@ app.use((req, res, next) => {
   
   // Start scheduler service for automatic job execution
   schedulerService.start();
+
+  // Start subscription service (heartbeat to central console)
+  subscriptionService.start();
   
   const server = await registerRoutes(app);
 
