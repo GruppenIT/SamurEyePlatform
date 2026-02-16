@@ -911,6 +911,7 @@ export type ApplianceSubscription = typeof applianceSubscription.$inferSelect;
 // API contract types for appliance ↔ console communication
 export const activateApplianceSchema = z.object({
   apiKey: z.string().min(1, "Chave de API é obrigatória"),
+  consoleUrl: z.string().url("URL da console inválida").min(1, "URL da console é obrigatória"),
 });
 
 export const heartbeatRequestSchema = z.object({

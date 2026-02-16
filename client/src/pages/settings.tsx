@@ -871,15 +871,23 @@ function SubscriptionTab() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [apiKeyInput, setApiKeyInput] = useState('');
+  const [consoleUrlInput, setConsoleUrlInput] = useState('https://api.samureye.com.br');
 
   const { data: subscription, isLoading } = useQuery<SubscriptionStatus>({
     queryKey: ['/api/subscription/status'],
     refetchInterval: 60_000, // Refresh every minute
   });
 
+  // Sync console URL from server when data loads
+  useEffect(() => {
+    if (subscription?.consoleBaseUrl) {
+      setConsoleUrlInput(subscription.consoleBaseUrl);
+    }
+  }, [subscription?.consoleBaseUrl]);
+
   const activateMutation = useMutation({
-    mutationFn: async (apiKey: string) => {
-      const res = await apiRequest('POST', '/api/subscription/activate', { apiKey });
+    mutationFn: async ({ apiKey, consoleUrl }: { apiKey: string; consoleUrl: string }) => {
+      const res = await apiRequest('POST', '/api/subscription/activate', { apiKey, consoleUrl });
       return res.json();
     },
     onSuccess: (data) => {
@@ -928,7 +936,11 @@ function SubscriptionTab() {
       toast({ title: "Erro", description: "Informe a chave de API", variant: "destructive" });
       return;
     }
-    activateMutation.mutate(apiKeyInput);
+    if (!consoleUrlInput.trim()) {
+      toast({ title: "Erro", description: "Informe a URL da console central", variant: "destructive" });
+      return;
+    }
+    activateMutation.mutate({ apiKey: apiKeyInput, consoleUrl: consoleUrlInput });
   };
 
   const handleDeactivate = () => {
@@ -1114,6 +1126,21 @@ function SubscriptionTab() {
             </p>
 
             <div>
+              <Label htmlFor="consoleUrl">URL da Console Central</Label>
+              <Input
+                id="consoleUrl"
+                type="url"
+                placeholder="https://api.samureye.com.br"
+                value={consoleUrlInput}
+                onChange={(e) => setConsoleUrlInput(e.target.value)}
+                data-testid="input-console-url"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                URL base da API da console central (fornecida pelo administrador)
+              </p>
+            </div>
+
+            <div>
               <Label htmlFor="apiKey">Chave de API</Label>
               <Input
                 id="apiKey"
@@ -1127,7 +1154,7 @@ function SubscriptionTab() {
 
             <Button
               onClick={handleActivate}
-              disabled={activateMutation.isPending || !apiKeyInput.trim()}
+              disabled={activateMutation.isPending || !apiKeyInput.trim() || !consoleUrlInput.trim()}
               data-testid="btn-activate-subscription"
             >
               {activateMutation.isPending ? (
