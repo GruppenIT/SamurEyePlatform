@@ -1,7 +1,8 @@
 import { storage } from '../storage';
 import { encryptionService } from './encryption';
 import { telemetryService } from './telemetryService';
-import type { ApplianceSubscription } from '@shared/schema';
+import { systemUpdateService } from './systemUpdateService';
+import type { ApplianceSubscription, ConsoleCommand, CommandResult } from '@shared/schema';
 
 const HEARTBEAT_ACTIVE_INTERVAL_MS = 5 * 60 * 1000;  // 5 minutes (active)
 const HEARTBEAT_STANDBY_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes (standby)
@@ -267,6 +268,19 @@ class SubscriptionService {
     const telemetry = await telemetryService.collect(sub.applianceId);
     const heartbeatUrl = `${sub.consoleBaseUrl}/v1/appliance/heartbeat`;
 
+    // Attach unreported command results to the heartbeat payload
+    const unreported = await storage.getUnreportedCommandResults();
+    if (unreported.length > 0) {
+      telemetry.commandResults = unreported.map(cmd => ({
+        id: cmd.id,
+        status: cmd.status as 'running' | 'completed' | 'failed',
+        result: cmd.result || undefined,
+        error: cmd.error || undefined,
+        startedAt: cmd.startedAt?.toISOString(),
+        finishedAt: cmd.finishedAt?.toISOString(),
+      }));
+    }
+
     for (let attempt = 0; attempt <= HEARTBEAT_RETRY_DELAYS.length; attempt++) {
       try {
         const response = await fetch(heartbeatUrl, {
@@ -305,6 +319,11 @@ class SubscriptionService {
 
         const data = await response.json();
 
+        // Mark command results as reported (console received them)
+        if (unreported.length > 0) {
+          await storage.markCommandsReported(unreported.map(c => c.id));
+        }
+
         // Update local subscription cache with console response
         this.cachedStatus = await storage.updateHeartbeatSuccess({
           active: data.subscription.active,
@@ -319,6 +338,14 @@ class SubscriptionService {
         this.adjustHeartbeatInterval(data.subscription.active);
 
         console.log(`💚 Heartbeat OK | plan=${data.subscription.plan} | active=${data.subscription.active} | expires=${data.subscription.expiresAt || 'never'}`);
+
+        // Process commands from console (fire-and-forget, don't block heartbeat)
+        if (data.commands && Array.isArray(data.commands) && data.commands.length > 0) {
+          this.processCommands(data.commands).catch(err => {
+            console.error('❌ Erro ao processar comandos da console:', err.message);
+          });
+        }
+
         return; // Success — exit retry loop
 
       } catch (error: any) {
@@ -338,6 +365,60 @@ class SubscriptionService {
         this.cachedStatus = await storage.updateHeartbeatFailure(message);
         console.warn(`💛 Heartbeat falhou após ${HEARTBEAT_RETRY_DELAYS.length + 1} tentativas (${this.cachedStatus.consecutiveFailures}x consecutivas): ${message}`);
       }
+    }
+  }
+
+  /**
+   * Process commands received from the central console via heartbeat response.
+   * Each command is saved to DB and dispatched by type.
+   */
+  private async processCommands(commands: ConsoleCommand[]): Promise<void> {
+    // Save all to DB first (dedup built into storage)
+    await storage.saveReceivedCommands(commands);
+
+    for (const cmd of commands) {
+      console.log(`📥 Comando recebido: type=${cmd.type} id=${cmd.id}`);
+
+      switch (cmd.type) {
+        case 'system_update':
+          // Run update asynchronously — don't block command processing
+          systemUpdateService.execute(cmd.id, cmd.params || {}).then(result => {
+            if (result.success) {
+              console.log(`✅ Update concluído: ${result.previousVersion} → ${result.newVersion}`);
+            } else {
+              console.error(`❌ Update falhou na fase "${result.phase}": ${result.error}`);
+            }
+          });
+          break;
+
+        case 'restart_service':
+          this.handleRestartService(cmd.id).catch(err => {
+            console.error(`❌ Restart falhou: ${err.message}`);
+          });
+          break;
+
+        default:
+          console.warn(`⚠️  Comando desconhecido: type=${cmd.type} — ignorando`);
+          await storage.updateCommandStatus(cmd.id, 'failed', {
+            error: `Tipo de comando não suportado: ${cmd.type}`,
+          });
+      }
+    }
+  }
+
+  private async handleRestartService(commandId: string): Promise<void> {
+    await storage.updateCommandStatus(commandId, 'running');
+    try {
+      const { execSync } = await import('child_process');
+      const serviceName = process.env.SERVICE_NAME || 'samureye-api';
+      execSync(`systemctl restart ${serviceName}`, { timeout: 30_000 });
+      await storage.updateCommandStatus(commandId, 'completed', {
+        result: { service: serviceName },
+      });
+    } catch (err: any) {
+      await storage.updateCommandStatus(commandId, 'failed', {
+        error: err.message,
+      });
     }
   }
 
