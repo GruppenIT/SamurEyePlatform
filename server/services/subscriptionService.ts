@@ -3,6 +3,7 @@ import { encryptionService } from './encryption';
 import { telemetryService } from './telemetryService';
 import { systemUpdateService } from './systemUpdateService';
 import type { ApplianceSubscription, ConsoleCommand, CommandResult } from '@shared/schema';
+import { APP_VERSION } from '../version';
 
 const HEARTBEAT_ACTIVE_INTERVAL_MS = 5 * 60 * 1000;  // 5 minutes (active)
 const HEARTBEAT_STANDBY_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes (standby)
@@ -117,7 +118,7 @@ class SubscriptionService {
         },
         body: JSON.stringify({
           applianceId,
-          version: process.env.APP_VERSION || '1.0.0',
+          version: APP_VERSION,
           hostname: (await import('os')).hostname(),
         }),
         signal: AbortSignal.timeout(15_000),

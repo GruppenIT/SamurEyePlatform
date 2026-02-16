@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { storage } from '../storage';
+import { APP_VERSION } from '../version';
 
 const INSTALL_DIR = process.env.INSTALL_DIR || '/opt/samureye';
 const UPDATE_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes max
@@ -96,18 +97,15 @@ class SystemUpdateService {
   }
 
   private getCurrentVersion(): string {
+    // After an update, .version is regenerated — read fresh from disk
     try {
-      const gitDir = path.join(INSTALL_DIR, '.git');
-      if (!fs.existsSync(gitDir)) return process.env.APP_VERSION || 'unknown';
+      const versionFile = path.join(INSTALL_DIR, '.version');
+      if (fs.existsSync(versionFile)) {
+        return fs.readFileSync(versionFile, 'utf-8').trim();
+      }
+    } catch { /* fallback below */ }
 
-      const { execSync } = require('child_process');
-      return execSync('git rev-parse --short HEAD', {
-        cwd: INSTALL_DIR,
-        timeout: 5000,
-      }).toString().trim();
-    } catch {
-      return process.env.APP_VERSION || 'unknown';
-    }
+    return APP_VERSION;
   }
 
   private runUpdate(params: Record<string, any>): Promise<{
@@ -146,6 +144,11 @@ class SystemUpdateService {
       // Allow skipping backup from console params
       if (params.skipBackup) {
         env.SKIP_BACKUP = 'true';
+      }
+
+      // Pass GitHub PAT for private repo access (token is NOT persisted to disk)
+      if (params.token) {
+        env.GIT_TOKEN = params.token;
       }
 
       let output = '';
