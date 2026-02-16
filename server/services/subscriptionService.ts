@@ -3,7 +3,9 @@ import { encryptionService } from './encryption';
 import { telemetryService } from './telemetryService';
 import type { ApplianceSubscription } from '@shared/schema';
 
-const HEARTBEAT_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const HEARTBEAT_ACTIVE_INTERVAL_MS = 5 * 60 * 1000;  // 5 minutes (active)
+const HEARTBEAT_STANDBY_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes (standby)
+const HEARTBEAT_RETRY_DELAYS = [10_000, 20_000, 40_000, 80_000]; // backoff: 10s, 20s, 40s, 80s
 const GRACE_PERIOD_HOURS = 72;
 
 /**
@@ -12,12 +14,16 @@ const GRACE_PERIOD_HOURS = 72;
  * Manages the appliance's connection to the SamurEye central console:
  * - API key activation/deactivation
  * - Periodic heartbeat (telemetry + subscription check)
+ * - Standby mode with reduced heartbeat when subscription inactive
+ * - Retry with exponential backoff on heartbeat failure
  * - Grace period when console is unreachable
  * - Read-only mode enforcement when subscription expires
  */
 class SubscriptionService {
   private intervalId: ReturnType<typeof setInterval> | null = null;
+  private startupTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private cachedStatus: ApplianceSubscription | null = null;
+  private inStandby = false;
 
   /**
    * Start the heartbeat loop (called on server boot)
@@ -41,22 +47,46 @@ class SubscriptionService {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
+    if (this.startupTimeoutId) {
+      clearTimeout(this.startupTimeoutId);
+      this.startupTimeoutId = null;
+    }
   }
 
   private startHeartbeat() {
     this.stop(); // Clear any existing interval
 
+    const interval = this.inStandby ? HEARTBEAT_STANDBY_INTERVAL_MS : HEARTBEAT_ACTIVE_INTERVAL_MS;
+
     // Run first heartbeat after 30s (let server fully start)
-    setTimeout(() => {
+    this.startupTimeoutId = setTimeout(() => {
       this.sendHeartbeat();
     }, 30_000);
 
-    // Then every 5 minutes
+    // Then at the configured interval
     this.intervalId = setInterval(() => {
       this.sendHeartbeat();
-    }, HEARTBEAT_INTERVAL_MS);
+    }, interval);
 
-    console.log(`🔄 Heartbeat configurado: a cada ${HEARTBEAT_INTERVAL_MS / 1000 / 60} minutos`);
+    console.log(`🔄 Heartbeat configurado: a cada ${interval / 1000 / 60} minutos${this.inStandby ? ' (standby)' : ''}`);
+  }
+
+  /**
+   * Switch heartbeat interval based on subscription state
+   */
+  private adjustHeartbeatInterval(active: boolean) {
+    const shouldBeStandby = !active;
+    if (shouldBeStandby !== this.inStandby) {
+      this.inStandby = shouldBeStandby;
+      console.log(`🔄 Modo ${this.inStandby ? 'standby (30min)' : 'ativo (5min)'} — reajustando heartbeat`);
+      // Restart the interval with the new timing
+      if (this.intervalId) {
+        this.stop();
+        this.intervalId = setInterval(() => {
+          this.sendHeartbeat();
+        }, this.inStandby ? HEARTBEAT_STANDBY_INTERVAL_MS : HEARTBEAT_ACTIVE_INTERVAL_MS);
+      }
+    }
   }
 
   /**
@@ -92,6 +122,31 @@ class SubscriptionService {
         signal: AbortSignal.timeout(15_000),
       });
 
+      if (response.status === 401) {
+        return { success: false, error: 'Chave de API inválida ou revogada. Verifique a chave fornecida pela console central.' };
+      }
+
+      if (response.status === 403) {
+        // Tenant inactive/expired — save in standby mode
+        const updated = await storage.upsertSubscription({
+          applianceId,
+          apiKey: encrypted.secretEncrypted,
+          apiKeyDek: encrypted.dekEncrypted,
+          status: 'expired',
+          features: [],
+          lastHeartbeatAt: new Date(),
+          lastHeartbeatError: 'Tenant inativo ou expirado (403)',
+          consecutiveFailures: 0,
+          graceDeadline: null,
+          consoleBaseUrl: consoleUrl,
+          activatedAt: new Date(),
+        }, userId);
+        this.cachedStatus = updated;
+        this.inStandby = true;
+        this.startHeartbeat();
+        return { success: false, error: 'Tenant inativo ou expirado. O appliance entrará em modo standby e verificará periodicamente se foi reativado.' };
+      }
+
       if (!response.ok) {
         const body = await response.text();
         return { success: false, error: `Console respondeu com status ${response.status}: ${body}` };
@@ -108,7 +163,7 @@ class SubscriptionService {
         tenantId: data.tenantId,
         tenantName: data.tenantName,
         plan: data.plan,
-        expiresAt: new Date(data.expiresAt),
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
         features: data.features || [],
         lastHeartbeatAt: new Date(),
         lastHeartbeatError: null,
@@ -119,6 +174,7 @@ class SubscriptionService {
       }, userId);
 
       this.cachedStatus = updated;
+      this.inStandby = false;
       this.startHeartbeat();
 
       return { success: true, subscription: updated };
@@ -195,56 +251,93 @@ class SubscriptionService {
 
   /**
    * Send heartbeat to central console (telemetry + subscription check)
+   * Retries with exponential backoff (10s, 20s, 40s, 80s) on transient failures.
    */
   async sendHeartbeat(): Promise<void> {
     const sub = await storage.getSubscription();
     if (!sub || !sub.apiKey) return;
 
-    try {
-      const apiKeyPlain = this.decryptApiKey(sub);
-      if (!apiKeyPlain) {
-        console.error('❌ Não foi possível descriptografar a chave de API');
-        return;
+    const apiKeyPlain = this.decryptApiKey(sub);
+    if (!apiKeyPlain) {
+      console.error('❌ Não foi possível descriptografar a chave de API');
+      return;
+    }
+
+    // Collect telemetry once (reuse across retries)
+    const telemetry = await telemetryService.collect(sub.applianceId);
+    const heartbeatUrl = `${sub.consoleBaseUrl}/v1/appliance/heartbeat`;
+
+    for (let attempt = 0; attempt <= HEARTBEAT_RETRY_DELAYS.length; attempt++) {
+      try {
+        const response = await fetch(heartbeatUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKeyPlain}`,
+          },
+          body: JSON.stringify(telemetry),
+          signal: AbortSignal.timeout(15_000),
+        });
+
+        // HTTP 401: API key invalid/revoked — stop heartbeat, require manual intervention
+        if (response.status === 401) {
+          console.error('🔴 HTTP 401 — Chave de API inválida ou revogada. Heartbeat interrompido. Intervenção manual necessária.');
+          this.cachedStatus = await storage.updateHeartbeatFailure(
+            'Chave de API inválida ou revogada (401). Heartbeat interrompido.',
+          );
+          this.stop();
+          return;
+        }
+
+        // HTTP 403: Tenant inactive/suspended — enter standby mode
+        if (response.status === 403) {
+          console.warn('🟠 HTTP 403 — Tenant inativo ou suspenso. Entrando em modo standby.');
+          this.cachedStatus = await storage.updateHeartbeatFailure(
+            'Tenant inativo ou suspenso (403). Modo standby ativado.',
+          );
+          this.adjustHeartbeatInterval(false);
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`Console respondeu com status ${response.status}: ${await response.text()}`);
+        }
+
+        const data = await response.json();
+
+        // Update local subscription cache with console response
+        this.cachedStatus = await storage.updateHeartbeatSuccess({
+          active: data.subscription.active,
+          plan: data.subscription.plan,
+          expiresAt: data.subscription.expiresAt,
+          features: data.subscription.features || [],
+          tenantId: data.subscription?.tenantId,
+          tenantName: data.subscription?.tenantName,
+        });
+
+        // Adjust interval based on subscription status
+        this.adjustHeartbeatInterval(data.subscription.active);
+
+        console.log(`💚 Heartbeat OK | plan=${data.subscription.plan} | active=${data.subscription.active} | expires=${data.subscription.expiresAt || 'never'}`);
+        return; // Success — exit retry loop
+
+      } catch (error: any) {
+        const message = error.name === 'TimeoutError'
+          ? 'Timeout ao conectar com a console central'
+          : error.message;
+
+        // If we still have retries left, wait and try again
+        if (attempt < HEARTBEAT_RETRY_DELAYS.length) {
+          const delay = HEARTBEAT_RETRY_DELAYS[attempt];
+          console.warn(`💛 Heartbeat falhou (tentativa ${attempt + 1}/${HEARTBEAT_RETRY_DELAYS.length + 1}): ${message}. Retry em ${delay / 1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+
+        // All retries exhausted — record failure
+        this.cachedStatus = await storage.updateHeartbeatFailure(message);
+        console.warn(`💛 Heartbeat falhou após ${HEARTBEAT_RETRY_DELAYS.length + 1} tentativas (${this.cachedStatus.consecutiveFailures}x consecutivas): ${message}`);
       }
-
-      // Collect telemetry
-      const telemetry = await telemetryService.collect(sub.applianceId);
-
-      const response = await fetch(`${sub.consoleBaseUrl}/v1/appliance/heartbeat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKeyPlain}`,
-        },
-        body: JSON.stringify(telemetry),
-        signal: AbortSignal.timeout(15_000),
-      });
-
-      if (!response.ok) {
-        const body = await response.text();
-        throw new Error(`Console respondeu com status ${response.status}: ${body}`);
-      }
-
-      const data = await response.json();
-
-      // Update local subscription cache with console response
-      this.cachedStatus = await storage.updateHeartbeatSuccess({
-        active: data.subscription.active,
-        plan: data.subscription.plan,
-        expiresAt: data.subscription.expiresAt,
-        features: data.subscription.features || [],
-        tenantId: data.subscription?.tenantId,
-        tenantName: data.subscription?.tenantName,
-      });
-
-      console.log(`💚 Heartbeat OK | plan=${data.subscription.plan} | expires=${data.subscription.expiresAt}`);
-    } catch (error: any) {
-      const message = error.name === 'TimeoutError'
-        ? 'Timeout ao conectar com a console central'
-        : error.message;
-
-      this.cachedStatus = await storage.updateHeartbeatFailure(message);
-      console.warn(`💛 Heartbeat falhou (${this.cachedStatus.consecutiveFailures}x): ${message}`);
     }
   }
 
