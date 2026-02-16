@@ -674,10 +674,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Activate subscription with API key (admin only)
   app.post('/api/subscription/activate', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
     try {
-      const { apiKey } = activateApplianceSchema.parse(req.body);
+      const { apiKey, consoleUrl } = activateApplianceSchema.parse(req.body);
       const userId = req.user.id;
 
-      const result = await subscriptionService.activate(apiKey, userId);
+      const result = await subscriptionService.activate(apiKey, consoleUrl, userId);
 
       if (!result.success) {
         return res.status(400).json({ message: result.error });

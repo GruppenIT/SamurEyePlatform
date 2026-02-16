@@ -62,7 +62,11 @@ class SubscriptionService {
   /**
    * Activate this appliance with an API key from the central console
    */
-  async activate(apiKeyPlain: string, userId: string): Promise<{ success: boolean; error?: string; subscription?: ApplianceSubscription }> {
+  async activate(apiKeyPlain: string, consoleUrl: string, userId: string): Promise<{ success: boolean; error?: string; subscription?: ApplianceSubscription }> {
+    // Normalize console URL (remove trailing slash)
+    consoleUrl = consoleUrl.replace(/\/+$/, '');
+    const activateUrl = `${consoleUrl}/v1/appliance/activate`;
+
     try {
       // Get or create subscription record
       let sub = await storage.getSubscription();
@@ -71,9 +75,10 @@ class SubscriptionService {
       // Encrypt the API key
       const encrypted = encryptionService.encryptCredential(apiKeyPlain);
 
+      console.log(`🔑 Tentando ativar appliance ${applianceId} em ${activateUrl}...`);
+
       // Try to activate with the console
-      const consoleUrl = sub?.consoleBaseUrl || 'https://api.samureye.com.br';
-      const response = await fetch(`${consoleUrl}/v1/appliance/activate`, {
+      const response = await fetch(activateUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,9 +123,27 @@ class SubscriptionService {
 
       return { success: true, subscription: updated };
     } catch (error: any) {
-      const message = error.name === 'TimeoutError'
-        ? 'Timeout ao conectar com a console central (15s)'
-        : `Erro ao ativar: ${error.message}`;
+      // Provide detailed, actionable error messages
+      let message: string;
+      const cause = error.cause;
+
+      if (error.name === 'TimeoutError') {
+        message = `Timeout ao conectar com ${activateUrl} (15s). Verifique se a URL está correta e acessível a partir deste appliance.`;
+      } else if (cause?.code === 'ENOTFOUND') {
+        message = `DNS não resolvido: o host "${new URL(consoleUrl).hostname}" não foi encontrado. Verifique o DNS do appliance ou a URL da console.`;
+      } else if (cause?.code === 'ECONNREFUSED') {
+        message = `Conexão recusada por ${consoleUrl}. Verifique se a console central está rodando e a porta está correta.`;
+      } else if (cause?.code === 'ECONNRESET' || cause?.code === 'EPIPE') {
+        message = `Conexão interrompida com ${consoleUrl}. Pode ser um firewall bloqueando ou problema de TLS/certificado.`;
+      } else if (cause?.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' || cause?.code === 'CERT_HAS_EXPIRED' || cause?.code === 'DEPTH_ZERO_SELF_SIGNED_CERT' || cause?.code === 'ERR_TLS_CERT_ALTNAME_INVALID') {
+        message = `Erro de certificado TLS ao conectar em ${consoleUrl}: ${cause.code}. Se estiver usando certificado auto-assinado, configure NODE_EXTRA_CA_CERTS no appliance.`;
+      } else if (error.message?.includes('fetch failed')) {
+        message = `Não foi possível conectar em ${activateUrl}. Verifique: (1) se a URL está correta, (2) se o DNS resolve, (3) se não há firewall bloqueando. Erro: ${cause?.message || cause?.code || error.message}`;
+      } else {
+        message = `Erro ao conectar em ${activateUrl}: ${error.message}`;
+      }
+
+      console.error(`❌ Ativação falhou: ${message}`);
       return { success: false, error: message };
     }
   }
