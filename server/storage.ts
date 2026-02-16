@@ -2113,18 +2113,25 @@ export class DatabaseStorage implements IStorage {
   async updateHeartbeatSuccess(consoleResponse: {
     active: boolean;
     plan: string;
-    expiresAt: string;
+    expiresAt: string | null;
     features: string[];
     tenantId?: string;
     tenantName?: string;
   }): Promise<ApplianceSubscription> {
     const isActive = consoleResponse.active;
-    const expiresAt = new Date(consoleResponse.expiresAt);
+    const expiresAt = consoleResponse.expiresAt ? new Date(consoleResponse.expiresAt) : null;
     const now = new Date();
-    const isExpired = expiresAt < now;
+    const isExpired = expiresAt ? expiresAt < now : false;
+
+    let status: 'active' | 'expired';
+    if (!isActive) {
+      status = 'expired';
+    } else {
+      status = isExpired ? 'expired' : 'active';
+    }
 
     return this.upsertSubscription({
-      status: isActive && !isExpired ? 'active' : 'expired',
+      status,
       tenantId: consoleResponse.tenantId,
       tenantName: consoleResponse.tenantName,
       plan: consoleResponse.plan,

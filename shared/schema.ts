@@ -911,12 +911,37 @@ export type ApplianceSubscription = typeof applianceSubscription.$inferSelect;
 // API contract types for appliance ↔ console communication
 export const activateApplianceSchema = z.object({
   apiKey: z.string().min(1, "Chave de API é obrigatória"),
+  consoleUrl: z.string().url("URL da console inválida").min(1, "URL da console é obrigatória"),
 });
 
 export const heartbeatRequestSchema = z.object({
   applianceId: z.string(),
   version: z.string(),
   timestamp: z.string().datetime(),
+  system: z.object({
+    cpu: z.object({
+      percent: z.number(),
+    }).optional(),
+    memory: z.object({
+      percent: z.number(),
+      usedMb: z.number().int(),
+      totalMb: z.number().int(),
+    }).optional(),
+    disk: z.object({
+      percent: z.number(),
+      usedGb: z.number(),
+      totalGb: z.number(),
+    }).optional(),
+    network: z.object({
+      inBps: z.number().int(),
+      outBps: z.number().int(),
+    }).optional(),
+    services: z.array(z.object({
+      name: z.string(),
+      status: z.string(),
+      uptime: z.number().int(),
+    })).optional(),
+  }).optional(),
   performance: z.object({
     uptimeSeconds: z.number(),
     hostCount: z.number(),
@@ -944,9 +969,11 @@ export const heartbeatResponseSchema = z.object({
   subscription: z.object({
     active: z.boolean(),
     plan: z.string(),
-    expiresAt: z.string().datetime(),
+    expiresAt: z.string().datetime().nullable(),
     features: z.array(z.string()),
-    message: z.string().optional(),
+    tenantId: z.string().optional(),
+    tenantName: z.string().optional(),
+    message: z.string().nullable().optional(),
   }),
 });
 
