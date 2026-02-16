@@ -834,12 +834,17 @@ EOF
 
 # Função para configurar Nginx reverse proxy
 setup_nginx_proxy() {
-    # IMPORTANTE: Preserva configuração SSL se já existir
+    # IMPORTANTE: Preserva configuração SSL se já existir (self-signed ou Let's Encrypt)
     SSL_MARKER="/etc/samureye/.ssl_configured"
     if [[ -f "$SSL_MARKER" ]]; then
-        log "⚠️  Configuração SSL detectada - preservando configuração HTTPS existente"
-        log "   Para reconfigurar SSL, execute: sudo bash setup_ssl.sh"
-        
+        SSL_TYPE=$(grep -oP 'SSL_TYPE=\K.*' "$SSL_MARKER" 2>/dev/null || echo "self-signed")
+        log "⚠️  Configuração SSL detectada (${SSL_TYPE}) - preservando configuração HTTPS existente"
+        if [[ "$SSL_TYPE" == "letsencrypt" ]]; then
+            log "   Para reconfigurar: sudo bash setup_letsencrypt.sh"
+        else
+            log "   Para reconfigurar: sudo bash setup_ssl.sh"
+        fi
+
         # Apenas verifica se o Nginx está funcionando
         if nginx -t 2>/dev/null; then
             systemctl reload nginx 2>/dev/null || true
@@ -1119,8 +1124,8 @@ show_final_info() {
     echo
     warn "⚠️  AÇÕES NECESSÁRIAS:"
     warn "1. Configure SSL/HTTPS para produção:"
-    warn "   sudo apt install certbot python3-certbot-nginx"
-    warn "   sudo certbot --nginx -d seu-dominio.com"
+    warn "   Certificado self-signed:    sudo bash setup_ssl.sh"
+    warn "   Let's Encrypt (DNS-01):     sudo bash setup_letsencrypt.sh"
     echo
     warn "2. Configure autenticação OIDC no arquivo:"
     warn "   $INSTALL_DIR/.env"
