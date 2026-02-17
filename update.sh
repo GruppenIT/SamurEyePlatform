@@ -35,6 +35,7 @@ SKIP_BACKUP="${SKIP_BACKUP:-false}"
 REPO_URL="${REPO_URL:-https://github.com/GruppenIT/SamurEyePlatform.git}"
 BRANCH="${BRANCH:-main}"
 AUTO_CONFIRM="${AUTO_CONFIRM:-false}"
+GIT_TOKEN="${GIT_TOKEN:-}"  # GitHub PAT for private repo access (sent by console)
 
 # Função para logging
 log() {
@@ -111,8 +112,16 @@ check_updates() {
         git branch --set-upstream-to=origin/$BRANCH 2>/dev/null || true
     fi
     
-    # Fetch do repositório remoto
-    git fetch origin $BRANCH
+    # Fetch do repositório remoto (with PAT if available for private repos)
+    if [[ -n "$GIT_TOKEN" ]]; then
+        local REPO_HOST REPO_PATH FETCH_URL
+        REPO_HOST=$(echo "$REPO_URL" | sed -E 's|https?://([^/]+).*|\1|')
+        REPO_PATH=$(echo "$REPO_URL" | sed -E 's|https?://[^/]+/(.*)|\1|')
+        FETCH_URL="https://x-access-token:${GIT_TOKEN}@${REPO_HOST}/${REPO_PATH}"
+        git fetch "$FETCH_URL" $BRANCH
+    else
+        git fetch origin $BRANCH
+    fi
     
     LOCAL=$(git rev-parse @)
     REMOTE=$(git rev-parse origin/$BRANCH)
@@ -231,17 +240,28 @@ stop_services() {
 update_code() {
     log "Atualizando código do repositório GitHub..."
     cd "$INSTALL_DIR"
-    
+
     # Salva mudanças locais se houver (stash)
     if ! git diff --quiet || ! git diff --cached --quiet; then
         warn "Existem alterações locais não commitadas"
         log "Salvando alterações locais em stash..."
         git stash push -m "Auto-stash antes de update em $(date +%Y-%m-%d_%H:%M:%S)"
     fi
-    
+
+    # Build authenticated URL if PAT is provided (private repo support)
+    local PULL_URL="origin"
+    if [[ -n "$GIT_TOKEN" ]]; then
+        # Extract host and path from REPO_URL to build authenticated URL
+        local REPO_HOST REPO_PATH
+        REPO_HOST=$(echo "$REPO_URL" | sed -E 's|https?://([^/]+).*|\1|')
+        REPO_PATH=$(echo "$REPO_URL" | sed -E 's|https?://[^/]+/(.*)|\1|')
+        PULL_URL="https://x-access-token:${GIT_TOKEN}@${REPO_HOST}/${REPO_PATH}"
+        log "Usando autenticação por token (repositório privado)"
+    fi
+
     # Pull do repositório remoto
     log "Baixando atualizações do branch $BRANCH..."
-    if git pull origin $BRANCH; then
+    if git pull "$PULL_URL" $BRANCH; then
         local NEW_VERSION=$(git rev-parse --short HEAD)
         success "Código atualizado para versão: $NEW_VERSION"
         log "Último commit: $(git log -1 --format=%s)"
@@ -303,6 +323,13 @@ build_application() {
         error "Falha na compilação da aplicação"
         cat /tmp/npm_build.log
         exit 1
+    fi
+
+    # Generate version file after build
+    if [[ -f "$INSTALL_DIR/generate-version.sh" ]]; then
+        log "Gerando arquivo de versão..."
+        bash "$INSTALL_DIR/generate-version.sh"
+        success "Versão gerada: $(cat $INSTALL_DIR/.version 2>/dev/null || echo 'N/A')"
     fi
 }
 
