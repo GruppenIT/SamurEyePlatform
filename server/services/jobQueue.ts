@@ -19,8 +19,12 @@ export interface JobUpdate {
 
 class JobQueueService extends EventEmitter {
   private runningJobs = new Map<string, Job>();
+  private jobTimeouts = new Map<string, number>(); // jobId -> timeout in ms
   private maxConcurrentJobs = 3;
   private cancelledJobs = new Set<string>(); // Track cancelled jobs
+
+  /** Default timeout: 30 min. Dynamic timeout computed per-journey. */
+  private static DEFAULT_TIMEOUT_MS = 30 * 60 * 1000;
 
   constructor() {
     super();
@@ -130,15 +134,20 @@ class JobQueueService extends EventEmitter {
       }
 
       this.runningJobs.set(job.id, job);
-      
+
       // Update job status to running
       await this.updateJobStatus(job.id, 'running', 0, 'Iniciando execução');
-      
+
       // Get journey details
       const journey = await storage.getJourney(job.journeyId);
       if (!journey) {
         throw new Error('Jornada não encontrada');
       }
+
+      // Compute dynamic timeout based on journey scope
+      const timeoutMs = await this.computeJobTimeout(journey);
+      this.jobTimeouts.set(job.id, timeoutMs);
+      console.log(`⏱️  Job ${job.id} timeout: ${Math.round(timeoutMs / 60000)} minutos (journey: ${journey.type})`);
 
       // Execute the journey
       await journeyExecutor.executeJourney(journey, job.id, (update) => {
@@ -253,7 +262,7 @@ class JobQueueService extends EventEmitter {
       this.processNextJob();
     }, 30000);
 
-    // Timeout long-running jobs (30 minutes)
+    // Timeout long-running jobs (per-job dynamic timeout)
     setInterval(async () => {
       const runningJobs = await storage.getRunningJobs();
       const now = new Date();
@@ -261,20 +270,102 @@ class JobQueueService extends EventEmitter {
       for (const job of runningJobs) {
         if (job.startedAt) {
           const runtime = now.getTime() - job.startedAt.getTime();
-          if (runtime > 30 * 60 * 1000) { // 30 minutes
+          const jobTimeout = this.jobTimeouts.get(job.id) ?? JobQueueService.DEFAULT_TIMEOUT_MS;
+
+          if (runtime > jobTimeout) {
+            const timeoutMin = Math.round(jobTimeout / 60000);
             // Kill all child processes associated with this job
             const killedCount = processTracker.killAll(job.id);
             if (killedCount > 0) {
               console.log(`🔪 Timeout: ${killedCount} processos terminados para job ${job.id}`);
             }
 
-            await this.updateJobStatus(job.id, 'timeout', undefined, 'Job ultrapassou tempo limite de 30 minutos');
+            await this.updateJobStatus(job.id, 'timeout', undefined, `Job ultrapassou tempo limite de ${timeoutMin} minutos`);
             // Release concurrency slot
             this.removeJobFromRunning(job.id);
           }
         }
       }
     }, 60000); // Check every minute
+  }
+
+  /**
+   * Compute a dynamic timeout based on the journey's type and scope.
+   *
+   * Heuristic:
+   *   - Base: 15 min (overhead: startup, DB, threat analysis)
+   *   - Per single host:  +3 min
+   *   - Per CIDR /24:    +40 min  (254 hosts × discovery + port scan + vuln)
+   *   - Per CIDR /16:    clamps to 4 hours max
+   *   - vulnScriptTimeout param is added on top (default 60 min)
+   *   - webScanEnabled adds +20 min per asset
+   *   - AD Security / EDR: fixed 45 min
+   *   - Absolute cap: 4 hours
+   */
+  private async computeJobTimeout(journey: any): Promise<number> {
+    const MINUTE = 60_000;
+
+    if (journey.type !== 'attack_surface') {
+      // AD Security / EDR / Web App: fixed 45 min is plenty
+      return 45 * MINUTE;
+    }
+
+    const params = journey.params || {};
+    const vulnTimeout = (params.vulnScriptTimeout || 60) * MINUTE;
+    const webExtra = params.webScanEnabled ? 20 * MINUTE : 0;
+
+    let baseMins = 15; // startup + DB + threat analysis overhead
+
+    // Resolve assets to estimate scope
+    const assetIds = params.assetIds || [];
+    let targetCount = 0;
+
+    for (const assetId of assetIds) {
+      try {
+        const asset = await storage.getAsset(assetId);
+        if (!asset) continue;
+
+        if (asset.type === 'range') {
+          const cidrMatch = asset.value.match(/\/(\d+)$/);
+          const prefix = cidrMatch ? parseInt(cidrMatch[1], 10) : 32;
+          const hosts = Math.min(2 ** (32 - prefix) - 2, 65534);
+          // /24 = 254 hosts → ~40 min,  /22 = 1022 hosts → ~80 min
+          baseMins += Math.ceil(hosts * 0.16);
+          targetCount += hosts;
+        } else {
+          baseMins += 3; // single host
+          targetCount += 1;
+        }
+      } catch { /* skip unresolvable assets */ }
+    }
+
+    // Also resolve tag-based targets
+    if (journey.targetSelectionMode === 'by_tag' && journey.selectedTags?.length > 0) {
+      try {
+        const tagAssets = await storage.getAssetsByTags(journey.selectedTags);
+        for (const asset of tagAssets) {
+          if (asset.type === 'range') {
+            const cidrMatch = asset.value.match(/\/(\d+)$/);
+            const prefix = cidrMatch ? parseInt(cidrMatch[1], 10) : 32;
+            const hosts = Math.min(2 ** (32 - prefix) - 2, 65534);
+            baseMins += Math.ceil(hosts * 0.16);
+            targetCount += hosts;
+          } else {
+            baseMins += 3;
+            targetCount += 1;
+          }
+        }
+      } catch { /* ignore */ }
+    }
+
+    // Total = base + vuln script timeout + web scan extra
+    const totalMs = baseMins * MINUTE + vulnTimeout + webExtra;
+    const MAX_TIMEOUT = 4 * 60 * MINUTE; // 4 hour absolute cap
+    const computed = Math.min(totalMs, MAX_TIMEOUT);
+
+    console.log(`📐 Timeout calculado: ~${targetCount} hosts → base ${baseMins}min + vuln ${Math.round(vulnTimeout/MINUTE)}min + web ${Math.round(webExtra/MINUTE)}min = ${Math.round(computed/MINUTE)}min`);
+
+    return computed;
   }
 
   /**
@@ -304,6 +395,7 @@ class JobQueueService extends EventEmitter {
    */
   private removeJobFromRunning(jobId: string): void {
     this.runningJobs.delete(jobId);
+    this.jobTimeouts.delete(jobId);
     this.cancelledJobs.delete(jobId); // Cleanup cancelled flag
     console.log(`🗑️  Job ${jobId} removido dos jobs em execução`);
   }
