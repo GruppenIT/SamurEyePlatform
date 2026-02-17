@@ -90,6 +90,13 @@ export default function Sidebar() {
 
   const criticalThreatCount = criticalThreats.length;
 
+  const { data: healthData } = useQuery<{ version?: string }>({
+    queryKey: ['/api/health'],
+    refetchInterval: 60_000, // refresh once per minute
+    staleTime: 60_000,
+  });
+  const appVersion = healthData?.version;
+
   const isAdmin = user?.role === 'global_administrator';
   const canViewAdminItems = isAdmin;
 
@@ -212,7 +219,7 @@ export default function Sidebar() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-sidebar-foreground truncate">
-              {user?.firstName && user?.lastName 
+              {user?.firstName && user?.lastName
                 ? `${user.firstName} ${user.lastName}`
                 : user?.email || 'Usuário'
               }
@@ -233,6 +240,11 @@ export default function Sidebar() {
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
+        {appVersion && (
+          <p className="mt-2 text-[10px] text-muted-foreground/50 text-center select-all" title={`Build: ${appVersion}`}>
+            v{appVersion}
+          </p>
+        )}
       </div>
     </aside>
   );
