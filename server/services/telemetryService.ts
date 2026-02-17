@@ -5,6 +5,7 @@ import { db } from '../db';
 import { threats, hosts, assets, jobs, users, activeSessions, loginAttempts } from '@shared/schema';
 import { sql, and, eq } from 'drizzle-orm';
 import type { HeartbeatRequest } from '@shared/schema';
+import { APP_VERSION } from '../version';
 
 /**
  * TelemetryService
@@ -29,7 +30,7 @@ class TelemetryService {
 
     return {
       applianceId,
-      version: process.env.APP_VERSION || '1.0.0',
+      version: APP_VERSION,
       timestamp: new Date().toISOString(),
       system,
       performance,

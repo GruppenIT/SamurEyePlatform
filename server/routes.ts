@@ -12,6 +12,7 @@ import { processTracker } from "./services/processTracker";
 import { emailService } from "./services/emailService";
 import { notificationService } from "./services/notificationService";
 import { subscriptionService } from "./services/subscriptionService";
+import { APP_VERSION } from "./version";
 import { activateApplianceSchema } from "@shared/schema";
 import {
   insertAssetSchema,
@@ -2160,7 +2161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ 
       status: 'ok', 
       timestamp: new Date().toISOString(),
-      version: '1.0.0'
+      version: APP_VERSION
     });
   });
 

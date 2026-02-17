@@ -908,10 +908,46 @@ export type HostEnrichment = typeof hostEnrichments.$inferSelect;
 export type InsertHostEnrichment = z.infer<typeof insertHostEnrichmentSchema>;
 export type ApplianceSubscription = typeof applianceSubscription.$inferSelect;
 
+// Appliance commands — tracks commands received from console via heartbeat
+export const commandStatusEnum = pgEnum("command_status", [
+  "pending",     // Received from console, not yet started
+  "running",     // Currently executing
+  "completed",   // Successfully finished
+  "failed",      // Execution failed
+]);
+
+export const applianceCommands = pgTable("appliance_commands", {
+  id: varchar("id").primaryKey(),                          // UUID from console (dedup key)
+  type: varchar("type").notNull(),                         // e.g. "system_update", "restart_service"
+  params: jsonb("params").$type<Record<string, any>>().default({}),
+  status: commandStatusEnum("status").default('pending').notNull(),
+  receivedAt: timestamp("received_at").defaultNow().notNull(),
+  startedAt: timestamp("started_at"),
+  finishedAt: timestamp("finished_at"),
+  result: jsonb("result").$type<Record<string, any>>(),    // Output data (version, logs, etc.)
+  error: text("error"),
+  reportedToConsole: boolean("reported_to_console").default(false).notNull(),
+}, (table) => [
+  index("idx_appliance_commands_status").on(table.status),
+  index("idx_appliance_commands_reported").on(table.reportedToConsole),
+]);
+
+export type ApplianceCommand = typeof applianceCommands.$inferSelect;
+
 // API contract types for appliance ↔ console communication
 export const activateApplianceSchema = z.object({
   apiKey: z.string().min(1, "Chave de API é obrigatória"),
   consoleUrl: z.string().url("URL da console inválida").min(1, "URL da console é obrigatória"),
+});
+
+// Schema for command results reported by appliance back to console
+export const commandResultSchema = z.object({
+  id: z.string(),
+  status: z.enum(['running', 'completed', 'failed']),
+  result: z.record(z.string(), z.any()).optional(),
+  error: z.string().optional(),
+  startedAt: z.string().datetime().optional(),
+  finishedAt: z.string().datetime().optional(),
 });
 
 export const heartbeatRequestSchema = z.object({
@@ -963,6 +999,14 @@ export const heartbeatRequestSchema = z.object({
     jobsExecuted24h: z.number(),
     loginsToday: z.number(),
   }),
+  commandResults: z.array(commandResultSchema).optional(),
+});
+
+// Schema for commands sent by console to appliance via heartbeat response
+export const consoleCommandSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  params: z.record(z.string(), z.any()).optional(),
 });
 
 export const heartbeatResponseSchema = z.object({
@@ -975,8 +1019,11 @@ export const heartbeatResponseSchema = z.object({
     tenantName: z.string().optional(),
     message: z.string().nullable().optional(),
   }),
+  commands: z.array(consoleCommandSchema).optional(),
 });
 
 export type ActivateAppliance = z.infer<typeof activateApplianceSchema>;
 export type HeartbeatRequest = z.infer<typeof heartbeatRequestSchema>;
 export type HeartbeatResponse = z.infer<typeof heartbeatResponseSchema>;
+export type ConsoleCommand = z.infer<typeof consoleCommandSchema>;
+export type CommandResult = z.infer<typeof commandResultSchema>;

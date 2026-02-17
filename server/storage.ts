@@ -62,6 +62,9 @@ import {
   type InsertHostEnrichment,
   applianceSubscription,
   type ApplianceSubscription,
+  applianceCommands,
+  type ApplianceCommand,
+  type ConsoleCommand,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, count, like, inArray } from "drizzle-orm";
@@ -2142,6 +2145,72 @@ export class DatabaseStorage implements IStorage {
       consecutiveFailures: 0,
       graceDeadline: null,
     });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // Appliance Commands
+  // ═══════════════════════════════════════════════════════════
+
+  async saveReceivedCommands(commands: ConsoleCommand[]): Promise<void> {
+    for (const cmd of commands) {
+      // Dedup: skip if already received
+      const [existing] = await db.select({ id: applianceCommands.id })
+        .from(applianceCommands).where(eq(applianceCommands.id, cmd.id)).limit(1);
+      if (existing) continue;
+
+      await db.insert(applianceCommands).values({
+        id: cmd.id,
+        type: cmd.type,
+        params: cmd.params || {},
+        status: 'pending',
+        receivedAt: new Date(),
+        reportedToConsole: false,
+      });
+    }
+  }
+
+  async getPendingCommands(): Promise<ApplianceCommand[]> {
+    return db.select().from(applianceCommands)
+      .where(eq(applianceCommands.status, 'pending'))
+      .orderBy(applianceCommands.receivedAt);
+  }
+
+  async updateCommandStatus(
+    id: string,
+    status: 'running' | 'completed' | 'failed',
+    extra?: { result?: Record<string, any>; error?: string },
+  ): Promise<void> {
+    const now = new Date();
+    await db.update(applianceCommands)
+      .set({
+        status,
+        ...(status === 'running' ? { startedAt: now } : {}),
+        ...(status === 'completed' || status === 'failed' ? { finishedAt: now } : {}),
+        ...(extra?.result ? { result: extra.result } : {}),
+        ...(extra?.error ? { error: extra.error } : {}),
+      })
+      .where(eq(applianceCommands.id, id));
+  }
+
+  async getUnreportedCommandResults(): Promise<ApplianceCommand[]> {
+    return db.select().from(applianceCommands)
+      .where(
+        and(
+          eq(applianceCommands.reportedToConsole, false),
+          or(
+            eq(applianceCommands.status, 'running'),
+            eq(applianceCommands.status, 'completed'),
+            eq(applianceCommands.status, 'failed'),
+          ),
+        ),
+      );
+  }
+
+  async markCommandsReported(ids: string[]): Promise<void> {
+    if (ids.length === 0) return;
+    await db.update(applianceCommands)
+      .set({ reportedToConsole: true })
+      .where(inArray(applianceCommands.id, ids));
   }
 
   async updateHeartbeatFailure(error: string): Promise<ApplianceSubscription> {
