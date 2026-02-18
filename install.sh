@@ -825,9 +825,37 @@ SystemCallArchitectures=native
 WantedBy=multi-user.target
 EOF
 
+    # Companion units for remote update via console (path-triggered)
+    # The API writes a trigger file and the path unit starts the update service
+    cat > /etc/systemd/system/samureye-update.service << UPDATEEOF
+[Unit]
+Description=SamurEye Platform Update (triggered by path unit)
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash ${INSTALL_DIR}/temp/run-update.sh
+WorkingDirectory=${INSTALL_DIR}
+StandardOutput=journal
+StandardError=journal
+TimeoutStartSec=600
+UPDATEEOF
+
+    cat > /etc/systemd/system/samureye-update.path << PATHEOF
+[Unit]
+Description=Watch for SamurEye update trigger file
+
+[Path]
+PathExists=${INSTALL_DIR}/temp/.update-trigger
+MakeDirectory=yes
+
+[Install]
+WantedBy=multi-user.target
+PATHEOF
+
     # Recarrega systemd e habilita serviços
     systemctl daemon-reload
     systemctl enable ${SERVICE_NAME}
+    systemctl enable --now samureye-update.path 2>/dev/null || true
 
     # Configure sudoers for remote updates via console
     local SUDOERS_FILE="/etc/sudoers.d/samureye-update"
