@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Search, Plus, Shield } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { Link } from "wouter";
+import SystemStatusPopup from "@/components/system-status-popup";
 
 interface TopBarProps {
   title: string;
@@ -22,17 +23,9 @@ export default function TopBar({ title, subtitle, wsConnected = false, actions }
           </p>
         </div>
         <div className="flex items-center space-x-4">
-          {/* Real-time status indicator */}
-          <div className="flex items-center space-x-2">
-            <span 
-              className={`status-indicator ${wsConnected ? 'status-success pulse-animation' : 'status-error'}`}
-              data-testid="ws-status-indicator"
-            ></span>
-            <span className="text-sm text-muted-foreground">
-              {wsConnected ? 'Sistema Online' : 'Desconectado'}
-            </span>
-          </div>
-          
+          {/* System status popup (click to expand) */}
+          <SystemStatusPopup wsConnected={wsConnected} />
+
           {/* Default actions or custom actions */}
           {actions || (
             <>
