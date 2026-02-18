@@ -450,6 +450,11 @@ export const applianceSubscription = pgTable("appliance_subscription", {
   plan: text("plan"),
   expiresAt: timestamp("expires_at"),
   features: jsonb("features").$type<string[]>().default([]),
+  planSlug: text("plan_slug"),                               // e.g. "professional", "trial"
+  maxAppliances: integer("max_appliances"),                   // -1 = unlimited
+  isTrial: boolean("is_trial").default(false),
+  durationDays: integer("duration_days"),                     // Original plan duration
+  consoleMessage: text("console_message"),                    // Message from console (e.g. expiration warning)
   // Communication state
   lastHeartbeatAt: timestamp("last_heartbeat_at"),          // Last successful heartbeat
   lastHeartbeatError: text("last_heartbeat_error"),         // Last error message
