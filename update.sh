@@ -120,6 +120,42 @@ configure_sudoers() {
     fi
 }
 
+# Função para instalar/atualizar unidades systemd para update remoto via console
+# A API cria um trigger file e esta path unit detecta e inicia o serviço de update
+install_update_units() {
+    log "Instalando unidades systemd para update remoto..."
+
+    cat > /etc/systemd/system/samureye-update.service << UNITEOF
+[Unit]
+Description=SamurEye Platform Update (triggered by path unit)
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash ${INSTALL_DIR}/temp/run-update.sh
+WorkingDirectory=${INSTALL_DIR}
+StandardOutput=journal
+StandardError=journal
+TimeoutStartSec=600
+UNITEOF
+
+    cat > /etc/systemd/system/samureye-update.path << UNITEOF
+[Unit]
+Description=Watch for SamurEye update trigger file
+
+[Path]
+PathExists=${INSTALL_DIR}/temp/.update-trigger
+MakeDirectory=yes
+
+[Install]
+WantedBy=multi-user.target
+UNITEOF
+
+    systemctl daemon-reload
+    systemctl enable --now samureye-update.path 2>/dev/null || true
+
+    success "Unidades de update remoto configuradas (path + service)"
+}
+
 # Função para verificar atualizações disponíveis
 check_updates() {
     log "Verificando atualizações disponíveis no GitHub..."
@@ -581,6 +617,7 @@ main() {
     check_installation
     configure_git
     configure_sudoers
+    install_update_units
     check_updates
     
     # Confirmação do usuário
