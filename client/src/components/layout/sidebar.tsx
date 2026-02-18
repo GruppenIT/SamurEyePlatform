@@ -20,7 +20,8 @@ import {
   Monitor,
   Bell,
   Smartphone,
-  FileBarChart
+  FileBarChart,
+  CreditCard,
 } from "lucide-react";
 
 interface NavItem {
@@ -71,6 +72,7 @@ const adminItems: NavItem[] = [
   { href: "/users", label: "Usuários", icon: Users, adminOnly: true },
   { href: "/sessions", label: "Sessões", icon: Smartphone, adminOnly: true },
   { href: "/notification-policies", label: "Notificações", icon: Bell, adminOnly: true },
+  { href: "/subscription", label: "Subscrição", icon: CreditCard, adminOnly: true },
   { href: "/settings", label: "Configurações", icon: Settings, adminOnly: true },
   { href: "/audit", label: "Auditoria", icon: History, adminOnly: true },
 ];
