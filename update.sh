@@ -99,6 +99,27 @@ configure_git() {
     success "Permissões do Git configuradas"
 }
 
+# Função para configurar sudoers para update remoto via console
+# The systemUpdateService spawns: sudo VAR=val /bin/bash /opt/samureye/update.sh
+# sudo needs SETENV to allow env vars, and NOPASSWD for non-interactive use.
+configure_sudoers() {
+    local SUDOERS_FILE="/etc/sudoers.d/samureye-update"
+    local RULE="$SERVICE_USER ALL=(root) NOPASSWD:SETENV: /bin/bash $INSTALL_DIR/update.sh"
+
+    if [[ ! -f "$SUDOERS_FILE" ]] || ! grep -qF "SETENV" "$SUDOERS_FILE" 2>/dev/null; then
+        log "Configurando sudoers para update remoto..."
+        echo "$RULE" > "$SUDOERS_FILE"
+        chmod 0440 "$SUDOERS_FILE"
+        # Validate syntax (reverts on error to prevent lockout)
+        if visudo -cf "$SUDOERS_FILE" >/dev/null 2>&1; then
+            success "Sudoers configurado: $SERVICE_USER pode executar update.sh como root"
+        else
+            error "Regra sudoers inválida — removendo para segurança"
+            rm -f "$SUDOERS_FILE"
+        fi
+    fi
+}
+
 # Função para verificar atualizações disponíveis
 check_updates() {
     log "Verificando atualizações disponíveis no GitHub..."
@@ -559,6 +580,7 @@ main() {
     check_root
     check_installation
     configure_git
+    configure_sudoers
     check_updates
     
     # Confirmação do usuário

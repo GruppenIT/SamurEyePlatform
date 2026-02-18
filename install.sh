@@ -828,7 +828,19 @@ EOF
     # Recarrega systemd e habilita serviços
     systemctl daemon-reload
     systemctl enable ${SERVICE_NAME}
-    
+
+    # Configure sudoers for remote updates via console
+    local SUDOERS_FILE="/etc/sudoers.d/samureye-update"
+    local RULE="${SERVICE_USER} ALL=(root) NOPASSWD:SETENV: /bin/bash ${INSTALL_DIR}/update.sh"
+    echo "$RULE" > "$SUDOERS_FILE"
+    chmod 0440 "$SUDOERS_FILE"
+    if visudo -cf "$SUDOERS_FILE" >/dev/null 2>&1; then
+        log "Sudoers configurado para update remoto"
+    else
+        rm -f "$SUDOERS_FILE"
+        warn "Falha ao configurar sudoers para update remoto"
+    fi
+
     log "Serviços systemd configurados"
 }
 
