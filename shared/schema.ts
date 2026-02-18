@@ -943,7 +943,7 @@ export const activateApplianceSchema = z.object({
 // Schema for command results reported by appliance back to console
 export const commandResultSchema = z.object({
   id: z.string(),
-  status: z.enum(['running', 'completed', 'failed']),
+  status: z.enum(['acknowledged', 'completed', 'failed']),
   result: z.record(z.string(), z.any()).optional(),
   error: z.string().optional(),
   startedAt: z.string().datetime().optional(),
