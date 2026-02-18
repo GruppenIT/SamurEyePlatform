@@ -116,46 +116,57 @@ class SystemUpdateService {
     return new Promise((resolve, reject) => {
       const scriptPath = path.join(INSTALL_DIR, 'update.sh');
 
-      // Determine how to run the update
+      // update.sh requires root (check_root). The service runs as samureye,
+      // so we must use sudo. The install.sh/update.sh provisions a sudoers
+      // rule: samureye ALL=(root) NOPASSWD: <INSTALL_DIR>/update.sh
+      //
+      // sudo resets environment by default, so we pass env vars explicitly
+      // as VAR=value arguments before the command.
+      const envVars: Record<string, string> = {
+        AUTO_CONFIRM: 'true',
+        INSTALL_DIR,
+        PATH: process.env.PATH || '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+        HOME: '/root',
+      };
+
+      if (params.branch) envVars.BRANCH = params.branch;
+      if (params.skipBackup) envVars.SKIP_BACKUP = 'true';
+      if (params.token) envVars.GIT_TOKEN = params.token;
+
+      // Load .env vars for database access (needed by backup and migrations)
+      const dotenvPath = path.join(INSTALL_DIR, '.env');
+      if (fs.existsSync(dotenvPath)) {
+        try {
+          const lines = fs.readFileSync(dotenvPath, 'utf-8').split('\n');
+          for (const line of lines) {
+            const match = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
+            if (match) {
+              envVars[match[1]] = match[2].replace(/^["']|["']$/g, '');
+            }
+          }
+        } catch { /* ignore */ }
+      }
+
+      // Build: sudo VAR1=val1 VAR2=val2 /bin/bash <script>
+      const sudoEnvArgs = Object.entries(envVars).map(([k, v]) => `${k}=${v}`);
+
       let command: string;
       let args: string[];
 
       if (fs.existsSync(scriptPath)) {
-        // Local script available
-        command = '/bin/bash';
-        args = [scriptPath];
+        command = '/usr/bin/sudo';
+        args = [...sudoEnvArgs, '/bin/bash', scriptPath];
       } else {
-        // Fallback: download and run from GitHub
-        command = '/bin/bash';
-        args = ['-c', 'curl -fsSL https://raw.githubusercontent.com/GruppenIT/SamurEyePlatform/refs/heads/main/update.sh | bash'];
+        command = '/usr/bin/sudo';
+        args = [...sudoEnvArgs, '/bin/bash', '-c', 'curl -fsSL https://raw.githubusercontent.com/GruppenIT/SamurEyePlatform/refs/heads/main/update.sh | bash'];
       }
 
-      const env: Record<string, string> = {
-        ...process.env as Record<string, string>,
-        AUTO_CONFIRM: 'true',
-        INSTALL_DIR,
-      };
-
-      // Allow branch override from console params
-      if (params.branch) {
-        env.BRANCH = params.branch;
-      }
-
-      // Allow skipping backup from console params
-      if (params.skipBackup) {
-        env.SKIP_BACKUP = 'true';
-      }
-
-      // Pass GitHub PAT for private repo access (token is NOT persisted to disk)
-      if (params.token) {
-        env.GIT_TOKEN = params.token;
-      }
+      console.log(`🔧 Executando update: sudo ${sudoEnvArgs.filter(a => !a.startsWith('GIT_TOKEN') && !a.startsWith('PG')).join(' ')} /bin/bash update.sh`);
 
       let output = '';
       let lastPhase = 'starting';
 
       const child = spawn(command, args, {
-        env,
         cwd: INSTALL_DIR,
         stdio: ['ignore', 'pipe', 'pipe'],
       });
@@ -199,6 +210,15 @@ class SystemUpdateService {
 
       child.on('close', (exitCode) => {
         clearTimeout(timeout);
+
+        // Log summary for debugging remote update failures
+        if (exitCode !== 0) {
+          console.error(`❌ update.sh saiu com código ${exitCode} na fase "${lastPhase}"`);
+          // Show last 20 lines of output for context
+          const tail = output.split('\n').filter(Boolean).slice(-20).join('\n');
+          console.error(`📋 Últimas linhas do output:\n${tail}`);
+        }
+
         resolve({
           exitCode: exitCode ?? 1,
           output,
