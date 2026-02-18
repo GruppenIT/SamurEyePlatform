@@ -274,7 +274,8 @@ class SubscriptionService {
     if (unreported.length > 0) {
       telemetry.commandResults = unreported.map(cmd => ({
         id: cmd.id,
-        status: cmd.status as 'running' | 'completed' | 'failed',
+        // Console expects 'acknowledged' for in-progress commands (not 'running')
+        status: (cmd.status === 'running' ? 'acknowledged' : cmd.status) as 'acknowledged' | 'completed' | 'failed',
         result: cmd.result || undefined,
         error: cmd.error || undefined,
         startedAt: cmd.startedAt?.toISOString(),
@@ -312,6 +313,18 @@ class SubscriptionService {
           );
           this.adjustHeartbeatInterval(false);
           return;
+        }
+
+        // HTTP 4xx (other than 401/403 handled above): client error — do not retry
+        if (response.status >= 400 && response.status < 500) {
+          const body = await response.text();
+          this.cachedStatus = await storage.updateHeartbeatFailure(
+            `Console rejeitou os dados (${response.status})`,
+          );
+          throw Object.assign(
+            new Error(`Console respondeu com status ${response.status}: ${body}`),
+            { nonRetryable: true },
+          );
         }
 
         if (!response.ok) {
@@ -353,6 +366,12 @@ class SubscriptionService {
         const message = error.name === 'TimeoutError'
           ? 'Timeout ao conectar com a console central'
           : error.message;
+
+        // Client errors (4xx) won't fix themselves — fail immediately
+        if (error.nonRetryable) {
+          console.error(`🔴 Heartbeat falhou (não retentável): ${message}`);
+          throw error;
+        }
 
         // If we still have retries left, wait and try again
         if (attempt < HEARTBEAT_RETRY_DELAYS.length) {
