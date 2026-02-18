@@ -24,6 +24,7 @@ import Sessions from "@/pages/sessions";
 import Settings from "@/pages/settings";
 import Audit from "@/pages/audit";
 import NotificationPolicies from "@/pages/notification-policies";
+import Subscription from "@/pages/subscription";
 import SubscriptionBanner from "@/components/subscription-banner";
 
 // Error Boundary to prevent full white screen on render errors
@@ -139,6 +140,7 @@ function Router() {
 
       {/* Admin-only routes */}
       <Route path="/users">{() => <AdminRoute component={Users} />}</Route>
+      <Route path="/subscription">{() => <AdminRoute component={Subscription} />}</Route>
       <Route path="/settings">{() => <AdminRoute component={Settings} />}</Route>
       <Route path="/notification-policies">{() => <AdminRoute component={NotificationPolicies} />}</Route>
       <Route path="/audit">{() => <AdminRoute component={Audit} />}</Route>

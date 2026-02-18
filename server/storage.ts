@@ -2120,6 +2120,11 @@ export class DatabaseStorage implements IStorage {
     features: string[];
     tenantId?: string;
     tenantName?: string;
+    planSlug?: string;
+    maxAppliances?: number;
+    isTrial?: boolean;
+    durationDays?: number | null;
+    message?: string | null;
   }): Promise<ApplianceSubscription> {
     const isActive = consoleResponse.active;
     const expiresAt = consoleResponse.expiresAt ? new Date(consoleResponse.expiresAt) : null;
@@ -2138,6 +2143,11 @@ export class DatabaseStorage implements IStorage {
       tenantId: consoleResponse.tenantId,
       tenantName: consoleResponse.tenantName,
       plan: consoleResponse.plan,
+      planSlug: consoleResponse.planSlug ?? null,
+      maxAppliances: consoleResponse.maxAppliances ?? null,
+      isTrial: consoleResponse.isTrial ?? false,
+      durationDays: consoleResponse.durationDays ?? null,
+      consoleMessage: consoleResponse.message ?? null,
       expiresAt,
       features: consoleResponse.features,
       lastHeartbeatAt: now,
