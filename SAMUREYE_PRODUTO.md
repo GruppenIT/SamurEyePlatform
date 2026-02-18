@@ -1,4 +1,4 @@
-# SamurEye - Plataforma de Validação Adversarial de Exposição
+# SamurEye Rocha - Plataforma de Validação Adversarial de Exposição
 
 ## Sumário Executivo
 
