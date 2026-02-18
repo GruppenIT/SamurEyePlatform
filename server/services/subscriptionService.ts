@@ -156,17 +156,23 @@ class SubscriptionService {
 
       const data = await response.json();
 
-      // Save to DB
+      // Save to DB (including subscription details from activation response)
+      const subData = data.subscription || data;
       const updated = await storage.upsertSubscription({
         applianceId,
         apiKey: encrypted.secretEncrypted,
         apiKeyDek: encrypted.dekEncrypted,
         status: 'active',
-        tenantId: data.tenantId,
-        tenantName: data.tenantName,
-        plan: data.plan,
-        expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
-        features: data.features || [],
+        tenantId: data.tenantId || subData.tenantId,
+        tenantName: data.tenantName || subData.tenantName,
+        plan: subData.plan || data.plan,
+        planSlug: subData.planSlug || null,
+        maxAppliances: subData.maxAppliances ?? null,
+        isTrial: subData.isTrial ?? false,
+        durationDays: subData.durationDays ?? null,
+        consoleMessage: subData.message ?? null,
+        expiresAt: (subData.expiresAt || data.expiresAt) ? new Date(subData.expiresAt || data.expiresAt) : null,
+        features: subData.features || data.features || [],
         lastHeartbeatAt: new Date(),
         lastHeartbeatError: null,
         consecutiveFailures: 0,
@@ -346,6 +352,11 @@ class SubscriptionService {
           features: data.subscription.features || [],
           tenantId: data.subscription?.tenantId,
           tenantName: data.subscription?.tenantName,
+          planSlug: data.subscription?.planSlug,
+          maxAppliances: data.subscription?.maxAppliances,
+          isTrial: data.subscription?.isTrial,
+          durationDays: data.subscription?.durationDays,
+          message: data.subscription?.message,
         });
 
         // Adjust interval based on subscription status
@@ -464,6 +475,11 @@ class SubscriptionService {
     status: string;
     tenantName: string | null;
     plan: string | null;
+    planSlug: string | null;
+    maxAppliances: number | null;
+    isTrial: boolean;
+    durationDays: number | null;
+    consoleMessage: string | null;
     expiresAt: string | null;
     features: string[];
     lastHeartbeatAt: string | null;
@@ -484,6 +500,11 @@ class SubscriptionService {
         status: 'not_configured',
         tenantName: null,
         plan: null,
+        planSlug: null,
+        maxAppliances: null,
+        isTrial: false,
+        durationDays: null,
+        consoleMessage: null,
         expiresAt: null,
         features: [],
         lastHeartbeatAt: null,
@@ -502,6 +523,11 @@ class SubscriptionService {
       status: sub.status,
       tenantName: sub.tenantName,
       plan: sub.plan,
+      planSlug: sub.planSlug || null,
+      maxAppliances: sub.maxAppliances ?? null,
+      isTrial: sub.isTrial ?? false,
+      durationDays: sub.durationDays ?? null,
+      consoleMessage: sub.consoleMessage || null,
       expiresAt: sub.expiresAt?.toISOString() || null,
       features: sub.features as string[] || [],
       lastHeartbeatAt: sub.lastHeartbeatAt?.toISOString() || null,
