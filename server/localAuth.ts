@@ -256,7 +256,7 @@ export function validateSession(): RequestHandler {
         // Destruir sessão
         req.session.destroy((err: any) => {
           if (err) {
-            log.error('Erro ao destruir sessão não rastreada:', err);
+            log.error({ err }, 'failed to destroy untracked session');
           }
         });
         
@@ -280,17 +280,17 @@ export function validateSession(): RequestHandler {
       
       // Bloquear sessões com versão desatualizada
       if (activeSession.sessionVersion !== currentVersion) {
-        log.info(`🔒 Sessão invalidada para usuário ${req.user.id} (versão ${activeSession.sessionVersion} vs atual ${currentVersion})`);
+        log.info({ userId: req.user.id, sessionVersion: activeSession.sessionVersion, currentVersion }, 'session invalidated due to version mismatch');
         
         // Remover sessão ativa
         await storage.deleteActiveSession(req.sessionID).catch(err => {
-          log.error('Erro ao remover sessão ativa:', err);
+          log.error({ err }, 'failed to delete active session');
         });
-        
+
         // Destruir sessão
         req.session.destroy((err: any) => {
           if (err) {
-            log.error('Erro ao destruir sessão invalidada:', err);
+            log.error({ err }, 'failed to destroy invalidated session');
           }
         });
         
@@ -312,7 +312,7 @@ export function validateSession(): RequestHandler {
       
       // Atualizar última atividade
       await storage.updateActiveSessionLastActivity(req.sessionID).catch(err => {
-        log.error('Erro ao atualizar última atividade da sessão:', err);
+        log.error({ err }, 'failed to update session last activity');
       });
     } catch (error) {
       log.error('Erro ao validar sessão:', error);
