@@ -14,7 +14,7 @@
 | FND-004 | Risco de acesso ao AuthFile no EDR AV Scanner | **Média** | :white_check_mark: Resolvido (tmpfs + crypto names + secure wipe) |
 | FND-005 | Falta de testes automatizados | **Média** | :white_check_mark: Resolvido (Vitest + 121 testes de segurança) |
 | FND-006 | Falta de configuração para ferramentas de suporte a desenvolvedor | **Informativa** | :no_entry_sign: Won't fix (by design) |
-| FND-007 | Arquivos fonte extensos (God Objects) | **Média** | :red_circle: Pendente |
+| FND-007 | Arquivos fonte extensos (God Objects) | **Média** | :large_orange_diamond: Em progresso (storage.ts + routes.ts divididos) |
 | FND-008 | Falta de ferramenta configurável de logging | **Informativa** | :white_check_mark: Resolvido (pino + redação automática + 655 console→logger) |
 | FND-009 | Validação de Host no sshCollector | **Informativa** | :white_check_mark: Resolvido (TOFU + SHA-256 fingerprint + alertas) |
 
@@ -136,35 +136,36 @@ O env file usava `JSON.stringify()` (double quotes), que NÃO escapa `` ` `` nem
 - [ ] ~~Criar testes de integração para rotas da API~~ — descartado (requer DB + auth, custo > benefício)
 - [ ] ~~Configurar CI/CD~~ — descartado (deploy em appliance, sem pipeline)
 
-**Resultado:** 6 suites, **113 testes**, todos passando em < 1 segundo. Cobertura focada nas funções que mitigam vulnerabilidades reais.
+**Resultado:** 7 suites, **121 testes**, todos passando em < 1 segundo. Cobertura focada nas funções que mitigam vulnerabilidades reais.
 
 ---
 
 #### 2.3 FND-007: Arquivos fonte extensos (Média)
 
-**Arquivos com mais de 1000 linhas:**
+**Arquivos com mais de 1000 linhas (antes da refatoração):**
 
-| Arquivo | Linhas |
-|---------|--------|
-| `server/storage.ts` | 2255 |
-| `server/routes.ts` | 2252 |
-| `server/services/scanners/adScanner.ts` | 1934 |
-| `server/services/threatEngine.ts` | 1829 |
-| `server/services/journeyExecutor.ts` | 1810 |
-| `client/src/pages/hosts.tsx` | 1487 |
-| `client/src/pages/threats.tsx` | 1401 |
-| `client/src/pages/settings.tsx` | 1185 |
-| `client/src/components/forms/journey-form.tsx` | 1164 |
-| `shared/schema.ts` | 1034 |
-| `server/services/scanners/networkScanner.ts` | 1015 |
+| Arquivo | Linhas | Status |
+|---------|--------|--------|
+| `server/storage.ts` | 2255 | :white_check_mark: Dividido em `server/storage/` (11 módulos) |
+| `server/routes.ts` | 2252 | :white_check_mark: Dividido em `server/routes/` (13 módulos) |
+| `server/services/scanners/adScanner.ts` | 1934 | Pendente |
+| `server/services/threatEngine.ts` | 1829 | Pendente |
+| `server/services/journeyExecutor.ts` | 1810 | Pendente |
+| `client/src/pages/hosts.tsx` | 1487 | Pendente |
+| `client/src/pages/threats.tsx` | 1401 | Pendente |
+| `client/src/pages/settings.tsx` | 1185 | Pendente |
+| `client/src/components/forms/journey-form.tsx` | 1164 | Pendente |
+| `shared/schema.ts` | 1034 | Pendente |
+| `server/services/scanners/networkScanner.ts` | 1015 | Pendente |
 
 **Ações:**
-- [ ] Priorizar refatoração de `storage.ts` e `routes.ts` (maiores arquivos)
-- [ ] Dividir por domínio/responsabilidade (ex: `storage/hosts.ts`, `storage/threats.ts`, etc.)
-- [ ] Aplicar o Princípio de Responsabilidade Única (SRP)
-- [ ] Manter backward-compatibility nas exportações
+- [x] Refatorar `storage.ts` — dividido em `server/storage/` com 11 módulos por domínio (hosts, threats, assets, credentials, journeys, schedules, jobs, users, audit, dashboard, index) + barrel export para backward-compatibility
+- [x] Refatorar `routes.ts` — dividido em `server/routes/` com 13 módulos por domínio (middleware, dashboard, reports, admin, assets, credentials, hosts, journeys, schedules, jobs, threats, users, index) + barrel export para backward-compatibility
+- [x] Manter backward-compatibility nas exportações (`import { registerRoutes } from "./routes"` e `import { DatabaseStorage } from "./storage"` continuam funcionando)
+- [x] Validar que todos os 121 testes passam após refatoração
+- [ ] Refatorar demais arquivos (adScanner, threatEngine, journeyExecutor, etc.) — longo prazo
 
-**Nota:** Esta é uma tarefa contínua de longo prazo. Deve ser feita incrementalmente, sem bloquear outras correções.
+**Nota:** Os dois maiores arquivos (storage.ts e routes.ts) foram divididos com sucesso. Os demais podem ser refatorados incrementalmente conforme necessidade.
 
 ---
 
@@ -271,7 +272,7 @@ Fase 4.1  →  FND-008  Logging estruturado               [✅ CONCLUÍDO]
 Fase 4.2  →  FND-006  ESLint + Prettier                 [🚫 WON'T FIX — by design]
 Fase 2.2  →  FND-005  Testes automatizados              [✅ CONCLUÍDO]
 Fase 4.3  →  FND-009  Validação SSH Host                [✅ CONCLUÍDO]
-Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo prazo]
+Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [🔶 EM PROGRESSO — storage.ts + routes.ts divididos, 9 restantes]
 ```
 
 ---
@@ -289,3 +290,4 @@ Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo pr
 | 2026-03-11 | FND-006 | Won't fix: 100% do código mantido por AI (Claude Code), TypeScript já cobre regras de lint, overhead negativo de ~50+ deps sem retorno proporcional. | Won't fix |
 | 2026-03-11 | FND-005 | Vitest configurado, 6 suites / 113 testes de segurança cobrindo FND-001 (MITM params + HTTPS + commands), FND-003 (CORS), FND-004 (auth files), FND-008 (redação de logs), encryption (DEK/KEK). TESTING.md criado com guia de expansão. Build+Tests OK. | Concluído |
 | 2026-03-11 | FND-009 | TOFU SSH host fingerprint: campo sshHostFingerprint na tabela hosts, hostVerifier com SHA-256 no ssh2, verifyHostFingerprint() com detecção de mudança + log.warn, sshCollector migrado para pino, 8 testes unitários. Build+Tests OK (121 total). | Concluído |
+| 2026-03-11 | FND-007 | Refatoração dos 2 maiores arquivos: `storage.ts` (2255 linhas) dividido em `server/storage/` com 11 módulos por domínio; `routes.ts` (2252 linhas) dividido em `server/routes/` com 13 módulos por domínio. Barrel exports mantêm backward-compatibility. Build+Tests OK (121 total). | Em progresso |
