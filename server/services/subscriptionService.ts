@@ -10,6 +10,43 @@ const HEARTBEAT_STANDBY_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes (standby)
 const HEARTBEAT_RETRY_DELAYS = [10_000, 20_000, 40_000, 80_000]; // backoff: 10s, 20s, 40s, 80s
 const GRACE_PERIOD_HOURS = 72;
 
+/** Allowed command types from the console (FND-001 mitigation — whitelist approach) */
+const ALLOWED_COMMAND_TYPES = new Set(['system_update', 'restart_service']);
+
+/**
+ * Validate that the console URL uses HTTPS (FND-001 mitigation).
+ * HTTP connections are vulnerable to MITM — an attacker on the network
+ * could intercept the heartbeat and inject malicious commands.
+ */
+function validateConsoleUrl(url: string): { valid: boolean; error?: string } {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === 'https:') {
+      return { valid: true };
+    }
+    // Allow HTTP only for explicit localhost development
+    if (parsed.protocol === 'http:' && (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1')) {
+      console.warn('🛡️  Console URL usa HTTP — aceito apenas porque é localhost (desenvolvimento)');
+      return { valid: true };
+    }
+    return { valid: false, error: `A URL da console deve usar HTTPS para proteção contra MITM. URL recebida: ${url}` };
+  } catch {
+    return { valid: false, error: `URL da console inválida: ${url}` };
+  }
+}
+
+/**
+ * Validate command structure from the console heartbeat response (FND-001 mitigation).
+ * Rejects commands with unexpected types or missing required fields.
+ */
+function validateCommand(cmd: any): cmd is ConsoleCommand {
+  if (!cmd || typeof cmd !== 'object') return false;
+  if (typeof cmd.id !== 'string' || cmd.id.length === 0 || cmd.id.length > 256) return false;
+  if (typeof cmd.type !== 'string' || !ALLOWED_COMMAND_TYPES.has(cmd.type)) return false;
+  if (cmd.params !== undefined && (typeof cmd.params !== 'object' || Array.isArray(cmd.params))) return false;
+  return true;
+}
+
 /**
  * SubscriptionService
  *
@@ -97,6 +134,13 @@ class SubscriptionService {
   async activate(apiKeyPlain: string, consoleUrl: string, userId: string): Promise<{ success: boolean; error?: string; subscription?: ApplianceSubscription }> {
     // Normalize console URL (remove trailing slash)
     consoleUrl = consoleUrl.replace(/\/+$/, '');
+
+    // FND-001: Enforce HTTPS to prevent MITM attacks
+    const urlCheck = validateConsoleUrl(consoleUrl);
+    if (!urlCheck.valid) {
+      return { success: false, error: urlCheck.error };
+    }
+
     const activateUrl = `${consoleUrl}/v1/appliance/activate`;
 
     try {
@@ -404,10 +448,21 @@ class SubscriptionService {
    * Each command is saved to DB and dispatched by type.
    */
   private async processCommands(commands: ConsoleCommand[]): Promise<void> {
-    // Save all to DB first (dedup built into storage)
-    await storage.saveReceivedCommands(commands);
+    // FND-001: Validate command structure before processing (MITM defense)
+    const validCommands = commands.filter(cmd => {
+      if (!validateCommand(cmd)) {
+        console.warn(`🛡️  Comando inválido descartado: ${JSON.stringify(cmd).slice(0, 200)}`);
+        return false;
+      }
+      return true;
+    });
 
-    for (const cmd of commands) {
+    if (validCommands.length === 0) return;
+
+    // Save all to DB first (dedup built into storage)
+    await storage.saveReceivedCommands(validCommands);
+
+    for (const cmd of validCommands) {
       console.log(`📥 Comando recebido: type=${cmd.type} id=${cmd.id}`);
 
       switch (cmd.type) {
