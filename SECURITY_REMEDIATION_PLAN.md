@@ -13,7 +13,7 @@
 | FND-003 | Configuração de CORS excessivamente permissiva | **Baixa** | :white_check_mark: Resolvido (ALLOWED_ORIGINS env var) |
 | FND-004 | Risco de acesso ao AuthFile no EDR AV Scanner | **Média** | :white_check_mark: Resolvido (tmpfs + crypto names + secure wipe) |
 | FND-005 | Falta de testes automatizados | **Média** | :red_circle: Pendente |
-| FND-006 | Falta de configuração para ferramentas de suporte a desenvolvedor | **Informativa** | :red_circle: Pendente |
+| FND-006 | Falta de configuração para ferramentas de suporte a desenvolvedor | **Informativa** | :no_entry_sign: Won't fix (by design) |
 | FND-007 | Arquivos fonte extensos (God Objects) | **Média** | :red_circle: Pendente |
 | FND-008 | Falta de ferramenta configurável de logging | **Informativa** | :white_check_mark: Resolvido (pino + redação automática + 655 console→logger) |
 | FND-009 | Validação de Host no sshCollector | **Informativa** | :red_circle: Pendente |
@@ -210,13 +210,14 @@ O env file usava `JSON.stringify()` (double quotes), que NÃO escapa `` ` `` nem
 
 ---
 
-#### 4.2 FND-006: Ferramentas de suporte a desenvolvedor (Informativa)
+#### 4.2 FND-006: Ferramentas de suporte a desenvolvedor (Informativa) — WON'T FIX
 
-**Ações:**
-- [ ] Configurar ESLint com regras adequadas ao projeto
-- [ ] Configurar Prettier para formatação consistente
-- [ ] Adicionar scripts de lint ao `package.json`
-- [ ] Criar `.eslintrc.json` e `.prettierrc`
+**Decisão:** Não implementar. Justificativa:
+
+1. **100% do código é desenvolvido e mantido por AI (Claude Code)** — não há risco de inconsistência de estilo entre desenvolvedores humanos, que é o problema central que ESLint + Prettier resolvem.
+2. **TypeScript (`tsc`) já cobre** a maioria das regras úteis do ESLint: erros de tipo, imports não utilizados, variáveis indefinidas, etc.
+3. **Overhead negativo**: ~50+ dependências dev adicionais, conflitos ESLint ↔ Prettier, configuração e manutenção contínua de regras, tempo de execução em pre-commit hooks — sem retorno proporcional.
+4. **Severidade informativa**: O próprio auditor classificou como sugestão de melhoria, não como vulnerabilidade.
 
 ---
 
@@ -241,8 +242,8 @@ Fase 1.2  →  FND-001  Man in the Middle (MITM)          [✅ CONCLUÍDO]
 Fase 2.1  →  FND-004  AuthFile no EDR AV Scanner        [✅ CONCLUÍDO]
 Fase 3.1  →  FND-003  CORS permissivo                   [✅ CONCLUÍDO]
 Fase 4.1  →  FND-008  Logging estruturado               [✅ CONCLUÍDO]
-Fase 4.2  →  FND-006  ESLint + Prettier                 [Base para qualidade]
-Fase 2.2  →  FND-005  Testes automatizados              [Depende de 4.2]
+Fase 4.2  →  FND-006  ESLint + Prettier                 [🚫 WON'T FIX — by design]
+Fase 2.2  →  FND-005  Testes automatizados              [Próximo]
 Fase 4.3  →  FND-009  Validação SSH Host                [Melhoria incremental]
 Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo prazo]
 ```
@@ -259,3 +260,4 @@ Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo pr
 | 2026-03-11 | FND-003 | CORS: removido fallback allow-all, adicionado ALLOWED_ORIGINS env var, regex seguro para localhost dev, rejeição com log. Build OK. | Concluído |
 | 2026-03-11 | FND-004 | AuthFile: tmpfs (/dev/shm), crypto.randomBytes, secureCleanup (zero+unlink), removido fallback -U user%pass, logs redactados. Build OK. | Concluído |
 | 2026-03-11 | FND-008 | Logging: pino + pino-pretty instalados, server/lib/logger.ts criado com redação automática de 20+ campos sensíveis, 655 console.* migrados para logger estruturado em 22 arquivos, credential.username removido dos logs. Build OK. | Concluído |
+| 2026-03-11 | FND-006 | Won't fix: 100% do código mantido por AI (Claude Code), TypeScript já cobre regras de lint, overhead negativo de ~50+ deps sem retorno proporcional. | Won't fix |
