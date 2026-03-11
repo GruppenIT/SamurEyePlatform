@@ -35,7 +35,8 @@ server/
 │   ├── edrAvScanner.test.ts          ← FND-004: auth file handling (tmpfs, perms, cleanup)
 │   ├── encryption.test.ts            ← DEK/KEK roundtrip, tamper detection, KEK isolation
 │   ├── logger.test.ts                ← FND-008: redação automática de credenciais
-│   └── cors.test.ts                  ← FND-003: CORS origin validation
+│   ├── cors.test.ts                  ← FND-003: CORS origin validation
+│   └── sshCollector.test.ts          ← FND-009: SSH host fingerprint TOFU
 ├── services/
 │   ├── systemUpdateService.ts        ← exports: validateUpdateParam, shellSingleQuoteEscape
 │   ├── subscriptionService.ts        ← exports: validateConsoleUrl, validateCommand
@@ -151,7 +152,8 @@ A classe principal continua exportando apenas a instância singleton. As funçõ
 | `encryption.test.ts` | 16 | — | DEK/KEK roundtrip, tamper detection, cross-KEK isolation |
 | `logger.test.ts` | 18 | FND-008 | Redação de 11+ campos sensíveis, nested, wildcard |
 | `cors.test.ts` | 15 | FND-003 | Origin whitelist, localhost dev exception, bypass attempts |
-| **Total** | **113** | | |
+| `sshCollector.test.ts` | 8 | FND-009 | TOFU fingerprint: first connect, match, mismatch, error handling |
+| **Total** | **121** | | |
 
 ---
 
