@@ -28,7 +28,7 @@ async function bootstrapDevAdmin() {
       return; // Admin already exists with password
     }
 
-    log.info('🔧 Criando usuário admin para desenvolvimento...');
+    log.info('creating dev admin user');
     
     // Create or update admin user
     const adminPassword = 'admin';
@@ -39,7 +39,7 @@ async function bootstrapDevAdmin() {
       await storage.updateUserPassword(existingAdmin.id, hashedPassword);
       await storage.updateUserRole(existingAdmin.id, 'global_administrator');
       await storage.setMustChangePassword(existingAdmin.id, false);
-      log.info('✅ Usuário admin atualizado: admin@example.com / admin');
+      log.info({ email: 'admin@example.com' }, 'dev admin user updated');
     } else {
       // Create new admin user
       const newUser = await storage.createUser({
@@ -50,10 +50,10 @@ async function bootstrapDevAdmin() {
         role: 'global_administrator'
       });
       await storage.setMustChangePassword(newUser.id, false);
-      log.info('✅ Usuário admin criado: admin@example.com / admin');
+      log.info({ email: 'admin@example.com' }, 'dev admin user created');
     }
   } catch (error) {
-    log.error('❌ Erro ao criar usuário admin:', error);
+    log.error({ err: error }, 'failed to create dev admin user');
   }
 }
 
