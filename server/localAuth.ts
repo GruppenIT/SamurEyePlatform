@@ -100,9 +100,9 @@ async function cleanupExpiredSessions(): Promise<void> {
     // Limpar login attempts antigos
     await storage.cleanupOldLoginAttempts();
     
-    log.info(`🧹 Limpeza de sessões expiradas executada`);
+    log.info('expired sessions cleanup completed');
   } catch (error) {
-    log.error('❌ Erro ao limpar sessões expiradas:', error);
+    log.error({ err: error }, 'failed to cleanup expired sessions');
   }
 }
 
@@ -117,7 +117,7 @@ async function invalidateAllSessionsOnStartup(): Promise<void> {
     const adminUser = users.find(u => u.role === 'global_administrator') || users[0];
     
     if (!adminUser) {
-      log.warn('⚠️  Nenhum usuário encontrado para incrementar versão de sessão');
+      log.warn('no user found to increment session version');
       return;
     }
     
