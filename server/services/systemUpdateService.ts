@@ -33,7 +33,7 @@ const SHELL_DANGEROUS = /[`$(){}|;&<>!\\'"#\n\r\x00]/;
  * Validate and sanitize a single update parameter.
  * Returns the sanitized value or null if the parameter is rejected.
  */
-function validateUpdateParam(key: string, value: unknown): string | null {
+export function validateUpdateParam(key: string, value: unknown): string | null {
   if (value === undefined || value === null) return null;
 
   const strValue = String(value);
@@ -65,7 +65,7 @@ function validateUpdateParam(key: string, value: unknown): string | null {
  * Single quotes cannot contain single quotes, so we use the '\'' idiom:
  * close the single-quote, add an escaped single-quote, re-open single-quote.
  */
-function shellSingleQuoteEscape(value: string): string {
+export function shellSingleQuoteEscape(value: string): string {
   return value.replace(/'/g, "'\\''");
 }
 
