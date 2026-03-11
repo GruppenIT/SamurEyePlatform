@@ -315,11 +315,11 @@ export function validateSession(): RequestHandler {
         log.error({ err }, 'failed to update session last activity');
       });
     } catch (error) {
-      log.error('Erro ao validar sessão:', error);
+      log.error({ err: error }, 'failed to validate session');
       // Em caso de erro, forçar logout por segurança
       req.session.destroy((err: any) => {
         if (err) {
-          log.error('Erro ao destruir sessão após erro de validação:', err);
+          log.error({ err }, 'failed to destroy session after validation error');
         }
       });
       res.clearCookie('connect.sid', {
@@ -425,7 +425,7 @@ export async function setupAuth(app: Express) {
       await recordLoginAttempt(rateLimitKey, success);
 
       if (err) {
-        log.error("Erro de autenticação:", err);
+        log.error({ err }, 'authentication error');
         return res.status(500).json({ message: 'Erro interno do servidor' });
       }
       
@@ -436,13 +436,13 @@ export async function setupAuth(app: Express) {
       // Regenerate session ID to prevent session fixation
       req.session.regenerate(async (err) => {
         if (err) {
-          log.error("Erro ao regenerar sessão:", err);
+          log.error({ err }, 'failed to regenerate session');
           return res.status(500).json({ message: 'Erro interno do servidor' });
         }
 
         req.logIn(user, async (err) => {
           if (err) {
-            log.error("Erro ao fazer login:", err);
+            log.error({ err }, 'failed to log in user');
             return res.status(500).json({ message: 'Erro interno do servidor' });
           }
           
@@ -477,9 +477,9 @@ export async function setupAuth(app: Express) {
               }
             });
             
-            log.info(`✅ Login bem-sucedido: ${user.email} de ${clientIP} (${deviceInfo})`);
+            log.info({ email: user.email, clientIP, deviceInfo }, 'login successful');
           } catch (error) {
-            log.error('Erro ao criar sessão ativa:', error);
+            log.error({ err: error }, 'failed to create active session');
             // Não falhar o login se houver erro ao criar sessão ativa
           }
           
@@ -507,7 +507,7 @@ export async function setupAuth(app: Express) {
     
     req.logout(async (err: any) => {
       if (err) {
-        log.error("Erro ao fazer logout:", err);
+        log.error({ err }, 'failed to log out');
         return res.status(500).json({ message: 'Erro interno do servidor' });
       }
 
@@ -516,7 +516,7 @@ export async function setupAuth(app: Express) {
         try {
           await storage.deleteActiveSession(sessionId);
         } catch (error) {
-          log.error('Erro ao remover sessão ativa:', error);
+          log.error({ err: error }, 'failed to delete active session');
         }
       }
 
@@ -535,14 +535,14 @@ export async function setupAuth(app: Express) {
             }
           });
         } catch (error) {
-          log.error('Erro ao registrar auditoria de logout:', error);
+          log.error({ err: error }, 'failed to log logout audit');
         }
       }
 
       // Destroy the session and clear cookie
       req.session.destroy((err: any) => {
         if (err) {
-          log.error("Erro ao destruir sessão:", err);
+          log.error({ err }, 'failed to destroy session');
           return res.status(500).json({ message: 'Erro interno do servidor' });
         }
 
@@ -573,7 +573,7 @@ export async function setupAuth(app: Express) {
         lastLogin: user.lastLogin
       });
     } catch (error) {
-      log.error("Erro ao buscar usuário:", error);
+      log.error({ err: error }, 'failed to fetch user');
       res.status(500).json({ message: "Falha ao buscar usuário" });
     }
   });
@@ -615,7 +615,7 @@ export async function setupAuth(app: Express) {
       const oldSessionId = req.sessionID;
       req.session.regenerate(async (err: any) => {
         if (err) {
-          log.error("Erro ao regenerar sessão:", err);
+          log.error({ err }, 'failed to regenerate session');
           return res.status(500).json({ message: 'Erro interno do servidor' });
         }
 
@@ -627,7 +627,7 @@ export async function setupAuth(app: Express) {
 
         req.logIn(updatedUser, async (err: any) => {
           if (err) {
-            log.error("Erro ao fazer login:", err);
+            log.error({ err }, 'failed to log in user after password change');
             return res.status(500).json({ message: 'Erro interno do servidor' });
           }
 
@@ -651,7 +651,7 @@ export async function setupAuth(app: Express) {
               expiresAt: new Date(Date.now() + sessionTtlMs),
             });
           } catch (sessionError) {
-            log.error('Erro ao rastrear sessão pós-troca de senha:', sessionError);
+            log.error({ err: sessionError }, 'failed to track session after password change');
           }
 
           res.json({
@@ -675,7 +675,7 @@ export async function setupAuth(app: Express) {
           errors: error.errors 
         });
       }
-      log.error("Erro ao alterar senha:", error);
+      log.error({ err: error }, 'failed to change password');
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   });
