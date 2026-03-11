@@ -4,6 +4,9 @@ import { telemetryService } from './telemetryService';
 import { systemUpdateService } from './systemUpdateService';
 import type { ApplianceSubscription, ConsoleCommand, CommandResult } from '@shared/schema';
 import { APP_VERSION } from '../version';
+import { createLogger } from '../lib/logger';
+
+const log = createLogger('subscription');
 
 const HEARTBEAT_ACTIVE_INTERVAL_MS = 5 * 60 * 1000;  // 5 minutes (active)
 const HEARTBEAT_STANDBY_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes (standby)
@@ -26,7 +29,7 @@ function validateConsoleUrl(url: string): { valid: boolean; error?: string } {
     }
     // Allow HTTP only for explicit localhost development
     if (parsed.protocol === 'http:' && (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1')) {
-      console.warn('🛡️  Console URL usa HTTP — aceito apenas porque é localhost (desenvolvimento)');
+      log.warn({ url }, 'console URL uses HTTP — accepted only for localhost development');
       return { valid: true };
     }
     return { valid: false, error: `A URL da console deve usar HTTPS para proteção contra MITM. URL recebida: ${url}` };
@@ -68,7 +71,7 @@ class SubscriptionService {
    * Start the heartbeat loop (called on server boot)
    */
   start() {
-    console.log('🔑 Iniciando serviço de subscrição...');
+    log.info('starting subscription service');
 
     // Load cached status from DB
     this.refreshCache().then(() => {
@@ -78,7 +81,7 @@ class SubscriptionService {
       }
     });
 
-    console.log('✅ Serviço de subscrição iniciado');
+    log.info('subscription service started');
   }
 
   stop() {
@@ -107,7 +110,7 @@ class SubscriptionService {
       this.sendHeartbeat();
     }, interval);
 
-    console.log(`🔄 Heartbeat configurado: a cada ${interval / 1000 / 60} minutos${this.inStandby ? ' (standby)' : ''}`);
+    log.info({ intervalMin: interval / 1000 / 60, standby: this.inStandby }, 'heartbeat configured');
   }
 
   /**
@@ -117,7 +120,7 @@ class SubscriptionService {
     const shouldBeStandby = !active;
     if (shouldBeStandby !== this.inStandby) {
       this.inStandby = shouldBeStandby;
-      console.log(`🔄 Modo ${this.inStandby ? 'standby (30min)' : 'ativo (5min)'} — reajustando heartbeat`);
+      log.info({ standby: this.inStandby }, `heartbeat switching to ${this.inStandby ? 'standby (30min)' : 'active (5min)'} mode`);
       // Restart the interval with the new timing
       if (this.intervalId) {
         this.stop();
@@ -151,7 +154,7 @@ class SubscriptionService {
       // Encrypt the API key
       const encrypted = encryptionService.encryptCredential(apiKeyPlain);
 
-      console.log(`🔑 Tentando ativar appliance ${applianceId} em ${activateUrl}...`);
+      log.info({ applianceId, url: activateUrl }, 'activating appliance');
 
       // Try to activate with the console
       const response = await fetch(activateUrl, {
@@ -251,7 +254,7 @@ class SubscriptionService {
         message = `Erro ao conectar em ${activateUrl}: ${error.message}`;
       }
 
-      console.error(`❌ Ativação falhou: ${message}`);
+      log.error({ err: message, url: activateUrl }, 'activation failed');
       return { success: false, error: message };
     }
   }
@@ -311,7 +314,7 @@ class SubscriptionService {
 
     const apiKeyPlain = this.decryptApiKey(sub);
     if (!apiKeyPlain) {
-      console.error('❌ Não foi possível descriptografar a chave de API');
+      log.error('failed to decrypt API key');
       return;
     }
 
@@ -347,7 +350,7 @@ class SubscriptionService {
 
         // HTTP 401: API key invalid/revoked — stop heartbeat, require manual intervention
         if (response.status === 401) {
-          console.error('🔴 HTTP 401 — Chave de API inválida ou revogada. Heartbeat interrompido. Intervenção manual necessária.');
+          log.error('API key invalid or revoked (401) — heartbeat stopped, manual intervention required');
           this.cachedStatus = await storage.updateHeartbeatFailure(
             'Chave de API inválida ou revogada (401). Heartbeat interrompido.',
           );
@@ -357,7 +360,7 @@ class SubscriptionService {
 
         // HTTP 403: Tenant inactive/suspended — enter standby mode
         if (response.status === 403) {
-          console.warn('🟠 HTTP 403 — Tenant inativo ou suspenso. Entrando em modo standby.');
+          log.warn('tenant inactive or suspended (403) — entering standby mode');
           this.cachedStatus = await storage.updateHeartbeatFailure(
             'Tenant inativo ou suspenso (403). Modo standby ativado.',
           );
@@ -406,12 +409,12 @@ class SubscriptionService {
         // Adjust interval based on subscription status
         this.adjustHeartbeatInterval(data.subscription.active);
 
-        console.log(`💚 Heartbeat OK | plan=${data.subscription.plan} | active=${data.subscription.active} | expires=${data.subscription.expiresAt || 'never'}`);
+        log.info({ plan: data.subscription.plan, active: data.subscription.active, expires: data.subscription.expiresAt || 'never' }, 'heartbeat OK');
 
         // Process commands from console (fire-and-forget, don't block heartbeat)
         if (data.commands && Array.isArray(data.commands) && data.commands.length > 0) {
           this.processCommands(data.commands).catch(err => {
-            console.error('❌ Erro ao processar comandos da console:', err.message);
+            log.error({ err }, 'failed to process console commands');
           });
         }
 
@@ -424,21 +427,21 @@ class SubscriptionService {
 
         // Client errors (4xx) won't fix themselves — fail immediately
         if (error.nonRetryable) {
-          console.error(`🔴 Heartbeat falhou (não retentável): ${message}`);
+          log.error({ err: message }, 'heartbeat failed (non-retryable)');
           throw error;
         }
 
         // If we still have retries left, wait and try again
         if (attempt < HEARTBEAT_RETRY_DELAYS.length) {
           const delay = HEARTBEAT_RETRY_DELAYS[attempt];
-          console.warn(`💛 Heartbeat falhou (tentativa ${attempt + 1}/${HEARTBEAT_RETRY_DELAYS.length + 1}): ${message}. Retry em ${delay / 1000}s...`);
+          log.warn({ attempt: attempt + 1, maxAttempts: HEARTBEAT_RETRY_DELAYS.length + 1, retryInSec: delay / 1000, err: message }, 'heartbeat failed, retrying');
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
 
         // All retries exhausted — record failure
         this.cachedStatus = await storage.updateHeartbeatFailure(message);
-        console.warn(`💛 Heartbeat falhou após ${HEARTBEAT_RETRY_DELAYS.length + 1} tentativas (${this.cachedStatus.consecutiveFailures}x consecutivas): ${message}`);
+        log.warn({ consecutiveFailures: this.cachedStatus.consecutiveFailures, err: message }, `heartbeat failed after ${HEARTBEAT_RETRY_DELAYS.length + 1} attempts`);
       }
     }
   }
@@ -451,7 +454,7 @@ class SubscriptionService {
     // FND-001: Validate command structure before processing (MITM defense)
     const validCommands = commands.filter(cmd => {
       if (!validateCommand(cmd)) {
-        console.warn(`🛡️  Comando inválido descartado: ${JSON.stringify(cmd).slice(0, 200)}`);
+        log.warn({ cmd: JSON.stringify(cmd).slice(0, 200) }, 'invalid command discarded (FND-001)');
         return false;
       }
       return true;
@@ -463,28 +466,28 @@ class SubscriptionService {
     await storage.saveReceivedCommands(validCommands);
 
     for (const cmd of validCommands) {
-      console.log(`📥 Comando recebido: type=${cmd.type} id=${cmd.id}`);
+      log.info({ type: cmd.type, id: cmd.id }, 'command received from console');
 
       switch (cmd.type) {
         case 'system_update':
           // Run update asynchronously — don't block command processing
           systemUpdateService.execute(cmd.id, cmd.params || {}).then(result => {
             if (result.success) {
-              console.log(`✅ Update concluído: ${result.previousVersion} → ${result.newVersion}`);
+              log.info({ previousVersion: result.previousVersion, newVersion: result.newVersion }, 'system update completed');
             } else {
-              console.error(`❌ Update falhou na fase "${result.phase}": ${result.error}`);
+              log.error({ phase: result.phase, err: result.error }, 'system update failed');
             }
           });
           break;
 
         case 'restart_service':
           this.handleRestartService(cmd.id).catch(err => {
-            console.error(`❌ Restart falhou: ${err.message}`);
+            log.error({ err }, 'service restart failed');
           });
           break;
 
         default:
-          console.warn(`⚠️  Comando desconhecido: type=${cmd.type} — ignorando`);
+          log.warn({ type: cmd.type }, 'unknown command type — ignoring');
           await storage.updateCommandStatus(cmd.id, 'failed', {
             error: `Tipo de comando não suportado: ${cmd.type}`,
           });

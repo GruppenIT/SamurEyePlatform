@@ -1,4 +1,7 @@
 import crypto from 'crypto';
+import { createLogger } from '../lib/logger';
+
+const log = createLogger('encryption');
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12; // 96 bits é o tamanho ideal para AES-GCM
@@ -23,7 +26,7 @@ function getKEK(): Buffer {
   }
   
   // Para desenvolvimento, usar chave derivada (NOT for production!)
-  console.warn('Using development encryption key. Set ENCRYPTION_KEK for production!');
+  log.warn('using development encryption key - set ENCRYPTION_KEK for production');
   return crypto.scryptSync('samureye-dev-key', 'salt', KEY_LENGTH);
 }
 

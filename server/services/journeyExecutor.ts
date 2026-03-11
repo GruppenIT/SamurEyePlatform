@@ -13,7 +13,9 @@ import { hostEnricher } from './hostEnricher';
 import { WMICollector } from './collectors/wmiCollector';
 import { SSHCollector } from './collectors/sshCollector';
 import { type Journey, type Job } from '@shared/schema';
+import { createLogger } from '../lib/logger';
 
+const log = createLogger('journey');
 const adScanner = new ADScanner();
 
 // Max size for stdout/stderr stored in job_results artifacts
@@ -56,10 +58,10 @@ class JourneyExecutorService {
   private async resolveAssetIds(journey: Journey): Promise<string[]> {
     // Modo 1: Seleção por TAG
     if (journey.targetSelectionMode === 'by_tag' && journey.selectedTags && journey.selectedTags.length > 0) {
-      console.log(`🏷️  Expandindo TAGs selecionadas: ${journey.selectedTags.join(', ')}`);
+      log.info(`🏷️  Expandindo TAGs selecionadas: ${journey.selectedTags.join(', ')}`);
       const assets = await storage.getAssetsByTags(journey.selectedTags);
       const assetIds = assets.map(a => a.id);
-      console.log(`✅ ${assetIds.length} alvos encontrados com as TAGs selecionadas`);
+      log.info(`✅ ${assetIds.length} alvos encontrados com as TAGs selecionadas`);
       return assetIds;
     }
     
@@ -97,7 +99,7 @@ class JourneyExecutorService {
 
     // Check if job was cancelled before threat analysis
     if (this.isJobCancelled(jobId)) {
-      console.log(`🚫 Job ${jobId} cancelado, parando antes de análise de ameaças`);
+      log.info(`🚫 Job ${jobId} cancelado, parando antes de análise de ameaças`);
       throw new Error('Job cancelado pelo usuário');
     }
 
@@ -140,8 +142,8 @@ class JourneyExecutorService {
       throw new Error('Nenhum ativo selecionado para varredura');
     }
 
-    console.log(`🚀 Iniciando Attack Surface Journey - Descoberta de Infraestrutura`);
-    console.log(`⏱️  Timeout Fase 3 (nmap vuln): ${vulnScriptTimeoutMinutes} minutos`);
+    log.info(`🚀 Iniciando Attack Surface Journey - Descoberta de Infraestrutura`);
+    log.info(`⏱️  Timeout Fase 3 (nmap vuln): ${vulnScriptTimeoutMinutes} minutos`);
 
     onProgress({ status: 'running', progress: 5, currentTask: 'Carregando ativos' });
 
@@ -170,7 +172,7 @@ class JourneyExecutorService {
     for (const asset of assets) {
       // Check if job was cancelled
       if (this.isJobCancelled(jobId)) {
-        console.log(`🚫 Job ${jobId} cancelado, parando execução no asset ${asset.value}`);
+        log.info(`🚫 Job ${jobId} cancelado, parando execução no asset ${asset.value}`);
         throw new Error('Job cancelado pelo usuário');
       }
 
@@ -187,7 +189,7 @@ class JourneyExecutorService {
           currentTask: `Fase 1A: Descobrindo hosts ativos em ${asset.value} (${currentAsset}/${assets.length})`
         });
 
-        console.log(`📡 FASE 1A: Descoberta de hosts ativos em ${asset.value}`);
+        log.info(`📡 FASE 1A: Descoberta de hosts ativos em ${asset.value}`);
 
         // Determine target IPs for this asset
         let aliveHosts: { ip: string; hostname?: string }[];
@@ -200,7 +202,7 @@ class JourneyExecutorService {
           aliveHosts = [{ ip: asset.value }];
         }
 
-        console.log(`✅ FASE 1A: ${aliveHosts.length} hosts ativos descobertos em ${asset.value}`);
+        log.info(`✅ FASE 1A: ${aliveHosts.length} hosts ativos descobertos em ${asset.value}`);
 
         // Register discovered hosts immediately in the database
         // This creates hosts early so they can be linked to threats later
@@ -221,13 +223,13 @@ class JourneyExecutorService {
             };
             const host = await storage.upsertHost(hostData);
             registeredHostMap.set(aliveHost.ip, host.id);
-            console.log(`🏠 FASE 1A: Host registrado: ${host.name} (${aliveHost.ip}) - ID: ${host.id}`);
+            log.info(`🏠 FASE 1A: Host registrado: ${host.name} (${aliveHost.ip}) - ID: ${host.id}`);
           } catch (error) {
-            console.error(`❌ FASE 1A: Erro ao registrar host ${aliveHost.ip}:`, error);
+            log.error(`❌ FASE 1A: Erro ao registrar host ${aliveHost.ip}:`, error);
           }
         }
 
-        console.log(`🏠 FASE 1A: ${registeredHostMap.size} hosts cadastrados no inventário`);
+        log.info(`🏠 FASE 1A: ${registeredHostMap.size} hosts cadastrados no inventário`);
 
         // ==================== PHASE 1B: PORT/SERVICE SCAN ====================
         // Scan ports and services on each discovered host, then update host info
@@ -237,7 +239,7 @@ class JourneyExecutorService {
           currentTask: `Fase 1B: Escaneando serviços em ${aliveHosts.length} hosts de ${asset.value}`
         });
 
-        console.log(`🔍 FASE 1B: Escaneando serviços em ${aliveHosts.length} hosts`);
+        log.info(`🔍 FASE 1B: Escaneando serviços em ${aliveHosts.length} hosts`);
 
         let portResults: any[];
         if (asset.type === 'range') {
@@ -248,7 +250,7 @@ class JourneyExecutorService {
         }
 
         findings.push(...portResults);
-        console.log(`✅ FASE 1B: ${portResults.length} portas descobertas`);
+        log.info(`✅ FASE 1B: ${portResults.length} portas descobertas`);
 
         // Update hosts with service/OS information from port scan results
         // Group port results by IP to update each host
@@ -268,10 +270,10 @@ class JourneyExecutorService {
             if (updatedHosts.length > 0) {
               // Update our map with the (potentially new/merged) host ID
               registeredHostMap.set(hostIp, updatedHosts[0].id);
-              console.log(`🔄 FASE 1B: Host ${hostIp} atualizado: ${updatedHosts[0].name} (type: ${updatedHosts[0].type}, family: ${updatedHosts[0].family})`);
+              log.info(`🔄 FASE 1B: Host ${hostIp} atualizado: ${updatedHosts[0].name} (type: ${updatedHosts[0].type}, family: ${updatedHosts[0].family})`);
             }
           } catch (error) {
-            console.error(`❌ FASE 1B: Erro ao atualizar host ${hostIp}:`, error);
+            log.error(`❌ FASE 1B: Erro ao atualizar host ${hostIp}:`, error);
           }
         }
 
@@ -286,7 +288,7 @@ class JourneyExecutorService {
             currentTask: `Fase 2: Enriquecendo ${registeredHostMap.size} hosts com credenciais`
           });
 
-          console.log(`🔑 FASE 2: Enriquecimento de ${registeredHostMap.size} hosts com ${journeyCredentials.length} credenciais`);
+          log.info(`🔑 FASE 2: Enriquecimento de ${registeredHostMap.size} hosts com ${journeyCredentials.length} credenciais`);
 
           for (const [hostIp, hostId] of Array.from(registeredHostMap.entries())) {
             if (this.isJobCancelled(jobId)) {
@@ -294,7 +296,7 @@ class JourneyExecutorService {
             }
 
             try {
-              console.log(`🔍 FASE 2: Tentando enriquecer host ${hostIp} (ID: ${hostId})`);
+              log.info(`🔍 FASE 2: Tentando enriquecer host ${hostIp} (ID: ${hostId})`);
 
               const enrichmentResult = await hostEnricher.enrichHost(
                 hostId,
@@ -308,23 +310,23 @@ class JourneyExecutorService {
                 await storage.createHostEnrichment(enrichment);
               }
 
-              console.log(`✅ FASE 2: Host ${hostIp} enriquecido - ${enrichmentResult.successCount} sucessos, ${enrichmentResult.failureCount} falhas`);
+              log.info(`✅ FASE 2: Host ${hostIp} enriquecido - ${enrichmentResult.successCount} sucessos, ${enrichmentResult.failureCount} falhas`);
 
               if (enrichmentResult.successCount > 0) {
                 for (const e of enrichmentResult.enrichments) {
                   if (e.success) {
-                    console.log(`   ✓ ${e.protocol}: OS=${e.osVersion || 'N/A'}, Apps=${e.installedApps?.length || 0}, Patches=${e.patches?.length || 0}`);
+                    log.info(`   ✓ ${e.protocol}: OS=${e.osVersion || 'N/A'}, Apps=${e.installedApps?.length || 0}, Patches=${e.patches?.length || 0}`);
                   }
                 }
               }
             } catch (error) {
-              console.error(`❌ FASE 2: Erro ao enriquecer host ${hostIp}:`, error);
+              log.error(`❌ FASE 2: Erro ao enriquecer host ${hostIp}:`, error);
             }
           }
 
-          console.log(`✅ FASE 2: Enriquecimento concluído para ${registeredHostMap.size} hosts`);
+          log.info(`✅ FASE 2: Enriquecimento concluído para ${registeredHostMap.size} hosts`);
         } else {
-          console.log(`⏭️  FASE 2: Nenhuma credencial vinculada - pulando enriquecimento`);
+          log.info(`⏭️  FASE 2: Nenhuma credencial vinculada - pulando enriquecimento`);
         }
 
         // ==================== PHASE 3: VULNERABILITY DETECTION (OPTIONAL) ====================
@@ -338,10 +340,10 @@ class JourneyExecutorService {
             currentTask: `Fase 3A: Buscando CVEs conhecidos para ${asset.value}`
           });
 
-          console.log(`🔍 FASE 3A: Buscando CVEs conhecidos na base NVD`);
+          log.info(`🔍 FASE 3A: Buscando CVEs conhecidos na base NVD`);
           const cveFindings = await this.searchKnownCVEs(portResults, jobId);
           findings.push(...cveFindings);
-          console.log(`✅ FASE 3A: ${cveFindings.length} CVEs encontrados na base NVD`);
+          log.info(`✅ FASE 3A: ${cveFindings.length} CVEs encontrados na base NVD`);
 
           // ==================== PHASE 3B: ACTIVE VALIDATION ====================
           const hostPortMap = new Map<string, { ports: string[], portResults: any[] }>();
@@ -370,13 +372,13 @@ class JourneyExecutorService {
               currentTask: `Fase 3B: Validando vulnerabilidades ativamente em ${host}`
             });
 
-            console.log(`🎯 FASE 3B: Executando nmap vuln scripts em ${host}`);
+            log.info(`🎯 FASE 3B: Executando nmap vuln scripts em ${host}`);
             const nmapVulnResults = await this.runNmapVulnScripts(host, data.ports, jobId, vulnScriptTimeoutMs);
             findings.push(...nmapVulnResults);
-            console.log(`✅ FASE 3B: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
+            log.info(`✅ FASE 3B: ${nmapVulnResults.length} CVEs validados ativamente via nmap`);
           }
         } else {
-          console.log(`⏭️  FASE 3: Detecção de CVEs desabilitada - pulando Fases 3A e 3B`);
+          log.info(`⏭️  FASE 3: Detecção de CVEs desabilitada - pulando Fases 3A e 3B`);
         }
 
         // ==================== PHASE 3C: WEB VULNERABILITY SCAN (OPTIONAL) ====================
@@ -407,24 +409,24 @@ class JourneyExecutorService {
               currentTask: `Fase 3C: Nuclei - Analisando ${webUrls.length} URLs web em ${asset.value}`
             });
 
-            console.log(`🌐 FASE 3C: Executando Nuclei em ${webUrls.length} URLs web`);
+            log.info(`🌐 FASE 3C: Executando Nuclei em ${webUrls.length} URLs web`);
             try {
               const nucleiTimeoutMs = vulnScriptTimeoutMs;
               const nucleiFindings = await this.runNucleiWebScan(webUrls, jobId, nucleiTimeoutMs);
               findings.push(...nucleiFindings);
-              console.log(`✅ FASE 3C: ${nucleiFindings.length} vulnerabilidades web encontradas via Nuclei`);
+              log.info(`✅ FASE 3C: ${nucleiFindings.length} vulnerabilidades web encontradas via Nuclei`);
             } catch (error) {
-              console.error(`❌ FASE 3C: Erro durante scan Nuclei:`, error);
+              log.error(`❌ FASE 3C: Erro durante scan Nuclei:`, error);
             }
           } else {
-            console.log(`⏭️  FASE 3C: Nenhum serviço web encontrado para análise Nuclei`);
+            log.info(`⏭️  FASE 3C: Nenhum serviço web encontrado para análise Nuclei`);
           }
         } else {
-          console.log(`⏭️  FASE 3C: Varredura web desabilitada`);
+          log.info(`⏭️  FASE 3C: Varredura web desabilitada`);
         }
 
       } catch (error) {
-        console.error(`❌ Erro ao escanear ${asset.value}:`, error);
+        log.error(`❌ Erro ao escanear ${asset.value}:`, error);
 
         const errorMessage = error instanceof Error ? error.message : String(error);
         findings.push({
@@ -442,14 +444,14 @@ class JourneyExecutorService {
     // Final pass: ensure all hosts from findings are registered (catches any missed during scan)
     try {
       const finalHosts = await hostService.discoverHostsFromFindings(findings, jobId);
-      console.log(`🏠 FASE 4: ${finalHosts.length} hosts verificados/atualizados no inventário`);
+      log.info(`🏠 FASE 4: ${finalHosts.length} hosts verificados/atualizados no inventário`);
     } catch (error) {
-      console.error('❌ Erro ao verificar hosts:', error);
+      log.error('❌ Erro ao verificar hosts:', error);
     }
 
     // Auto-discover and create web application assets from HTTP/HTTPS services
     const createdWebApps = await this.createWebApplicationAssets(findings, journey.createdBy, jobId);
-    console.log(`🌐 FASE 4: ${createdWebApps.length} aplicações web criadas como ativos`);
+    log.info(`🌐 FASE 4: ${createdWebApps.length} aplicações web criadas como ativos`);
 
     // Store results
     onProgress({ status: 'running', progress: 95, currentTask: 'Salvando resultados' });
@@ -469,7 +471,7 @@ class JourneyExecutorService {
       },
     });
 
-    console.log(`✅ Attack Surface concluído: ${findings.length} findings, ${createdWebApps.length} web apps criadas`);
+    log.info(`✅ Attack Surface concluído: ${findings.length} findings, ${createdWebApps.length} web apps criadas`);
   }
 
   /**
@@ -491,8 +493,8 @@ class JourneyExecutorService {
       throw new Error('Nenhuma aplicação web selecionada para varredura');
     }
 
-    console.log(`🌐 Iniciando Web Application Journey - Análise OWASP Top 10`);
-    console.log(`⏱️  Timeout por processo: ${processTimeoutMinutes} minutos`);
+    log.info(`🌐 Iniciando Web Application Journey - Análise OWASP Top 10`);
+    log.info(`⏱️  Timeout por processo: ${processTimeoutMinutes} minutos`);
 
     onProgress({ status: 'running', progress: 5, currentTask: 'Carregando aplicações web' });
 
@@ -503,7 +505,7 @@ class JourneyExecutorService {
       if (asset) {
         // Validate asset type
         if (asset.type !== 'web_application') {
-          console.warn(`⚠️  Asset ${asset.value} não é do tipo web_application, ignorando`);
+          log.warn(`⚠️  Asset ${asset.value} não é do tipo web_application, ignorando`);
           continue;
         }
         webApps.push(asset);
@@ -514,7 +516,7 @@ class JourneyExecutorService {
       throw new Error('Nenhuma aplicação web válida encontrada para varredura');
     }
 
-    console.log(`🎯 ${webApps.length} aplicações web serão analisadas`);
+    log.info(`🎯 ${webApps.length} aplicações web serão analisadas`);
 
     const findings = [];
     let currentApp = 0;
@@ -522,7 +524,7 @@ class JourneyExecutorService {
     for (const app of webApps) {
       // Check if job was cancelled
       if (this.isJobCancelled(jobId)) {
-        console.log(`🚫 Job ${jobId} cancelado, parando execução em ${app.value}`);
+        log.info(`🚫 Job ${jobId} cancelado, parando execução em ${app.value}`);
         throw new Error('Job cancelado pelo usuário');
       }
 
@@ -537,14 +539,14 @@ class JourneyExecutorService {
       });
 
       try {
-        console.log(`🔍 Executando Nuclei em ${app.value}`);
+        log.info(`🔍 Executando Nuclei em ${app.value}`);
         
         const appFindings = await this.runNucleiWebScan([app.value], jobId, processTimeoutMs);
         findings.push(...appFindings);
         
-        console.log(`✅ ${appFindings.length} vulnerabilidades encontradas em ${app.value}`);
+        log.info(`✅ ${appFindings.length} vulnerabilidades encontradas em ${app.value}`);
       } catch (error) {
-        console.error(`❌ Erro ao analisar ${app.value}:`, error);
+        log.error(`❌ Erro ao analisar ${app.value}:`, error);
         
         const errorMessage = error instanceof Error ? error.message : String(error);
         findings.push({
@@ -570,7 +572,7 @@ class JourneyExecutorService {
       },
     });
     
-    console.log(`✅ Web Application Journey concluída: ${findings.length} vulnerabilidades total`);
+    log.info(`✅ Web Application Journey concluída: ${findings.length} vulnerabilidades total`);
   }
 
   /**
@@ -612,9 +614,9 @@ class JourneyExecutorService {
       let domainHost;
       try {
         domainHost = await hostService.createDomainHost(domain, jobId);
-        console.log(`🏠 AD Hygiene: Host de domínio criado: ${domainHost.name}`);
+        log.info(`🏠 AD Hygiene: Host de domínio criado: ${domainHost.name}`);
       } catch (error) {
-        console.error('❌ Erro ao criar host de domínio:', error);
+        log.error('❌ Erro ao criar host de domínio:', error);
         // Continue execution even if domain host creation fails
       }
 
@@ -662,9 +664,9 @@ class JourneyExecutorService {
           }));
           
           await storage.createAdSecurityTestResults(testResultsToInsert);
-          console.log(`✅ Salvos ${testResults.length} resultados de testes AD Security`);
+          log.info(`✅ Salvos ${testResults.length} resultados de testes AD Security`);
         } catch (error) {
-          console.error('❌ Erro ao salvar resultados dos testes:', error);
+          log.error('❌ Erro ao salvar resultados dos testes:', error);
         }
       }
 
@@ -690,7 +692,7 @@ class JourneyExecutorService {
       });
 
     } catch (error) {
-      console.error('Erro durante análise AD:', error);
+      log.error('Erro durante análise AD:', error);
       
       const errorMessage = error instanceof Error ? error.message : String(error);
       
@@ -749,7 +751,7 @@ class JourneyExecutorService {
       
       if (edrAvType === 'ad_based') {
         // Modo AD Based: Descobrir workstations via PowerShell/WinRM
-        console.log('🔍 Modo AD Based: Descobrindo workstations via PowerShell/WinRM...');
+        log.info('🔍 Modo AD Based: Descobrindo workstations via PowerShell/WinRM...');
         
         if (credential.type !== 'ad' && credential.type !== 'wmi' && credential.type !== 'omi') {
           throw new Error('Para jornada AD Based é necessário usar credencial do tipo WMI (Windows)');
@@ -770,11 +772,11 @@ class JourneyExecutorService {
           dcHost
         );
 
-        console.log(`✅ Descobertas ${workstationTargets.length} workstations via AD`);
+        log.info(`✅ Descobertas ${workstationTargets.length} workstations via AD`);
 
       } else if (edrAvType === 'network_based') {
         // Modo Network Based: Usar ativos específicos
-        console.log('🎯 Modo Network Based: Usando ativos específicos...');
+        log.info('🎯 Modo Network Based: Usando ativos específicos...');
         
         // Resolver assetIds baseado em targetSelectionMode (individual ou by_tag)
         const resolvedAssetIds = await this.resolveAssetIds(journey);
@@ -795,9 +797,9 @@ class JourneyExecutorService {
                 workstationTargets.push(asset.value);
               } else if (asset.type === 'range') {
                 // Expandir range CIDR em IPs individuais
-                console.log(`🌐 Expandindo range CIDR: ${asset.value}`);
+                log.info(`🌐 Expandindo range CIDR: ${asset.value}`);
                 const expandedIPs = this.expandCIDR(asset.value);
-                console.log(`📊 Range expandido para ${expandedIPs.length} IPs`);
+                log.info(`📊 Range expandido para ${expandedIPs.length} IPs`);
                 workstationTargets.push(...expandedIPs);
               }
             }
@@ -809,7 +811,7 @@ class JourneyExecutorService {
           throw new Error('Nenhum ativo selecionado para jornada Network Based');
         }
 
-        console.log(`Usando ${workstationTargets.length} targets específicos`);
+        log.info(`Usando ${workstationTargets.length} targets específicos`);
       }
 
       if (workstationTargets.length === 0) {
@@ -842,7 +844,7 @@ class JourneyExecutorService {
         }
       }
       
-      console.log(`🔑 Usando credenciais: ${credential.username}@${effectiveDomain || 'LOCAL'}`);
+      log.info({ domain: effectiveDomain || 'LOCAL' }, 'using credentials for EDR/AV test');
       
       const result = await edrScanner.runEDRAVTest(
         {
@@ -893,7 +895,7 @@ class JourneyExecutorService {
       });
 
     } catch (error) {
-      console.error('Erro durante teste EDR/AV:', error);
+      log.error('Erro durante teste EDR/AV:', error);
       
       const errorMessage = error instanceof Error ? error.message : String(error);
       
@@ -1139,7 +1141,7 @@ class JourneyExecutorService {
     // Extrair OS info do primeiro resultado (todos os portResults do mesmo host têm o mesmo OS)
     const osInfo = portResults.length > 0 ? portResults[0].osInfo : undefined;
     if (osInfo) {
-      console.log(`💻 OS detectado para filtragem de CVEs: ${osInfo}`);
+      log.info(`💻 OS detectado para filtragem de CVEs: ${osInfo}`);
     }
     
     // Agrupar por serviço único para evitar buscas duplicadas
@@ -1168,19 +1170,19 @@ class JourneyExecutorService {
       }
     }
     
-    console.log(`🔍 Buscando CVEs para ${uniqueServices.size} serviços únicos...`);
+    log.info(`🔍 Buscando CVEs para ${uniqueServices.size} serviços únicos...`);
     
     // Buscar CVEs para cada serviço único
     const serviceEntries = Array.from(uniqueServices.entries());
     for (const [key, data] of serviceEntries) {
       // Verificar se job foi cancelado
       if (jobId && this.isJobCancelled(jobId)) {
-        console.log(`🚫 Job ${jobId} cancelado durante busca de CVEs`);
+        log.info(`🚫 Job ${jobId} cancelado durante busca de CVEs`);
         break;
       }
       
       try {
-        console.log(`🔎 Buscando CVEs para: ${data.service} ${data.version || '(sem versão)'} (OS: ${data.osInfo || 'N/A'}, precisão: ${data.versionAccuracy})`);
+        log.info(`🔎 Buscando CVEs para: ${data.service} ${data.version || '(sem versão)'} (OS: ${data.osInfo || 'N/A'}, precisão: ${data.versionAccuracy})`);
         
         // Para cada target, buscar CVEs considerando dados enriquecidos
         const targetCVEs = new Map<string, any[]>();
@@ -1193,10 +1195,10 @@ class JourneyExecutorService {
             const hosts = await hostService.findHostsByTarget(target);
             if (hosts && hosts.length > 0) {
               hostId = hosts[0].id;
-              console.log(`🔐 Host encontrado para ${target}: ${hostId} - enriquecimento disponível`);
+              log.info(`🔐 Host encontrado para ${target}: ${hostId} - enriquecimento disponível`);
             }
           } catch (error) {
-            console.warn(`⚠️ Erro ao buscar host para ${target}:`, error);
+            log.warn(`⚠️ Erro ao buscar host para ${target}:`, error);
           }
           
           // Buscar CVEs (com enrichment se hostId disponível)
@@ -1214,7 +1216,7 @@ class JourneyExecutorService {
         }
         
         if (allCVEs.size > 0) {
-          console.log(`✅ Encontrados ${allCVEs.size} CVEs únicos aplicáveis para ${data.service} (filtrados por versão/OS/enrichment)`);
+          log.info(`✅ Encontrados ${allCVEs.size} CVEs únicos aplicáveis para ${data.service} (filtrados por versão/OS/enrichment)`);
           
           // Criar findings para cada CVE encontrado por target
           for (const target of data.targets) {
@@ -1240,10 +1242,10 @@ class JourneyExecutorService {
             }
           }
         } else {
-          console.log(`ℹ️  Nenhum CVE aplicável encontrado para ${data.service} ${data.version || ''} (filtrados por versão/OS/enrichment)`);
+          log.info(`ℹ️  Nenhum CVE aplicável encontrado para ${data.service} ${data.version || ''} (filtrados por versão/OS/enrichment)`);
         }
       } catch (error) {
-        console.error(`❌ Erro ao buscar CVEs para ${data.service}:`, error);
+        log.error(`❌ Erro ao buscar CVEs para ${data.service}:`, error);
       }
     }
     
@@ -1269,7 +1271,7 @@ class JourneyExecutorService {
         host
       ];
       
-      console.log(`🎯 Executando nmap vuln scripts: nmap ${args.join(' ')}`);
+      log.info(`🎯 Executando nmap vuln scripts: nmap ${args.join(' ')}`);
       
       return new Promise((resolve, reject) => {
         const child = spawn('nmap', args);
@@ -1283,7 +1285,7 @@ class JourneyExecutorService {
           try {
             processTracker.register(jobId, 'nmap', child, stage);
           } catch (error) {
-            console.warn(`⚠️ Falha ao registrar nmap vuln no tracker: ${error}`);
+            log.warn(`⚠️ Falha ao registrar nmap vuln no tracker: ${error}`);
           }
         }
         
@@ -1295,7 +1297,7 @@ class JourneyExecutorService {
               child.kill('SIGKILL');
             }
           }, 5000);
-          console.log(`⏱️ Nmap vuln scripts timeout após ${timeoutMs/60000}min para ${host}`);
+          log.info(`⏱️ Nmap vuln scripts timeout após ${timeoutMs/60000}min para ${host}`);
           resolve([]); // Retorna vazio em caso de timeout
         }, timeoutMs);
         
@@ -1313,22 +1315,22 @@ class JourneyExecutorService {
           if (code === 0 || stdout.length > 0) {
             // Parse do output para extrair vulnerabilidades detectadas
             const vulnFindings = this.parseNmapVulnOutput(stdout, host);
-            console.log(`✅ Nmap vuln scripts concluído: ${vulnFindings.length} vulnerabilidades encontradas`);
+            log.info(`✅ Nmap vuln scripts concluído: ${vulnFindings.length} vulnerabilidades encontradas`);
             resolve(vulnFindings);
           } else {
-            console.error(`❌ Nmap vuln scripts falhou (code ${code}): ${stderr}`);
+            log.error(`❌ Nmap vuln scripts falhou (code ${code}): ${stderr}`);
             resolve([]); // Retorna vazio em caso de erro
           }
         });
         
         child.on('error', (error) => {
           clearTimeout(timeout);
-          console.error(`❌ Erro ao executar nmap vuln scripts:`, error);
+          log.error(`❌ Erro ao executar nmap vuln scripts:`, error);
           resolve([]); // Retorna vazio em caso de erro
         });
       });
     } catch (error) {
-      console.error(`❌ Erro fatal ao executar nmap vuln scripts:`, error);
+      log.error(`❌ Erro fatal ao executar nmap vuln scripts:`, error);
       return [];
     }
   }
@@ -1501,9 +1503,9 @@ class JourneyExecutorService {
           }, createdBy);
           
           webApps.push(asset);
-          console.log(`🌐 Aplicação web criada como ativo: ${url} (service: ${service || 'unknown'})`);
+          log.info(`🌐 Aplicação web criada como ativo: ${url} (service: ${service || 'unknown'})`);
         } catch (error) {
-          console.error(`❌ Erro ao criar ativo web_application para ${url}:`, error);
+          log.error(`❌ Erro ao criar ativo web_application para ${url}:`, error);
         }
       }
     }
@@ -1539,7 +1541,7 @@ class JourneyExecutorService {
       if (webPorts.has(port) || webServiceNames.some(name => service.includes(name))) {
         const url = `${protocol}://${host}:${port}`;
         webUrls.push(url);
-        console.log(`🌐 Aplicação web detectada: ${url} (service: ${service || 'unknown'})`);
+        log.info(`🌐 Aplicação web detectada: ${url} (service: ${service || 'unknown'})`);
       }
     }
     
@@ -1559,7 +1561,7 @@ class JourneyExecutorService {
     
     for (const url of urls) {
       try {
-        console.log(`🔍 Executando Nuclei em ${url} (timeout: ${timeoutMs/60000}min)`);
+        log.info(`🔍 Executando Nuclei em ${url} (timeout: ${timeoutMs/60000}min)`);
         
         const args = [
           '-u', url,
@@ -1600,7 +1602,7 @@ class JourneyExecutorService {
                 child.kill('SIGKILL');
               }
             }, 5000);
-            console.log(`⏱️ Nuclei timeout após ${timeoutMs/60000}min para ${url}`);
+            log.info(`⏱️ Nuclei timeout após ${timeoutMs/60000}min para ${url}`);
             resolve(''); // Retorna vazio em caso de timeout
           }, timeoutMs);
           
@@ -1619,7 +1621,7 @@ class JourneyExecutorService {
           
           child.on('error', (error) => {
             clearTimeout(timeout);
-            console.error(`❌ Erro ao executar Nuclei:`, error);
+            log.error(`❌ Erro ao executar Nuclei:`, error);
             resolve('');
           });
         });
@@ -1627,10 +1629,10 @@ class JourneyExecutorService {
         // Parse do output JSON lines
         const urlFindings = this.parseNucleiOutput(result, url);
         findings.push(...urlFindings);
-        console.log(`✅ Nuclei concluído para ${url}: ${urlFindings.length} vulnerabilidades`);
+        log.info(`✅ Nuclei concluído para ${url}: ${urlFindings.length} vulnerabilidades`);
         
       } catch (error) {
-        console.error(`❌ Erro ao escanear ${url} com Nuclei:`, error);
+        log.error(`❌ Erro ao escanear ${url} com Nuclei:`, error);
       }
     }
     
@@ -1708,7 +1710,7 @@ class JourneyExecutorService {
       // Diretório não existe
     }
     
-    console.log('📥 Baixando templates Nuclei...');
+    log.info('📥 Baixando templates Nuclei...');
     
     return new Promise((resolve, reject) => {
       const child = spawn('nuclei', ['-update-templates', '-ud', templatesDir], {
@@ -1729,7 +1731,7 @@ class JourneyExecutorService {
       child.on('close', (code) => {
         clearTimeout(timeout);
         if (code === 0 || code === null) {
-          console.log('✅ Templates Nuclei baixados');
+          log.info('✅ Templates Nuclei baixados');
           resolve();
         } else {
           reject(new Error(`Failed to download templates: code ${code}`));
@@ -1756,14 +1758,14 @@ class JourneyExecutorService {
       const maskBits = parseInt(mask);
       
       if (!baseIP || isNaN(maskBits) || maskBits < 0 || maskBits > 32) {
-        console.warn(`CIDR inválido: ${cidr}, usando como IP único`);
+        log.warn(`CIDR inválido: ${cidr}, usando como IP único`);
         return [cidr];
       }
       
       // Converter IP para número
       const ipParts = baseIP.split('.').map(Number);
       if (ipParts.length !== 4 || ipParts.some(p => isNaN(p) || p < 0 || p > 255)) {
-        console.warn(`IP base inválido: ${baseIP}, usando como IP único`);
+        log.warn(`IP base inválido: ${baseIP}, usando como IP único`);
         return [cidr];
       }
       
@@ -1783,7 +1785,7 @@ class JourneyExecutorService {
       const actualHosts = Math.min(totalHosts - 2, maxIPs); // -2 para excluir network e broadcast
       
       if (totalHosts > maxIPs + 2) {
-        console.warn(`Range ${cidr} muito grande (${totalHosts - 2} IPs), limitando para ${maxIPs} IPs`);
+        log.warn(`Range ${cidr} muito grande (${totalHosts - 2} IPs), limitando para ${maxIPs} IPs`);
       }
       
       // Gerar IPs (excluindo network address e broadcast address)
@@ -1799,7 +1801,7 @@ class JourneyExecutorService {
       }
       
     } catch (error) {
-      console.error(`Erro ao expandir CIDR ${cidr}:`, error);
+      log.error(`Erro ao expandir CIDR ${cidr}:`, error);
       return [cidr]; // Usar como IP único em caso de erro
     }
     

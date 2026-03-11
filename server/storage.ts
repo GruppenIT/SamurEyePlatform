@@ -70,6 +70,9 @@ import { db } from "./db";
 import { eq, desc, and, or, sql, count, like, inArray } from "drizzle-orm";
 import * as os from "os";
 import * as crypto from "crypto";
+import { createLogger } from './lib/logger';
+
+const log = createLogger('storage');
 
 // Utility function to sanitize strings for PostgreSQL
 function sanitizeString(str: string): string {
@@ -420,7 +423,7 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     if (existing.length > 0) {
-      console.log(`ℹ️  Ativo duplicado ignorado: ${asset.value} (tipo: ${asset.type})`);
+      log.info({ value: asset.value, type: asset.type }, 'duplicate asset ignored');
       return existing[0];
     }
     
@@ -846,7 +849,7 @@ export class DatabaseStorage implements IStorage {
 
   // Threat lifecycle operations
   async findThreatByCorrelationKey(correlationKey: string): Promise<Threat | undefined> {
-    console.log(`🔍 FIND: Searching for correlationKey: "${correlationKey}" (length: ${correlationKey.length})`);
+    log.info({ correlationKey, keyLength: correlationKey.length }, 'searching threat by correlation key');
     
     // Get ALL threats with this correlation key, ordered by creation date
     const allThreats = await db
@@ -855,19 +858,19 @@ export class DatabaseStorage implements IStorage {
       .where(eq(threats.correlationKey, correlationKey))
       .orderBy(threats.createdAt);
     
-    console.log(`🔍 FIND: Found ${allThreats.length} threats with correlationKey: "${correlationKey}"`);
+    log.info({ count: allThreats.length, correlationKey }, 'found threats by correlation key');
     
     if (allThreats.length > 1) {
-      console.log(`⚠️ FIND: Multiple threats found with same correlationKey! Using the first one.`);
-      console.log(`🔍 FIND: All threats: ${allThreats.map(t => `${t.id} (${t.status}, ${t.createdAt})`).join(', ')}`);
+      log.warn('multiple threats found with same correlationKey, using first');
+      log.info({ threats: allThreats.map(t => ({ id: t.id, status: t.status, createdAt: t.createdAt })) }, 'all threats with same correlation key');
     }
     
     const threat = allThreats[0];
     
     if (threat) {
-      console.log(`✅ FIND: Using threat ${threat.id} with status: ${threat.status} (created: ${threat.createdAt})`);
+      log.info({ threatId: threat.id, status: threat.status, createdAt: threat.createdAt }, 'using existing threat');
     } else {
-      console.log(`❌ FIND: No threat found for key: "${correlationKey}"`);
+      log.info({ correlationKey }, 'no threat found for correlation key');
     }
     
     return threat;
@@ -930,18 +933,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertThreat(threat: InsertThreat & { correlationKey: string; category: string; lastSeenAt?: Date }): Promise<{ threat: Threat; isNew: boolean }> {
-    console.log(`📋 UPSERT: Processing threat with correlationKey: ${threat.correlationKey}`);
-    console.log(`📋 UPSERT: Input threat details - title: ${threat.title}, jobId: ${threat.jobId}, status: ${threat.status || 'open'}`);
+    log.info({ correlationKey: threat.correlationKey }, 'processing threat upsert');
+    log.info({ title: threat.title, jobId: threat.jobId, status: threat.status || 'open' }, 'threat upsert input details');
     
     // Try to find existing threat by correlation key
     const existingThreat = await this.findThreatByCorrelationKey(threat.correlationKey);
     
     if (existingThreat) {
-      console.log(`🔍 UPSERT: Found existing threat ${existingThreat.id} with status: ${existingThreat.status}, jobId: ${existingThreat.jobId}`);
-      console.log(`🔍 UPSERT: Existing threat created: ${existingThreat.createdAt}, updated: ${existingThreat.updatedAt}`);
+      log.info({ threatId: existingThreat.id, status: existingThreat.status, jobId: existingThreat.jobId }, 'found existing threat for upsert');
+      log.info({ createdAt: existingThreat.createdAt, updatedAt: existingThreat.updatedAt }, 'existing threat timestamps');
     } else {
-      console.log(`🆕 UPSERT: No existing threat found for correlationKey: ${threat.correlationKey}`);
-      console.log(`🔍 UPSERT: Searching for threats with similar keys...`);
+      log.info({ correlationKey: threat.correlationKey }, 'no existing threat found for upsert');
+      log.info('searching for threats with similar correlation keys');
       
       // Debug: Check if there are any threats with similar correlation keys
       const similarThreats = await db
@@ -950,13 +953,13 @@ export class DatabaseStorage implements IStorage {
         .where(like(threats.correlationKey, `%${threat.correlationKey.split(':')[2] || ''}%`))
         .limit(5);
       
-      console.log(`🔍 UPSERT: Found ${similarThreats.length} similar threats:`, JSON.stringify(similarThreats, null, 2));
+      log.info({ count: similarThreats.length, similarThreats }, 'found similar threats');
     }
     
     if (existingThreat) {
       // Check if threat needs reactivation (mitigated, hibernated, closed, or other states)
       const shouldReactivate = ['mitigated', 'hibernated', 'closed'].includes(existingThreat.status);
-      console.log(`🔄 UPSERT: Existing threat status is '${existingThreat.status}', shouldReactivate: ${shouldReactivate}`);
+      log.info({ status: existingThreat.status, shouldReactivate }, 'evaluating threat reactivation');
       
       // Update existing threat
       const updateSet: any = {
@@ -984,7 +987,7 @@ export class DatabaseStorage implements IStorage {
           updateSet.statusChangedAt = new Date();
           updateSet.statusChangedBy = 'system';
           updateSet.statusJustification = `Reaberta automaticamente: detectada novamente durante varredura`;
-          console.log(`🔄 Cross-journey reactivation: threat ${existingThreat.id} from ${existingThreat.status} to open`);
+          log.info({ threatId: existingThreat.id, fromStatus: existingThreat.status }, 'cross-journey threat reactivation');
         }
         
         const [updatedThreat] = await tx
@@ -1005,14 +1008,14 @@ export class DatabaseStorage implements IStorage {
               hibernatedUntil: null,
               changedBy: 'system',
             });
-          console.log(`📋 Created status history for cross-journey threat reactivation: ${existingThreat.id}`);
+          log.info({ threatId: existingThreat.id }, 'created status history for cross-journey reactivation');
         }
 
         return { threat: updatedThreat, isNew: false };
       });
     } else {
       // Create new threat with defensive conflict resolution
-      console.log(`🆕 UPSERT: Creating new threat with correlationKey: ${threat.correlationKey}`);
+      log.info({ correlationKey: threat.correlationKey }, 'creating new threat');
       
       try {
         // Try using onConflictDoUpdate if unique index exists (development/updated environments)
@@ -1039,12 +1042,12 @@ export class DatabaseStorage implements IStorage {
           })
           .returning();
           
-        console.log(`✅ UPSERT: Processed threat ${newThreat.id} via onConflict - status: ${newThreat.status}`);
+        log.info({ threatId: newThreat.id, status: newThreat.status }, 'threat processed via onConflict');
         return { threat: newThreat, isNew: true };
       } catch (error) {
         // If onConflict fails (e.g., no unique index in on-premise), use simple insert
         if ((error as any)?.code === '42P10') {
-          console.log(`⚠️  UPSERT: onConflict not supported, falling back to simple insert`);
+          log.warn('onConflict not supported, falling back to simple insert');
           const [newThreat] = await db
             .insert(threats)
             .values({
@@ -1053,7 +1056,7 @@ export class DatabaseStorage implements IStorage {
             })
             .returning();
           
-          console.log(`✅ UPSERT: Created new threat ${newThreat.id} via fallback insert - status: ${newThreat.status}`);
+          log.info({ threatId: newThreat.id, status: newThreat.status }, 'threat created via fallback insert');
           return { threat: newThreat, isNew: true };
         }
         // Re-throw other errors
@@ -1198,7 +1201,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getJourneyCredentials(journeyId: string): Promise<(JourneyCredential & { credential: Credential })[]> {
-    console.log(`🔍 [STORAGE] getJourneyCredentials called with journeyId: ${journeyId}`);
+    log.info({ journeyId }, 'fetching journey credentials');
     const results = await db
       .select({
         jc: journeyCredentials,
@@ -1208,7 +1211,7 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(credentials, eq(journeyCredentials.credentialId, credentials.id))
       .where(eq(journeyCredentials.journeyId, journeyId))
       .orderBy(journeyCredentials.priority);
-    console.log(`  → Drizzle returned ${results.length} rows with JOIN`);
+    log.info({ rowCount: results.length }, 'journey credentials query returned');
     
     // Map to plain objects with credential data
     const plainResults = results.map(row => ({
@@ -1231,10 +1234,10 @@ export class DatabaseStorage implements IStorage {
         updatedAt: row.credential.updatedAt
       } : null as any
     }));
-    console.log(`  → Mapped with credentials:`, JSON.stringify(plainResults.map(r => ({
+    log.debug({ credentials: plainResults.map(r => ({
       ...r,
       credential: r.credential ? { ...r.credential, secretEncrypted: '[REDACTED]', dekEncrypted: '[REDACTED]' } : null
-    })), null, 2));
+    })) }, 'mapped journey credentials with redaction');
     return plainResults;
   }
 
@@ -1355,19 +1358,19 @@ export class DatabaseStorage implements IStorage {
   async upsertHost(host: InsertHost): Promise<Host> {
     const normalizedName = host.name.toLowerCase();
     
-    console.log(`🔍 [UPSERT] Attempting upsert for host: ${normalizedName}, IPs: ${(host.ips || []).join(', ')}`);
+    log.info({ hostName: normalizedName, ips: host.ips }, 'attempting host upsert');
     
     // Try to find existing host by name first
     let existingHost = await this.getHostByName(normalizedName);
     
     // If not found by name, try by IP (critical for renamed hosts after enrichment)
     if (!existingHost && host.ips && host.ips.length > 0) {
-      console.log(`🔍 [UPSERT] Not found by name, searching by IP: ${host.ips[0]}`);
+      log.info({ ip: host.ips[0] }, 'host not found by name, searching by IP');
       existingHost = await this.findHostByTarget(normalizedName, host.ips[0]);
     }
     
     if (existingHost) {
-      console.log(`✅ [UPSERT] Found existing host: ${existingHost.name} (ID: ${existingHost.id}), updating...`);
+      log.info({ hostName: existingHost.name, hostId: existingHost.id }, 'found existing host, updating');
       // Update existing host, merging IPs and aliases
       const mergedIps = Array.from(new Set([...(existingHost.ips || []), ...(host.ips || [])]));
       const mergedAliases = Array.from(new Set([...(existingHost.aliases || []), ...(host.aliases || [])]));
@@ -1385,10 +1388,10 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(hosts.id, existingHost.id))
         .returning();
-      console.log(`✅ [UPSERT] Host updated: ${updatedHost.name} (IPs: ${updatedHost.ips.join(', ')}, Aliases: ${(updatedHost.aliases || []).join(', ')})`);
+      log.info({ hostName: updatedHost.name, ips: updatedHost.ips, aliases: updatedHost.aliases }, 'host updated');
       return updatedHost;
     } else {
-      console.log(`➕ [UPSERT] No existing host found, creating new: ${normalizedName}`);
+      log.info({ hostName: normalizedName }, 'creating new host');
       // Create new host
       const hostValues = {
         ...host,
@@ -1399,7 +1402,7 @@ export class DatabaseStorage implements IStorage {
         .insert(hosts)
         .values(hostValues)
         .returning();
-      console.log(`✅ [UPSERT] New host created: ${newHost.name} (ID: ${newHost.id})`);
+      log.info({ hostName: newHost.name, hostId: newHost.id }, 'new host created');
       return newHost;
     }
   }
@@ -1597,7 +1600,8 @@ export class DatabaseStorage implements IStorage {
         }
       } catch (error) {
         // Object may have been deleted, that's OK
-        console.log(`Could not fetch details for ${log.objectType} ${log.objectId}`);
+        // Note: 'log' here is the .map() loop variable (audit log entry), not the pino logger
+        // Using console-free approach: silently continue since object may have been deleted
       }
 
       return {
@@ -1812,7 +1816,7 @@ export class DatabaseStorage implements IStorage {
   // Database initialization and migration utilities
   async initializeDatabaseStructure(): Promise<void> {
     try {
-      console.log('🔧 Verificando estrutura do banco de dados...');
+      log.info('verifying database structure');
       
       // Step 0: Ensure system user exists
       await this.ensureSystemUserExists();
@@ -1826,17 +1830,17 @@ export class DatabaseStorage implements IStorage {
       `);
       
       const hasUniqueIndex = (indexCheck.rowCount ?? 0) > 0;
-      console.log(`🔍 Índice único de correlation_key: ${hasUniqueIndex ? 'EXISTE' : 'NÃO EXISTE'}`);
+      log.info({ hasUniqueIndex }, 'correlation_key unique index status');
       
       if (!hasUniqueIndex) {
-        console.log('🔧 Criando estrutura de prevenção de duplicatas...');
+        log.info('creating duplicate prevention structure');
         
         // Step 1: Consolidate existing duplicates
-        console.log('📋 Consolidando duplicatas existentes...');
+        log.info('consolidating existing duplicates');
         await this.consolidateDuplicateThreats();
         
         // Step 2: Create unique index
-        console.log('🏗️  Criando índice único para correlation_key...');
+        log.info('creating unique index for correlation_key');
         await db.execute(sql`
           CREATE UNIQUE INDEX "UQ_threats_correlation_key" 
           ON threats (correlation_key) 
@@ -1846,14 +1850,14 @@ export class DatabaseStorage implements IStorage {
           )
         `);
         
-        console.log('✅ Índice único criado com sucesso!');
-        console.log('🎉 Sistema de prevenção de duplicatas ativo!');
+        log.info('unique index created successfully');
+        log.info('duplicate prevention system active');
       } else {
-        console.log('✅ Estrutura do banco de dados já está atualizada');
+        log.info('database structure already up to date');
       }
       
     } catch (error) {
-      console.error('❌ Erro na inicialização do banco:', error);
+      log.error({ err: error }, 'database initialization error');
       // Don't throw - let the system continue with fallback mode
     }
   }
@@ -1868,7 +1872,7 @@ export class DatabaseStorage implements IStorage {
         .limit(1);
       
       if (existingUsers.length === 0) {
-        console.log('🤖 Criando usuário sistema...');
+        log.info('creating system user');
         
         // Create system user with Drizzle insert for type safety
         await db.insert(users).values({
@@ -1881,9 +1885,9 @@ export class DatabaseStorage implements IStorage {
           mustChangePassword: false,
         }).onConflictDoNothing();
         
-        console.log('✅ Usuário sistema criado com sucesso!');
+        log.info('system user created successfully');
       } else {
-        console.log('✅ Usuário sistema já existe');
+        log.info('system user already exists');
       }
       
       // Verify system user exists after creation attempt
@@ -1894,12 +1898,12 @@ export class DatabaseStorage implements IStorage {
         .limit(1);
         
       if (verifyUser.length === 0) {
-        console.error('❌ Usuário sistema não foi criado corretamente!');
+        log.error('system user was not created correctly');
         throw new Error('Failed to create system user - this will cause FK violations');
       }
       
     } catch (error) {
-      console.error('❌ Erro ao verificar/criar usuário sistema:', error);
+      log.error({ err: error }, 'failed to verify/create system user');
       // This is critical for on-premise compatibility - throw to surface configuration issues
       throw error;
     }
@@ -1922,17 +1926,17 @@ export class DatabaseStorage implements IStorage {
       const duplicates = duplicatesResult.rows;
       
       if (duplicates.length === 0) {
-        console.log('📋 Nenhuma duplicata encontrada');
+        log.info('no duplicates found');
         return;
       }
       
-      console.log(`📋 Encontradas ${duplicates?.length || 0} chaves com duplicatas`);
+      log.info({ count: duplicates?.length || 0 }, 'found keys with duplicates');
       
       // Consolidate each group of duplicates
       let totalRemoved = 0;
       
       if (!duplicates || duplicates.length === 0) {
-        console.log('📋 Nenhuma duplicata encontrada para consolidar');
+        log.info('no duplicates found to consolidate');
         return;
       }
       
@@ -1955,14 +1959,14 @@ export class DatabaseStorage implements IStorage {
           `);
           
           totalRemoved += removeIds.length;
-          console.log(`🗑️  Removidas ${removeIds.length} duplicatas de ${(duplicate as any).correlation_key}`);
+          log.info({ count: removeIds.length, correlationKey: (duplicate as any).correlation_key }, 'removed duplicates');
         }
       }
       
-      console.log(`✅ Consolidação concluída: ${totalRemoved} duplicatas removidas`);
+      log.info({ totalRemoved }, 'duplicate consolidation completed');
       
     } catch (error) {
-      console.error('❌ Erro na consolidação de duplicatas:', error);
+      log.error({ err: error }, 'duplicate consolidation error');
       throw error;
     }
   }

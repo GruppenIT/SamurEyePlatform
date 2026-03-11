@@ -8,6 +8,9 @@ import { storage } from "./storage";
 import { loginUserSchema, changePasswordSchema, type LoginUser, type ChangePassword } from "@shared/schema";
 import { sql } from "drizzle-orm";
 import { db } from "./db";
+import { createLogger } from './lib/logger';
+
+const log = createLogger('auth');
 
 // Hash password utility function
 async function hashPassword(password: string): Promise<string> {
@@ -25,7 +28,7 @@ async function bootstrapDevAdmin() {
       return; // Admin already exists with password
     }
 
-    console.log('🔧 Criando usuário admin para desenvolvimento...');
+    log.info('creating dev admin user');
     
     // Create or update admin user
     const adminPassword = 'admin';
@@ -36,7 +39,7 @@ async function bootstrapDevAdmin() {
       await storage.updateUserPassword(existingAdmin.id, hashedPassword);
       await storage.updateUserRole(existingAdmin.id, 'global_administrator');
       await storage.setMustChangePassword(existingAdmin.id, false);
-      console.log('✅ Usuário admin atualizado: admin@example.com / admin');
+      log.info({ email: 'admin@example.com' }, 'dev admin user updated');
     } else {
       // Create new admin user
       const newUser = await storage.createUser({
@@ -47,10 +50,10 @@ async function bootstrapDevAdmin() {
         role: 'global_administrator'
       });
       await storage.setMustChangePassword(newUser.id, false);
-      console.log('✅ Usuário admin criado: admin@example.com / admin');
+      log.info({ email: 'admin@example.com' }, 'dev admin user created');
     }
   } catch (error) {
-    console.error('❌ Erro ao criar usuário admin:', error);
+    log.error({ err: error }, 'failed to create dev admin user');
   }
 }
 
@@ -97,9 +100,9 @@ async function cleanupExpiredSessions(): Promise<void> {
     // Limpar login attempts antigos
     await storage.cleanupOldLoginAttempts();
     
-    console.log(`🧹 Limpeza de sessões expiradas executada`);
+    log.info('expired sessions cleanup completed');
   } catch (error) {
-    console.error('❌ Erro ao limpar sessões expiradas:', error);
+    log.error({ err: error }, 'failed to cleanup expired sessions');
   }
 }
 
@@ -114,12 +117,12 @@ async function invalidateAllSessionsOnStartup(): Promise<void> {
     const adminUser = users.find(u => u.role === 'global_administrator') || users[0];
     
     if (!adminUser) {
-      console.warn('⚠️  Nenhum usuário encontrado para incrementar versão de sessão');
+      log.warn('no user found to increment session version');
       return;
     }
     
     const newVersion = await storage.incrementSessionVersion(adminUser.id);
-    console.log(`🔐 Versão de sessão incrementada para ${newVersion} - todas as sessões anteriores invalidadas`);
+    log.info({ newVersion }, 'session version incremented, all previous sessions invalidated');
     
     // Limpar todas as sessões ativas do banco (connect-pg-simple)
     await db.execute(sql`DELETE FROM sessions`);
@@ -127,9 +130,9 @@ async function invalidateAllSessionsOnStartup(): Promise<void> {
     // Limpar todas as sessões ativas rastreadas
     await db.execute(sql`DELETE FROM active_sessions`);
     
-    console.log(`🔒 Todas as sessões anteriores foram removidas`);
+    log.info('all previous sessions removed');
   } catch (error) {
-    console.error('❌ Erro ao invalidar sessões na inicialização:', error);
+    log.error({ err: error }, 'failed to invalidate sessions on startup');
   }
 }
 
@@ -210,19 +213,19 @@ export function validateSession(): RequestHandler {
     // Verificar se a sessão expirou usando o método nativo
     const cookieExpires = req.session.cookie.expires;
     if (cookieExpires && cookieExpires <= new Date()) {
-      console.log(`🔒 Sessão expirada para usuário ${req.user.id}, forçando logout`);
+      log.info({ userId: req.user.id }, 'session expired, forcing logout');
       
       // Remover sessão ativa
       if (req.sessionID) {
         await storage.deleteActiveSession(req.sessionID).catch(err => {
-          console.error('Erro ao remover sessão ativa:', err);
+          log.error({ err }, 'failed to delete active session');
         });
       }
-      
+
       // Destruir sessão
       req.session.destroy((err: any) => {
         if (err) {
-          console.error('Erro ao destruir sessão expirada:', err);
+          log.error({ err }, 'failed to destroy expired session');
         }
       });
       
@@ -248,12 +251,12 @@ export function validateSession(): RequestHandler {
       
       // Bloquear sessões que não estão rastreadas (revogadas ou inválidas)
       if (!activeSession) {
-        console.log(`🔒 Sessão não rastreada para usuário ${req.user.id} - provavelmente revogada`);
+        log.info({ userId: req.user.id }, 'untracked session detected, likely revoked');
         
         // Destruir sessão
         req.session.destroy((err: any) => {
           if (err) {
-            console.error('Erro ao destruir sessão não rastreada:', err);
+            log.error({ err }, 'failed to destroy untracked session');
           }
         });
         
@@ -277,17 +280,17 @@ export function validateSession(): RequestHandler {
       
       // Bloquear sessões com versão desatualizada
       if (activeSession.sessionVersion !== currentVersion) {
-        console.log(`🔒 Sessão invalidada para usuário ${req.user.id} (versão ${activeSession.sessionVersion} vs atual ${currentVersion})`);
+        log.info({ userId: req.user.id, sessionVersion: activeSession.sessionVersion, currentVersion }, 'session invalidated due to version mismatch');
         
         // Remover sessão ativa
         await storage.deleteActiveSession(req.sessionID).catch(err => {
-          console.error('Erro ao remover sessão ativa:', err);
+          log.error({ err }, 'failed to delete active session');
         });
-        
+
         // Destruir sessão
         req.session.destroy((err: any) => {
           if (err) {
-            console.error('Erro ao destruir sessão invalidada:', err);
+            log.error({ err }, 'failed to destroy invalidated session');
           }
         });
         
@@ -309,14 +312,14 @@ export function validateSession(): RequestHandler {
       
       // Atualizar última atividade
       await storage.updateActiveSessionLastActivity(req.sessionID).catch(err => {
-        console.error('Erro ao atualizar última atividade da sessão:', err);
+        log.error({ err }, 'failed to update session last activity');
       });
     } catch (error) {
-      console.error('Erro ao validar sessão:', error);
+      log.error({ err: error }, 'failed to validate session');
       // Em caso de erro, forçar logout por segurança
       req.session.destroy((err: any) => {
         if (err) {
-          console.error('Erro ao destruir sessão após erro de validação:', err);
+          log.error({ err }, 'failed to destroy session after validation error');
         }
       });
       res.clearCookie('connect.sid', {
@@ -422,7 +425,7 @@ export async function setupAuth(app: Express) {
       await recordLoginAttempt(rateLimitKey, success);
 
       if (err) {
-        console.error("Erro de autenticação:", err);
+        log.error({ err }, 'authentication error');
         return res.status(500).json({ message: 'Erro interno do servidor' });
       }
       
@@ -433,13 +436,13 @@ export async function setupAuth(app: Express) {
       // Regenerate session ID to prevent session fixation
       req.session.regenerate(async (err) => {
         if (err) {
-          console.error("Erro ao regenerar sessão:", err);
+          log.error({ err }, 'failed to regenerate session');
           return res.status(500).json({ message: 'Erro interno do servidor' });
         }
 
         req.logIn(user, async (err) => {
           if (err) {
-            console.error("Erro ao fazer login:", err);
+            log.error({ err }, 'failed to log in user');
             return res.status(500).json({ message: 'Erro interno do servidor' });
           }
           
@@ -474,9 +477,9 @@ export async function setupAuth(app: Express) {
               }
             });
             
-            console.log(`✅ Login bem-sucedido: ${user.email} de ${clientIP} (${deviceInfo})`);
+            log.info({ email: user.email, clientIP, deviceInfo }, 'login successful');
           } catch (error) {
-            console.error('Erro ao criar sessão ativa:', error);
+            log.error({ err: error }, 'failed to create active session');
             // Não falhar o login se houver erro ao criar sessão ativa
           }
           
@@ -504,7 +507,7 @@ export async function setupAuth(app: Express) {
     
     req.logout(async (err: any) => {
       if (err) {
-        console.error("Erro ao fazer logout:", err);
+        log.error({ err }, 'failed to log out');
         return res.status(500).json({ message: 'Erro interno do servidor' });
       }
 
@@ -513,7 +516,7 @@ export async function setupAuth(app: Express) {
         try {
           await storage.deleteActiveSession(sessionId);
         } catch (error) {
-          console.error('Erro ao remover sessão ativa:', error);
+          log.error({ err: error }, 'failed to delete active session');
         }
       }
 
@@ -532,14 +535,14 @@ export async function setupAuth(app: Express) {
             }
           });
         } catch (error) {
-          console.error('Erro ao registrar auditoria de logout:', error);
+          log.error({ err: error }, 'failed to log logout audit');
         }
       }
 
       // Destroy the session and clear cookie
       req.session.destroy((err: any) => {
         if (err) {
-          console.error("Erro ao destruir sessão:", err);
+          log.error({ err }, 'failed to destroy session');
           return res.status(500).json({ message: 'Erro interno do servidor' });
         }
 
@@ -570,7 +573,7 @@ export async function setupAuth(app: Express) {
         lastLogin: user.lastLogin
       });
     } catch (error) {
-      console.error("Erro ao buscar usuário:", error);
+      log.error({ err: error }, 'failed to fetch user');
       res.status(500).json({ message: "Falha ao buscar usuário" });
     }
   });
@@ -612,7 +615,7 @@ export async function setupAuth(app: Express) {
       const oldSessionId = req.sessionID;
       req.session.regenerate(async (err: any) => {
         if (err) {
-          console.error("Erro ao regenerar sessão:", err);
+          log.error({ err }, 'failed to regenerate session');
           return res.status(500).json({ message: 'Erro interno do servidor' });
         }
 
@@ -624,7 +627,7 @@ export async function setupAuth(app: Express) {
 
         req.logIn(updatedUser, async (err: any) => {
           if (err) {
-            console.error("Erro ao fazer login:", err);
+            log.error({ err }, 'failed to log in user after password change');
             return res.status(500).json({ message: 'Erro interno do servidor' });
           }
 
@@ -648,7 +651,7 @@ export async function setupAuth(app: Express) {
               expiresAt: new Date(Date.now() + sessionTtlMs),
             });
           } catch (sessionError) {
-            console.error('Erro ao rastrear sessão pós-troca de senha:', sessionError);
+            log.error({ err: sessionError }, 'failed to track session after password change');
           }
 
           res.json({
@@ -672,7 +675,7 @@ export async function setupAuth(app: Express) {
           errors: error.errors 
         });
       }
-      console.error("Erro ao alterar senha:", error);
+      log.error({ err: error }, 'failed to change password');
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   });

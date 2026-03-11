@@ -3,6 +3,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { storage } from '../storage';
 import { APP_VERSION } from '../version';
+import { createLogger } from '../lib/logger';
+
+const log = createLogger('systemUpdate');
 
 const INSTALL_DIR = process.env.INSTALL_DIR || '/opt/samureye';
 const UPDATE_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes max
@@ -37,7 +40,7 @@ function validateUpdateParam(key: string, value: unknown): string | null {
 
   // Block any shell-dangerous characters regardless of the specific validator
   if (SHELL_DANGEROUS.test(strValue)) {
-    console.error(`🛡️  Parâmetro de update "${key}" rejeitado: contém caracteres perigosos para shell`);
+    log.error({ param: key }, 'update param rejected: contains dangerous shell characters (FND-001)');
     return null;
   }
 
@@ -45,12 +48,12 @@ function validateUpdateParam(key: string, value: unknown): string | null {
   const validator = PARAM_VALIDATORS[key];
   if (validator) {
     if (!validator.test(strValue)) {
-      console.error(`🛡️  Parâmetro de update "${key}" rejeitado: formato inválido (valor: ${strValue.slice(0, 50)})`);
+      log.error({ param: key, value: strValue.slice(0, 50) }, 'update param rejected: invalid format (FND-001)');
       return null;
     }
   } else {
     // Unknown parameter — reject (whitelist approach)
-    console.warn(`🛡️  Parâmetro de update desconhecido "${key}" ignorado (não está na whitelist)`);
+    log.warn({ param: key }, 'unknown update param ignored — not in whitelist (FND-001)');
     return null;
   }
 
@@ -236,7 +239,7 @@ class SystemUpdateService {
         const knownParams = new Set(['branch', 'skipBackup', 'token']);
         for (const key of Object.keys(params)) {
           if (!knownParams.has(key)) {
-            console.warn(`🛡️  Parâmetro de update desconhecido "${key}" ignorado`);
+            log.warn({ param: key }, 'unknown update param from console ignored');
           }
         }
 
@@ -288,8 +291,7 @@ class SystemUpdateService {
         ].join('\n');
         fs.writeFileSync(wrapperPath, wrapperContent, { mode: 0o755 });
 
-        console.log(`🔧 Escrevendo trigger de update para systemd path unit...`);
-        console.log(`📋 Log file: ${logFile}`);
+        log.info({ logFile }, 'writing update trigger for systemd path unit');
 
         // Write trigger file — the samureye-update.path unit watches for this
         // and automatically starts samureye-update.service when it appears.
@@ -349,7 +351,7 @@ class SystemUpdateService {
           if (Date.now() - startTime > UPDATE_TIMEOUT_MS) {
             clearInterval(poll);
             try { execSync('systemctl stop samureye-update.service', { timeout: 10_000 }); } catch { /* ok */ }
-            console.error(`❌ Update timeout após ${UPDATE_TIMEOUT_MS / 60000} minutos`);
+            log.error({ timeoutMin: UPDATE_TIMEOUT_MS / 60000 }, 'update timed out');
             resolve({ exitCode: 124, output, lastPhase });
             return;
           }
@@ -377,11 +379,10 @@ class SystemUpdateService {
 
             // Log on failure
             if (exitCode !== 0) {
-              console.error(`❌ update.sh saiu com código ${exitCode} na fase "${lastPhase}"`);
               const tail = output.split('\n').filter(Boolean).slice(-20).join('\n');
-              console.error(`📋 Últimas linhas do output:\n${tail}`);
+              log.error({ exitCode, lastPhase, tail }, 'update.sh failed');
             } else {
-              console.log(`✅ Update concluído com sucesso na fase "${lastPhase}"`);
+              log.info({ lastPhase }, 'update completed successfully');
             }
 
             // Cleanup temp files
@@ -392,7 +393,7 @@ class SystemUpdateService {
           }
 
         } catch (err) {
-          console.warn(`⚠️  Erro ao verificar status do update: ${err}`);
+          log.warn({ err }, 'error checking update status');
         }
       }, 3_000); // Poll every 3 seconds
     });

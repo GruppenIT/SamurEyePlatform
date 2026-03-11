@@ -1,4 +1,7 @@
 import { storage } from '../storage';
+import { createLogger } from '../lib/logger';
+
+const log = createLogger('settings');
 
 export interface SystemSettings {
   adPasswordAgeLimitDays: number;
@@ -22,14 +25,14 @@ export class SettingsService {
    * Inicializa configurações padrão do sistema
    */
   static async initializeDefaultSettings(): Promise<void> {
-    console.log('🔧 Inicializando configurações padrão do sistema...');
+    log.info('inicializando configurações padrão do sistema');
     
     try {
       // Verificar se há usuários no sistema
       const users = await storage.getAllUsers();
       
       if (users.length === 0) {
-        console.log('⚠️ Nenhum usuário encontrado. Configurações serão criadas após primeiro usuário.');
+        log.warn('nenhum usuário encontrado - configurações serão criadas após primeiro usuário');
         return;
       }
       
@@ -41,13 +44,13 @@ export class SettingsService {
         
         if (!existingSetting) {
           await storage.setSetting(key, value, adminUser.id);
-          console.log(`✅ Configuração criada: ${key} = ${value}`);
+          log.info({ key, value }, 'configuração criada');
         }
       }
       
-      console.log('✅ Configurações padrão inicializadas com sucesso');
+      log.info('configurações padrão inicializadas com sucesso');
     } catch (error) {
-      console.error('❌ Erro ao inicializar configurações padrão:', error);
+      log.error({ err: error }, 'erro ao inicializar configurações padrão');
     }
   }
 
@@ -75,7 +78,7 @@ export class SettingsService {
         adComputerInactiveDays: computerInactiveDays?.value || 90,
       };
     } catch (error) {
-      console.error('Erro ao obter configurações AD:', error);
+      log.error({ err: error }, 'erro ao obter configurações AD');
       // Retornar valores padrão em caso de erro
       return {
         adPasswordAgeLimitDays: 90,
