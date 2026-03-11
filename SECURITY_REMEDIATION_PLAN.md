@@ -12,11 +12,11 @@
 | FND-002 | Vulnerabilidades em dependências | **Alta** | :white_check_mark: Resolvido (32/36 → 4 residuais dev-only) |
 | FND-003 | Configuração de CORS excessivamente permissiva | **Baixa** | :white_check_mark: Resolvido (ALLOWED_ORIGINS env var) |
 | FND-004 | Risco de acesso ao AuthFile no EDR AV Scanner | **Média** | :white_check_mark: Resolvido (tmpfs + crypto names + secure wipe) |
-| FND-005 | Falta de testes automatizados | **Média** | :white_check_mark: Resolvido (Vitest + 113 testes de segurança) |
+| FND-005 | Falta de testes automatizados | **Média** | :white_check_mark: Resolvido (Vitest + 121 testes de segurança) |
 | FND-006 | Falta de configuração para ferramentas de suporte a desenvolvedor | **Informativa** | :no_entry_sign: Won't fix (by design) |
 | FND-007 | Arquivos fonte extensos (God Objects) | **Média** | :red_circle: Pendente |
 | FND-008 | Falta de ferramenta configurável de logging | **Informativa** | :white_check_mark: Resolvido (pino + redação automática + 655 console→logger) |
-| FND-009 | Validação de Host no sshCollector | **Informativa** | :red_circle: Pendente |
+| FND-009 | Validação de Host no sshCollector | **Informativa** | :white_check_mark: Resolvido (TOFU + SHA-256 fingerprint + alertas) |
 
 ---
 
@@ -233,14 +233,30 @@ O env file usava `JSON.stringify()` (double quotes), que NÃO escapa `` ` `` nem
 
 #### 4.3 FND-009: Validação de Host no sshCollector (Informativa)
 
+**Estratégia:** Trust On First Use (TOFU) — não bloqueia conexões, mas detecta mudanças.
+
 **Arquivos afetados:**
-- `server/services/collectors/sshCollector.ts`
+- `shared/schema.ts` — campo `sshHostFingerprint` na tabela `hosts`
+- `server/storage.ts` — suporte a `sshHostFingerprint` no `updateHost()`
+- `server/services/collectors/sshCollector.ts` — `hostVerifier` + `verifyHostFingerprint()`
+- `server/__tests__/sshCollector.test.ts` — 8 testes de verificação TOFU
 
 **Ações:**
-- [ ] Implementar verificação de fingerprint do host SSH no primeiro acesso
-- [ ] Armazenar fingerprint conhecido no banco de dados
-- [ ] Em acessos subsequentes, comparar fingerprint e alertar se diferente
-- [ ] Gerar alerta de segurança caso o host tenha sido potencialmente comprometido
+- [x] Adicionar campo `sshHostFingerprint` (text, nullable) na tabela `hosts`
+- [x] Implementar `hostVerifier` com `hostHash: 'sha256'` no `conn.connect()`
+- [x] Implementar `verifyHostFingerprint()` com lógica TOFU:
+  - Primeiro acesso: armazena fingerprint silenciosamente
+  - Acessos subsequentes: compara com o armazenado
+  - Fingerprint diferente: `log.warn` com fingerprints anterior/atual (não bloqueia)
+- [x] Tratar erros gracefully (DB indisponível não bloqueia SSH)
+- [x] Migrar logging do sshCollector de `log()` (vite) para `createLogger('sshCollector')` (pino)
+- [x] Adicionar 8 testes unitários para a lógica TOFU
+
+**Resultado:**
+- Conexões SSH agora capturam fingerprint SHA-256 do host via `ssh2` nativo
+- Mudança de fingerprint gera warning estruturado no log (detectável por SIEM/alertas)
+- Comportamento não-disruptivo: nunca bloqueia, apenas alerta
+- Operadores podem distinguir reinstalação legítima de MITM pelo log
 
 ---
 
@@ -254,7 +270,7 @@ Fase 3.1  →  FND-003  CORS permissivo                   [✅ CONCLUÍDO]
 Fase 4.1  →  FND-008  Logging estruturado               [✅ CONCLUÍDO]
 Fase 4.2  →  FND-006  ESLint + Prettier                 [🚫 WON'T FIX — by design]
 Fase 2.2  →  FND-005  Testes automatizados              [✅ CONCLUÍDO]
-Fase 4.3  →  FND-009  Validação SSH Host                [Melhoria incremental]
+Fase 4.3  →  FND-009  Validação SSH Host                [✅ CONCLUÍDO]
 Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo prazo]
 ```
 
@@ -272,3 +288,4 @@ Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo pr
 | 2026-03-11 | FND-008 | Logging: pino + pino-pretty instalados, server/lib/logger.ts criado com redação automática de 20+ campos sensíveis, 655 console.* migrados para logger estruturado em 22 arquivos, credential.username removido dos logs. Build OK. | Concluído |
 | 2026-03-11 | FND-006 | Won't fix: 100% do código mantido por AI (Claude Code), TypeScript já cobre regras de lint, overhead negativo de ~50+ deps sem retorno proporcional. | Won't fix |
 | 2026-03-11 | FND-005 | Vitest configurado, 6 suites / 113 testes de segurança cobrindo FND-001 (MITM params + HTTPS + commands), FND-003 (CORS), FND-004 (auth files), FND-008 (redação de logs), encryption (DEK/KEK). TESTING.md criado com guia de expansão. Build+Tests OK. | Concluído |
+| 2026-03-11 | FND-009 | TOFU SSH host fingerprint: campo sshHostFingerprint na tabela hosts, hostVerifier com SHA-256 no ssh2, verifyHostFingerprint() com detecção de mudança + log.warn, sshCollector migrado para pino, 8 testes unitários. Build+Tests OK (121 total). | Concluído |

@@ -1419,6 +1419,7 @@ export class DatabaseStorage implements IStorage {
     if (host.aliases !== undefined) updates.aliases = host.aliases;
     if (host.riskScore !== undefined) updates.riskScore = host.riskScore;
     if (host.rawScore !== undefined) updates.rawScore = host.rawScore;
+    if (host.sshHostFingerprint !== undefined) updates.sshHostFingerprint = host.sshHostFingerprint;
     
     const [updatedHost] = await db
       .update(hosts)
