@@ -29,6 +29,9 @@ import {
   insertJourneyCredentialSchema,
 } from "@shared/schema";
 import { z } from "zod";
+import { createLogger } from './lib/logger';
+
+const log = createLogger('routes');
 // Simple cookie parser (avoids extra dependency)
 function parseCookies(cookieHeader: string): Record<string, string> {
   const cookies: Record<string, string> = {};
@@ -174,7 +177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const metrics = await storage.getDashboardMetrics();
       res.json(metrics);
     } catch (error) {
-      console.error("Erro ao buscar métricas:", error);
+      log.error("Erro ao buscar métricas:", error);
       res.status(500).json({ message: "Falha ao buscar métricas" });
     }
   });
@@ -184,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const jobs = await storage.getRunningJobs();
       res.json(jobs);
     } catch (error) {
-      console.error("Erro ao buscar jobs em execução:", error);
+      log.error("Erro ao buscar jobs em execução:", error);
       res.status(500).json({ message: "Falha ao buscar jobs" });
     }
   });
@@ -195,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const recentThreats = threats.slice(0, 10); // Last 10 threats
       res.json(recentThreats);
     } catch (error) {
-      console.error("Erro ao buscar ameaças recentes:", error);
+      log.error("Erro ao buscar ameaças recentes:", error);
       res.status(500).json({ message: "Falha ao buscar ameaças" });
     }
   });
@@ -234,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         history,
       });
     } catch (error) {
-      console.error("Erro ao calcular postura:", error);
+      log.error("Erro ao calcular postura:", error);
       res.status(500).json({ message: "Falha ao calcular postura" });
     }
   });
@@ -263,7 +266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(result);
     } catch (error) {
-      console.error("Erro ao buscar stats por categoria:", error);
+      log.error("Erro ao buscar stats por categoria:", error);
       res.status(500).json({ message: "Falha ao buscar stats" });
     }
   });
@@ -315,7 +318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(feed);
     } catch (error) {
-      console.error("Erro ao buscar feed:", error);
+      log.error("Erro ao buscar feed:", error);
       res.status(500).json({ message: "Falha ao buscar feed" });
     }
   });
@@ -345,7 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const trend = Object.entries(byDay).map(([day, counts]) => ({ day, ...counts }));
       res.json(trend);
     } catch (error) {
-      console.error("Erro ao buscar trend:", error);
+      log.error("Erro ao buscar trend:", error);
       res.status(500).json({ message: "Falha ao buscar trend" });
     }
   });
@@ -382,7 +385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(summary);
     } catch (error) {
-      console.error("Erro ao buscar summary:", error);
+      log.error("Erro ao buscar summary:", error);
       res.status(500).json({ message: "Falha ao buscar summary" });
     }
   });
@@ -417,7 +420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(history);
     } catch (error) {
-      console.error("Erro ao buscar histórico AD:", error);
+      log.error("Erro ao buscar histórico AD:", error);
       res.status(500).json({ message: "Falha ao buscar histórico AD" });
     }
   });
@@ -456,7 +459,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(history);
     } catch (error) {
-      console.error("Erro ao buscar cobertura EDR:", error);
+      log.error("Erro ao buscar cobertura EDR:", error);
       res.status(500).json({ message: "Falha ao buscar cobertura EDR" });
     }
   });
@@ -467,7 +470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const metrics = await storage.getSystemMetrics();
       res.json(metrics);
     } catch (error) {
-      console.error("Erro ao buscar métricas do sistema:", error);
+      log.error("Erro ao buscar métricas do sistema:", error);
       res.status(500).json({ message: "Falha ao buscar métricas do sistema" });
     }
   });
@@ -492,7 +495,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       res.json(sanitized);
     } catch (error) {
-      console.error("Erro ao buscar configurações de e-mail:", error);
+      log.error("Erro ao buscar configurações de e-mail:", error);
       res.status(500).json({ message: "Falha ao buscar configurações de e-mail" });
     }
   });
@@ -614,7 +617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(redactedAfter);
     } catch (error) {
-      console.error("Erro ao salvar configurações de e-mail:", error);
+      log.error("Erro ao salvar configurações de e-mail:", error);
       res.status(400).json({ message: "Falha ao salvar configurações de e-mail" });
     }
   });
@@ -652,7 +655,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: "E-mail de teste enviado com sucesso" });
     } catch (error: any) {
-      console.error("Erro ao testar configurações de e-mail:", error);
+      log.error("Erro ao testar configurações de e-mail:", error);
       res.status(400).json({ message: error.message || "Falha ao testar configurações de e-mail" });
     }
   });
@@ -667,7 +670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const status = await subscriptionService.getStatus();
       res.json(status);
     } catch (error) {
-      console.error("Erro ao buscar status da subscrição:", error);
+      log.error("Erro ao buscar status da subscrição:", error);
       res.status(500).json({ message: "Falha ao buscar status da subscrição" });
     }
   });
@@ -702,7 +705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subscription: await subscriptionService.getStatus(),
       });
     } catch (error: any) {
-      console.error("Erro ao ativar subscrição:", error);
+      log.error("Erro ao ativar subscrição:", error);
       res.status(400).json({ message: error.message || "Falha ao ativar subscrição" });
     }
   });
@@ -729,7 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subscription: await subscriptionService.getStatus(),
       });
     } catch (error: any) {
-      console.error("Erro ao desativar subscrição:", error);
+      log.error("Erro ao desativar subscrição:", error);
       res.status(400).json({ message: error.message || "Falha ao desativar subscrição" });
     }
   });
@@ -741,7 +744,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const status = await subscriptionService.getStatus();
       res.json({ message: "Heartbeat enviado", subscription: status });
     } catch (error: any) {
-      console.error("Erro ao enviar heartbeat:", error);
+      log.error("Erro ao enviar heartbeat:", error);
       res.status(500).json({ message: error.message || "Falha ao enviar heartbeat" });
     }
   });
@@ -752,7 +755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const policies = await storage.getNotificationPolicies();
       res.json(policies);
     } catch (error) {
-      console.error("Erro ao buscar políticas de notificação:", error);
+      log.error("Erro ao buscar políticas de notificação:", error);
       res.status(500).json({ message: "Falha ao buscar políticas de notificação" });
     }
   });
@@ -766,7 +769,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(policy);
     } catch (error) {
-      console.error("Erro ao buscar política de notificação:", error);
+      log.error("Erro ao buscar política de notificação:", error);
       res.status(500).json({ message: "Falha ao buscar política de notificação" });
     }
   });
@@ -789,7 +792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(policy);
     } catch (error) {
-      console.error("Erro ao criar política de notificação:", error);
+      log.error("Erro ao criar política de notificação:", error);
       res.status(400).json({ message: "Falha ao criar política de notificação" });
     }
   });
@@ -819,7 +822,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(policy);
     } catch (error) {
-      console.error("Erro ao atualizar política de notificação:", error);
+      log.error("Erro ao atualizar política de notificação:", error);
       res.status(400).json({ message: "Falha ao atualizar política de notificação" });
     }
   });
@@ -848,7 +851,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(204).send();
     } catch (error) {
-      console.error("Erro ao deletar política de notificação:", error);
+      log.error("Erro ao deletar política de notificação:", error);
       res.status(400).json({ message: "Falha ao deletar política de notificação" });
     }
   });
@@ -859,7 +862,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const assets = await storage.getAssets();
       res.json(assets);
     } catch (error) {
-      console.error("Erro ao buscar ativos:", error);
+      log.error("Erro ao buscar ativos:", error);
       res.status(500).json({ message: "Falha ao buscar ativos" });
     }
   });
@@ -869,7 +872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tags = await storage.getUniqueTags();
       res.json(tags);
     } catch (error) {
-      console.error("Erro ao buscar TAGs únicas:", error);
+      log.error("Erro ao buscar TAGs únicas:", error);
       res.status(500).json({ message: "Falha ao buscar TAGs únicas" });
     }
   });
@@ -880,7 +883,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const assets = await storage.getAssetsByType(type);
       res.json(assets);
     } catch (error) {
-      console.error(`Erro ao buscar ativos do tipo ${req.params.type}:`, error);
+      log.error(`Erro ao buscar ativos do tipo ${req.params.type}:`, error);
       res.status(500).json({ message: "Falha ao buscar ativos por tipo" });
     }
   });
@@ -903,7 +906,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(asset);
     } catch (error) {
-      console.error("Erro ao criar ativo:", error);
+      log.error("Erro ao criar ativo:", error);
       res.status(400).json({ message: "Falha ao criar ativo" });
     }
   });
@@ -933,7 +936,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(asset);
     } catch (error) {
-      console.error("Erro ao atualizar ativo:", error);
+      log.error("Erro ao atualizar ativo:", error);
       res.status(400).json({ message: "Falha ao atualizar ativo" });
     }
   });
@@ -957,7 +960,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(204).send();
     } catch (error) {
-      console.error("Erro ao excluir ativo:", error);
+      log.error("Erro ao excluir ativo:", error);
       res.status(400).json({ message: "Falha ao excluir ativo" });
     }
   });
@@ -977,7 +980,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hosts = await storage.getHosts(filters);
       res.json(hosts);
     } catch (error) {
-      console.error("Erro ao buscar hosts:", error);
+      log.error("Erro ao buscar hosts:", error);
       res.status(500).json({ message: "Falha ao buscar hosts" });
     }
   });
@@ -993,7 +996,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(host);
     } catch (error) {
-      console.error("Erro ao buscar host:", error);
+      log.error("Erro ao buscar host:", error);
       res.status(500).json({ message: "Falha ao buscar host" });
     }
   });
@@ -1006,7 +1009,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const history = await storage.getHostRiskHistory(id, limit ? parseInt(limit as string) : undefined);
       res.json(history);
     } catch (error) {
-      console.error("Erro ao buscar histórico de risk score:", error);
+      log.error("Erro ao buscar histórico de risk score:", error);
       res.status(500).json({ message: "Falha ao buscar histórico de risk score" });
     }
   });
@@ -1025,7 +1028,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const testResults = await storage.getAdSecurityLatestTestResults(id);
       res.json(testResults);
     } catch (error) {
-      console.error("Erro ao buscar resultados dos testes AD Security:", error);
+      log.error("Erro ao buscar resultados dos testes AD Security:", error);
       res.status(500).json({ message: "Falha ao buscar resultados dos testes AD Security" });
     }
   });
@@ -1123,7 +1126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         jobId: testResults[0]?.jobId,
       });
     } catch (error) {
-      console.error("Erro ao calcular scorecard AD:", error);
+      log.error("Erro ao calcular scorecard AD:", error);
       res.status(500).json({ message: "Falha ao calcular scorecard de segurança AD" });
     }
   });
@@ -1142,7 +1145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const enrichment = await storage.getLatestHostEnrichment(id);
       res.json(enrichment || null);
     } catch (error) {
-      console.error("Erro ao buscar dados de enriquecimento:", error);
+      log.error("Erro ao buscar dados de enriquecimento:", error);
       res.status(500).json({ message: "Falha ao buscar dados de enriquecimento" });
     }
   });
@@ -1178,7 +1181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(host);
     } catch (error) {
-      console.error("Erro ao atualizar host:", error);
+      log.error("Erro ao atualizar host:", error);
       res.status(400).json({ message: "Falha ao atualizar host" });
     }
   });
@@ -1190,7 +1193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Note: storage.getCredentials() already omits secretEncrypted/dekEncrypted
       res.json(credentials);
     } catch (error) {
-      console.error("Erro ao buscar credenciais:", error);
+      log.error("Erro ao buscar credenciais:", error);
       res.status(500).json({ message: "Falha ao buscar credenciais" });
     }
   });
@@ -1230,7 +1233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dekEncrypted: '[ENCRYPTED]',
       });
     } catch (error) {
-      console.error("Erro ao criar credencial:", error);
+      log.error("Erro ao criar credencial:", error);
       res.status(400).json({ message: "Falha ao criar credencial" });
     }
   });
@@ -1286,7 +1289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dekEncrypted: '[ENCRYPTED]',
       });
     } catch (error) {
-      console.error("Erro ao atualizar credencial:", error);
+      log.error("Erro ao atualizar credencial:", error);
       res.status(400).json({ message: "Falha ao atualizar credencial" });
     }
   });
@@ -1320,7 +1323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(204).send();
     } catch (error) {
-      console.error("Erro ao excluir credencial:", error);
+      log.error("Erro ao excluir credencial:", error);
       res.status(400).json({ message: "Falha ao excluir credencial" });
     }
   });
@@ -1331,7 +1334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const journeys = await storage.getJourneys();
       res.json(journeys);
     } catch (error) {
-      console.error("Erro ao buscar jornadas:", error);
+      log.error("Erro ao buscar jornadas:", error);
       res.status(500).json({ message: "Falha ao buscar jornadas" });
     }
   });
@@ -1389,7 +1392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(journey);
     } catch (error) {
-      console.error("Erro ao criar jornada:", error);
+      log.error("Erro ao criar jornada:", error);
       res.status(400).json({ message: "Falha ao criar jornada" });
     }
   });
@@ -1439,7 +1442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(journey);
     } catch (error) {
-      console.error("Erro ao atualizar jornada:", error);
+      log.error("Erro ao atualizar jornada:", error);
       res.status(400).json({ message: "Falha ao atualizar jornada" });
     }
   });
@@ -1463,7 +1466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(204).send();
     } catch (error) {
-      console.error("Erro ao excluir jornada:", error);
+      log.error("Erro ao excluir jornada:", error);
       res.status(400).json({ message: "Falha ao excluir jornada" });
     }
   });
@@ -1475,7 +1478,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const credentials = await storage.getJourneyCredentials(id);
       res.json(credentials);
     } catch (error) {
-      console.error("Erro ao buscar credenciais da jornada:", error);
+      log.error("Erro ao buscar credenciais da jornada:", error);
       res.status(500).json({ message: "Falha ao buscar credenciais da jornada" });
     }
   });
@@ -1486,7 +1489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schedules = await storage.getSchedules();
       res.json(schedules);
     } catch (error) {
-      console.error("Erro ao buscar agendamentos:", error);
+      log.error("Erro ao buscar agendamentos:", error);
       res.status(500).json({ message: "Falha ao buscar agendamentos" });
     }
   });
@@ -1508,7 +1511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(schedule);
     } catch (error) {
-      console.error("Erro ao criar agendamento:", error);
+      log.error("Erro ao criar agendamento:", error);
       res.status(400).json({ message: "Falha ao criar agendamento" });
     }
   });
@@ -1537,7 +1540,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(schedule);
     } catch (error) {
-      console.error("Erro ao atualizar agendamento:", error);
+      log.error("Erro ao atualizar agendamento:", error);
       res.status(400).json({ message: "Falha ao atualizar agendamento" });
     }
   });
@@ -1562,7 +1565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(204).send();
     } catch (error) {
-      console.error("Erro ao excluir agendamento:", error);
+      log.error("Erro ao excluir agendamento:", error);
       res.status(400).json({ message: "Falha ao excluir agendamento" });
     }
   });
@@ -1574,7 +1577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const jobs = await storage.getJobs(limit);
       res.json(jobs);
     } catch (error) {
-      console.error("Erro ao buscar jobs:", error);
+      log.error("Erro ao buscar jobs:", error);
       res.status(500).json({ message: "Falha ao buscar jobs" });
     }
   });
@@ -1601,7 +1604,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(job);
     } catch (error) {
-      console.error("Erro ao executar job:", error);
+      log.error("Erro ao executar job:", error);
       res.status(400).json({ message: "Falha ao executar job" });
     }
   });
@@ -1617,7 +1620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(result);
     } catch (error) {
-      console.error("Erro ao buscar resultado do job:", error);
+      log.error("Erro ao buscar resultado do job:", error);
       res.status(500).json({ message: "Falha ao buscar resultado" });
     }
   });
@@ -1670,7 +1673,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         after: { status: 'failed', error: 'Job cancelado pelo usuário' },
       });
 
-      console.log(`🔪 Job ${id} cancelado pelo usuário ${userId} - ${killedCount} processos terminados`);
+      log.info(`🔪 Job ${id} cancelado pelo usuário ${userId} - ${killedCount} processos terminados`);
 
       res.json({
         message: `Job cancelado com sucesso.${killedCount > 0 ? ` ${killedCount} processo(s) terminado(s).` : ' Cancelamento cooperativo ativado.'}`,
@@ -1678,7 +1681,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
     } catch (error) {
-      console.error("Erro ao cancelar job:", error);
+      log.error("Erro ao cancelar job:", error);
       res.status(500).json({ message: "Falha ao cancelar job" });
     }
   });
@@ -1697,7 +1700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const threats = await storage.getThreatsWithHosts(filters);
       res.json(threats);
     } catch (error) {
-      console.error("Erro ao buscar ameaças:", error);
+      log.error("Erro ao buscar ameaças:", error);
       res.status(500).json({ message: "Falha ao buscar ameaças" });
     }
   });
@@ -1727,7 +1730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(threat);
     } catch (error) {
-      console.error("Erro ao atualizar ameaça:", error);
+      log.error("Erro ao atualizar ameaça:", error);
       res.status(400).json({ message: "Falha ao atualizar ameaça" });
     }
   });
@@ -1741,7 +1744,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate input using Zod schema
       const validationResult = changeThreatStatusSchema.safeParse(req.body);
       if (!validationResult.success) {
-        console.log(`⚠️ Validation failed for status change:`, validationResult.error.issues);
+        log.info(`⚠️ Validation failed for status change:`, validationResult.error.issues);
         return res.status(400).json({ 
           message: validationResult.error.issues.map(i => i.message).join(', ') 
         });
@@ -1804,7 +1807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
         }
       } catch (notifError) {
-        console.error(`⚠️ Erro ao enviar notificações de mudança de status para ameaça ${id}:`, notifError);
+        log.error(`⚠️ Erro ao enviar notificações de mudança de status para ameaça ${id}:`, notifError);
         // Don't fail status change if notification fails
       }
       
@@ -1812,16 +1815,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (threat.hostId) {
         try {
           await threatEngine.recalculateHostRiskScore(threat.hostId);
-          console.log(`✅ Risk score recalculado para host ${threat.hostId} após mudança de status`);
+          log.info(`✅ Risk score recalculado para host ${threat.hostId} após mudança de status`);
         } catch (riskError) {
-          console.error(`⚠️ Erro ao recalcular risk score para host ${threat.hostId}:`, riskError);
+          log.error(`⚠️ Erro ao recalcular risk score para host ${threat.hostId}:`, riskError);
           // Don't fail status change if risk recalculation fails
         }
       }
       
       res.json(threat);
     } catch (error) {
-      console.error("Erro ao alterar status da ameaça:", error);
+      log.error("Erro ao alterar status da ameaça:", error);
       res.status(400).json({ message: "Falha ao alterar status da ameaça" });
     }
   });
@@ -1833,7 +1836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const history = await storage.getThreatStatusHistory(id);
       res.json(history);
     } catch (error) {
-      console.error("Erro ao buscar histórico da ameaça:", error);
+      log.error("Erro ao buscar histórico da ameaça:", error);
       res.status(500).json({ message: "Falha ao buscar histórico" });
     }
   });
@@ -1843,7 +1846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stats = await storage.getThreatStats();
       res.json(stats);
     } catch (error) {
-      console.error("Erro ao buscar estatísticas de ameaças:", error);
+      log.error("Erro ao buscar estatísticas de ameaças:", error);
       res.status(500).json({ message: "Falha ao buscar estatísticas" });
     }
   });
@@ -1861,7 +1864,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sanitizedUsers = users.map(({ passwordHash, ...user }) => user);
       res.json(sanitizedUsers);
     } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
+      log.error("Erro ao buscar usuários:", error);
       res.status(500).json({ message: "Falha ao buscar usuários" });
     }
   });
@@ -1918,7 +1921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error: any) {
-      console.error("Erro ao criar usuário:", error);
+      log.error("Erro ao criar usuário:", error);
       if (error.name === 'ZodError') {
         return res.status(400).json({ 
           message: 'Dados inválidos',
@@ -1969,7 +1972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(user);
     } catch (error) {
-      console.error("Erro ao atualizar papel do usuário:", error);
+      log.error("Erro ao atualizar papel do usuário:", error);
       res.status(400).json({ message: "Falha ao atualizar papel" });
     }
   });
@@ -1986,7 +1989,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const auditLog = await storage.getAuditLog(limit);
       res.json(auditLog);
     } catch (error) {
-      console.error("Erro ao buscar log de auditoria:", error);
+      log.error("Erro ao buscar log de auditoria:", error);
       res.status(500).json({ message: "Falha ao buscar auditoria" });
     }
   });
@@ -1996,7 +1999,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       
-      console.log(`🔄 Iniciando recálculo de risk scores (solicitado por ${userId})...`);
+      log.info(`🔄 Iniciando recálculo de risk scores (solicitado por ${userId})...`);
       await threatEngine.recalculateAllHostRiskScores();
       
       await storage.logAudit({
@@ -2013,7 +2016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error("Erro ao recalcular risk scores:", error);
+      log.error("Erro ao recalcular risk scores:", error);
       res.status(500).json({ message: "Falha ao recalcular risk scores" });
     }
   });
@@ -2033,7 +2036,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(sessionsWithCurrent);
     } catch (error) {
-      console.error("Erro ao buscar sessões ativas:", error);
+      log.error("Erro ao buscar sessões ativas:", error);
       res.status(500).json({ message: "Falha ao buscar sessões ativas" });
     }
   });
@@ -2064,10 +2067,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await new Promise<void>((resolve, reject) => {
           req.sessionStore.destroy(sessionId, (err: any) => {
             if (err) {
-              console.error('Erro ao destruir sessão do store:', err);
+              log.error('Erro ao destruir sessão do store:', err);
               reject(err);
             } else {
-              console.log(`✅ Sessão ${sessionId} revogada com sucesso`);
+              log.info(`✅ Sessão ${sessionId} revogada com sucesso`);
               resolve();
             }
           });
@@ -2075,7 +2078,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Fallback: deletar direto do banco se sessionStore não estiver disponível
         await db.execute(sql`DELETE FROM sessions WHERE sid = ${sessionId}`);
-        console.log(`✅ Sessão ${sessionId} deletada do banco (fallback)`);
+        log.info(`✅ Sessão ${sessionId} deletada do banco (fallback)`);
       }
       
       // Registrar auditoria
@@ -2090,7 +2093,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: 'Sessão revogada com sucesso' });
     } catch (error) {
-      console.error("Erro ao revogar sessão:", error);
+      log.error("Erro ao revogar sessão:", error);
       res.status(500).json({ message: "Falha ao revogar sessão" });
     }
   });
@@ -2110,10 +2113,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await new Promise<void>((resolve, reject) => {
             req.sessionStore.destroy(session.sessionId, (err: any) => {
               if (err) {
-                console.error(`Erro ao destruir sessão ${session.sessionId} do store:`, err);
+                log.error(`Erro ao destruir sessão ${session.sessionId} do store:`, err);
                 reject(err);
               } else {
-                console.log(`✅ Sessão ${session.sessionId} revogada`);
+                log.info(`✅ Sessão ${session.sessionId} revogada`);
                 resolve();
               }
             });
@@ -2121,7 +2124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           // Fallback: deletar direto do banco
           await db.execute(sql`DELETE FROM sessions WHERE sid = ${session.sessionId}`);
-          console.log(`✅ Sessão ${session.sessionId} deletada (fallback)`);
+          log.info(`✅ Sessão ${session.sessionId} deletada (fallback)`);
         }
       }
       
@@ -2140,7 +2143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: 'Todas as sessões foram revogadas com sucesso' });
     } catch (error) {
-      console.error("Erro ao revogar todas as sessões:", error);
+      log.error("Erro ao revogar todas as sessões:", error);
       res.status(500).json({ message: "Falha ao revogar todas as sessões" });
     }
   });
@@ -2151,7 +2154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sessions = await storage.getAllActiveSessions(limit);
       res.json(sessions);
     } catch (error) {
-      console.error("Erro ao buscar todas as sessões ativas:", error);
+      log.error("Erro ao buscar todas as sessões ativas:", error);
       res.status(500).json({ message: "Falha ao buscar todas as sessões ativas" });
     }
   });
@@ -2176,7 +2179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Extract session cookie from upgrade request
         const cookieHeader = info.req.headers.cookie;
         if (!cookieHeader) {
-          console.log('🔒 WebSocket rejeitado: sem cookie de sessão');
+          log.info('🔒 WebSocket rejeitado: sem cookie de sessão');
           callback(false, 401, 'Não autorizado');
           return;
         }
@@ -2184,7 +2187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const cookies = parseCookies(cookieHeader);
         const sessionId = cookies['connect.sid'];
         if (!sessionId) {
-          console.log('🔒 WebSocket rejeitado: cookie connect.sid ausente');
+          log.info('🔒 WebSocket rejeitado: cookie connect.sid ausente');
           callback(false, 401, 'Não autorizado');
           return;
         }
@@ -2197,30 +2200,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Verify session exists in active_sessions
         const activeSession = await storage.getActiveSessionBySessionId(rawSid);
         if (!activeSession) {
-          console.log('🔒 WebSocket rejeitado: sessão não encontrada ou revogada');
+          log.info('🔒 WebSocket rejeitado: sessão não encontrada ou revogada');
           callback(false, 401, 'Sessão inválida');
           return;
         }
 
         callback(true);
       } catch (error) {
-        console.error('❌ Erro ao verificar WebSocket:', error);
+        log.error('❌ Erro ao verificar WebSocket:', error);
         callback(false, 500, 'Erro interno');
       }
     }
   });
 
   wss.on('connection', (ws) => {
-    console.log('Cliente WebSocket conectado (autenticado)');
+    log.info('Cliente WebSocket conectado (autenticado)');
     connectedClients.add(ws);
 
     ws.on('close', () => {
-      console.log('Cliente WebSocket desconectado');
+      log.info('Cliente WebSocket desconectado');
       connectedClients.delete(ws);
     });
 
     ws.on('error', (error) => {
-      console.error('Erro WebSocket:', error);
+      log.error('Erro WebSocket:', error);
       connectedClients.delete(ws);
     });
 

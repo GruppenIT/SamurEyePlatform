@@ -4,6 +4,9 @@ import https from 'https';
 import http from 'http';
 import { URL } from 'url';
 import { processTracker } from '../processTracker';
+import { createLogger } from '../../lib/logger';
+
+const log = createLogger('vulnScanner');
 
 export interface VulnerabilityFinding {
   type: 'vulnerability' | 'web_vulnerability';
@@ -63,13 +66,13 @@ export class VulnerabilityScanner {
    * Executa scan de vulnerabilidades em um target
    */
   async scanVulnerabilities(target: string, ports: string[], portResults?: import('./networkScanner').PortScanResult[], jobId?: string): Promise<VulnerabilityFinding[]> {
-    console.log(`Iniciando scan de vulnerabilidades para ${target}`);
+    log.info(`Iniciando scan de vulnerabilidades para ${target}`);
     
     const results: VulnerabilityFinding[] = [];
 
     // Filtrar dinamicamente por serviços HTTP/HTTPS detectados pelo nmap
     const webServices = this.identifyWebServices(ports, portResults);
-    console.log(`Encontrados ${webServices.length} serviços web para escanear:`, webServices.map(w => `${w.port}/${w.service}`));
+    log.info(`Encontrados ${webServices.length} serviços web para escanear:`, webServices.map(w => `${w.port}/${w.service}`));
     
     for (const webService of webServices) {
       try {
@@ -82,22 +85,22 @@ export class VulnerabilityScanner {
         // Executar nuclei com URL construída adequadamente
         const targetUrl = `${protocol}://${target}:${webService.port}`;
         
-        console.log(`Executando nuclei para URL construída: ${targetUrl} (service: ${webService.service})`);
+        log.info(`Executando nuclei para URL construída: ${targetUrl} (service: ${webService.service})`);
         const nucleiResults = await this.nucleiScanUrl(targetUrl, jobId);
         
         // Log verboso dos resultados do nuclei
         if (nucleiResults.length > 0) {
-          console.log(`🎯 Nuclei encontrou ${nucleiResults.length} vulnerabilidades em ${targetUrl}:`);
+          log.info(`🎯 Nuclei encontrou ${nucleiResults.length} vulnerabilidades em ${targetUrl}:`);
           for (const vuln of nucleiResults) {
-            console.log(`  ⚠️  ${vuln.name || vuln.template} | Severidade: ${vuln.severity || 'medium'} | Target: ${vuln.target}`);
+            log.info(`  ⚠️  ${vuln.name || vuln.template} | Severidade: ${vuln.severity || 'medium'} | Target: ${vuln.target}`);
           }
         } else {
-          console.log(`✅ Nuclei não encontrou vulnerabilidades em ${targetUrl}`);
+          log.info(`✅ Nuclei não encontrou vulnerabilidades em ${targetUrl}`);
         }
         
         results.push(...nucleiResults);
       } catch (error) {
-        console.log(`Scan falhou para ${target}:${webService.port} (${webService.service}) - ${error}`);
+        log.info(`Scan falhou para ${target}:${webService.port} (${webService.service}) - ${error}`);
       }
     }
 
@@ -110,7 +113,7 @@ export class VulnerabilityScanner {
   private async nucleiScanUrl(targetUrl: string, jobId?: string): Promise<VulnerabilityFinding[]> {
     // Validar URL para prevenir injeção de comando
     if (!this.isValidUrl(targetUrl)) {
-      console.warn(`URL inválida para nuclei: ${targetUrl}`);
+      log.warn(`URL inválida para nuclei: ${targetUrl}`);
       return [];
     }
     
@@ -134,7 +137,7 @@ export class VulnerabilityScanner {
       ];
       
       const stage = `Analisando vulnerabilidades em ${targetUrl}... nuclei`;
-      console.log(`🎯 ${stage}`);
+      log.info(`🎯 ${stage}`);
       
       const context: ProcessContext = {
         jobId,
@@ -144,11 +147,11 @@ export class VulnerabilityScanner {
       };
       
       const stdout = await this.spawnCommand('nuclei', args, context);
-      console.log(`Nuclei completado para ${targetUrl}, processando resultados...`);
+      log.info(`Nuclei completado para ${targetUrl}, processando resultados...`);
       
       return this.parseNucleiOutput(stdout, targetUrl);
     } catch (error) {
-      console.log(`Nuclei não disponível ou falhou: ${error}`);
+      log.info(`Nuclei não disponível ou falhou: ${error}`);
       return [];
     }
   }
@@ -173,7 +176,7 @@ export class VulnerabilityScanner {
           // Verificar se tem conteúdo
           const files = await fs.readdir(templatesDir);
           if (files.length > 0) {
-            console.log(`Templates nuclei encontrados: ${files.length} arquivos/pastas`);
+            log.info(`Templates nuclei encontrados: ${files.length} arquivos/pastas`);
             return; // Templates já existem
           }
         }
@@ -181,13 +184,13 @@ export class VulnerabilityScanner {
         // Diretório não existe, precisa baixar templates
       }
       
-      console.log('Baixando templates nuclei...');
+      log.info('Baixando templates nuclei...');
       
       // Tentar baixar templates com ambiente configurado corretamente
       const updateArgs = ['-update-templates', '-ud', templatesDir];
       
       try {
-        console.log(`🔽 Baixando templates: nuclei ${updateArgs.join(' ')}`);
+        log.info(`🔽 Baixando templates: nuclei ${updateArgs.join(' ')}`);
         
         const updatePromise = new Promise<void>((resolve, reject) => {
           const child = spawn('nuclei', updateArgs, {
@@ -208,13 +211,13 @@ export class VulnerabilityScanner {
           child.stdout?.on('data', (data: Buffer) => {
             const output = data.toString();
             stdout += output;
-            console.log(`[nuclei download] ${output.trim()}`);
+            log.info(`[nuclei download] ${output.trim()}`);
           });
           
           child.stderr?.on('data', (data: Buffer) => {
             const output = data.toString();
             stderr += output;
-            console.warn(`[nuclei download stderr] ${output.trim()}`);
+            log.warn(`[nuclei download stderr] ${output.trim()}`);
           });
           
           const timeoutId = setTimeout(() => {
@@ -224,7 +227,7 @@ export class VulnerabilityScanner {
           
           child.on('close', (code: number | null) => {
             clearTimeout(timeoutId);
-            console.log(`📋 Download de templates concluído com código ${code}`);
+            log.info(`📋 Download de templates concluído com código ${code}`);
             
             if (code === 0) {
               resolve();
@@ -240,15 +243,15 @@ export class VulnerabilityScanner {
         });
         
         await updatePromise;
-        console.log('✅ Templates nuclei baixados com sucesso');
+        log.info('✅ Templates nuclei baixados com sucesso');
         
       } catch (error) {
-        console.warn(`❌ Falha ao baixar templates nuclei: ${error}`);
+        log.warn(`❌ Falha ao baixar templates nuclei: ${error}`);
         throw new Error('Não foi possível baixar templates do nuclei');
       }
       
     } catch (error) {
-      console.error(`Erro ao configurar templates nuclei: ${error}`);
+      log.error(`Erro ao configurar templates nuclei: ${error}`);
       throw error;
     }
   }
@@ -261,7 +264,7 @@ export class VulnerabilityScanner {
       await fs.mkdir(dirPath, { recursive: true });
     } catch (error: unknown) {
       // Ignorar se já existir ou não conseguir criar
-      console.log(`Aviso: Não foi possível criar diretório ${dirPath}: ${error}`);
+      log.info(`Aviso: Não foi possível criar diretório ${dirPath}: ${error}`);
     }
   }
 
@@ -307,7 +310,7 @@ export class VulnerabilityScanner {
           const service = ['5986', '443', '8443'].includes(port) ? 'https' : 'http';
           webServices.push({ port, service });
           seenPorts.add(port);
-          console.log(`🌐 Adicionando porta ${port} como potencial serviço web (${service})`);
+          log.info(`🌐 Adicionando porta ${port} como potencial serviço web (${service})`);
         }
       }
     }
@@ -379,9 +382,9 @@ export class VulnerabilityScanner {
     return new Promise((resolve, reject) => {
       const { jobId, processName, stage, maxWaitTime = 1800000 } = context; // 30min default for nuclei
 
-      console.log(`🔧 Executando: ${command} ${args.join(' ')}`);
+      log.info(`🔧 Executando: ${command} ${args.join(' ')}`);
       if (jobId && processName && stage) {
-        console.log(`📍 Job: ${jobId} | Processo: ${processName} | Stage: ${stage}`);
+        log.info(`📍 Job: ${jobId} | Processo: ${processName} | Stage: ${stage}`);
       }
 
       const child = spawn(command, args, {
@@ -409,7 +412,7 @@ export class VulnerabilityScanner {
         try {
           processTracker.register(jobId, processName, child, stage);
         } catch (error) {
-          console.warn(`⚠️ Falha ao registrar processo no tracker: ${error}`);
+          log.warn(`⚠️ Falha ao registrar processo no tracker: ${error}`);
         }
       }
       
@@ -423,7 +426,7 @@ export class VulnerabilityScanner {
       
       // Fallback protection - kill if exceeds maximum wait time
       const fallbackTimer = setTimeout(() => {
-        console.log(`⏱️ Fallback timeout após ${maxWaitTime/1000}s - matando processo ${child.pid}`);
+        log.info(`⏱️ Fallback timeout após ${maxWaitTime/1000}s - matando processo ${child.pid}`);
         
         if (jobId && child.pid) {
           processTracker.kill(jobId, child.pid);
@@ -437,31 +440,31 @@ export class VulnerabilityScanner {
       
       child.on('close', (code) => {
         clearTimeout(fallbackTimer);
-        console.log(`📋 Comando concluído com código ${code}`);
+        log.info(`📋 Comando concluído com código ${code}`);
         
         // Debug detalhado: mostrar conteúdo capturado
-        console.log(`📊 DEBUG stdout length: ${stdout.length} characters`);
-        console.log(`📊 DEBUG stderr length: ${stderr.length} characters`);
+        log.info(`📊 DEBUG stdout length: ${stdout.length} characters`);
+        log.info(`📊 DEBUG stderr length: ${stderr.length} characters`);
         
         if (stdout.length > 0) {
-          console.log(`📊 DEBUG stdout preview (first 500 chars): ${stdout.substring(0, 500)}`);
+          log.info(`📊 DEBUG stdout preview (first 500 chars): ${stdout.substring(0, 500)}`);
         }
         if (stderr.length > 0) {
-          console.log(`📊 DEBUG stderr preview (first 500 chars): ${stderr.substring(0, 500)}`);
+          log.info(`📊 DEBUG stderr preview (first 500 chars): ${stderr.substring(0, 500)}`);
         }
         
         if (code === 0) {
           resolve(stdout);
         } else {
           const errorMsg = `Command failed with code ${code}: ${stderr}`;
-          console.error(`❌ ${errorMsg}`);
+          log.error(`❌ ${errorMsg}`);
           reject(new Error(errorMsg));
         }
       });
       
       child.on('error', (error: Error) => {
         clearTimeout(fallbackTimer);
-        console.error(`💥 Erro no comando:`, error);
+        log.error(`💥 Erro no comando:`, error);
         reject(error);
       });
     });
@@ -474,32 +477,32 @@ export class VulnerabilityScanner {
     const results: VulnerabilityFinding[] = [];
     
     // Debug: mostrar conteúdo exato recebido
-    console.log(`🔍 DEBUG parseNucleiOutput recebeu: ${output.length} characters`);
+    log.info(`🔍 DEBUG parseNucleiOutput recebeu: ${output.length} characters`);
     if (output.length > 0) {
-      console.log(`🔍 DEBUG output preview (first 500 chars): ${output.substring(0, 500)}`);
+      log.info(`🔍 DEBUG output preview (first 500 chars): ${output.substring(0, 500)}`);
     }
     
     const lines = output.split('\n');
     const filteredLines = lines.filter(line => line.trim());
     
-    console.log(`🔍 Total lines: ${lines.length}, after filter: ${filteredLines.length}`);
+    log.info(`🔍 Total lines: ${lines.length}, after filter: ${filteredLines.length}`);
     
     // Debug: mostrar algumas linhas raw para análise
     if (lines.length > 0) {
-      console.log(`🔍 DEBUG primeira linha raw: "${lines[0]}"`);
-      if (lines.length > 1) console.log(`🔍 DEBUG segunda linha raw: "${lines[1]}"`);
-      if (lines.length > 2) console.log(`🔍 DEBUG terceira linha raw: "${lines[2]}"`);
+      log.info(`🔍 DEBUG primeira linha raw: "${lines[0]}"`);
+      if (lines.length > 1) log.info(`🔍 DEBUG segunda linha raw: "${lines[1]}"`);
+      if (lines.length > 2) log.info(`🔍 DEBUG terceira linha raw: "${lines[2]}"`);
     }
     
-    console.log(`🔍 Parseando ${filteredLines.length} linhas de saída do nuclei para ${target}...`);
+    log.info(`🔍 Parseando ${filteredLines.length} linhas de saída do nuclei para ${target}...`);
     
     for (const line of lines) {
       try {
         const finding = JSON.parse(line);
         
         // Log detalhado do achado parseado - mostra linha raw para debug
-        console.log(`📝 Nuclei linha raw: ${line.substring(0, 200)}...`);
-        console.log(`📝 Nuclei achado parseado: template=${finding.templateID || finding.template}, severity=${finding.info?.severity}, matched=${finding['matched-at'] || finding.matched_at}`);
+        log.info(`📝 Nuclei linha raw: ${line.substring(0, 200)}...`);
+        log.info(`📝 Nuclei achado parseado: template=${finding.templateID || finding.template}, severity=${finding.info?.severity}, matched=${finding['matched-at'] || finding.matched_at}`);
         
         const vulnerability: VulnerabilityFinding = {
           type: 'vulnerability' as const,  // Tipo para corresponder ao matcher do threatEngine
@@ -522,14 +525,14 @@ export class VulnerabilityScanner {
         };
         
         results.push(vulnerability);
-        console.log(`✅ Vulnerabilidade adicionada: ${vulnerability.name} (${vulnerability.severity})`);
+        log.info(`✅ Vulnerabilidade adicionada: ${vulnerability.name} (${vulnerability.severity})`);
         
       } catch (error) {
-        console.warn('❌ Erro ao parsear linha do nuclei:', line, 'Erro:', error);
+        log.warn('❌ Erro ao parsear linha do nuclei:', line, 'Erro:', error);
       }
     }
     
-    console.log(`📊 Nuclei parsing concluído: ${results.length} vulnerabilidades extraídas de ${lines.length} linhas`);
+    log.info(`📊 Nuclei parsing concluído: ${results.length} vulnerabilidades extraídas de ${lines.length} linhas`);
     return results;
   }
 
@@ -570,7 +573,7 @@ export class VulnerabilityScanner {
           });
         }
       } catch (error) {
-        console.warn(`Erro na verificação ${vulnCheck.name} para ${baseUrl}:`, error);
+        log.warn(`Erro na verificação ${vulnCheck.name} para ${baseUrl}:`, error);
       }
     }
 

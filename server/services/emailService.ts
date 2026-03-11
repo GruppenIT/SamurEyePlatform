@@ -1,4 +1,7 @@
 import nodemailer from 'nodemailer';
+import { createLogger } from '../lib/logger';
+
+const log = createLogger('email');
 import type { Transporter } from 'nodemailer';
 import { EmailSettings } from '@shared/schema';
 import { EncryptionService } from './encryption';
@@ -140,7 +143,7 @@ export class EmailService {
 
       return response.accessToken;
     } catch (error) {
-      console.error('Erro ao obter access token Microsoft:', error);
+      log.error({ err: error }, 'erro ao obter access token Microsoft');
       throw new Error(`Falha ao obter access token do Microsoft: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     }
   }
@@ -235,7 +238,7 @@ export class EmailService {
 
       await transporter.sendMail(mailOptions);
     } catch (error) {
-      console.error('Erro ao enviar e-mail:', error);
+      log.error({ err: error }, 'erro ao enviar e-mail');
       throw new Error(`Falha ao enviar e-mail: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     }
   }
@@ -256,7 +259,7 @@ export class EmailService {
       
       return true;
     } catch (error) {
-      console.error('Erro ao testar conexão SMTP:', error);
+      log.error({ err: error }, 'erro ao testar conexão SMTP');
       throw new Error(`Falha ao conectar ao servidor SMTP: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     }
   }

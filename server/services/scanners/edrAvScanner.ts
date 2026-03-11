@@ -3,6 +3,9 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { storage } from '../../storage';
+import { createLogger } from '../../lib/logger';
+
+const log = createLogger('edrScanner');
 
 /**
  * Preferred directory for temporary auth files (FND-004 mitigation).
@@ -89,8 +92,7 @@ export class EDRAVScanner {
     const totalDiscovered = targets.length;
     const requestedSampleSize = Math.max(1, Math.floor(totalDiscovered * sampleRate / 100));
     
-    console.log(`🎯 Iniciando teste EDR/AV: ${totalDiscovered} computadores descobertos`);
-    console.log(`📊 Amostragem solicitada: ${sampleRate}%/${requestedSampleSize} computadores`);
+    log.info({ totalDiscovered, sampleRate, requestedSampleSize }, 'starting EDR/AV test');
     
     const findings: any[] = [];
     const usedTargets = new Set<string>();
@@ -106,7 +108,7 @@ export class EDRAVScanner {
       const currentTarget = availableTargets.shift()!;
       usedTargets.add(currentTarget);
       
-      console.log(`🔍 Testando ${currentTarget} (tentativa ${successfulDeployments + failedDeployments + 1})`);
+      log.info({ host: currentTarget, attempt: successfulDeployments + failedDeployments + 1 }, 'testing host');
       
       try {
         const finding = await this.testSingleHost(currentTarget, credential, timeout);
@@ -114,18 +116,18 @@ export class EDRAVScanner {
         // Verificar se conseguiu fazer deploy do EICAR (sucesso na cópia)
         if (finding.error) {
           failedDeployments++;
-          console.log(`❌ Falha no deploy EICAR em ${currentTarget}: ${finding.error}`);
+          log.warn({ host: currentTarget, err: finding.error }, 'EICAR deploy failed');
           findings.push(finding);
         } else {
           successfulDeployments++;
           findings.push(finding);
-          console.log(`✅ EICAR copiado com sucesso em ${currentTarget} (${finding.eicarRemoved ? 'REMOVIDO pelo EDR/AV' : 'PERSISTIU - FALHA NO EDR/AV'})`);
+          log.info({ host: currentTarget, eicarRemoved: finding.eicarRemoved }, `EICAR deployed — ${finding.eicarRemoved ? 'removed by EDR/AV' : 'PERSISTED — EDR/AV failure'}`);
         }
         
       } catch (error) {
         failedDeployments++;
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`❌ Erro crítico testando ${currentTarget}:`, errorMessage);
+        log.error({ host: currentTarget, err: errorMessage }, 'critical error testing host');
         
         findings.push({
           type: 'edr_test',
@@ -142,44 +144,29 @@ export class EDRAVScanner {
     const eicarRemovedCount = findings.filter(f => f.eicarRemoved === true).length;
     const eicarPersistedCount = findings.filter(f => f.eicarRemoved === false).length;
     
-    // Log de resultados finais
-    console.log(`📈 ESTATÍSTICAS FINAIS:`);
-    console.log(`   • ${totalDiscovered} computadores descobertos`);
-    console.log(`   • Amostragem solicitada: ${sampleRate}%/${requestedSampleSize} computadores`);
-    console.log(`   • EICAR copiado para ${successfulDeployments} computadores após tentativas`);
-    console.log(`   • Falhas no deployment: ${failedDeployments}`);
-    
     // Analisar tipos de falhas para diagnóstico mais preciso
     const authFailures = findings.filter(f => f.error && f.error.includes('NT_STATUS_LOGON_FAILURE')).length;
     const accessDenied = findings.filter(f => f.error && f.error.includes('NT_STATUS_ACCESS_DENIED')).length;
     const networkErrors = findings.filter(f => f.error && f.error.includes('NT_STATUS_BAD_NETWORK_NAME')).length;
     const otherErrors = failedDeployments - authFailures - accessDenied - networkErrors;
 
+    const stats = {
+      totalDiscovered,
+      sampleRate,
+      requestedSampleSize,
+      successfulDeployments,
+      failedDeployments,
+      attemptsExhausted,
+      eicarRemovedCount,
+      eicarPersistedCount,
+      failureBreakdown: { authFailures, accessDenied, networkErrors, otherErrors },
+    };
+
     if (attemptsExhausted) {
-      console.log(`⚠️ NÃO FOI POSSÍVEL ALCANÇAR A AMOSTRAGEM SOLICITADA`);
-      console.log(`   📊 ANÁLISE DAS FALHAS (${failedDeployments} total):`);
-      if (authFailures > 0) {
-        console.log(`   🔑 ${authFailures} falhas de autenticação (NT_STATUS_LOGON_FAILURE)`);
-        console.log(`      → SOLUÇÃO: Adicionar conta aos administradores locais dos servidores membros`);
-      }
-      if (accessDenied > 0) {
-        console.log(`   🚫 ${accessDenied} acessos negados (NT_STATUS_ACCESS_DENIED)`);
-        console.log(`      → SOLUÇÃO: Verificar privilégios e compartilhamento C$`);
-      }
-      if (networkErrors > 0) {
-        console.log(`   🌐 ${networkErrors} erros de rede/conectividade`);
-        console.log(`      → SOLUÇÃO: Verificar se servidores estão online`);
-      }
-      if (otherErrors > 0) {
-        console.log(`   ❓ ${otherErrors} outros erros diversos`);
-      }
-      console.log(`   💡 DICA: Domain Controllers geralmente funcionam, servidores membros precisam configuração adicional`);
+      log.warn(stats, 'EDR/AV test finished — sample target NOT reached');
     } else {
-      console.log(`✅ Amostragem alcançada com sucesso`);
+      log.info(stats, 'EDR/AV test finished — sample target reached');
     }
-    
-    console.log(`   • EDR/AV funcionando: ${eicarRemovedCount} computadores`);
-    console.log(`   • EDR/AV com falhas: ${eicarPersistedCount} computadores`);
     
     return {
       findings,
@@ -205,11 +192,11 @@ export class EDRAVScanner {
     timeout: number = 30
   ): Promise<any> {
     const startTime = Date.now();
-    console.log(`Testando EDR/AV em ${hostname}`);
+    log.debug({ host: hostname }, 'testing EDR/AV');
 
     // Usar timeout da jornada (parâmetro recebido)
     const timeoutMs = Math.max(5, Math.min(3600, timeout)) * 1000; // Limitar entre 5s e 1h
-    console.log(`⏱️ Timeout da jornada: ${Math.floor(timeoutMs / 1000)}s para teste EICAR`);
+    log.debug({ timeoutSec: Math.floor(timeoutMs / 1000) }, 'EICAR test timeout configured');
 
     try {
       // 1. Primeiro, tentar deployment via SMB
@@ -217,7 +204,7 @@ export class EDRAVScanner {
       
       if (smbResult.success) {
         // 2. Aguardar tempo configurado para o EDR/AV agir
-        console.log(`⏱️ Aguardando ${Math.floor(timeoutMs / 1000)}s para EDR/AV processar o arquivo EICAR...`);
+        log.debug({ host: hostname, waitSec: Math.floor(timeoutMs / 1000) }, 'waiting for EDR/AV to process EICAR');
         await this.delay(timeoutMs);
         
         // 3. Verificar se o arquivo ainda existe
@@ -245,7 +232,7 @@ export class EDRAVScanner {
         
         if (wmiResult.success) {
           // Aguardar mesmo tempo configurado para WMI
-          console.log(`⏱️ Aguardando ${Math.floor(timeoutMs / 1000)}s após deploy via WMI...`);
+          log.debug({ host: hostname, waitSec: Math.floor(timeoutMs / 1000) }, 'waiting after WMI deploy');
           await this.delay(timeoutMs);
           const fileExists = await this.checkEicarFileExists(hostname, credential, wmiResult.filePath!);
           
@@ -312,8 +299,7 @@ export class EDRAVScanner {
       // FND-004: Auth file em tmpfs com nome imprevisível e modo 0o600
       authFile = await createSecureAuthFile(credential);
 
-      console.log(`🔑 Auth file criado em ${SECURE_TEMP_DIR === '/dev/shm' ? 'tmpfs (RAM)' : '/tmp'}`);
-      console.log(`   Usuário: ${credential.domain ? `${credential.domain}\\${credential.username}` : credential.username}`);
+      log.debug({ storage: SECURE_TEMP_DIR === '/dev/shm' ? 'tmpfs' : '/tmp' }, 'auth file created');
 
       const targetSmbPath = 'Windows\\Temp\\samureye_eicar.txt';
 
@@ -323,7 +309,7 @@ export class EDRAVScanner {
         '-c', `put "${tempFile}" "${targetSmbPath}"`
       ];
 
-      console.log(`📋 Executando SMB Deploy para ${hostname}`);
+      log.info({ host: hostname }, 'executing SMB deploy');
 
       // Testar conectividade básica antes de tentar copiar
       const testArgs = [
@@ -335,17 +321,17 @@ export class EDRAVScanner {
       const testResult = await this.executeCommand('smbclient', testArgs, 15000);
 
       if (testResult.exitCode !== 0) {
-        console.log(`❌ Falha na conectividade SMB para ${hostname}`);
+        log.debug({ host: hostname, exitCode: testResult.exitCode }, 'SMB connectivity test failed');
       } else {
-        console.log(`✅ Conectividade SMB OK, prosseguindo com cópia...`);
+        log.debug({ host: hostname }, 'SMB connectivity OK');
       }
 
       const result = await this.executeCommand('smbclient', args, 30000);
 
-      console.log(`📊 SMB Deploy - Exit Code: ${result.exitCode}`);
+      log.debug({ host: hostname, exitCode: result.exitCode }, 'SMB deploy result');
 
       if (result.exitCode === 0) {
-        console.log(`✅ SMB Deploy bem-sucedido para ${hostname}`);
+        log.info({ host: hostname }, 'SMB deploy successful');
         return {
           success: true,
           filePath: `\\\\${hostname}\\${targetPath}`,
@@ -358,13 +344,12 @@ export class EDRAVScanner {
         // Credenciais em argv são visíveis em /proc/<pid>/cmdline por qualquer
         // usuário do sistema. Se o auth file falhar, reportar o erro.
         if (result.stderr?.includes('Unable to open credentials file') || result.stderr?.includes('Error reading credentials')) {
-          console.error(`🔧 Falha ao ler arquivo de autenticação em ${SECURE_TEMP_DIR}. Verifique permissões.`);
+          log.error({ host: hostname, tempDir: SECURE_TEMP_DIR }, 'failed to read auth file — check permissions');
           diagnosticMessage = `Falha ao ler arquivo de autenticação. Verifique permissões em ${SECURE_TEMP_DIR}.`;
         }
 
         if (result.stdout?.includes('NT_STATUS_LOGON_FAILURE') || diagnosticMessage.includes('NT_STATUS_LOGON_FAILURE')) {
-          console.log(`🔍 DIAGNÓSTICO NT_STATUS_LOGON_FAILURE para ${hostname}:`);
-          console.log('   Conta pode precisar de privilégios administrativos locais no servidor de destino');
+          log.warn({ host: hostname }, 'NT_STATUS_LOGON_FAILURE — account may need local admin privileges on target');
 
           diagnosticMessage = `FALHA DE AUTENTICAÇÃO SMB: ${hostname} negou acesso à conta '${credential.username}'. Servidores membros requerem privilégios administrativos locais específicos.`;
 
@@ -405,7 +390,7 @@ export class EDRAVScanner {
   ): Promise<{ success: boolean; filePath?: string; error?: string }> {
     // Método WMI desabilitado por questões de segurança
     // Credenciais seriam expostas em argumentos de processo
-    console.warn('Deploy via WMI desabilitado por questões de segurança - usando apenas SMB');
+    log.warn('WMI deploy disabled for security — use SMB only');
     
     return {
       success: false,
@@ -435,12 +420,12 @@ export class EDRAVScanner {
       const result = await this.executeCommand('smbclient', args, 10000);
 
       const fileExists = result.exitCode === 0 && !result.stderr.includes('NT_STATUS_OBJECT_NAME_NOT_FOUND');
-      console.log(`🔍 Arquivo EICAR em ${hostname}: ${fileExists ? 'presente' : 'removido pelo EDR/AV'}`);
+      log.info({ host: hostname, fileExists }, `EICAR file ${fileExists ? 'present' : 'removed by EDR/AV'}`);
 
       return fileExists;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.log(`Erro verificando arquivo em ${hostname}:`, errorMessage);
+      log.error({ host: hostname, err: errorMessage }, 'error checking EICAR file');
       return false;
     } finally {
       await secureCleanup(authFile);
@@ -468,10 +453,10 @@ export class EDRAVScanner {
 
       await this.executeCommand('smbclient', args, 10000);
 
-      console.log(`Arquivo EICAR removido de ${hostname}`);
+      log.info({ host: hostname }, 'EICAR file cleaned up');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.log(`Erro removendo arquivo EICAR de ${hostname}:`, errorMessage);
+      log.error({ host: hostname, err: errorMessage }, 'error removing EICAR file');
     } finally {
       await secureCleanup(authFile);
     }
@@ -485,7 +470,7 @@ export class EDRAVScanner {
       const result = await this.executeCommand('which', [binaryName], 5000);
       return result.exitCode === 0;
     } catch (error) {
-      console.log(`Erro verificando existência de ${binaryName}:`, error);
+      log.error({ binary: binaryName, err: error }, 'error checking binary availability');
       return false;
     }
   }
@@ -508,7 +493,7 @@ export class EDRAVScanner {
       
       // FND-004: Sanitize log — redact auth file paths and any credential-like args
       const safeArgs = args.map(a => a.startsWith(SECURE_TEMP_DIR) ? '[AUTH_FILE]' : a);
-      console.log(`Executando: ${command} ${safeArgs.join(' ')}`);
+      log.debug({ command, args: safeArgs }, 'executing command');
       
       const child = spawn(command, args, {
         stdio: ['pipe', 'pipe', 'pipe'],

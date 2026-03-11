@@ -3,6 +3,9 @@ import { storage } from '../storage';
 import { journeyExecutor } from './journeyExecutor';
 import { type Job, type InsertJob } from '@shared/schema';
 import { processTracker, type ProcessUpdate } from './processTracker';
+import { createLogger } from '../lib/logger';
+
+const log = createLogger('jobQueue');
 
 export interface JobUpdate {
   jobId: string;
@@ -49,13 +52,13 @@ class JobQueueService extends EventEmitter {
       // Verificar se job ainda está ativo antes de atualizar
       const job = await storage.getJob(update.jobId);
       if (!job) {
-        console.log(`🚫 Job ${update.jobId} não encontrado, ignorando update de processo`);
+        log.info(`🚫 Job ${update.jobId} não encontrado, ignorando update de processo`);
         return;
       }
 
       // Não atualizar se job já está em estado terminal
       if (job.status === 'completed' || job.status === 'failed' || job.status === 'timeout') {
-        console.log(`🚫 Job ${update.jobId} em estado terminal (${job.status}), ignorando update de processo`);
+        log.info(`🚫 Job ${update.jobId} em estado terminal (${job.status}), ignorando update de processo`);
         return;
       }
 
@@ -83,9 +86,9 @@ class JobQueueService extends EventEmitter {
       // Emitir para WebSocket
       this.emit('jobUpdate', jobUpdate);
 
-      console.log(`📡 JobUpdate emitido para ${update.jobId}: ${currentTask} (alive: ${update.isAlive}, status: ${job.status})`);
+      log.info(`📡 JobUpdate emitido para ${update.jobId}: ${currentTask} (alive: ${update.isAlive}, status: ${job.status})`);
     } catch (error) {
-      console.error(`❌ Erro ao processar update de processo:`, error);
+      log.error(`❌ Erro ao processar update de processo:`, error);
     }
   }
 
@@ -129,7 +132,7 @@ class JobQueueService extends EventEmitter {
       // Verify job exists in database before processing
       const existingJob = await storage.getJob(job.id);
       if (!existingJob) {
-        console.error(`Cannot process non-existent job: ${job.id}`);
+        log.error(`Cannot process non-existent job: ${job.id}`);
         return;
       }
 
@@ -147,23 +150,23 @@ class JobQueueService extends EventEmitter {
       // Compute dynamic timeout based on journey scope
       const timeoutMs = await this.computeJobTimeout(journey);
       this.jobTimeouts.set(job.id, timeoutMs);
-      console.log(`⏱️  Job ${job.id} timeout: ${Math.round(timeoutMs / 60000)} minutos (journey: ${journey.type})`);
+      log.info(`⏱️  Job ${job.id} timeout: ${Math.round(timeoutMs / 60000)} minutos (journey: ${journey.type})`);
 
       // Execute the journey
       await journeyExecutor.executeJourney(journey, job.id, (update) => {
         // Handle updateJobStatus asynchronously to avoid unhandled promise rejections
         this.updateJobStatus(job.id, update.status, update.progress, update.currentTask).catch((error) => {
           if (error.message?.includes('not found')) {
-            console.log(`Job ${job.id} no longer exists, ignoring progress update`);
+            log.info(`Job ${job.id} no longer exists, ignoring progress update`);
           } else {
-            console.error(`Failed to update job status for ${job.id}:`, error);
+            log.error(`Failed to update job status for ${job.id}:`, error);
           }
         });
       });
 
       // Check if job was cancelled before marking as completed
       if (this.isJobCancelled(job.id)) {
-        console.log(`🚫 Job ${job.id} foi cancelado, não marcando como completed`);
+        log.info(`🚫 Job ${job.id} foi cancelado, não marcando como completed`);
         await this.updateJobStatus(job.id, 'failed', undefined, 'Job cancelado pelo usuário');
         return;
       }
@@ -172,13 +175,13 @@ class JobQueueService extends EventEmitter {
       await this.updateJobStatus(job.id, 'completed', 100, 'Execução finalizada');
       
     } catch (error) {
-      console.error(`Erro na execução do job ${job.id}:`, error);
+      log.error(`Erro na execução do job ${job.id}:`, error);
       try {
         await this.updateJobStatus(job.id, 'failed', undefined, error instanceof Error ? error.message : 'Erro desconhecido');
       } catch (updateError) {
         // Ignore "not found" errors when marking as failed - job may have been deleted
         if (!(updateError instanceof Error) || !updateError.message?.includes('not found')) {
-          console.error(`Failed to mark job ${job.id} as failed:`, updateError);
+          log.error(`Failed to mark job ${job.id} as failed:`, updateError);
         }
       }
     } finally {
@@ -226,10 +229,10 @@ class JobQueueService extends EventEmitter {
       
       this.emit('jobUpdate', update);
     } catch (dbError) {
-      console.error(`Failed to update job ${jobId}: ${dbError}`);
+      log.error(`Failed to update job ${jobId}: ${dbError}`);
       // Don't emit update for non-existent jobs to prevent ghost jobs in UI
       if (dbError instanceof Error && dbError.message.includes('not found')) {
-        console.error(`Ghost job detected: ${jobId} - removing from running jobs`);
+        log.error(`Ghost job detected: ${jobId} - removing from running jobs`);
         this.runningJobs.delete(jobId);
       }
       throw dbError;
@@ -277,7 +280,7 @@ class JobQueueService extends EventEmitter {
             // Kill all child processes associated with this job
             const killedCount = processTracker.killAll(job.id);
             if (killedCount > 0) {
-              console.log(`🔪 Timeout: ${killedCount} processos terminados para job ${job.id}`);
+              log.info(`🔪 Timeout: ${killedCount} processos terminados para job ${job.id}`);
             }
 
             await this.updateJobStatus(job.id, 'timeout', undefined, `Job ultrapassou tempo limite de ${timeoutMin} minutos`);
@@ -363,7 +366,7 @@ class JobQueueService extends EventEmitter {
     const MAX_TIMEOUT = 4 * 60 * MINUTE; // 4 hour absolute cap
     const computed = Math.min(totalMs, MAX_TIMEOUT);
 
-    console.log(`📐 Timeout calculado: ~${targetCount} hosts → base ${baseMins}min + vuln ${Math.round(vulnTimeout/MINUTE)}min + web ${Math.round(webExtra/MINUTE)}min = ${Math.round(computed/MINUTE)}min`);
+    log.info(`📐 Timeout calculado: ~${targetCount} hosts → base ${baseMins}min + vuln ${Math.round(vulnTimeout/MINUTE)}min + web ${Math.round(webExtra/MINUTE)}min = ${Math.round(computed/MINUTE)}min`);
 
     return computed;
   }
@@ -380,7 +383,7 @@ class JobQueueService extends EventEmitter {
    */
   markJobAsCancelled(jobId: string): void {
     this.cancelledJobs.add(jobId);
-    console.log(`🚫 Job ${jobId} marcado como cancelado`);
+    log.info(`🚫 Job ${jobId} marcado como cancelado`);
   }
 
   /**
@@ -397,7 +400,7 @@ class JobQueueService extends EventEmitter {
     this.runningJobs.delete(jobId);
     this.jobTimeouts.delete(jobId);
     this.cancelledJobs.delete(jobId); // Cleanup cancelled flag
-    console.log(`🗑️  Job ${jobId} removido dos jobs em execução`);
+    log.info(`🗑️  Job ${jobId} removido dos jobs em execução`);
   }
 
   /**
