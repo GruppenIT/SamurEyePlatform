@@ -1,6 +1,9 @@
 import { storage } from '../storage';
 import { settingsService } from './settingsService';
 import { Schedule } from '@shared/schema';
+import { createLogger } from '../lib/logger';
+
+const log = createLogger('scheduler');
 
 /**
  * Scheduler Service - Responsible for executing scheduled journeys
@@ -16,7 +19,7 @@ export class SchedulerService {
    * Start the scheduler service
    */
   start() {
-    console.log('🕐 Iniciando serviço de agendamento...');
+    log.info('🕐 Iniciando serviço de agendamento...');
     
     // Run immediately on start
     this.checkSchedules();
@@ -26,7 +29,7 @@ export class SchedulerService {
       this.checkSchedules();
     }, this.checkIntervalMs);
     
-    console.log('✅ Serviço de agendamento iniciado com sucesso');
+    log.info('✅ Serviço de agendamento iniciado com sucesso');
   }
 
   /**
@@ -36,7 +39,7 @@ export class SchedulerService {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
-      console.log('🛑 Serviço de agendamento parado');
+      log.info('🛑 Serviço de agendamento parado');
     }
   }
 
@@ -86,11 +89,11 @@ export class SchedulerService {
         try {
           await this.processSchedule(schedule, timeInfo.now, timeInfo);
         } catch (error) {
-          console.error(`Erro ao processar schedule ${schedule.id}:`, error);
+          log.error(`Erro ao processar schedule ${schedule.id}:`, error);
         }
       }
     } catch (error) {
-      console.error('Erro ao verificar agendamentos:', error);
+      log.error('Erro ao verificar agendamentos:', error);
     }
   }
 
@@ -230,9 +233,9 @@ export class SchedulerService {
         progress: 0,
       });
       
-      console.log(`📅 Job criado automaticamente para schedule "${schedule.name}" (Job ID: ${job.id})`);
+      log.info(`📅 Job criado automaticamente para schedule "${schedule.name}" (Job ID: ${job.id})`);
     } catch (error) {
-      console.error(`Erro ao criar job para schedule ${schedule.id}:`, error);
+      log.error(`Erro ao criar job para schedule ${schedule.id}:`, error);
     }
   }
 }

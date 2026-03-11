@@ -1,4 +1,7 @@
 import { storage } from '../storage';
+import { createLogger } from '../lib/logger';
+
+const log = createLogger('hostService');
 import { type InsertHost, type Host } from '@shared/schema';
 
 // Type aliases for enum values
@@ -223,9 +226,9 @@ class HostService {
       try {
         const host = await storage.upsertHost(hostResult);
         hosts.push(host);
-        console.log(`🏠 Host descoberto/atualizado: ${host.name} (${host.ips.join(', ')})`);
+        log.info({ host: host.name, ips: host.ips }, 'host descoberto/atualizado');
       } catch (error) {
-        console.error(`❌ Erro ao salvar host ${hostResult.name}:`, error);
+        log.error({ err: error, host: hostResult.name }, 'erro ao salvar host');
       }
     }
 
@@ -315,7 +318,7 @@ class HostService {
     };
 
     const host = await storage.upsertHost(domainHost);
-    console.log(`🏠 Host de domínio criado/atualizado: ${host.name}`);
+    log.info({ host: host.name }, 'host de domínio criado/atualizado');
     return host;
   }
 
@@ -399,7 +402,7 @@ class HostService {
       
       if (hasIpOverlap) {
         // Same machine discovered with different names - merge
-        console.log(`🔄 Merging hosts by IP overlap: ${existingHost.name} + ${newHost.name}`);
+        log.info({ existingHost: existingHost.name, newHost: newHost.name }, 'merging hosts by IP overlap');
         this.mergeHostResults(existingHost, newHost);
         return;
       }

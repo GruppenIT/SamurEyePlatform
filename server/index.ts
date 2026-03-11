@@ -8,6 +8,9 @@ import { threatEngine } from "./services/threatEngine";
 import { schedulerService } from "./services/scheduler";
 import { subscriptionService } from "./services/subscriptionService";
 import { storage } from "./storage";
+import { createLogger } from './lib/logger';
+
+const slog = createLogger('server');
 
 const app = express();
 
@@ -41,7 +44,7 @@ app.use(cors({
     }
 
     // Reject unrecognized origins
-    console.warn(`🛡️  CORS rejeitou origem: ${origin}`);
+    slog.warn({ origin }, 'CORS rejected origin');
     return callback(new Error('Origem não permitida pela política de CORS'));
   },
   credentials: true
@@ -82,15 +85,15 @@ app.use((req, res, next) => {
 
 (async () => {
   // Inicializar configurações padrão do sistema
-  console.log('🔧 Inicializando configurações padrão do sistema...');
+  slog.info('initializing default system settings');
   await settingsService.initializeDefaultSettings();
-  console.log('✅ Configurações padrão inicializadas com sucesso');
+  slog.info('default settings initialized');
   
   // Initialize database structure (unique indexes, duplicate consolidation)
   await storage.initializeDatabaseStructure();
   
   // Start hibernation monitor for automatic threat reactivation
-  console.log('🕒 Iniciando monitor de ameaças hibernadas...');
+  slog.info('starting hibernated threat monitor');
   await threatEngine.startHibernationMonitor();
   
   // Start scheduler service for automatic job execution
@@ -105,7 +108,7 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    console.error('Express error handler:', err);
+    slog.error({ err }, 'express error handler');
     res.status(status).json({ message });
     // Don't throw after responding - this would trigger process termination
   });

@@ -15,7 +15,7 @@
 | FND-005 | Falta de testes automatizados | **Média** | :red_circle: Pendente |
 | FND-006 | Falta de configuração para ferramentas de suporte a desenvolvedor | **Informativa** | :red_circle: Pendente |
 | FND-007 | Arquivos fonte extensos (God Objects) | **Média** | :red_circle: Pendente |
-| FND-008 | Falta de ferramenta configurável de logging | **Informativa** | :red_circle: Pendente |
+| FND-008 | Falta de ferramenta configurável de logging | **Informativa** | :white_check_mark: Resolvido (pino + redação automática + 655 console→logger) |
 | FND-009 | Validação de Host no sshCollector | **Informativa** | :red_circle: Pendente |
 
 ---
@@ -184,14 +184,29 @@ O env file usava `JSON.stringify()` (double quotes), que NÃO escapa `` ` `` nem
 #### 4.1 FND-008: Ferramenta configurável de logging (Informativa)
 
 **Arquivos afetados:**
-- Todos os arquivos do servidor (~691 ocorrências de console.log/warn/error)
+- `server/lib/logger.ts` (novo módulo central)
+- 22 arquivos do servidor migrados (655 ocorrências de console.log/warn/error → 0)
 
 **Ações:**
-- [ ] Escolher biblioteca de logging (recomendado: **pino** — rápido, JSON estruturado)
-- [ ] Criar módulo central de logger com níveis configuráveis (DEBUG, INFO, WARN, ERROR)
-- [ ] Implementar sanitização de dados sensíveis (senhas, tokens, API keys)
-- [ ] Substituir gradualmente console.log por chamadas ao logger
-- [ ] Configurar nível de log por ambiente (development vs production)
+- [x] Instalar **pino** (produção) + **pino-pretty** (dev) + **@types/pino**
+- [x] Criar módulo central `server/lib/logger.ts` com:
+  - Níveis configuráveis via `LOG_LEVEL` env var (debug/info/warn/error/fatal)
+  - Redação automática de campos sensíveis (password, token, secret, apiKey, etc.)
+  - JSON estruturado em produção (compatível com ELK, Loki, Datadog)
+  - Pretty-print colorido em desenvolvimento (via pino-pretty)
+  - Child loggers por componente (`createLogger('component')`)
+  - Timestamp ISO em todas as linhas
+- [x] Migrar todos os 22 arquivos do servidor (655 → 0 console.log/warn/error)
+- [x] Converter logs verbosos multi-linha em objetos JSON estruturados
+- [x] Corrigir exposição de credential.username nos logs (journeyExecutor.ts, edrAvScanner.ts)
+- [x] Configurar nível de log por ambiente (development = pretty, production = JSON)
+
+**Resultado:**
+- 0 ocorrências de `console.log/warn/error` no servidor
+- Redação automática de 20+ campos sensíveis (password, token, secret, apiKey, etc.)
+- JSON newline-delimited em produção (ingestão direta por agregadores)
+- Correlação por componente em cada linha de log
+- Leak de credenciais em logs corrigido (FND-008b)
 
 ---
 
@@ -225,7 +240,7 @@ Fase 1.1  →  FND-002  Dependências vulneráveis         [✅ CONCLUÍDO]
 Fase 1.2  →  FND-001  Man in the Middle (MITM)          [✅ CONCLUÍDO]
 Fase 2.1  →  FND-004  AuthFile no EDR AV Scanner        [✅ CONCLUÍDO]
 Fase 3.1  →  FND-003  CORS permissivo                   [✅ CONCLUÍDO]
-Fase 4.1  →  FND-008  Logging estruturado               [Base para observabilidade]
+Fase 4.1  →  FND-008  Logging estruturado               [✅ CONCLUÍDO]
 Fase 4.2  →  FND-006  ESLint + Prettier                 [Base para qualidade]
 Fase 2.2  →  FND-005  Testes automatizados              [Depende de 4.2]
 Fase 4.3  →  FND-009  Validação SSH Host                [Melhoria incremental]
@@ -243,3 +258,4 @@ Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo pr
 | 2026-03-11 | FND-001 | MITM mitigado: HTTPS obrigatório, validação de comandos, whitelist+regex de params, single-quote env file, bloqueio de shell metacharacters. Build OK. | Concluído |
 | 2026-03-11 | FND-003 | CORS: removido fallback allow-all, adicionado ALLOWED_ORIGINS env var, regex seguro para localhost dev, rejeição com log. Build OK. | Concluído |
 | 2026-03-11 | FND-004 | AuthFile: tmpfs (/dev/shm), crypto.randomBytes, secureCleanup (zero+unlink), removido fallback -U user%pass, logs redactados. Build OK. | Concluído |
+| 2026-03-11 | FND-008 | Logging: pino + pino-pretty instalados, server/lib/logger.ts criado com redação automática de 20+ campos sensíveis, 655 console.* migrados para logger estruturado em 22 arquivos, credential.username removido dos logs. Build OK. | Concluído |

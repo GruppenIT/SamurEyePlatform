@@ -1,3 +1,7 @@
+import { createLogger } from '../lib/logger';
+
+const log = createLogger('cve');
+
 interface CVEResult {
   cveId: string;
   description: string; // Descrição traduzida para PT-BR (exibição)
@@ -73,10 +77,10 @@ class CVEService {
         const { storage } = require('../storage');
         enrichment = await storage.getLatestHostEnrichment(hostId);
         if (enrichment) {
-          console.log(`🔐 Usando dados autenticados para host ${hostId}: OS ${enrichment.osVersion || 'N/A'}, Build ${enrichment.osBuild || 'N/A'}, ${enrichment.installedApps?.length || 0} apps, ${enrichment.patches?.length || 0} patches`);
+          log.info(`🔐 Usando dados autenticados para host ${hostId}: OS ${enrichment.osVersion || 'N/A'}, Build ${enrichment.osBuild || 'N/A'}, ${enrichment.installedApps?.length || 0} apps, ${enrichment.patches?.length || 0} patches`);
         }
       } catch (error) {
-        console.warn(`⚠️ Erro ao buscar enrichments para host ${hostId}:`, error);
+        log.warn(`⚠️ Erro ao buscar enrichments para host ${hostId}:`, error);
       }
     }
     
@@ -86,11 +90,11 @@ class CVEService {
     // Verificar cache
     const cacheKey = `${service}:${version || 'latest'}`;
     if (this.cache.has(cacheKey)) {
-      console.log(`📦 CVE cache hit para ${cacheKey}`);
+      log.info(`📦 CVE cache hit para ${cacheKey}`);
       return this.filterCVEsByVersion(this.cache.get(cacheKey)!, version, osInfo, enrichment);
     }
 
-    console.log(`🔍 Buscando CVEs para: ${searchTerm} (versão: ${version || 'N/A'}, OS: ${osInfo || 'N/A'})`);
+    log.info(`🔍 Buscando CVEs para: ${searchTerm} (versão: ${version || 'N/A'}, OS: ${osInfo || 'N/A'})`);
 
     try {
       // Rate limiting - aguardar entre requisições
@@ -106,7 +110,7 @@ class CVEService {
       });
 
       if (!response.ok) {
-        console.error(`❌ Erro na API NVD: ${response.status} ${response.statusText}`);
+        log.error(`❌ Erro na API NVD: ${response.status} ${response.statusText}`);
         return [];
       }
 
@@ -123,18 +127,18 @@ class CVEService {
         }
       }
 
-      console.log(`✅ Encontrados ${cves.length} CVEs brutos para ${searchTerm}`);
+      log.info(`✅ Encontrados ${cves.length} CVEs brutos para ${searchTerm}`);
 
       // Armazenar em cache
       this.cache.set(cacheKey, cves);
 
       // Filtrar por versão antes de retornar (usando enrichments se disponível)
       const filteredCves = this.filterCVEsByVersion(cves, version, osInfo, enrichment);
-      console.log(`✅ Após filtragem por versão: ${filteredCves.length} CVEs aplicáveis`);
+      log.info(`✅ Após filtragem por versão: ${filteredCves.length} CVEs aplicáveis`);
 
       return filteredCves;
     } catch (error) {
-      console.error(`❌ Erro ao buscar CVEs para ${searchTerm}:`, error);
+      log.error(`❌ Erro ao buscar CVEs para ${searchTerm}:`, error);
       return [];
     }
   }
@@ -186,7 +190,7 @@ class CVEService {
         const installedKBs = enrichment.patches.map((p: string) => p.toLowerCase());
         const hasFixedKB = kbMatches.some((kb: string) => installedKBs.includes(kb.toLowerCase()));
         if (hasFixedKB) {
-          console.log(`✅ CVE ${cve.cveId} JÁ CORRIGIDO por patch: ${kbMatches.join(', ')}`);
+          log.info(`✅ CVE ${cve.cveId} JÁ CORRIGIDO por patch: ${kbMatches.join(', ')}`);
           return { applies: false, confidence: 'high' };
         }
       }
@@ -198,7 +202,7 @@ class CVEService {
       : osInfo;
     
     if (enrichedOsInfo && enrichedOsInfo !== osInfo) {
-      console.log(`🔐 Usando OS enriquecido: "${enrichedOsInfo}" (vs nmap: "${osInfo || 'N/A'}")`);
+      log.info(`🔐 Usando OS enriquecido: "${enrichedOsInfo}" (vs nmap: "${osInfo || 'N/A'}")`);
     }
     
     // ESTRATÉGIA 1: Usar CPE matches (fonte mais confiável) - SEMPRE tentar
@@ -206,9 +210,9 @@ class CVEService {
       const cpeResult = this.matchAgainstCPE(cve.cpeMatches, enrichedOsInfo, detectedVersion);
       if (cpeResult !== null) {
         if (cpeResult.applies) {
-          console.log(`✅ CVE ${cve.cveId} se aplica via CPE: ${cpeResult.reason}`);
+          log.info(`✅ CVE ${cve.cveId} se aplica via CPE: ${cpeResult.reason}`);
         } else {
-          console.log(`❌ CVE ${cve.cveId} NÃO se aplica via CPE: ${cpeResult.reason}`);
+          log.info(`❌ CVE ${cve.cveId} NÃO se aplica via CPE: ${cpeResult.reason}`);
         }
         return { applies: cpeResult.applies, confidence: 'high' };
       }
@@ -226,11 +230,11 @@ class CVEService {
         );
         
         if (!hasMatch) {
-          console.log(`❌ CVE ${cve.cveId} NÃO se aplica: Windows ${cveWindowsVersions.join(', ')} vs detectado ${detectedWindowsVersion.join(', ')}`);
+          log.info(`❌ CVE ${cve.cveId} NÃO se aplica: Windows ${cveWindowsVersions.join(', ')} vs detectado ${detectedWindowsVersion.join(', ')}`);
           return { applies: false, confidence: 'high' };
         }
         
-        console.log(`✅ CVE ${cve.cveId} se aplica: Windows ${cveWindowsVersions.join(', ')} match`);
+        log.info(`✅ CVE ${cve.cveId} se aplica: Windows ${cveWindowsVersions.join(', ')} match`);
         return { applies: true, confidence: 'high' };
       }
     }
@@ -244,20 +248,20 @@ class CVEService {
         
         for (const range of versionRanges) {
           if (this.isVersionInRange(parsedDetected, range)) {
-            console.log(`✅ CVE ${cve.cveId} se aplica: versão ${detectedVersion} em range ${range}`);
+            log.info(`✅ CVE ${cve.cveId} se aplica: versão ${detectedVersion} em range ${range}`);
             return { applies: true, confidence: 'high' };
           }
         }
         
         // Versão detectada mas está FORA do range especificado
-        console.log(`❌ CVE ${cve.cveId} NÃO se aplica: versão ${detectedVersion} fora de todos os ranges`);
+        log.info(`❌ CVE ${cve.cveId} NÃO se aplica: versão ${detectedVersion} fora de todos os ranges`);
         return { applies: false, confidence: 'high' };
       }
     }
 
     // ESTRATÉGIA 4: Sem informação suficiente - REJEITAR por segurança
     // Se não conseguimos validar, não podemos afirmar que o CVE se aplica
-    console.log(`❌ CVE ${cve.cveId} NÃO se aplica: informação insuficiente para validação (sem CPE, sem versão Windows, sem version range)`);
+    log.info(`❌ CVE ${cve.cveId} NÃO se aplica: informação insuficiente para validação (sem CPE, sem versão Windows, sem version range)`);
     return { applies: false, confidence: 'low' };
   }
 
@@ -279,7 +283,7 @@ class CVEService {
     for (const cpe of cpeMatches) {
       // Pular CPEs explicitamente marcadas como não-vulneráveis
       if (cpe.vulnerable === false) {
-        console.log(`⏭️  Pulando CPE não-vulnerável: ${cpe.criteria}`);
+        log.info(`⏭️  Pulando CPE não-vulnerável: ${cpe.criteria}`);
         continue;
       }
       
@@ -756,7 +760,7 @@ class CVEService {
         cpeMatches: cpeMatches.length > 0 ? cpeMatches : undefined,
       };
     } catch (error) {
-      console.error(`Erro ao processar CVE:`, error);
+      log.error(`Erro ao processar CVE:`, error);
       return null;
     }
   }
@@ -862,7 +866,7 @@ class CVEService {
     
     if (timeSinceLastRequest < this.REQUEST_DELAY) {
       const waitTime = this.REQUEST_DELAY - timeSinceLastRequest;
-      console.log(`⏱️ Aguardando ${waitTime}ms para rate limit do NVD...`);
+      log.info(`⏱️ Aguardando ${waitTime}ms para rate limit do NVD...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
     
@@ -874,7 +878,7 @@ class CVEService {
    */
   clearCache(): void {
     this.cache.clear();
-    console.log('🗑️ Cache de CVE limpo');
+    log.info('🗑️ Cache de CVE limpo');
   }
 }
 

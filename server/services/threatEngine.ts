@@ -2,6 +2,9 @@ import { storage } from '../storage';
 import { hostService } from './hostService';
 import { type InsertThreat, type Threat } from '@shared/schema';
 import { notificationService } from './notificationService';
+import { createLogger } from '../lib/logger';
+
+const log = createLogger('threatEngine');
 
 export interface ThreatRule {
   id: string;
@@ -747,10 +750,10 @@ class ThreatEngineService {
   async analyzeFindings(findings: any[], assetId?: string, jobId?: string): Promise<Threat[]> {
     const threats: Threat[] = [];
 
-    console.log(`🔍 ThreatEngine analisando ${findings.length} achados para criação de ameaças...`);
+    log.info(`🔍 ThreatEngine analisando ${findings.length} achados para criação de ameaças...`);
     
     for (const finding of findings) {
-      console.log(`📋 Analisando achado: tipo=${finding.type}, porta=${finding.port}, severidade=${finding.severity}`);
+      log.info(`📋 Analisando achado: tipo=${finding.type}, porta=${finding.port}, severidade=${finding.severity}`);
       
       let matchedRules = 0;
       for (const rule of this.rules) {
@@ -761,12 +764,12 @@ class ThreatEngineService {
             const threat = await storage.createThreat(threatData);
             threats.push(threat);
             
-            console.log(`✅ Ameaça criada pela regra '${rule.id}': ${threat.title} (${threat.severity})`);
+            log.info(`✅ Ameaça criada pela regra '${rule.id}': ${threat.title} (${threat.severity})`);
             
             // Recalculate host risk score if threat is linked to a host
             if (threat.hostId) {
               await this.recalculateHostRiskScore(threat.hostId).catch(err => 
-                console.error(`⚠️ Erro ao recalcular escore de risco do host ${threat.hostId}:`, err)
+                log.error(`⚠️ Erro ao recalcular escore de risco do host ${threat.hostId}:`, err)
               );
             }
             
@@ -774,21 +777,21 @@ class ThreatEngineService {
             try {
               await notificationService.notifyThreatCreated(threat);
             } catch (notifError) {
-              console.error(`⚠️ Erro ao enviar notificações para ameaça ${threat.id}:`, notifError);
+              log.error(`⚠️ Erro ao enviar notificações para ameaça ${threat.id}:`, notifError);
               // Don't fail threat creation if notification fails
             }
           } catch (error) {
-            console.error(`❌ Erro ao criar ameaça para regra ${rule.id}:`, error);
+            log.error(`❌ Erro ao criar ameaça para regra ${rule.id}:`, error);
           }
         }
       }
       
       if (matchedRules === 0) {
-        console.log(`⚪ Nenhuma regra correspondeu ao achado: ${JSON.stringify(finding).substring(0, 100)}...`);
+        log.info(`⚪ Nenhuma regra correspondeu ao achado: ${JSON.stringify(finding).substring(0, 100)}...`);
       }
     }
 
-    console.log(`🎯 ThreatEngine criou ${threats.length} ameaças de ${findings.length} achados analisados`);
+    log.info(`🎯 ThreatEngine criou ${threats.length} ameaças de ${findings.length} achados analisados`);
     return threats;
   }
 
@@ -796,7 +799,7 @@ class ThreatEngineService {
    * Processes job results and generates threats using lifecycle management
    */
   async processJobResults(jobId: string): Promise<Threat[]> {
-    console.log(`🔍 PROCESS_JOB_RESULTS: Starting with jobId: ${jobId}`);
+    log.info(`🔍 PROCESS_JOB_RESULTS: Starting with jobId: ${jobId}`);
     
     const jobResult = await storage.getJobResult(jobId);
     if (!jobResult || !jobResult.artifacts) {
@@ -814,12 +817,12 @@ class ThreatEngineService {
       return [];
     }
 
-    console.log(`🔍 PROCESS_JOB_RESULTS: Journey ${job.journeyId}, Type: ${journey.type}, JobId: ${jobId}`);
+    log.info(`🔍 PROCESS_JOB_RESULTS: Journey ${job.journeyId}, Type: ${journey.type}, JobId: ${jobId}`);
 
     // Use new lifecycle-aware analysis
     const threats = await this.analyzeWithLifecycle(findings, journey.type, job.journeyId, jobId);
     
-    console.log(`🔍 PROCESS_JOB_RESULTS: About to run post-processing with jobId: ${jobId}`);
+    log.info(`🔍 PROCESS_JOB_RESULTS: About to run post-processing with jobId: ${jobId}`);
     
     // Run post-processing for journey-specific auto-closure logic
     await this.runJourneyPostProcessing(journey.type, job.journeyId, jobId, findings);
@@ -908,16 +911,16 @@ class ThreatEngineService {
     const threats: Threat[] = [];
     const observedKeys = new Set<string>();
 
-    console.log(`🔍 ThreatEngine.analyzeWithLifecycle: Analisando ${findings.length} findings para journeyType '${journeyType}' (jobId: ${jobId})`);
+    log.info(`🔍 ThreatEngine.analyzeWithLifecycle: Analisando ${findings.length} findings para journeyType '${journeyType}' (jobId: ${jobId})`);
 
     for (const finding of findings) {
-      console.log(`📋 Finding: type=${finding.type}, name=${finding.name}, target=${finding.target}`);
+      log.info(`📋 Finding: type=${finding.type}, name=${finding.name}, target=${finding.target}`);
       
       let matchedRule = false;
       for (const rule of this.rules) {
         if (rule.matcher(finding)) {
           matchedRule = true;
-          console.log(`✅ Finding matched rule: ${rule.id}`);
+          log.info(`✅ Finding matched rule: ${rule.id}`);
           
           const correlationKey = this.computeCorrelationKey(finding, journeyType);
           observedKeys.add(correlationKey);
@@ -926,7 +929,7 @@ class ThreatEngineService {
           
           // Find associated host for this threat
           const hostId = await this.findHostForThreat(finding, journeyType, jobId);
-          console.log(`🔗 Host found for threat: ${hostId ? hostId : 'NULL'}`);
+          log.info(`🔗 Host found for threat: ${hostId ? hostId : 'NULL'}`);
           
           // Use upsert logic with lifecycle fields
           const { threat, isNew } = await storage.upsertThreat({
@@ -938,19 +941,19 @@ class ThreatEngineService {
           });
 
           threats.push(threat);
-          console.log(`🔄 Threat upserted: ${threat.title} (Category: ${threat.category}, HostId: ${threat.hostId}, Key: ${correlationKey}, isNew: ${isNew})`);
+          log.info(`🔄 Threat upserted: ${threat.title} (Category: ${threat.category}, HostId: ${threat.hostId}, Key: ${correlationKey}, isNew: ${isNew})`);
           
           // Recalculate host risk score if threat is linked to a host
           if (threat.hostId) {
-            console.log(`🔢 Recalculando risk score para host ${threat.hostId}...`);
+            log.info(`🔢 Recalculando risk score para host ${threat.hostId}...`);
             await this.recalculateHostRiskScore(threat.hostId).catch(err => 
-              console.error(`⚠️ Erro ao recalcular escore de risco do host ${threat.hostId}:`, err)
+              log.error(`⚠️ Erro ao recalcular escore de risco do host ${threat.hostId}:`, err)
             );
           }
           
           // Send email notification if this is a new threat
           if (isNew) {
-            console.log(`📧 Sending notification for new threat: ${threat.id}`);
+            log.info(`📧 Sending notification for new threat: ${threat.id}`);
             await notificationService.notifyThreatCreated(threat);
           }
           
@@ -959,11 +962,11 @@ class ThreatEngineService {
       }
       
       if (!matchedRule) {
-        console.log(`⚪ Nenhuma regra correspondeu ao finding: type=${finding.type}, name=${finding.name}`);
+        log.info(`⚪ Nenhuma regra correspondeu ao finding: type=${finding.type}, name=${finding.name}`);
       }
     }
 
-    console.log(`🎯 ThreatEngine.analyzeWithLifecycle: Criou ${threats.length} ameaças de ${findings.length} findings para journeyType '${journeyType}'`);
+    log.info(`🎯 ThreatEngine.analyzeWithLifecycle: Criou ${threats.length} ameaças de ${findings.length} findings para journeyType '${journeyType}'`);
     return threats;
   }
 
@@ -990,7 +993,7 @@ class ThreatEngineService {
    * Process Attack Surface auto-closures
    */
   private async processAttackSurfaceClosures(journeyId: string, jobId: string, findings: any[]): Promise<void> {
-    console.log(`🔍 ATTACK_SURFACE_CLOSURES: Starting with journeyId: ${journeyId}, jobId: ${jobId}`);
+    log.info(`🔍 ATTACK_SURFACE_CLOSURES: Starting with journeyId: ${journeyId}, jobId: ${jobId}`);
     
     // Get hosts that were scanned in this job
     const scannedHosts = new Set<string>();
@@ -1016,7 +1019,7 @@ class ThreatEngineService {
     let noCorrelationKeyCount = 0;
     let outOfScopeCount = 0;
     
-    console.log(`📊 ATTACK_SURFACE_METRICS: Starting analysis - scannedHosts: ${scannedHosts.size}, observedKeys: ${observedKeys.size}, openThreats: ${openThreats.length}, currentJobId: ${jobId}`);
+    log.info(`📊 ATTACK_SURFACE_METRICS: Starting analysis - scannedHosts: ${scannedHosts.size}, observedKeys: ${observedKeys.size}, openThreats: ${openThreats.length}, currentJobId: ${jobId}`);
     
     for (const threat of openThreats) {
       if (!threat.correlationKey) {
@@ -1026,7 +1029,7 @@ class ThreatEngineService {
       
       // Skip ALL threats from the current job to prevent immediate closure
       if (threat.jobId === jobId) {
-        console.log(`⏰ GUARD: Skipping Attack Surface threat from current job: ${threat.title} (jobId: ${jobId})`);
+        log.info(`⏰ GUARD: Skipping Attack Surface threat from current job: ${threat.title} (jobId: ${jobId})`);
         skippedCurrentJobCount++;
         continue;
       }
@@ -1035,28 +1038,28 @@ class ThreatEngineService {
       const threatHost = this.extractHostFromCorrelationKey(threat.correlationKey);
       if (threatHost && scannedHosts.has(threatHost)) {
         if (!observedKeys.has(threat.correlationKey)) {
-          console.log(`🔒 CLOSURE: Attack Surface threat ${threat.id} from job ${threat.jobId} - host ${threatHost} scanned but key "${threat.correlationKey}" not observed`);
+          log.info(`🔒 CLOSURE: Attack Surface threat ${threat.id} from job ${threat.jobId} - host ${threatHost} scanned but key "${threat.correlationKey}" not observed`);
           await storage.closeThreatSystem(threat.id, 'system');
-          console.log(`✅ CLOSURE: Attack Surface threat ${threat.id} automatically closed - not found in new scan`);
+          log.info(`✅ CLOSURE: Attack Surface threat ${threat.id} automatically closed - not found in new scan`);
           closedCount++;
         } else {
-          console.log(`✅ KEEP_OPEN: Attack Surface threat ${threat.id} kept open - key ${threat.correlationKey} observed in current scan`);
+          log.info(`✅ KEEP_OPEN: Attack Surface threat ${threat.id} kept open - key ${threat.correlationKey} observed in current scan`);
           keptOpenCount++;
         }
       } else {
-        console.log(`⚪ OUT_OF_SCOPE: Attack Surface threat ${threat.id} - host ${threatHost} not in current scan scope`);
+        log.info(`⚪ OUT_OF_SCOPE: Attack Surface threat ${threat.id} - host ${threatHost} not in current scan scope`);
         outOfScopeCount++;
       }
     }
     
-    console.log(`✅ ATTACK_SURFACE_METRICS: Completed - skippedCurrentJob: ${skippedCurrentJobCount}, closed: ${closedCount}, keptOpen: ${keptOpenCount}, outOfScope: ${outOfScopeCount}, noCorrelationKey: ${noCorrelationKeyCount}, total: ${openThreats.length}`);
+    log.info(`✅ ATTACK_SURFACE_METRICS: Completed - skippedCurrentJob: ${skippedCurrentJobCount}, closed: ${closedCount}, keptOpen: ${keptOpenCount}, outOfScope: ${outOfScopeCount}, noCorrelationKey: ${noCorrelationKeyCount}, total: ${openThreats.length}`);
   }
 
   /**
    * Process AD Security auto-closures
    */
   private async processAdSecurityClosures(journeyId: string, jobId: string, findings: any[]): Promise<void> {
-    console.log(`🔍 AD_SECURITY_CLOSURES: Starting with journeyId: ${journeyId}, jobId: ${jobId}`);
+    log.info(`🔍 AD_SECURITY_CLOSURES: Starting with journeyId: ${journeyId}, jobId: ${jobId}`);
     
     // Get observed correlation keys from this job
     const observedKeys = new Set<string>();
@@ -1073,7 +1076,7 @@ class ThreatEngineService {
     let keptOpenCount = 0;
     let noCorrelationKeyCount = 0;
     
-    console.log(`📊 AD_SECURITY_METRICS: Starting analysis - observedKeys: ${observedKeys.size}, openThreats: ${openThreats.length}, currentJobId: ${jobId}`);
+    log.info(`📊 AD_SECURITY_METRICS: Starting analysis - observedKeys: ${observedKeys.size}, openThreats: ${openThreats.length}, currentJobId: ${jobId}`);
     
     for (const threat of openThreats) {
       if (!threat.correlationKey) {
@@ -1083,24 +1086,24 @@ class ThreatEngineService {
       
       // Skip ALL threats from the current job to prevent immediate closure
       if (threat.jobId === jobId) {
-        console.log(`⏰ GUARD: Skipping AD threat from current job: ${threat.title} (jobId: ${jobId})`);
+        log.info(`⏰ GUARD: Skipping AD threat from current job: ${threat.title} (jobId: ${jobId})`);
         skippedCurrentJobCount++;
         continue;
       }
       
       // SAFE AUTO-CLOSURE: Only close threats from previous jobs that weren't observed
       if (!observedKeys.has(threat.correlationKey)) {
-        console.log(`🔒 CLOSURE: AD threat ${threat.id} from job ${threat.jobId} - key "${threat.correlationKey}" not observed in current scan`);
+        log.info(`🔒 CLOSURE: AD threat ${threat.id} from job ${threat.jobId} - key "${threat.correlationKey}" not observed in current scan`);
         await storage.closeThreatSystem(threat.id, 'system');
-        console.log(`✅ CLOSURE: AD threat ${threat.id} automatically closed - not found in new scan (possible cleanup/remediation)`);
+        log.info(`✅ CLOSURE: AD threat ${threat.id} automatically closed - not found in new scan (possible cleanup/remediation)`);
         closedCount++;
       } else {
-        console.log(`✅ KEEP_OPEN: AD threat ${threat.id} kept open - key ${threat.correlationKey} observed in current scan`);
+        log.info(`✅ KEEP_OPEN: AD threat ${threat.id} kept open - key ${threat.correlationKey} observed in current scan`);
         keptOpenCount++;
       }
     }
     
-    console.log(`✅ AD_SECURITY_METRICS: Completed - skippedCurrentJob: ${skippedCurrentJobCount}, closed: ${closedCount}, keptOpen: ${keptOpenCount}, noCorrelationKey: ${noCorrelationKeyCount}, total: ${openThreats.length}`);
+    log.info(`✅ AD_SECURITY_METRICS: Completed - skippedCurrentJob: ${skippedCurrentJobCount}, closed: ${closedCount}, keptOpen: ${keptOpenCount}, noCorrelationKey: ${noCorrelationKeyCount}, total: ${openThreats.length}`);
   }
 
   /**
@@ -1132,7 +1135,7 @@ class ThreatEngineService {
       
       // Skip ALL threats from the current job to prevent immediate closure
       if (threat.jobId === jobId) {
-        console.log(`⏰ Skipping EDR/AV threat from current job: ${threat.title} (jobId: ${jobId})`);
+        log.info(`⏰ Skipping EDR/AV threat from current job: ${threat.title} (jobId: ${jobId})`);
         continue;
       }
       
@@ -1142,7 +1145,7 @@ class ThreatEngineService {
         if (!observedFailureKeys.has(threat.correlationKey)) {
           // Failure did not manifest - close threat
           await storage.closeThreatSystem(threat.id, 'system');
-          console.log(`🔒 EDR/AV threat auto-closed: ${threat.title} (failure no longer manifests)`);
+          log.info(`🔒 EDR/AV threat auto-closed: ${threat.title} (failure no longer manifests)`);
         }
         // If failure persists, it's already updated by upsert logic
       }
@@ -1248,12 +1251,12 @@ class ThreatEngineService {
           if (target) {
             const hosts = await hostService.findHostsByTarget(target);
             if (hosts.length > 0) {
-              console.log(`🔗 Linking threat to host: ${hosts[0].name} (${target})`);
+              log.info(`🔗 Linking threat to host: ${hosts[0].name} (${target})`);
               return hosts[0].id;
             } else {
               // Debug: Count hosts for diagnosis but don't expose full inventory in logs
               const hostCount = (await storage.getHosts()).length;
-              console.log(`🔍 Debug: Tentativa de busca para target '${target}' entre ${hostCount} hosts falhou`);
+              log.info(`🔍 Debug: Tentativa de busca para target '${target}' entre ${hostCount} hosts falhou`);
             }
           }
           break;
@@ -1262,7 +1265,7 @@ class ThreatEngineService {
           // For AD Security, find the domain host - ALL threats link to the SAME domain host
           const domainHost = await this.findDomainHost(finding, jobId);
           if (domainHost) {
-            console.log(`🔗 Linking AD threat to domain host: ${domainHost.name}`);
+            log.info(`🔗 Linking AD threat to domain host: ${domainHost.name}`);
             return domainHost.id;
           } else {
             // If no domain host found, try to create one using the domain from credentials/job context
@@ -1285,7 +1288,7 @@ class ThreatEngineService {
                   }
                 }
               } catch (error) {
-                console.log(`⚠️  AD Security: Erro ao buscar domínio das credenciais:`, error);
+                log.info(`⚠️  AD Security: Erro ao buscar domínio das credenciais:`, error);
               }
             }
             
@@ -1296,15 +1299,15 @@ class ThreatEngineService {
             
             if (targetDomain && targetDomain !== 'unknown') {
               try {
-                console.log(`🏠 AD Security: Criando host de domínio via hostService para '${targetDomain}'`);
+                log.info(`🏠 AD Security: Criando host de domínio via hostService para '${targetDomain}'`);
                 const newDomainHost = await hostService.createDomainHost(targetDomain, jobId || 'unknown');
-                console.log(`✅ AD Security: Host de domínio criado: ${newDomainHost.name}`);
+                log.info(`✅ AD Security: Host de domínio criado: ${newDomainHost.name}`);
                 return newDomainHost.id;
               } catch (error) {
-                console.error(`❌ AD Security: Erro ao criar host de domínio:`, error);
+                log.error(`❌ AD Security: Erro ao criar host de domínio:`, error);
               }
             } else {
-              console.log(`⚠️  AD Security: Não foi possível determinar o domínio para criar host`);
+              log.info(`⚠️  AD Security: Não foi possível determinar o domínio para criar host`);
             }
           }
           break;
@@ -1315,7 +1318,7 @@ class ThreatEngineService {
           if (hostname) {
             let hosts = await hostService.findHostsByTarget(hostname);
             if (hosts.length > 0) {
-              console.log(`🔗 Linking EDR/AV threat to host: ${hosts[0].name} (${hostname})`);
+              log.info(`🔗 Linking EDR/AV threat to host: ${hosts[0].name} (${hostname})`);
               return hosts[0].id;
             } else {
               // Create host if not found (common in EDR-only environments)
@@ -1328,10 +1331,10 @@ class ThreatEngineService {
                   ips: [], // EDR tests may not have IP information
                   aliases: [],
                 });
-                console.log(`🏠 Host criado para EDR/AV: ${newHost.name} (${hostname})`);
+                log.info(`🏠 Host criado para EDR/AV: ${newHost.name} (${hostname})`);
                 return newHost.id;
               } catch (error) {
-                console.error(`❌ Erro ao criar host para EDR/AV ${hostname}:`, error);
+                log.error(`❌ Erro ao criar host para EDR/AV ${hostname}:`, error);
               }
             }
           }
@@ -1340,10 +1343,10 @@ class ThreatEngineService {
 
       // If no host found, log for debugging
       const target = finding.target || finding.ip || finding.host || finding.hostname || 'unknown';
-      console.log(`⚠️  No host found for threat (${journeyType}): ${target}`);
+      log.info(`⚠️  No host found for threat (${journeyType}): ${target}`);
       return null;
     } catch (error) {
-      console.error('❌ Error finding host for threat:', error);
+      log.error('❌ Error finding host for threat:', error);
       return null;
     }
   }
@@ -1380,7 +1383,7 @@ class ThreatEngineService {
             }
           }
         } catch (error) {
-          console.log(`⚠️  AD Hygiene: Erro ao buscar domínio do job ${jobId}:`, error);
+          log.info(`⚠️  AD Hygiene: Erro ao buscar domínio do job ${jobId}:`, error);
         }
       }
       
@@ -1396,13 +1399,13 @@ class ThreatEngineService {
     
     // Don't proceed if we don't have a valid domain
     if (!domain || domain === 'unknown') {
-      console.log(`⚠️  AD Hygiene: Não foi possível identificar o domínio para vinculação`);
+      log.info(`⚠️  AD Hygiene: Não foi possível identificar o domínio para vinculação`);
       return null;
     }
     
     // Normalize domain name to lowercase for consistent matching
     const normalizedDomain = domain.toLowerCase();
-    console.log(`🔍 AD Hygiene: Buscando host do domínio '${normalizedDomain}'`);
+    log.info(`🔍 AD Hygiene: Buscando host do domínio '${normalizedDomain}'`);
     
     // Get all domain hosts and find matching one
     const domainHosts = await storage.getHosts({ type: 'domain' });
@@ -1433,9 +1436,9 @@ class ThreatEngineService {
     });
     
     if (matchingDomain) {
-      console.log(`✅ AD Hygiene: Host de domínio encontrado: ${matchingDomain.name}`);
+      log.info(`✅ AD Hygiene: Host de domínio encontrado: ${matchingDomain.name}`);
     } else {
-      console.log(`❌ AD Hygiene: Nenhum host de domínio encontrado para '${normalizedDomain}'`);
+      log.info(`❌ AD Hygiene: Nenhum host de domínio encontrado para '${normalizedDomain}'`);
     }
     
     return matchingDomain || null;
@@ -1447,17 +1450,17 @@ class ThreatEngineService {
    */
   async processJourneyCompletion(jobId: string): Promise<void> {
     try {
-      console.log(`🔄 Processing journey completion for job ${jobId}`);
+      log.info(`🔄 Processing journey completion for job ${jobId}`);
       
       const job = await storage.getJob(jobId);
       if (!job) {
-        console.log(`⚠️  Job ${jobId} not found`);
+        log.info(`⚠️  Job ${jobId} not found`);
         return;
       }
 
       const journey = await storage.getJourney(job.journeyId);
       if (!journey) {
-        console.log(`⚠️  Journey ${job.journeyId} not found`);
+        log.info(`⚠️  Journey ${job.journeyId} not found`);
         return;
       }
 
@@ -1466,7 +1469,7 @@ class ThreatEngineService {
       const completedPreviousJobs = previousJobs.filter(j => j.id !== jobId && j.status === 'completed');
       
       if (completedPreviousJobs.length === 0) {
-        console.log(`🆕 CLOSURE_METRICS: First-run detected for journey ${job.journeyId} - skipping auto-closure (previousJobsCount: 0, currentJobId: ${jobId})`);
+        log.info(`🆕 CLOSURE_METRICS: First-run detected for journey ${job.journeyId} - skipping auto-closure (previousJobsCount: 0, currentJobId: ${jobId})`);
         return;
       }
 
@@ -1477,7 +1480,7 @@ class ThreatEngineService {
       let closedCount = 0;
       let reactivatedCount = 0;
       
-      console.log(`📊 CLOSURE_METRICS: Journey ${job.journeyId} analysis - openThreats: ${openThreats.length}, previousJobsCount: ${completedPreviousJobs.length}, currentJobId: ${jobId}`);
+      log.info(`📊 CLOSURE_METRICS: Journey ${job.journeyId} analysis - openThreats: ${openThreats.length}, previousJobsCount: ${completedPreviousJobs.length}, currentJobId: ${jobId}`);
 
       // For each threat, check if it should be automatically closed or reactivated
       for (const threat of openThreats) {
@@ -1491,11 +1494,11 @@ class ThreatEngineService {
         }
       }
       
-      console.log(`✅ CLOSURE_METRICS: Journey ${job.journeyId} completed - skippedCurrentJob: ${skippedCurrentJobCount}, closed: ${closedCount}, reactivated: ${reactivatedCount}, processed: ${openThreats.length}`);
+      log.info(`✅ CLOSURE_METRICS: Journey ${job.journeyId} completed - skippedCurrentJob: ${skippedCurrentJobCount}, closed: ${closedCount}, reactivated: ${reactivatedCount}, processed: ${openThreats.length}`);
 
-      console.log(`✅ Journey completion processing finished for job ${jobId}`);
+      log.info(`✅ Journey completion processing finished for job ${jobId}`);
     } catch (error) {
-      console.error(`❌ Error processing journey completion for job ${jobId}:`, error);
+      log.error(`❌ Error processing journey completion for job ${jobId}:`, error);
     }
   }
 
@@ -1507,34 +1510,34 @@ class ThreatEngineService {
     try {
       // CRITICAL: Never process threats from the current job to prevent immediate closure
       if (threat.jobId === job.id) {
-        console.log(`⏰ GUARD: Skipping threat from current job: ${threat.title} (threatJobId: ${threat.jobId}, currentJobId: ${job.id})`);
+        log.info(`⏰ GUARD: Skipping threat from current job: ${threat.title} (threatJobId: ${threat.jobId}, currentJobId: ${job.id})`);
         return 'skipped_current_job';
       }
       
       const threatFound = await this.isThreatStillPresent(threat, job, journey);
-      console.log(`🔍 Threat ${threat.id} (${threat.title}) from job ${threat.jobId}: found=${threatFound}, status=${threat.status}`);
+      log.info(`🔍 Threat ${threat.id} (${threat.title}) from job ${threat.jobId}: found=${threatFound}, status=${threat.status}`);
       
       switch (threat.status) {
         case 'investigating':
           // Threats under investigation remain in investigating status regardless of findings
-          console.log(`🔍 LIFECYCLE: Threat ${threat.id} remains under investigation`);
+          log.info(`🔍 LIFECYCLE: Threat ${threat.id} remains under investigation`);
           return 'no_action';
         
         case 'accepted_risk':
           // Threats with accepted risk should not be auto-closed or reactivated
-          console.log(`🔒 LIFECYCLE: Threat ${threat.id} has accepted risk status - no automatic action`);
+          log.info(`🔒 LIFECYCLE: Threat ${threat.id} has accepted risk status - no automatic action`);
           return 'no_action';
           
         case 'mitigated':
           if (threatFound) {
             // Mitigated threat found again - reopen it
             await this.reactivateThreat(threat.id, 'Ameaça mitigada foi reencontrada durante nova varredura');
-            console.log(`🔄 LIFECYCLE: Mitigated threat ${threat.id} reactivated - found again`);
+            log.info(`🔄 LIFECYCLE: Mitigated threat ${threat.id} reactivated - found again`);
             return 'reactivated';
           } else {
             // Mitigated threat not found - close it
             await this.closeThreatAutomatically(threat.id, 'Ameaça mitigada não foi reencontrada - considerada resolvida');
-            console.log(`✅ LIFECYCLE: Mitigated threat ${threat.id} automatically closed - not found`);
+            log.info(`✅ LIFECYCLE: Mitigated threat ${threat.id} automatically closed - not found`);
             return 'closed';
           }
           break;
@@ -1543,7 +1546,7 @@ class ThreatEngineService {
           if (threatFound) {
             // Hibernated threat found again - reopen it
             await this.reactivateThreat(threat.id, 'Ameaça hibernada foi reencontrada durante nova varredura');
-            console.log(`🔄 LIFECYCLE: Hibernated threat ${threat.id} reactivated - found again`);
+            log.info(`🔄 LIFECYCLE: Hibernated threat ${threat.id} reactivated - found again`);
             return 'reactivated';
           }
           // If hibernated and not found, it remains hibernated until date expires
@@ -1552,16 +1555,16 @@ class ThreatEngineService {
         case 'open':
           if (!threatFound) {
             // SAFE AUTO-CLOSURE: Only close threats that weren't found in new scan and are from previous jobs
-            console.log(`🔒 LIFECYCLE: Closing open threat ${threat.id} from job ${threat.jobId} - not found in current job ${job.id}`);
+            log.info(`🔒 LIFECYCLE: Closing open threat ${threat.id} from job ${threat.jobId} - not found in current job ${job.id}`);
             await this.closeThreatAutomatically(threat.id, 'Ameaça não foi reencontrada durante nova varredura (possível higienização)');
-            console.log(`✅ LIFECYCLE: Open threat ${threat.id} automatically closed - not found (possible cleanup/remediation)`);
+            log.info(`✅ LIFECYCLE: Open threat ${threat.id} automatically closed - not found (possible cleanup/remediation)`);
             return 'closed';
           }
           break;
       }
       return 'no_action';
     } catch (error) {
-      console.error(`❌ Error processing reactivation logic for threat ${threat.id}:`, error);
+      log.error(`❌ Error processing reactivation logic for threat ${threat.id}:`, error);
       return 'error';
     }
   }
@@ -1595,7 +1598,7 @@ class ThreatEngineService {
 
       return !!matchingFinding;
     } catch (error) {
-      console.error(`❌ Error checking threat presence for threat ${threat.id}:`, error);
+      log.error(`❌ Error checking threat presence for threat ${threat.id}:`, error);
       // On error, assume threat is still present to avoid false closure
       return true;
     }
@@ -1646,7 +1649,7 @@ class ThreatEngineService {
     // Recalculate host risk score after status change
     if (threat.hostId) {
       await this.recalculateHostRiskScore(threat.hostId).catch(err => 
-        console.error(`⚠️ Erro ao recalcular escore de risco do host ${threat.hostId}:`, err)
+        log.error(`⚠️ Erro ao recalcular escore de risco do host ${threat.hostId}:`, err)
       );
     }
   }
@@ -1656,7 +1659,7 @@ class ThreatEngineService {
    */
   async activateHibernatedThreats(): Promise<void> {
     try {
-      console.log(`🕒 Checking for hibernated threats to activate`);
+      log.info(`🕒 Checking for hibernated threats to activate`);
       
       const now = new Date();
       const threats = await storage.getThreats();
@@ -1667,21 +1670,21 @@ class ThreatEngineService {
         new Date(threat.hibernatedUntil) <= now
       );
 
-      console.log(`📊 Found ${hibernatedThreats.length} hibernated threats to activate`);
+      log.info(`📊 Found ${hibernatedThreats.length} hibernated threats to activate`);
 
       for (const threat of hibernatedThreats) {
         await this.reactivateThreat(
           threat.id, 
           `Ameaça reativada automaticamente - período de hibernação expirou em ${threat.hibernatedUntil}`
         );
-        console.log(`🔄 Hibernated threat ${threat.id} automatically reactivated`);
+        log.info(`🔄 Hibernated threat ${threat.id} automatically reactivated`);
       }
 
       if (hibernatedThreats.length > 0) {
-        console.log(`✅ Activated ${hibernatedThreats.length} hibernated threats`);
+        log.info(`✅ Activated ${hibernatedThreats.length} hibernated threats`);
       }
     } catch (error) {
-      console.error(`❌ Error activating hibernated threats:`, error);
+      log.error(`❌ Error activating hibernated threats:`, error);
     }
   }
 
@@ -1775,7 +1778,7 @@ class ThreatEngineService {
         lowCount: severityCounts.low,
       };
     } catch (error) {
-      console.error(`❌ Error calculating risk score for host ${hostId}:`, error);
+      log.error(`❌ Error calculating risk score for host ${hostId}:`, error);
       return { riskScore: 0, rawScore: 0, criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0 };
     }
   }
@@ -1801,9 +1804,9 @@ class ThreatEngineService {
         lowCount,
       });
       
-      console.log(`✅ Updated risk scores for host ${hostId}: riskScore=${riskScore}, rawScore=${rawScore}`);
+      log.info(`✅ Updated risk scores for host ${hostId}: riskScore=${riskScore}, rawScore=${rawScore}`);
     } catch (error) {
-      console.error(`❌ Error recalculating risk score for host ${hostId}:`, error);
+      log.error(`❌ Error recalculating risk score for host ${hostId}:`, error);
     }
   }
 
@@ -1813,15 +1816,15 @@ class ThreatEngineService {
   async recalculateAllHostRiskScores(): Promise<void> {
     try {
       const hosts = await storage.getHosts();
-      console.log(`🔄 Recalculating risk scores for ${hosts.length} hosts...`);
+      log.info(`🔄 Recalculating risk scores for ${hosts.length} hosts...`);
       
       for (const host of hosts) {
         await this.recalculateHostRiskScore(host.id);
       }
       
-      console.log(`✅ Recalculated risk scores for all hosts`);
+      log.info(`✅ Recalculated risk scores for all hosts`);
     } catch (error) {
-      console.error(`❌ Error recalculating all host risk scores:`, error);
+      log.error(`❌ Error recalculating all host risk scores:`, error);
     }
   }
 }

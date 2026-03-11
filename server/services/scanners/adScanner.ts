@@ -1,6 +1,9 @@
 import { spawn } from 'child_process';
 import dns from 'dns';
 import { promisify } from 'util';
+import { createLogger } from '../../lib/logger';
+
+const log = createLogger('adScanner');
 
 const dnsResolve = promisify(dns.resolve);
 
@@ -266,7 +269,7 @@ export class ADScanner {
     dcHost?: string,
     enabledCategories?: ADSecurityCategories
   ): Promise<ADSecurityScanResult> {
-    console.log(`🔍 Iniciando análise de segurança AD para domínio ${domain}`);
+    log.info(`🔍 Iniciando análise de segurança AD para domínio ${domain}`);
     
     const findings: ADFinding[] = [];
     const testResults: ADSecurityTestResult[] = [];
@@ -280,7 +283,7 @@ export class ADScanner {
       
       if (!targetDC) {
         const domainControllers = await this.discoverDomainControllers(domain);
-        console.log(`✅ Encontrados ${domainControllers.length} controladores de domínio via DNS`);
+        log.info(`✅ Encontrados ${domainControllers.length} controladores de domínio via DNS`);
 
         if (domainControllers.length === 0) {
           const errorFinding: ADFinding = {
@@ -314,7 +317,7 @@ export class ADScanner {
         dcList = [dcHost!];
       }
 
-      console.log(`🎯 Usando DC primário: ${targetDC}`);
+      log.info(`🎯 Usando DC primário: ${targetDC}`);
 
       // 2. Categorias habilitadas (padrão: todas)
       const categories: ADSecurityCategories = {
@@ -331,51 +334,51 @@ export class ADScanner {
       const executionResults = new Map<string, any>(); // Map testName -> execution evidence
       
       if (categories.configuracoes_criticas) {
-        console.log('🔴 Executando testes: Configurações Críticas...');
+        log.info('🔴 Executando testes: Configurações Críticas...');
         const { findings: criticalFindings, executionResults: execResults } = await this.testConfiguracoesCriticas(targetDC, domain, username, password);
         findings.push(...criticalFindings);
         execResults.forEach((evidence, testName) => executionResults.set(testName, evidence));
-        console.log(`✅ Configurações Críticas: ${criticalFindings.length} achados`);
+        log.info(`✅ Configurações Críticas: ${criticalFindings.length} achados`);
       }
 
       if (categories.gerenciamento_contas) {
-        console.log('👥 Executando testes: Gerenciamento de Contas...');
+        log.info('👥 Executando testes: Gerenciamento de Contas...');
         const { findings: accountFindings, executionResults: execResults } = await this.testGerenciamentoContas(targetDC, domain, username, password);
         findings.push(...accountFindings);
         execResults.forEach((evidence, testName) => executionResults.set(testName, evidence));
-        console.log(`✅ Gerenciamento de Contas: ${accountFindings.length} achados`);
+        log.info(`✅ Gerenciamento de Contas: ${accountFindings.length} achados`);
       }
 
       if (categories.kerberos_delegacao) {
-        console.log('🎫 Executando testes: Kerberos e Delegação...');
+        log.info('🎫 Executando testes: Kerberos e Delegação...');
         const { findings: kerberosFindings, executionResults: execResults } = await this.testKerberosDelegacao(targetDC, domain, username, password);
         findings.push(...kerberosFindings);
         execResults.forEach((evidence, testName) => executionResults.set(testName, evidence));
-        console.log(`✅ Kerberos e Delegação: ${kerberosFindings.length} achados`);
+        log.info(`✅ Kerberos e Delegação: ${kerberosFindings.length} achados`);
       }
 
       if (categories.compartilhamentos_gpos) {
-        console.log('📂 Executando testes: Compartilhamentos e GPOs...');
+        log.info('📂 Executando testes: Compartilhamentos e GPOs...');
         const { findings: shareFindings, executionResults: execResults } = await this.testCompartilhamentosGPOs(targetDC, domain, username, password);
         findings.push(...shareFindings);
         execResults.forEach((evidence, testName) => executionResults.set(testName, evidence));
-        console.log(`✅ Compartilhamentos e GPOs: ${shareFindings.length} achados`);
+        log.info(`✅ Compartilhamentos e GPOs: ${shareFindings.length} achados`);
       }
 
       if (categories.politicas_configuracao) {
-        console.log('⚙️  Executando testes: Políticas e Configuração...');
+        log.info('⚙️  Executando testes: Políticas e Configuração...');
         const { findings: policyFindings, executionResults: execResults } = await this.testPoliticasConfiguracao(targetDC, domain, username, password);
         findings.push(...policyFindings);
         execResults.forEach((evidence, testName) => executionResults.set(testName, evidence));
-        console.log(`✅ Políticas e Configuração: ${policyFindings.length} achados`);
+        log.info(`✅ Políticas e Configuração: ${policyFindings.length} achados`);
       }
 
       if (categories.contas_inativas) {
-        console.log('💤 Executando testes: Contas Inativas...');
+        log.info('💤 Executando testes: Contas Inativas...');
         const { findings: inactiveFindings, executionResults: execResults } = await this.testContasInativas(targetDC, domain, username, password);
         findings.push(...inactiveFindings);
         execResults.forEach((evidence, testName) => executionResults.set(testName, evidence));
-        console.log(`✅ Contas Inativas: ${inactiveFindings.length} achados`);
+        log.info(`✅ Contas Inativas: ${inactiveFindings.length} achados`);
       }
 
       // 4. Create test results from execution results  
@@ -459,24 +462,24 @@ export class ADScanner {
         }
       });
 
-      console.log(`✅ Análise concluída: ${findings.length} achados, ${testResults.length} resultados de teste`);
+      log.info(`✅ Análise concluída: ${findings.length} achados, ${testResults.length} resultados de teste`);
       
       // If ALL tests failed due to credential error, throw exception to fail the job
       if (credentialErrorCount > 0 && credentialErrorCount === totalTests) {
-        console.error(`❌ TODOS os ${totalTests} testes falharam por erro de credencial`);
+        log.error(`❌ TODOS os ${totalTests} testes falharam por erro de credencial`);
         throw new Error(`Falha de autenticação: As credenciais foram rejeitadas pelo servidor. Verifique usuário/senha e permissões WinRM.`);
       }
       
       // If majority of tests failed due to connection error, throw exception
       if (connectionErrorCount > 0 && connectionErrorCount === totalTests) {
-        console.error(`❌ TODOS os ${totalTests} testes falharam por erro de conexão`);
+        log.error(`❌ TODOS os ${totalTests} testes falharam por erro de conexão`);
         throw new Error(`Falha de conexão: Não foi possível conectar ao controlador de domínio. Verifique conectividade e se WinRM está habilitado.`);
       }
       
       return { findings, testResults };
 
     } catch (error: any) {
-      console.error('❌ Erro na análise AD Security:', error);
+      log.error('❌ Erro na análise AD Security:', error);
       const errorFinding: ADFinding = {
         type: 'ad_misconfiguration',
         target: domain,
@@ -525,10 +528,10 @@ export class ADScanner {
       let qualifiedUsername: string;
       if (username.includes('\\') || username.includes('@')) {
         qualifiedUsername = username;
-        console.log(`📝 Username já qualificado: ${username}`);
+        log.info(`📝 Username já qualificado: ${username}`);
       } else {
         qualifiedUsername = `${domain}\\${username}`;
-        console.log(`📝 Username qualificado com domínio: ${qualifiedUsername}`);
+        log.info(`📝 Username qualificado com domínio: ${qualifiedUsername}`);
       }
 
       // Log do comando sendo executado (sem senha)
@@ -539,8 +542,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
 }`;
       
       if (testName) {
-        console.log(`🔧 PowerShell [${testName}]: Executando comando via WinRM no DC ${dcHost}`);
-        console.log(`📝 Script:\n${processedScript.substring(0, 200)}...`);
+        log.info(`🔧 PowerShell [${testName}]: Executando comando via WinRM no DC ${dcHost}`);
+        log.info(`📝 Script:\n${processedScript.substring(0, 200)}...`);
       }
 
       // Detectar caminhos dinamicamente para suportar qualquer ambiente
@@ -561,8 +564,8 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
 
       // Handler de erro para evitar crash se Python/wrapper não existir
       winrm.on('error', (error) => {
-        console.error(`❌ Erro ao executar wrapper Python: ${error.message}`);
-        console.error(`Paths tentados: pythonBin=${pythonBin}, wrapper=${wrapperPath}`);
+        log.error(`❌ Erro ao executar wrapper Python: ${error.message}`);
+        log.error(`Paths tentados: pythonBin=${pythonBin}, wrapper=${wrapperPath}`);
         resolve({
           success: false,
           stdout: '',
@@ -577,7 +580,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         winrm.stdin.write(password + '\n');
         winrm.stdin.end();
       } catch (e) {
-        console.error(`❌ Erro ao enviar senha via stdin: ${e}`);
+        log.error(`❌ Erro ao enviar senha via stdin: ${e}`);
       }
 
       let stdout = '';
@@ -605,7 +608,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         clearTimeout(timeoutHandle); // Limpar timeout quando processo terminar
         
         if (testName) {
-          console.log(`✅ PowerShell [${testName}]: Concluído (exitCode: ${code}, stdout: ${stdout.length} chars, stderr: ${stderr.length} chars)`);
+          log.info(`✅ PowerShell [${testName}]: Concluído (exitCode: ${code}, stdout: ${stdout.length} chars, stderr: ${stderr.length} chars)`);
         }
         
         // Tentar parsear resposta JSON do wrapper
@@ -648,7 +651,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       const timeoutHandle = setTimeout(() => {
         winrm.kill();
         if (testName) {
-          console.log(`⏱️  PowerShell [${testName}]: Timeout após 6 minutos`);
+          log.info(`⏱️  PowerShell [${testName}]: Timeout após 6 minutos`);
         }
         resolve({
           success: false,
@@ -756,7 +759,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           }
         }
       } catch (error: any) {
-        console.error(`❌ Erro no teste ${test.id}:`, error.message);
+        log.error(`❌ Erro no teste ${test.id}:`, error.message);
         // Save error as evidence
         executionResults.set(test.id, {
           testId: test.id,
@@ -891,7 +894,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           }
         }
       } catch (error: any) {
-        console.error(`❌ Erro no teste ${test.id}:`, error.message);
+        log.error(`❌ Erro no teste ${test.id}:`, error.message);
         // Save error as evidence
         executionResults.set(test.id, {
           testId: test.id,
@@ -986,7 +989,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           }
         }
       } catch (error: any) {
-        console.error(`❌ Erro no teste ${test.id}:`, error.message);
+        log.error(`❌ Erro no teste ${test.id}:`, error.message);
         // Save error as evidence
         executionResults.set(test.id, {
           testId: test.id,
@@ -1078,7 +1081,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           }
         }
       } catch (error: any) {
-        console.error(`❌ Erro no teste ${test.id}:`, error.message);
+        log.error(`❌ Erro no teste ${test.id}:`, error.message);
         // Register error as execution result so test still appears in the list
         executionResults.set(test.id, {
           command: test.powershell,
@@ -1202,7 +1205,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           }
         }
       } catch (error: any) {
-        console.error(`❌ Erro no teste ${test.id}:`, error.message);
+        log.error(`❌ Erro no teste ${test.id}:`, error.message);
         // Register error as execution result so test still appears in the list
         executionResults.set(test.id, {
           command: test.powershell,
@@ -1303,7 +1306,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           }
         }
       } catch (error: any) {
-        console.error(`❌ Erro no teste ${test.id}:`, error.message);
+        log.error(`❌ Erro no teste ${test.id}:`, error.message);
       }
     }
 
@@ -1818,11 +1821,11 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
         }
       }
       
-      console.log(`✅ Criados ${findings.length} findings individuais para teste ${test.id}`);
+      log.info(`✅ Criados ${findings.length} findings individuais para teste ${test.id}`);
       return findings;
       
     } catch (error) {
-      console.error(`⚠️ Erro ao processar objetos para ${test.id}:`, error);
+      log.error(`⚠️ Erro ao processar objetos para ${test.id}:`, error);
       // Fallback to single finding with full evidence
       return [{
         type: this.getTypeForTest(test.id),
@@ -1853,14 +1856,14 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       const records = await dnsResolve(srvRecord, 'SRV');
       
       if (!records || records.length === 0) {
-        console.log(`⚠️  Nenhum registro SRV encontrado para ${srvRecord}`);
+        log.info(`⚠️  Nenhum registro SRV encontrado para ${srvRecord}`);
         return [];
       }
 
       const dcHosts = records.map((record: any) => record.name);
       return dcHosts;
     } catch (error: any) {
-      console.error(`❌ Erro ao descobrir DCs via DNS: ${error.message}`);
+      log.error(`❌ Erro ao descobrir DCs via DNS: ${error.message}`);
       return [];
     }
   }
@@ -1874,7 +1877,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
     password: string,
     dcHost?: string
   ): Promise<string[]> {
-    console.log(`🔍 Descobrindo workstations do domínio ${domain}...`);
+    log.info(`🔍 Descobrindo workstations do domínio ${domain}...`);
 
     this.domain = domain;
     this.baseDN = this.buildBaseDN(domain);
@@ -1895,7 +1898,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           throw new Error(`Nenhum controlador de domínio encontrado para ${domain}`);
         }
         targetDC = dcs[0];
-        console.log(`🎯 Usando DC descoberto: ${targetDC}`);
+        log.info(`🎯 Usando DC descoberto: ${targetDC}`);
       }
 
       const result = await this.executePowerShell(
@@ -1913,14 +1916,14 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
           .map((line: string) => line.trim())
           .filter((line: string) => line.length > 0 && line.includes('.'));
 
-        console.log(`✅ Descobertas ${workstations.length} workstations`);
+        log.info(`✅ Descobertas ${workstations.length} workstations`);
         return workstations;
       } else {
-        console.log(`⚠️  Nenhuma workstation encontrada (exitCode: ${result.exitCode})`);
+        log.info(`⚠️  Nenhuma workstation encontrada (exitCode: ${result.exitCode})`);
         return [];
       }
     } catch (error: any) {
-      console.error(`❌ Erro ao descobrir workstations: ${error.message}`);
+      log.error(`❌ Erro ao descobrir workstations: ${error.message}`);
       return [];
     }
   }
