@@ -1,11 +1,67 @@
 import { Client } from 'ssh2';
 import type { Credential } from "@shared/schema";
 import type { IHostCollector, EnrichmentData } from "../hostEnricher";
-import { log } from "../../vite";
 import { encryptionService } from "../encryption";
+import { storage } from "../../storage";
+import { createLogger } from '../../lib/logger';
+
+const log = createLogger('sshCollector');
 
 const MAX_RAW_STDOUT = 512_000;
 const MAX_RAW_STDERR = 64_000;
+
+/**
+ * Verify an SSH host fingerprint using Trust On First Use (TOFU) strategy (FND-009).
+ *
+ * - First connection: store the fingerprint silently.
+ * - Subsequent connections: compare against stored fingerprint.
+ *   - Match: proceed silently.
+ *   - Mismatch: log a WARNING (potential MITM) but still allow connection.
+ *
+ * Returns true always (non-blocking TOFU). Side effects: updates DB + logs.
+ */
+export async function verifyHostFingerprint(
+  hostIp: string,
+  fingerprint: string,
+): Promise<{ trusted: boolean; changed: boolean; previousFingerprint?: string }> {
+  try {
+    const host = await storage.findHostByTarget(hostIp, hostIp);
+    if (!host) {
+      // Host not in DB yet — nothing to verify against
+      return { trusted: true, changed: false };
+    }
+
+    const stored = host.sshHostFingerprint;
+
+    if (!stored) {
+      // First SSH connection to this host — store fingerprint (TOFU)
+      await storage.updateHost(host.id, { sshHostFingerprint: fingerprint });
+      log.info({ host: hostIp, fingerprint }, 'SSH host fingerprint stored (first connection — TOFU)');
+      return { trusted: true, changed: false };
+    }
+
+    if (stored === fingerprint) {
+      // Fingerprint matches — all good
+      return { trusted: true, changed: false };
+    }
+
+    // FINGERPRINT CHANGED — potential MITM or host reinstallation
+    log.warn({
+      host: hostIp,
+      previousFingerprint: stored,
+      currentFingerprint: fingerprint,
+    }, 'SSH host fingerprint CHANGED — possible MITM attack or host reinstallation (FND-009)');
+
+    // Update to new fingerprint (TOFU: trust the new one, but the warning is logged)
+    await storage.updateHost(host.id, { sshHostFingerprint: fingerprint });
+
+    return { trusted: true, changed: true, previousFingerprint: stored };
+  } catch (err) {
+    // Don't block SSH connections if fingerprint check fails
+    log.error({ err, host: hostIp }, 'failed to verify SSH host fingerprint');
+    return { trusted: true, changed: false };
+  }
+}
 
 /**
  * SSH Collector for Linux/Unix hosts
@@ -22,7 +78,7 @@ export class SSHCollector implements IHostCollector {
       const result = await this.executeSSH(host, credential, 'echo test', 'Connection Test');
       return result.success && result.stdout.trim() === 'test';
     } catch (error) {
-      log(`[SSHCollector] Connection test failed for ${host}: ${error}`, "error");
+      log.error({ err: error, host }, 'connection test failed');
       return false;
     }
   }
@@ -65,8 +121,8 @@ export class SSHCollector implements IHostCollector {
       const parts = osResult.stdout.trim().split(' ');
       data.osVersion = parts[0] || 'Linux'; // Linux, Darwin, etc.
       data.osBuild = parts.slice(1).join(' '); // Kernel version + details
-      
-      log(`[SSHCollector] OS detected: ${data.osVersion} ${data.osBuild}`);
+
+      log.info({ host, os: data.osVersion, build: data.osBuild }, 'OS detected');
     }
 
     // 2. Detect package manager and get installed packages
@@ -76,9 +132,9 @@ export class SSHCollector implements IHostCollector {
       'command -v dpkg || command -v rpm || command -v pacman || echo none',
       'Detect Package Manager'
     );
-    
+
     const packageManager = pmDetectResult.stdout.trim().split('/').pop()?.trim() || 'none';
-    log(`[SSHCollector] Detected package manager: ${packageManager}`);
+    log.info({ host, packageManager }, 'detected package manager');
 
     if (packageManager === 'dpkg') {
       // Debian/Ubuntu
@@ -105,8 +161,8 @@ export class SSHCollector implements IHostCollector {
             vendor: vendor?.trim() || '',
           };
         }).filter(app => app.name);
-        
-        log(`[SSHCollector] Found ${data.installedApps.length} packages (dpkg)`);
+
+        log.info({ host, count: data.installedApps.length }, 'found packages (dpkg)');
       }
 
       // Get patches (dpkg list with dates) - store package names as "patches"
@@ -137,14 +193,14 @@ export class SSHCollector implements IHostCollector {
             vendor: vendor?.trim() || '',
           };
         }).filter(app => app.name);
-        
-        log(`[SSHCollector] Found ${data.installedApps.length} packages (rpm)`);
+
+        log.info({ host, count: data.installedApps.length }, 'found packages (rpm)');
       }
 
       // Get patches - store package names as "patches"
       data.patches = data.installedApps?.map(app => `${app.name}:${app.version}`) || [];
     } else {
-      log(`[SSHCollector] Unsupported or unknown package manager: ${packageManager}`, "warn");
+      log.warn({ host, packageManager }, 'unsupported or unknown package manager');
     }
 
     // 3. Get all services with detailed information (systemctl for systemd-based systems)
@@ -165,27 +221,27 @@ export class SSHCollector implements IHostCollector {
     if (servicesResult.success && servicesResult.stdout) {
       const lines = servicesResult.stdout.trim().split('\n').filter(s => s.trim());
       const serviceUnits: string[] = [];
-      
+
       // Parse systemctl output: UNIT LOAD ACTIVE SUB DESCRIPTION
       const parsedServices = lines.map(line => {
         const parts = line.trim().split(/\s+/);
         if (parts.length < 5) return null;
-        
+
         const unit = parts[0]; // e.g., "cron.service"
         const loadState = parts[1]; // e.g., "loaded"
         const activeState = parts[2]; // e.g., "active"
         const subState = parts[3]; // e.g., "running"
         const description = parts.slice(4).join(' '); // e.g., "Regular background program processing daemon"
-        
+
         const name = unit.replace('.service', '');
         serviceUnits.push(unit); // Keep full unit name for systemctl is-enabled
-        
+
         // Map systemd active state to status
-        const status = activeState === 'active' ? 'Running' : 
-                       activeState === 'inactive' ? 'Stopped' : 
-                       activeState === 'failed' ? 'Failed' : 
+        const status = activeState === 'active' ? 'Running' :
+                       activeState === 'inactive' ? 'Stopped' :
+                       activeState === 'failed' ? 'Failed' :
                        activeState || 'Unknown';
-        
+
         return {
           name,
           displayName: description || name,
@@ -195,7 +251,7 @@ export class SSHCollector implements IHostCollector {
           description: description || '',
         };
       }).filter(svc => svc !== null);
-      
+
       // Get enablement status for all services (this determines startType)
       const enabledResult = await this.executeSSH(
         host,
@@ -209,16 +265,16 @@ export class SSHCollector implements IHostCollector {
         stderr: enabledResult.stderr,
         exitCode: enabledResult.exitCode,
       });
-      
+
       // Parse enablement results (one per line, in same order as serviceUnits)
-      const enabledStates = enabledResult.success && enabledResult.stdout 
+      const enabledStates = enabledResult.success && enabledResult.stdout
         ? enabledResult.stdout.trim().split('\n')
         : [];
-      
+
       // Combine service data with enablement status
       data.services = parsedServices.map((svc, idx) => {
         const enabledState = enabledStates[idx]?.trim() || 'unknown';
-        
+
         // Map systemd enablement to startup type
         let startType = 'Manual';
         if (enabledState === 'enabled' || enabledState === 'static' || enabledState === 'indirect') {
@@ -228,7 +284,7 @@ export class SSHCollector implements IHostCollector {
         } else if (enabledState === 'masked') {
           startType = 'Desabilitado';
         }
-        
+
         return {
           name: svc.name,
           displayName: svc.displayName,
@@ -237,8 +293,8 @@ export class SSHCollector implements IHostCollector {
           description: svc.description,
         };
       });
-      
-      log(`[SSHCollector] Found ${data.services.length} services`);
+
+      log.info({ host, count: data.services.length }, 'found services');
     }
 
     return { data, commandsExecuted };
@@ -269,7 +325,7 @@ export class SSHCollector implements IHostCollector {
       try {
         password = encryptionService.decryptCredential(credential.secretEncrypted, credential.dekEncrypted);
       } catch (error) {
-        log(`[SSHCollector] Failed to decrypt password: ${error}`, "error");
+        log.error({ err: error, host }, 'failed to decrypt password');
         return resolve({
           success: false,
           stdout: '',
@@ -292,7 +348,7 @@ export class SSHCollector implements IHostCollector {
 
       conn.on('ready', () => {
         if (testName) {
-          log(`[SSHCollector] Executing: ${testName}`);
+          log.debug({ host, testName }, 'executing SSH command');
         }
 
         conn.exec(command, (err, stream) => {
@@ -337,7 +393,7 @@ export class SSHCollector implements IHostCollector {
 
       conn.on('error', (err) => {
         clearTimeout(timeout);
-        log(`[SSHCollector] Connection error: ${err.message}`, "error");
+        log.error({ err, host }, 'SSH connection error');
         resolve({
           success: false,
           stdout: '',
@@ -346,13 +402,22 @@ export class SSHCollector implements IHostCollector {
         });
       });
 
-      // Connect
+      // Connect with host key verification (FND-009: TOFU)
       conn.connect({
         host,
         port,
         username: credential.username,
         password,
         readyTimeout: 30000,
+        hostHash: 'sha256',
+        hostVerifier: (fingerprint: string) => {
+          // Non-blocking: always accept, verify asynchronously.
+          // The verifyHostFingerprint function logs warnings on mismatch.
+          verifyHostFingerprint(host, fingerprint).catch((err) => {
+            log.error({ err, host }, 'async fingerprint verification failed');
+          });
+          return true;
+        },
       });
     });
   }
