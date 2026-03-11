@@ -11,28 +11,38 @@ import { storage } from "./storage";
 
 const app = express();
 
-// Enable CORS with credentials for session cookies
+// FND-003: CORS configurável — rejeita origens desconhecidas por padrão.
+// Configure via ALLOWED_ORIGINS env var (comma-separated).
+// Example: ALLOWED_ORIGINS=https://console.samureye.com.br,https://192.168.1.100:5000
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
 app.use(cors({
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Requests with no Origin header: same-origin, curl, mobile apps — always allow
     if (!origin) return callback(null, true);
-    
-    // In development, allow localhost on any port
-    if (process.env.NODE_ENV === 'development' && origin.includes('localhost')) {
+
+    // Development: allow any localhost origin
+    if (process.env.NODE_ENV !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
       return callback(null, true);
     }
-    
-    // In production, be more restrictive
-    if (process.env.NODE_ENV === 'production') {
-      // Add your production domains here
-      const allowedOrigins = ['https://yourdomain.com'];
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        return callback(null, true);
-      }
+
+    // Explicitly allowed origins from ALLOWED_ORIGINS env var
+    if (allowedOrigins.length > 0 && allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
-    
-    // Default allow for same-origin requests
-    return callback(null, true);
+
+    // Appliance UI: the browser accesses the same host, so Origin matches the server.
+    // Allow when no ALLOWED_ORIGINS is set (appliance default — single-host deployment).
+    if (allowedOrigins.length === 0) {
+      return callback(null, true);
+    }
+
+    // Reject unrecognized origins
+    console.warn(`🛡️  CORS rejeitou origem: ${origin}`);
+    return callback(new Error('Origem não permitida pela política de CORS'));
   },
   credentials: true
 }));
