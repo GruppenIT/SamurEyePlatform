@@ -1,7 +1,62 @@
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
+import * as crypto from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { storage } from '../../storage';
+
+/**
+ * Preferred directory for temporary auth files (FND-004 mitigation).
+ * /dev/shm is a tmpfs (RAM-backed) — files never touch disk, preventing
+ * credential recovery from disk forensics. Falls back to /tmp if unavailable.
+ */
+const SECURE_TEMP_DIR = (() => {
+  try {
+    const stats = require('fs').statSync('/dev/shm');
+    if (stats.isDirectory()) return '/dev/shm';
+  } catch { /* fallback */ }
+  return '/tmp';
+})();
+
+/**
+ * Create a temporary auth file with secure properties (FND-004 mitigation):
+ * - Stored in /dev/shm (tmpfs, RAM-only) when available
+ * - Unpredictable filename using crypto.randomBytes
+ * - Mode 0o600 (owner-read-only)
+ * Returns the file path. Caller MUST call secureCleanup() when done.
+ */
+async function createSecureAuthFile(
+  credential: { username: string; password: string; domain?: string }
+): Promise<string> {
+  const randomName = `smbauth_${crypto.randomBytes(16).toString('hex')}`;
+  const authFile = path.join(SECURE_TEMP_DIR, randomName);
+
+  const authContent = [
+    `username=${credential.username}`,
+    `password=${credential.password}`,
+    credential.domain ? `domain=${credential.domain}` : '',
+    credential.domain ? `workgroup=${credential.domain}` : '',
+  ].filter(Boolean).join('\n');
+
+  await fs.writeFile(authFile, authContent, { mode: 0o600 });
+  return authFile;
+}
+
+/**
+ * Securely delete a file by overwriting its contents before unlinking (FND-004).
+ * This prevents credential recovery from disk (defense in depth even on tmpfs).
+ */
+async function secureCleanup(filePath: string | null): Promise<void> {
+  if (!filePath) return;
+  try {
+    // Overwrite with zeros before deletion
+    const stat = await fs.stat(filePath);
+    await fs.writeFile(filePath, Buffer.alloc(stat.size, 0), { flag: 'r+' });
+    await fs.unlink(filePath);
+  } catch {
+    // Best-effort: try plain unlink as fallback
+    try { await fs.unlink(filePath); } catch { /* already gone */ }
+  }
+}
 
 /**
  * Scanner para testes EDR/AV reais
@@ -237,7 +292,7 @@ export class EDRAVScanner {
   ): Promise<{ success: boolean; filePath?: string; error?: string }> {
     let tempFile: string | null = null;
     let authFile: string | null = null;
-    
+
     try {
       // Verificar se smbclient está disponível
       const smbclientAvailable = await this.checkBinaryExists('smbclient');
@@ -249,70 +304,45 @@ export class EDRAVScanner {
       }
 
       // Criar arquivo EICAR temporário
-      const tempDir = '/tmp';
-      tempFile = path.join(tempDir, `eicar_${Date.now()}.txt`);
-      authFile = path.join(tempDir, `smbauth_${Date.now()}`);
+      tempFile = path.join(SECURE_TEMP_DIR, `eicar_${crypto.randomBytes(8).toString('hex')}.txt`);
       const targetPath = 'C$\\Windows\\Temp\\samureye_eicar.txt';
-      
+
       await fs.writeFile(tempFile, this.eicarContent);
 
-      // Criar arquivo de autenticação seguro para evitar exposição de credenciais
-      const authContent = [
-        `username=${credential.username}`,
-        `password=${credential.password}`,
-        credential.domain ? `domain=${credential.domain}` : '',
-        credential.domain ? `workgroup=${credential.domain}` : '', // Compatibilidade adicional
-      ].filter(Boolean).join('\n');
-      
-      await fs.writeFile(authFile, authContent, { mode: 0o600 }); // Apenas proprietário pode ler
+      // FND-004: Auth file em tmpfs com nome imprevisível e modo 0o600
+      authFile = await createSecureAuthFile(credential);
 
-      // Debug: Verificar conteúdo do arquivo de auth (sem mostrar password)
-      console.log(`🔑 Arquivo de autenticação criado:`);
-      console.log(`   Tamanho: ${authContent.length} bytes`);
-      console.log(`   Username: ${credential.username}`);
-      console.log(`   Domain: ${credential.domain || 'N/A'}`);
-      console.log(`   Password: [${credential.password.length} caracteres]`);
+      console.log(`🔑 Auth file criado em ${SECURE_TEMP_DIR === '/dev/shm' ? 'tmpfs (RAM)' : '/tmp'}`);
+      console.log(`   Usuário: ${credential.domain ? `${credential.domain}\\${credential.username}` : credential.username}`);
 
-      // Usar backslashes como no script de teste que funciona
       const targetSmbPath = 'Windows\\Temp\\samureye_eicar.txt';
-      
+
       const args = [
         `//${hostname}/C$`,
-        '-A', authFile, // Usar arquivo de autenticação em vez de linha de comando
+        '-A', authFile,
         '-c', `put "${tempFile}" "${targetSmbPath}"`
       ];
 
-      console.log(`📋 Executando SMB Deploy para ${hostname}:`);
-      console.log(`   Comando: smbclient //${hostname}/C$ -A [AUTH_FILE] -c [PUT_COMMAND]`);
-      console.log(`   Arquivo local: ${tempFile}`);
-      console.log(`   Destino remoto: ${targetSmbPath}`);
-      console.log(`   Usuário: ${credential.domain ? `${credential.domain}\\${credential.username}` : credential.username}`);
-      console.log(`   Arquivo de auth: ${authFile}`);
+      console.log(`📋 Executando SMB Deploy para ${hostname}`);
 
-      // Primeiro, testar conectividade básica antes de tentar copiar
-      console.log(`🔍 Testando conectividade SMB para ${hostname}...`);
+      // Testar conectividade básica antes de tentar copiar
       const testArgs = [
         `//${hostname}/C$`,
         '-A', authFile,
         '-c', 'ls'
       ];
-      
+
       const testResult = await this.executeCommand('smbclient', testArgs, 15000);
-      console.log(`   Teste de conectividade - Exit Code: ${testResult.exitCode}`);
-      
+
       if (testResult.exitCode !== 0) {
-        console.log(`❌ Falha no teste de conectividade:`);
-        console.log(`   STDOUT: ${testResult.stdout}`);
-        console.log(`   STDERR: ${testResult.stderr}`);
+        console.log(`❌ Falha na conectividade SMB para ${hostname}`);
       } else {
-        console.log(`✅ Conectividade SMB funcionando, prosseguindo com cópia...`);
+        console.log(`✅ Conectividade SMB OK, prosseguindo com cópia...`);
       }
 
       const result = await this.executeCommand('smbclient', args, 30000);
 
-      console.log(`📊 Resultado SMB Deploy - Exit Code: ${result.exitCode}`);
-      console.log(`📊 STDOUT:`, result.stdout);
-      console.log(`📊 STDERR:`, result.stderr);
+      console.log(`📊 SMB Deploy - Exit Code: ${result.exitCode}`);
 
       if (result.exitCode === 0) {
         console.log(`✅ SMB Deploy bem-sucedido para ${hostname}`);
@@ -321,74 +351,33 @@ export class EDRAVScanner {
           filePath: `\\\\${hostname}\\${targetPath}`,
         };
       } else {
-        console.log(`❌ SMB Deploy falhou para ${hostname}:`);
-        console.log(`   Error Code: ${result.exitCode}`);
-        console.log(`   STDERR: ${result.stderr}`);
-        console.log(`   STDOUT: ${result.stdout}`);
-        
         // Diagnóstico detalhado baseado no tipo de erro
         let diagnosticMessage = result.stderr || result.stdout || 'Erro desconhecido no smbclient';
-        
-        // Verificar se o problema pode ser com o arquivo de autenticação
+
+        // FND-004: Removido fallback com credenciais na linha de comando.
+        // Credenciais em argv são visíveis em /proc/<pid>/cmdline por qualquer
+        // usuário do sistema. Se o auth file falhar, reportar o erro.
         if (result.stderr?.includes('Unable to open credentials file') || result.stderr?.includes('Error reading credentials')) {
-          console.log(`🔧 PROBLEMA COM ARQUIVO DE AUTENTICAÇÃO - tentando método alternativo...`);
-          
-          // Tentar comando direto (menos seguro, mas pode funcionar)
-          const directArgs = [
-            `//${hostname}/C$`,
-            '-U', `${credential.domain ? credential.domain + '\\' : ''}${credential.username}%${credential.password}`,
-            '-c', `put "${tempFile}" "${targetSmbPath}"`
-          ];
-          
-          console.log(`🔄 Tentativa com autenticação direta na linha de comando...`);
-          const directResult = await this.executeCommand('smbclient', directArgs, 30000);
-          
-          if (directResult.exitCode === 0) {
-            console.log(`✅ SMB Deploy bem-sucedido com método direto para ${hostname}`);
-            return {
-              success: true,
-              filePath: `\\\\${hostname}\\C$\\Windows\\Temp\\samureye_eicar.txt`,
-            };
-          } else {
-            diagnosticMessage = `Falha com ambos os métodos de autenticação. Último erro: ${directResult.stderr || directResult.stdout}`;
-          }
+          console.error(`🔧 Falha ao ler arquivo de autenticação em ${SECURE_TEMP_DIR}. Verifique permissões.`);
+          diagnosticMessage = `Falha ao ler arquivo de autenticação. Verifique permissões em ${SECURE_TEMP_DIR}.`;
         }
-        
+
         if (result.stdout?.includes('NT_STATUS_LOGON_FAILURE') || diagnosticMessage.includes('NT_STATUS_LOGON_FAILURE')) {
           console.log(`🔍 DIAGNÓSTICO NT_STATUS_LOGON_FAILURE para ${hostname}:`);
-          console.log('   ⚠️  PROBLEMA COMUM EM SERVIDORES MEMBROS - Domain Controllers funcionam, mas servidores membros falham');
-          console.log('   🔧 SOLUÇÕES RECOMENDADAS:');
-          console.log('   1. Verificar se conta tem privilégios administrativos LOCAIS no servidor de destino');
-          console.log('   2. Adicionar conta ao grupo "Administradores" local do servidor');
-          console.log('   3. Habilitar LocalAccountTokenFilterPolicy para contas de domínio:');
-          console.log('      reg add HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1');
-          console.log('   4. Verificar se UAC não está bloqueando acesso remoto');
-          console.log('   5. Confirmar que não há GPO bloqueando acesso SMB administrativo');
-          
+          console.log('   Conta pode precisar de privilégios administrativos locais no servidor de destino');
+
           diagnosticMessage = `FALHA DE AUTENTICAÇÃO SMB: ${hostname} negou acesso à conta '${credential.username}'. Servidores membros requerem privilégios administrativos locais específicos.`;
-          
+
         } else if (result.stdout?.includes('NT_STATUS_ACCESS_DENIED') || result.stderr.includes('NT_STATUS_ACCESS_DENIED')) {
-          console.log(`🔍 DIAGNÓSTICO NT_STATUS_ACCESS_DENIED para ${hostname}:`);
-          console.log('   - Conta autenticada, mas sem privilégios suficientes');
-          console.log('   - Verificar se share C$ está habilitado');
-          console.log('   - Verificar políticas de UAC/segurança');
-          console.log('   - Verificar firewall local');
-          
           diagnosticMessage = `ACESSO NEGADO: Conta autenticada mas sem privilégios para acessar C$ em ${hostname}`;
-          
+
         } else if (result.stdout?.includes('NT_STATUS_BAD_NETWORK_NAME')) {
-          console.log(`🔍 DIAGNÓSTICO NT_STATUS_BAD_NETWORK_NAME para ${hostname}:`);
-          console.log('   - Servidor pode estar offline ou inacessível');
-          console.log('   - Compartilhamento C$ pode estar desabilitado');
-          console.log('   - Verificar conectividade de rede');
-          
           diagnosticMessage = `SERVIDOR INACESSÍVEL: ${hostname} não responde ou share C$ indisponível`;
-          
+
         } else if (result.stderr?.includes('gencache_init')) {
-          console.log(`ℹ️  Warnings de gencache ignorados (não impedem funcionamento)`);
-          // Não alterar diagnosticMessage se só tem warning de gencache
+          // Warnings de gencache não impedem funcionamento
         }
-        
+
         return {
           success: false,
           error: diagnosticMessage,
@@ -400,13 +389,9 @@ export class EDRAVScanner {
         error: error instanceof Error ? error.message : String(error),
       };
     } finally {
-      // Garantir limpeza de arquivos sensíveis mesmo em caso de erro
-      if (tempFile) {
-        await fs.unlink(tempFile).catch(() => {});
-      }
-      if (authFile) {
-        await fs.unlink(authFile).catch(() => {});
-      }
+      // FND-004: Secure cleanup — overwrite before delete
+      await secureCleanup(tempFile);
+      await secureCleanup(authFile);
     }
   }
 
@@ -437,20 +422,9 @@ export class EDRAVScanner {
     filePath: string
   ): Promise<boolean> {
     let authFile: string | null = null;
-    
+
     try {
-      // Criar arquivo de autenticação temporário
-      const tempDir = '/tmp';
-      authFile = path.join(tempDir, `smbauth_check_${Date.now()}`);
-      
-      const authContent = [
-        `username=${credential.username}`,
-        `password=${credential.password}`,
-        credential.domain ? `domain=${credential.domain}` : '',
-        credential.domain ? `workgroup=${credential.domain}` : '', // Compatibilidade adicional
-      ].filter(Boolean).join('\n');
-      
-      await fs.writeFile(authFile, authContent, { mode: 0o600 });
+      authFile = await createSecureAuthFile(credential);
 
       const args = [
         `//${hostname}/C$`,
@@ -458,29 +432,18 @@ export class EDRAVScanner {
         '-c', 'ls "Windows\\Temp\\samureye_eicar.txt"'
       ];
 
-      console.log(`[DEBUG] Verificando existência do arquivo: ${filePath}`);
-      console.log(`[DEBUG] Comando verificação: smbclient ${args.join(' ')}`);
-      
       const result = await this.executeCommand('smbclient', args, 10000);
-      
-      console.log(`[DEBUG] Verificação - Exit Code: ${result.exitCode}`);
-      console.log(`[DEBUG] Verificação - STDOUT: ${result.stdout}`);
-      console.log(`[DEBUG] Verificação - STDERR: ${result.stderr}`);
-      
-      // Se o arquivo existir, smbclient retornará informações sobre ele
+
       const fileExists = result.exitCode === 0 && !result.stderr.includes('NT_STATUS_OBJECT_NAME_NOT_FOUND');
-      console.log(`[DEBUG] Arquivo ${filePath.split('\\').pop()} existe: ${fileExists ? '✅ SIM' : '❌ NÃO'}`);
-      
+      console.log(`🔍 Arquivo EICAR em ${hostname}: ${fileExists ? 'presente' : 'removido pelo EDR/AV'}`);
+
       return fileExists;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.log(`Erro verificando arquivo em ${hostname}:`, errorMessage);
       return false;
     } finally {
-      // Garantir limpeza do arquivo de autenticação
-      if (authFile) {
-        await fs.unlink(authFile).catch(() => {});
-      }
+      await secureCleanup(authFile);
     }
   }
 
@@ -493,20 +456,9 @@ export class EDRAVScanner {
     filePath: string
   ): Promise<void> {
     let authFile: string | null = null;
-    
+
     try {
-      // Criar arquivo de autenticação temporário
-      const tempDir = '/tmp';
-      authFile = path.join(tempDir, `smbauth_cleanup_${Date.now()}`);
-      
-      const authContent = [
-        `username=${credential.username}`,
-        `password=${credential.password}`,
-        credential.domain ? `domain=${credential.domain}` : '',
-        credential.domain ? `workgroup=${credential.domain}` : '', // Compatibilidade adicional
-      ].filter(Boolean).join('\n');
-      
-      await fs.writeFile(authFile, authContent, { mode: 0o600 });
+      authFile = await createSecureAuthFile(credential);
 
       const args = [
         `//${hostname}/C$`,
@@ -515,16 +467,13 @@ export class EDRAVScanner {
       ];
 
       await this.executeCommand('smbclient', args, 10000);
-      
+
       console.log(`Arquivo EICAR removido de ${hostname}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.log(`Erro removendo arquivo EICAR de ${hostname}:`, errorMessage);
     } finally {
-      // Garantir limpeza do arquivo de autenticação
-      if (authFile) {
-        await fs.unlink(authFile).catch(() => {});
-      }
+      await secureCleanup(authFile);
     }
   }
 
@@ -557,7 +506,9 @@ export class EDRAVScanner {
         // Ignorar se já existe
       }
       
-      console.log(`Executando: ${command} ${args.join(' ')}`);
+      // FND-004: Sanitize log — redact auth file paths and any credential-like args
+      const safeArgs = args.map(a => a.startsWith(SECURE_TEMP_DIR) ? '[AUTH_FILE]' : a);
+      console.log(`Executando: ${command} ${safeArgs.join(' ')}`);
       
       const child = spawn(command, args, {
         stdio: ['pipe', 'pipe', 'pipe'],

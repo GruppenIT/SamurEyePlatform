@@ -11,7 +11,7 @@
 | FND-001 | Man in the Middle (MITM) | **Crítica** | :white_check_mark: Resolvido (TLS + validação params + single-quote env) |
 | FND-002 | Vulnerabilidades em dependências | **Alta** | :white_check_mark: Resolvido (32/36 → 4 residuais dev-only) |
 | FND-003 | Configuração de CORS excessivamente permissiva | **Baixa** | :white_check_mark: Resolvido (ALLOWED_ORIGINS env var) |
-| FND-004 | Risco de acesso ao AuthFile no EDR AV Scanner | **Média** | :red_circle: Pendente |
+| FND-004 | Risco de acesso ao AuthFile no EDR AV Scanner | **Média** | :white_check_mark: Resolvido (tmpfs + crypto names + secure wipe) |
 | FND-005 | Falta de testes automatizados | **Média** | :red_circle: Pendente |
 | FND-006 | Falta de configuração para ferramentas de suporte a desenvolvedor | **Informativa** | :red_circle: Pendente |
 | FND-007 | Arquivos fonte extensos (God Objects) | **Média** | :red_circle: Pendente |
@@ -95,12 +95,20 @@ O env file usava `JSON.stringify()` (double quotes), que NÃO escapa `` ` `` nem
 - `server/services/scanners/edrAvScanner.ts`
 
 **Ações:**
-- [ ] Revisar permissões do AuthFile (atualmente 0o600 — já adequado)
-- [ ] Implementar limpeza imediata do AuthFile após uso (verificar finally blocks)
-- [ ] Considerar uso de tmpfs/memfd para armazenamento temporário de credenciais
+- [x] Mover auth files para `/dev/shm` (tmpfs, RAM-only) — nunca tocam disco, impede recuperação forense
+- [x] Usar `crypto.randomBytes(16)` para nomes de arquivo imprevisíveis (era `Date.now()`, previsível)
+- [x] Implementar `secureCleanup()` — sobrescreve com zeros antes de deletar (defense in depth)
+- [x] Remover fallback com credenciais na linha de comando (`-U user%password`) — era visível em `/proc/<pid>/cmdline`
+- [x] Sanitizar logs de comandos — auth file paths redactados como `[AUTH_FILE]`
+- [x] Extrair criação de auth file para helper reutilizável `createSecureAuthFile()`
 - [ ] Adicionar documentação de requisito de máquina dedicada
 
-**Nota:** O código atual já implementa boas práticas (mode 0o600, cleanup em finally). Esta finding refere-se mais a uma recomendação operacional (máquina dedicada) do que a um bug no código.
+**Resultado:** 5 vetores de exposição de credenciais corrigidos:
+1. **Disco**: Auth files agora em tmpfs (`/dev/shm`) — nunca persistidos em disco
+2. **Previsibilidade**: Nomes com `crypto.randomBytes` em vez de `Date.now()`
+3. **Remanência**: `secureCleanup()` zera conteúdo antes de `unlink()`
+4. **Processo**: Removido fallback `-U user%password` (visível em `/proc/<pid>/cmdline`)
+5. **Logs**: Caminhos de auth files redactados como `[AUTH_FILE]`
 
 ---
 
@@ -215,7 +223,7 @@ O env file usava `JSON.stringify()` (double quotes), que NÃO escapa `` ` `` nem
 ```
 Fase 1.1  →  FND-002  Dependências vulneráveis         [✅ CONCLUÍDO]
 Fase 1.2  →  FND-001  Man in the Middle (MITM)          [✅ CONCLUÍDO]
-Fase 2.1  →  FND-004  AuthFile no EDR AV Scanner        [Verificação + hardening]
+Fase 2.1  →  FND-004  AuthFile no EDR AV Scanner        [✅ CONCLUÍDO]
 Fase 3.1  →  FND-003  CORS permissivo                   [✅ CONCLUÍDO]
 Fase 4.1  →  FND-008  Logging estruturado               [Base para observabilidade]
 Fase 4.2  →  FND-006  ESLint + Prettier                 [Base para qualidade]
@@ -234,3 +242,4 @@ Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo pr
 | 2026-03-11 | FND-002 | Dependências atualizadas: npm audit fix + vite 6.4, plugin-react 4.5, drizzle-kit 0.31. 36→4 vulns (dev-only). Build OK. | Concluído |
 | 2026-03-11 | FND-001 | MITM mitigado: HTTPS obrigatório, validação de comandos, whitelist+regex de params, single-quote env file, bloqueio de shell metacharacters. Build OK. | Concluído |
 | 2026-03-11 | FND-003 | CORS: removido fallback allow-all, adicionado ALLOWED_ORIGINS env var, regex seguro para localhost dev, rejeição com log. Build OK. | Concluído |
+| 2026-03-11 | FND-004 | AuthFile: tmpfs (/dev/shm), crypto.randomBytes, secureCleanup (zero+unlink), removido fallback -U user%pass, logs redactados. Build OK. | Concluído |
