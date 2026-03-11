@@ -122,7 +122,7 @@ async function invalidateAllSessionsOnStartup(): Promise<void> {
     }
     
     const newVersion = await storage.incrementSessionVersion(adminUser.id);
-    log.info(`🔐 Versão de sessão incrementada para ${newVersion} - todas as sessões anteriores invalidadas`);
+    log.info({ newVersion }, 'session version incremented, all previous sessions invalidated');
     
     // Limpar todas as sessões ativas do banco (connect-pg-simple)
     await db.execute(sql`DELETE FROM sessions`);
@@ -130,9 +130,9 @@ async function invalidateAllSessionsOnStartup(): Promise<void> {
     // Limpar todas as sessões ativas rastreadas
     await db.execute(sql`DELETE FROM active_sessions`);
     
-    log.info(`🔒 Todas as sessões anteriores foram removidas`);
+    log.info('all previous sessions removed');
   } catch (error) {
-    log.error('❌ Erro ao invalidar sessões na inicialização:', error);
+    log.error({ err: error }, 'failed to invalidate sessions on startup');
   }
 }
 
@@ -213,7 +213,7 @@ export function validateSession(): RequestHandler {
     // Verificar se a sessão expirou usando o método nativo
     const cookieExpires = req.session.cookie.expires;
     if (cookieExpires && cookieExpires <= new Date()) {
-      log.info(`🔒 Sessão expirada para usuário ${req.user.id}, forçando logout`);
+      log.info({ userId: req.user.id }, 'session expired, forcing logout');
       
       // Remover sessão ativa
       if (req.sessionID) {
