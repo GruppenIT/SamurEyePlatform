@@ -12,7 +12,7 @@
 | FND-002 | Vulnerabilidades em dependências | **Alta** | :white_check_mark: Resolvido (32/36 → 4 residuais dev-only) |
 | FND-003 | Configuração de CORS excessivamente permissiva | **Baixa** | :white_check_mark: Resolvido (ALLOWED_ORIGINS env var) |
 | FND-004 | Risco de acesso ao AuthFile no EDR AV Scanner | **Média** | :white_check_mark: Resolvido (tmpfs + crypto names + secure wipe) |
-| FND-005 | Falta de testes automatizados | **Média** | :red_circle: Pendente |
+| FND-005 | Falta de testes automatizados | **Média** | :white_check_mark: Resolvido (Vitest + 113 testes de segurança) |
 | FND-006 | Falta de configuração para ferramentas de suporte a desenvolvedor | **Informativa** | :no_entry_sign: Won't fix (by design) |
 | FND-007 | Arquivos fonte extensos (God Objects) | **Média** | :red_circle: Pendente |
 | FND-008 | Falta de ferramenta configurável de logging | **Informativa** | :white_check_mark: Resolvido (pino + redação automática + 655 console→logger) |
@@ -114,19 +114,29 @@ O env file usava `JSON.stringify()` (double quotes), que NÃO escapa `` ` `` nem
 
 #### 2.2 FND-005: Falta de testes automatizados (Média)
 
-**Arquivos afetados:**
-- `package.json` (novas dependências de teste)
-- Novos arquivos de teste a criar
+**Estratégia:** Testes focados em segurança (security-first). Ver [TESTING.md](./TESTING.md) para detalhes completos.
+
+**Arquivos criados:**
+- `vitest.config.ts` — Configuração do Vitest
+- `server/__tests__/systemUpdateService.test.ts` — 22 testes (FND-001: shell injection, whitelist)
+- `server/__tests__/subscriptionService.test.ts` — 33 testes (FND-001: HTTPS, command validation)
+- `server/__tests__/edrAvScanner.test.ts` — 9 testes (FND-004: auth files, permissions, cleanup)
+- `server/__tests__/encryption.test.ts` — 16 testes (DEK/KEK roundtrip, tamper detection)
+- `server/__tests__/logger.test.ts` — 18 testes (FND-008: credential redaction)
+- `server/__tests__/cors.test.ts` — 15 testes (FND-003: origin whitelist)
+- `TESTING.md` — Guia de testes e convenções para expansão futura
 
 **Ações:**
-- [ ] Configurar framework de testes (Vitest — compatível com Vite)
-- [ ] Criar testes unitários para serviços críticos de segurança:
-  - `subscriptionService.ts` — validação de certificados e parâmetros
-  - `systemUpdateService.ts` — sanitização de inputs
-  - `edrAvScanner.ts` — gestão de credenciais
-- [ ] Criar testes de integração para rotas da API
-- [ ] Adicionar script de teste ao `package.json`
-- [ ] Configurar CI/CD para executar testes automaticamente
+- [x] Instalar Vitest como devDependency
+- [x] Criar `vitest.config.ts` com aliases e configuração de ambiente
+- [x] Adicionar scripts `test` e `test:watch` ao `package.json`
+- [x] Exportar funções de segurança para testabilidade (`validateUpdateParam`, `shellSingleQuoteEscape`, `validateConsoleUrl`, `validateCommand`, `createSecureAuthFile`, `secureCleanup`)
+- [x] Criar 6 suites de teste cobrindo todos os findings de segurança implementados
+- [x] Documentar estratégia, padrões e convenções em `TESTING.md`
+- [ ] ~~Criar testes de integração para rotas da API~~ — descartado (requer DB + auth, custo > benefício)
+- [ ] ~~Configurar CI/CD~~ — descartado (deploy em appliance, sem pipeline)
+
+**Resultado:** 6 suites, **113 testes**, todos passando em < 1 segundo. Cobertura focada nas funções que mitigam vulnerabilidades reais.
 
 ---
 
@@ -243,7 +253,7 @@ Fase 2.1  →  FND-004  AuthFile no EDR AV Scanner        [✅ CONCLUÍDO]
 Fase 3.1  →  FND-003  CORS permissivo                   [✅ CONCLUÍDO]
 Fase 4.1  →  FND-008  Logging estruturado               [✅ CONCLUÍDO]
 Fase 4.2  →  FND-006  ESLint + Prettier                 [🚫 WON'T FIX — by design]
-Fase 2.2  →  FND-005  Testes automatizados              [Próximo]
+Fase 2.2  →  FND-005  Testes automatizados              [✅ CONCLUÍDO]
 Fase 4.3  →  FND-009  Validação SSH Host                [Melhoria incremental]
 Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo prazo]
 ```
@@ -261,3 +271,4 @@ Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo pr
 | 2026-03-11 | FND-004 | AuthFile: tmpfs (/dev/shm), crypto.randomBytes, secureCleanup (zero+unlink), removido fallback -U user%pass, logs redactados. Build OK. | Concluído |
 | 2026-03-11 | FND-008 | Logging: pino + pino-pretty instalados, server/lib/logger.ts criado com redação automática de 20+ campos sensíveis, 655 console.* migrados para logger estruturado em 22 arquivos, credential.username removido dos logs. Build OK. | Concluído |
 | 2026-03-11 | FND-006 | Won't fix: 100% do código mantido por AI (Claude Code), TypeScript já cobre regras de lint, overhead negativo de ~50+ deps sem retorno proporcional. | Won't fix |
+| 2026-03-11 | FND-005 | Vitest configurado, 6 suites / 113 testes de segurança cobrindo FND-001 (MITM params + HTTPS + commands), FND-003 (CORS), FND-004 (auth files), FND-008 (redação de logs), encryption (DEK/KEK). TESTING.md criado com guia de expansão. Build+Tests OK. | Concluído |

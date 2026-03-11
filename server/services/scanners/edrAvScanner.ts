@@ -27,7 +27,7 @@ const SECURE_TEMP_DIR = (() => {
  * - Mode 0o600 (owner-read-only)
  * Returns the file path. Caller MUST call secureCleanup() when done.
  */
-async function createSecureAuthFile(
+export async function createSecureAuthFile(
   credential: { username: string; password: string; domain?: string }
 ): Promise<string> {
   const randomName = `smbauth_${crypto.randomBytes(16).toString('hex')}`;
@@ -48,7 +48,7 @@ async function createSecureAuthFile(
  * Securely delete a file by overwriting its contents before unlinking (FND-004).
  * This prevents credential recovery from disk (defense in depth even on tmpfs).
  */
-async function secureCleanup(filePath: string | null): Promise<void> {
+export async function secureCleanup(filePath: string | null): Promise<void> {
   if (!filePath) return;
   try {
     // Overwrite with zeros before deletion
