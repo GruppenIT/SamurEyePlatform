@@ -21,7 +21,7 @@ const ALLOWED_COMMAND_TYPES = new Set(['system_update', 'restart_service']);
  * HTTP connections are vulnerable to MITM — an attacker on the network
  * could intercept the heartbeat and inject malicious commands.
  */
-function validateConsoleUrl(url: string): { valid: boolean; error?: string } {
+export function validateConsoleUrl(url: string): { valid: boolean; error?: string } {
   try {
     const parsed = new URL(url);
     if (parsed.protocol === 'https:') {
@@ -42,7 +42,7 @@ function validateConsoleUrl(url: string): { valid: boolean; error?: string } {
  * Validate command structure from the console heartbeat response (FND-001 mitigation).
  * Rejects commands with unexpected types or missing required fields.
  */
-function validateCommand(cmd: any): cmd is ConsoleCommand {
+export function validateCommand(cmd: any): cmd is ConsoleCommand {
   if (!cmd || typeof cmd !== 'object') return false;
   if (typeof cmd.id !== 'string' || cmd.id.length === 0 || cmd.id.length > 256) return false;
   if (typeof cmd.type !== 'string' || !ALLOWED_COMMAND_TYPES.has(cmd.type)) return false;
