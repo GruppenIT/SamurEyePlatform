@@ -9,7 +9,7 @@
 | ID | Descrição | Severidade | Status |
 |----|-----------|------------|--------|
 | FND-001 | Man in the Middle (MITM) | **Crítica** | :red_circle: Pendente |
-| FND-002 | Vulnerabilidades em dependências | **Alta** | :red_circle: Pendente |
+| FND-002 | Vulnerabilidades em dependências | **Alta** | :white_check_mark: Resolvido (32/36 → 4 residuais dev-only) |
 | FND-003 | Configuração de CORS excessivamente permissiva | **Baixa** | :red_circle: Pendente |
 | FND-004 | Risco de acesso ao AuthFile no EDR AV Scanner | **Média** | :red_circle: Pendente |
 | FND-005 | Falta de testes automatizados | **Média** | :red_circle: Pendente |
@@ -34,11 +34,16 @@ Prioridade máxima. Devem ser resolvidas imediatamente.
 - `package.json`
 
 **Ações:**
-- [ ] Executar `npm audit` para inventário completo
-- [ ] Executar `npm audit fix` para correções não-breaking
-- [ ] Avaliar `npm audit fix --force` para correções breaking (esbuild)
-- [ ] Validar que a aplicação compila e funciona após atualização
-- [ ] Documentar vulnerabilidades que não puderam ser resolvidas
+- [x] Executar `npm audit` para inventário completo — 36 vulnerabilidades (1 critical, 22 high, 9 moderate, 4 low)
+- [x] Executar `npm audit fix` para correções não-breaking — corrigiu 30 vulnerabilidades
+- [x] Atualizar manualmente `vite` (5.4→6.4), `@vitejs/plugin-react` (4.3→4.5), `drizzle-kit` (0.30→0.31) — corrigiu mais 2
+- [x] Validar que a aplicação compila e funciona após atualização — `npm run build` OK
+- [x] Documentar vulnerabilidades que não puderam ser resolvidas
+
+**Resultado:** 36 → 4 vulnerabilidades restantes (todas moderate, dev-only)
+
+**Vulnerabilidades residuais (aceitas):**
+As 4 restantes são todas a mesma issue: `esbuild <=0.24.2` embutido como dependência transitiva do `@esbuild-kit/esm-loader` dentro do `drizzle-kit`. Esta vulnerabilidade **só afeta o servidor de desenvolvimento** (permite requests ao dev server) e **não tem impacto em produção**. A correção requer downgrade do drizzle-kit para 0.18 (incompatível com drizzle-orm 0.39), portanto é inviável sem regressão.
 
 ---
 
@@ -191,7 +196,7 @@ Prioridade máxima. Devem ser resolvidas imediatamente.
 ## Ordem de Execução Recomendada
 
 ```
-Fase 1.1  →  FND-002  Dependências vulneráveis         [Rápido, alto impacto]
+Fase 1.1  →  FND-002  Dependências vulneráveis         [✅ CONCLUÍDO]
 Fase 1.2  →  FND-001  Man in the Middle (MITM)          [Crítico, requer cuidado]
 Fase 2.1  →  FND-004  AuthFile no EDR AV Scanner        [Verificação + hardening]
 Fase 3.1  →  FND-003  CORS permissivo                   [Rápido]
@@ -209,3 +214,4 @@ Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo pr
 | Data | Finding | Ação | Status |
 |------|---------|------|--------|
 | 2026-03-11 | — | Plano de remediação criado | Concluído |
+| 2026-03-11 | FND-002 | Dependências atualizadas: npm audit fix + vite 6.4, plugin-react 4.5, drizzle-kit 0.31. 36→4 vulns (dev-only). Build OK. | Concluído |
