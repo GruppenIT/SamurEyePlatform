@@ -211,6 +211,7 @@ export const hosts = pgTable("hosts", {
   aliases: jsonb("aliases").$type<string[]>().default([]).notNull(), // FQDNs and alternative names
   riskScore: integer("risk_score").default(0).notNull(), // 0-100 based on CVSS intervals
   rawScore: integer("raw_score").default(0).notNull(), // Sum of weighted threat scores
+  sshHostFingerprint: text("ssh_host_fingerprint"), // SHA-256 fingerprint of SSH host key (FND-009 TOFU)
   discoveredAt: timestamp("discovered_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [
