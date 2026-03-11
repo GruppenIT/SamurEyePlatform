@@ -10,7 +10,7 @@
 |----|-----------|------------|--------|
 | FND-001 | Man in the Middle (MITM) | **Crítica** | :white_check_mark: Resolvido (TLS + validação params + single-quote env) |
 | FND-002 | Vulnerabilidades em dependências | **Alta** | :white_check_mark: Resolvido (32/36 → 4 residuais dev-only) |
-| FND-003 | Configuração de CORS excessivamente permissiva | **Baixa** | :red_circle: Pendente |
+| FND-003 | Configuração de CORS excessivamente permissiva | **Baixa** | :white_check_mark: Resolvido (ALLOWED_ORIGINS env var) |
 | FND-004 | Risco de acesso ao AuthFile no EDR AV Scanner | **Média** | :red_circle: Pendente |
 | FND-005 | Falta de testes automatizados | **Média** | :red_circle: Pendente |
 | FND-006 | Falta de configuração para ferramentas de suporte a desenvolvedor | **Informativa** | :red_circle: Pendente |
@@ -155,13 +155,19 @@ O env file usava `JSON.stringify()` (double quotes), que NÃO escapa `` ` `` nem
 #### 3.1 FND-003: Configuração de CORS excessivamente permissiva (Baixa)
 
 **Arquivos afetados:**
-- `server/index.ts` (linhas 16-35)
+- `server/index.ts` (linhas 16-38)
 
 **Ações:**
-- [ ] Implementar whitelist dinâmica baseada em variável de ambiente (ALLOWED_ORIGINS)
-- [ ] Em produção, rejeitar origens não listadas (em vez de permitir todas por padrão)
-- [ ] Manter permissividade em desenvolvimento (localhost)
+- [x] Implementar whitelist dinâmica baseada em variável de ambiente (`ALLOWED_ORIGINS`, comma-separated)
+- [x] Quando `ALLOWED_ORIGINS` está configurada, rejeitar origens não listadas com log
+- [x] Manter permissividade em desenvolvimento (localhost com regex seguro)
+- [x] Quando `ALLOWED_ORIGINS` não está definida, manter compatibilidade (appliance single-host — permite todas)
 - [ ] Documentar configuração de CORS no guia de instalação
+
+**Resultado:** O fallback `callback(null, true)` foi removido. Comportamento:
+- **Sem `ALLOWED_ORIGINS`**: Compatível com deploy atual (appliance acessa sua própria UI)
+- **Com `ALLOWED_ORIGINS`**: Só origens listadas são aceitas; demais são rejeitadas com log
+- **Dev**: `localhost`/`127.0.0.1` em qualquer porta é aceito via regex (não mais `origin.includes('localhost')` que era bypassável)
 
 ---
 
@@ -210,7 +216,7 @@ O env file usava `JSON.stringify()` (double quotes), que NÃO escapa `` ` `` nem
 Fase 1.1  →  FND-002  Dependências vulneráveis         [✅ CONCLUÍDO]
 Fase 1.2  →  FND-001  Man in the Middle (MITM)          [✅ CONCLUÍDO]
 Fase 2.1  →  FND-004  AuthFile no EDR AV Scanner        [Verificação + hardening]
-Fase 3.1  →  FND-003  CORS permissivo                   [Rápido]
+Fase 3.1  →  FND-003  CORS permissivo                   [✅ CONCLUÍDO]
 Fase 4.1  →  FND-008  Logging estruturado               [Base para observabilidade]
 Fase 4.2  →  FND-006  ESLint + Prettier                 [Base para qualidade]
 Fase 2.2  →  FND-005  Testes automatizados              [Depende de 4.2]
@@ -227,3 +233,4 @@ Fase 2.3  →  FND-007  Refatoração de arquivos extensos  [Contínuo, longo pr
 | 2026-03-11 | — | Plano de remediação criado | Concluído |
 | 2026-03-11 | FND-002 | Dependências atualizadas: npm audit fix + vite 6.4, plugin-react 4.5, drizzle-kit 0.31. 36→4 vulns (dev-only). Build OK. | Concluído |
 | 2026-03-11 | FND-001 | MITM mitigado: HTTPS obrigatório, validação de comandos, whitelist+regex de params, single-quote env file, bloqueio de shell metacharacters. Build OK. | Concluído |
+| 2026-03-11 | FND-003 | CORS: removido fallback allow-all, adicionado ALLOWED_ORIGINS env var, regex seguro para localhost dev, rejeição com log. Build OK. | Concluído |
