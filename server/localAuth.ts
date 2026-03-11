@@ -218,14 +218,14 @@ export function validateSession(): RequestHandler {
       // Remover sessão ativa
       if (req.sessionID) {
         await storage.deleteActiveSession(req.sessionID).catch(err => {
-          log.error('Erro ao remover sessão ativa:', err);
+          log.error({ err }, 'failed to delete active session');
         });
       }
-      
+
       // Destruir sessão
       req.session.destroy((err: any) => {
         if (err) {
-          log.error('Erro ao destruir sessão expirada:', err);
+          log.error({ err }, 'failed to destroy expired session');
         }
       });
       
@@ -251,7 +251,7 @@ export function validateSession(): RequestHandler {
       
       // Bloquear sessões que não estão rastreadas (revogadas ou inválidas)
       if (!activeSession) {
-        log.info(`🔒 Sessão não rastreada para usuário ${req.user.id} - provavelmente revogada`);
+        log.info({ userId: req.user.id }, 'untracked session detected, likely revoked');
         
         // Destruir sessão
         req.session.destroy((err: any) => {
