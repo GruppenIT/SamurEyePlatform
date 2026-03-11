@@ -3,6 +3,9 @@ import dns from 'dns';
 import net from 'net';
 import { promisify } from 'util';
 import { processTracker } from '../processTracker';
+import { createLogger } from '../../lib/logger';
+
+const log = createLogger('networkScanner');
 
 const dnsLookup = promisify(dns.lookup);
 
@@ -75,7 +78,7 @@ export class NetworkScanner {
    * Realiza scan de portas em um host
    */
   async scanPorts(target: string, ports?: number[], nmapProfile?: string, jobId?: string): Promise<PortScanResult[]> {
-    console.log(`Iniciando scan de portas para ${target}`);
+    log.info(`Iniciando scan de portas para ${target}`);
     
     // Verificar se é um IP válido ou hostname
     const resolvedTarget = await this.resolveTarget(target);
@@ -83,7 +86,7 @@ export class NetworkScanner {
       throw new Error(`❌ Erro de DNS: Não foi possível resolver o hostname '${target}'. Verifique se o domínio existe e é acessível.`);
     }
 
-    console.log(`✅ DNS resolvido: ${target} → ${resolvedTarget}`);
+    log.info(`✅ DNS resolvido: ${target} → ${resolvedTarget}`);
 
     // Determinar portas baseado no perfil nmap
     const portsToScan = this.getPortsForProfile(nmapProfile, ports);
@@ -94,7 +97,7 @@ export class NetworkScanner {
       const nmapResults = await this.nmapScan(target, resolvedTarget, portsToScan, nmapProfile, jobId);
       return nmapResults;
     } catch (error) {
-      console.log(`⚠️ nmap falhou, usando scan TCP nativo:`, error);
+      log.info(`⚠️ nmap falhou, usando scan TCP nativo:`, error);
       
       // Se foi erro de DNS no nmap, não tentar TCP scan
       if (error instanceof Error && error.message.includes('Failed to resolve')) {
@@ -103,7 +106,7 @@ export class NetworkScanner {
       
       // Para TCP fallback, usar portas comuns se array vazio (profiles fast/comprehensive)
       const fallbackPorts = portsToScan.length > 0 ? portsToScan : this.commonPorts.map(p => p.port);
-      console.log(`🔄 TCP fallback usará ${fallbackPorts.length} portas comuns`);
+      log.info(`🔄 TCP fallback usará ${fallbackPorts.length} portas comuns`);
       
       return this.tcpPortScan(resolvedTarget, fallbackPorts);
     }
@@ -116,11 +119,11 @@ export class NetworkScanner {
     try {
       // Se já é um IP, retorna direto
       if (/^\d+\.\d+\.\d+\.\d+$/.test(target)) {
-        console.log(`📍 Target ${target} já é um IP válido`);
+        log.info(`📍 Target ${target} já é um IP válido`);
         return target;
       }
 
-      console.log(`🔍 Resolvendo DNS para ${target}...`);
+      log.info(`🔍 Resolvendo DNS para ${target}...`);
       
       // Resolve hostname com timeout reduzido
       const result = await Promise.race([
@@ -130,15 +133,15 @@ export class NetworkScanner {
         )
       ]);
       
-      console.log(`✅ ${target} resolvido para ${result.address}`);
+      log.info(`✅ ${target} resolvido para ${result.address}`);
       return result.address;
     } catch (error) {
-      console.error(`❌ Erro ao resolver DNS para ${target}:`, error);
+      log.error(`❌ Erro ao resolver DNS para ${target}:`, error);
       
       if (error instanceof Error && error.message.includes('timeout')) {
-        console.error(`⏱️ Timeout de DNS - possível problema de conectividade`);
+        log.error(`⏱️ Timeout de DNS - possível problema de conectividade`);
       } else if (error instanceof Error && (error.message.includes('ENOTFOUND') || error.message.includes('ENOENT'))) {
-        console.error(`🚫 Hostname não encontrado - domínio pode não existir`);
+        log.error(`🚫 Hostname não encontrado - domínio pode não existir`);
       }
       
       return null;
@@ -171,7 +174,7 @@ export class NetworkScanner {
     }
     
     const stage = `Escaneando portas de ${originalTarget}... nmap`;
-    console.log(`🎯 ${stage} (perfil: ${nmapProfile || 'default'})`);
+    log.info(`🎯 ${stage} (perfil: ${nmapProfile || 'default'})`);
     
     const context: ProcessContext = {
       jobId,
@@ -185,14 +188,14 @@ export class NetworkScanner {
       const results = this.parseNmapOutput(stdout, originalTarget, resolvedTarget);
       
       // Log verboso das portas detectadas
-      console.log(`📊 Nmap concluído para ${originalTarget} - ${results.length} portas processadas:`);
+      log.info(`📊 Nmap concluído para ${originalTarget} - ${results.length} portas processadas:`);
       for (const result of results) {
-        console.log(`  🔍 Porta ${result.port}: ${result.state} | Serviço: ${result.service || 'desconhecido'} | Versão: ${result.version || 'N/A'}`);
+        log.info(`  🔍 Porta ${result.port}: ${result.state} | Serviço: ${result.service || 'desconhecido'} | Versão: ${result.version || 'N/A'}`);
         if (result.ip && result.ip !== originalTarget) {
-          console.log(`    🔗 IP resolvido: ${result.ip}`);
+          log.info(`    🔗 IP resolvido: ${result.ip}`);
         }
         if (result.osInfo) {
-          console.log(`    💻 OS detectado: ${result.osInfo}`);
+          log.info(`    💻 OS detectado: ${result.osInfo}`);
         }
       }
       
@@ -203,7 +206,7 @@ export class NetworkScanner {
         error.message.includes('requires root privileges') ||
         error.message.includes('You requested a scan type which requires root')
       )) {
-        console.log(`⚠️ nmap requer privilégios de root para perfil ${nmapProfile}, fazendo fallback para TCP scan`);
+        log.info(`⚠️ nmap requer privilégios de root para perfil ${nmapProfile}, fazendo fallback para TCP scan`);
         
         // Reconstruir args com TCP scan
         args = this.buildNmapArgs(resolvedTarget, ports, 'tcp-fallback');
@@ -212,10 +215,10 @@ export class NetworkScanner {
           const stdout = await this.spawnCommand('nmap', args, context);
           const results = this.parseNmapOutput(stdout, originalTarget, resolvedTarget);
           
-          console.log(`📊 Nmap TCP fallback concluído para ${originalTarget} - ${results.length} portas processadas`);
+          log.info(`📊 Nmap TCP fallback concluído para ${originalTarget} - ${results.length} portas processadas`);
           return results;
         } catch (fallbackError) {
-          console.error(`❌ Fallback TCP também falhou: ${fallbackError}`);
+          log.error(`❌ Fallback TCP também falhou: ${fallbackError}`);
           throw fallbackError;
         }
       }
@@ -251,9 +254,9 @@ export class NetworkScanner {
     return new Promise((resolve, reject) => {
       const { jobId, processName, stage, maxWaitTime = 600000 } = context; // 10min default fallback
       
-      console.log(`🔧 Executando: ${command} ${args.join(' ')}`);
+      log.info(`🔧 Executando: ${command} ${args.join(' ')}`);
       if (jobId && processName && stage) {
-        console.log(`📍 Job: ${jobId} | Processo: ${processName} | Stage: ${stage}`);
+        log.info(`📍 Job: ${jobId} | Processo: ${processName} | Stage: ${stage}`);
       }
       
       const child = spawn(command, args, {
@@ -273,7 +276,7 @@ export class NetworkScanner {
         try {
           processTracker.register(jobId, processName, child, stage);
         } catch (error) {
-          console.warn(`⚠️ Falha ao registrar processo no tracker: ${error}`);
+          log.warn(`⚠️ Falha ao registrar processo no tracker: ${error}`);
         }
       }
       
@@ -287,7 +290,7 @@ export class NetworkScanner {
       
       // Fallback protection - kill if exceeds maximum wait time
       const fallbackTimer = setTimeout(() => {
-        console.log(`⏱️ Fallback timeout após ${maxWaitTime/1000}s - matando processo ${child.pid}`);
+        log.info(`⏱️ Fallback timeout após ${maxWaitTime/1000}s - matando processo ${child.pid}`);
         
         if (jobId && child.pid) {
           processTracker.kill(jobId, child.pid);
@@ -301,20 +304,20 @@ export class NetworkScanner {
       
       child.on('close', (code) => {
         clearTimeout(fallbackTimer);
-        console.log(`📋 Comando concluído com código ${code}`);
+        log.info(`📋 Comando concluído com código ${code}`);
         
         if (code === 0) {
           resolve(stdout);
         } else {
           const errorMsg = `Command failed with code ${code}: ${stderr}`;
-          console.error(`❌ ${errorMsg}`);
+          log.error(`❌ ${errorMsg}`);
           reject(new Error(errorMsg));
         }
       });
       
       child.on('error', (error) => {
         clearTimeout(fallbackTimer);
-        console.error(`💥 Erro no comando:`, error);
+        log.error(`💥 Erro no comando:`, error);
         reject(error);
       });
     });
@@ -344,14 +347,14 @@ export class NetworkScanner {
           const osVersion = windowsVersionMatch[0];
           normalizedVersion = osVersion + ' ' + service;
           accuracy = 'high';
-          console.log(`📝 Versão normalizada de '${version}' para '${normalizedVersion}' baseado em OS detection`);
+          log.info(`📝 Versão normalizada de '${version}' para '${normalizedVersion}' baseado em OS detection`);
         }
       }
       
       // Avisar sobre ranges de versão (indicam baixa precisão)
       if (version.includes(' - ') || version.includes('|')) {
         accuracy = 'low';
-        console.log(`⚠️ Versão detectada como range: ${version} - precisão baixa`);
+        log.info(`⚠️ Versão detectada como range: ${version} - precisão baixa`);
       }
     }
 
@@ -402,12 +405,12 @@ export class NetworkScanner {
       if (trimmed.startsWith('OS details:')) {
         const osDetails = trimmed.replace('OS details:', '').trim();
         hostContext.osInfo = osDetails;
-        console.log(`🖥️ OS detectado via 'OS details': ${osDetails}`);
+        log.info(`🖥️ OS detectado via 'OS details': ${osDetails}`);
       } else if (trimmed.startsWith('Running:')) {
         // Usar Running apenas se não temos OS details
         if (!hostContext.osInfo) {
           hostContext.osInfo = trimmed.replace('Running:', '').trim();
-          console.log(`🖥️ OS detectado via 'Running': ${hostContext.osInfo}`);
+          log.info(`🖥️ OS detectado via 'Running': ${hostContext.osInfo}`);
         }
       } else if (trimmed.startsWith('Service Info:')) {
         // Service Info é menos preciso, usar apenas como fallback
@@ -415,7 +418,7 @@ export class NetworkScanner {
           const osMatch = trimmed.match(/OS:\s*([^;,]+)/i);
           if (osMatch) {
             hostContext.osInfo = osMatch[1].trim();
-            console.log(`🖥️ OS detectado via 'Service Info': ${hostContext.osInfo}`);
+            log.info(`🖥️ OS detectado via 'Service Info': ${hostContext.osInfo}`);
           }
         }
       }
@@ -427,7 +430,7 @@ export class NetworkScanner {
         const cpeOs = `${vendor} ${product} ${version}`;
         if (!hostContext.osInfo || hostContext.osInfo.length < cpeOs.length) {
           hostContext.osInfo = cpeOs;
-          console.log(`🖥️ OS detectado via CPE: ${cpeOs}`);
+          log.info(`🖥️ OS detectado via CPE: ${cpeOs}`);
         }
       }
     }
@@ -516,14 +519,14 @@ export class NetworkScanner {
       }
     }
     
-    console.log(`Parse nmap encontrou ${results.length} portas para ${originalTarget}`);
+    log.info(`Parse nmap encontrou ${results.length} portas para ${originalTarget}`);
     if (results.length > 0) {
-      console.log('Primeiras portas encontradas:', results.slice(0, 3).map(r => `${r.port}/${r.state}`));
+      log.info('Primeiras portas encontradas:', results.slice(0, 3).map(r => `${r.port}/${r.state}`));
       if (hostContext.ip && hostContext.ip !== originalTarget) {
-        console.log(`🔗 Host ${originalTarget} resolvido para IP: ${hostContext.ip}`);
+        log.info(`🔗 Host ${originalTarget} resolvido para IP: ${hostContext.ip}`);
       }
       if (hostContext.osInfo) {
-        console.log(`💻 Sistema operacional detectado: ${hostContext.osInfo}`);
+        log.info(`💻 Sistema operacional detectado: ${hostContext.osInfo}`);
       }
     }
     
@@ -548,7 +551,7 @@ export class NetworkScanner {
         // Estado incerto - tratar como filtered para segurança
         return 'filtered';
       default:
-        console.warn(`Estado de porta desconhecido: ${state}, assumindo 'filtered'`);
+        log.warn(`Estado de porta desconhecido: ${state}, assumindo 'filtered'`);
         return 'filtered';
     }
   }
@@ -557,7 +560,7 @@ export class NetworkScanner {
    * Scan TCP nativo (fallback quando nmap não está disponível)
    */
   private async tcpPortScan(target: string, ports: number[]): Promise<PortScanResult[]> {
-    console.log(`🔄 Iniciando TCP scan nativo para ${target} em ${ports.length} portas`);
+    log.info(`🔄 Iniciando TCP scan nativo para ${target} em ${ports.length} portas`);
     const results: PortScanResult[] = [];
     const timeout = 3000; // Aumenta timeout para 3 segundos por porta
     const maxConcurrent = 10; // Reduz concorrência para ser mais estável
@@ -565,7 +568,7 @@ export class NetworkScanner {
     // Processa portas em lotes para melhor performance
     for (let i = 0; i < ports.length; i += maxConcurrent) {
       const batch = ports.slice(i, i + maxConcurrent);
-      console.log(`📦 Processando lote ${Math.floor(i/maxConcurrent) + 1}: portas ${batch.join(', ')}`);
+      log.info(`📦 Processando lote ${Math.floor(i/maxConcurrent) + 1}: portas ${batch.join(', ')}`);
       
       const promises = batch.map(async (port) => {
         try {
@@ -573,7 +576,7 @@ export class NetworkScanner {
           const serviceInfo = this.getServiceInfo(port);
           
           if (isOpen) {
-            console.log(`✅ Porta ${port} aberta em ${target}`);
+            log.info(`✅ Porta ${port} aberta em ${target}`);
             // Tentar obter banner se a porta estiver aberta
             const banner = await this.getBanner(target, port);
             
@@ -587,11 +590,11 @@ export class NetworkScanner {
               banner,
             };
           } else {
-            console.log(`❌ Porta ${port} fechada/filtrada em ${target}`);
+            log.info(`❌ Porta ${port} fechada/filtrada em ${target}`);
           }
           return null;
         } catch (error) {
-          console.log(`⚠️ Erro na porta ${port}: ${error}`);
+          log.info(`⚠️ Erro na porta ${port}: ${error}`);
           return null;
         }
       });
@@ -600,10 +603,10 @@ export class NetworkScanner {
       const openPorts = batchResults.filter(result => result !== null);
       results.push(...openPorts);
       
-      console.log(`📊 Lote concluído: ${openPorts.length}/${batch.length} portas abertas`);
+      log.info(`📊 Lote concluído: ${openPorts.length}/${batch.length} portas abertas`);
     }
 
-    console.log(`🎯 TCP scan concluído: ${results.length} portas abertas encontradas de ${ports.length} testadas`);
+    log.info(`🎯 TCP scan concluído: ${results.length} portas abertas encontradas de ${ports.length} testadas`);
     return results;
   }
 
@@ -697,7 +700,7 @@ export class NetworkScanner {
    * without port scanning. Returns a list of alive IPs/hostnames.
    */
   async discoverAliveHosts(target: string, jobId?: string): Promise<AliveHostResult[]> {
-    console.log(`🔍 Descoberta de hosts ativos em ${target} (ping sweep)`);
+    log.info(`🔍 Descoberta de hosts ativos em ${target} (ping sweep)`);
 
     const args = [
       '-sn',       // Ping sweep only - no port scan
@@ -717,10 +720,10 @@ export class NetworkScanner {
     try {
       const stdout = await this.spawnCommand('nmap', args, context);
       const aliveHosts = this.parseNmapDiscoveryOutput(stdout);
-      console.log(`✅ Descoberta concluída: ${aliveHosts.length} hosts ativos em ${target}`);
+      log.info(`✅ Descoberta concluída: ${aliveHosts.length} hosts ativos em ${target}`);
       return aliveHosts;
     } catch (error) {
-      console.error(`❌ Erro na descoberta de hosts: ${error}`);
+      log.error(`❌ Erro na descoberta de hosts: ${error}`);
       // Fallback: if target is a single IP/hostname, return it as-is
       if (!target.includes('/')) {
         return [{ ip: target }];
@@ -790,7 +793,7 @@ export class NetworkScanner {
     }
 
     const totalHosts = 2 ** (32 - prefix) - 2; // Exclude network and broadcast
-    console.log(`📡 Escaneando range CIDR ${cidr} (${totalHosts} hosts possíveis) diretamente via nmap`);
+    log.info(`📡 Escaneando range CIDR ${cidr} (${totalHosts} hosts possíveis) diretamente via nmap`);
 
     // Use nmap directly with the CIDR range - nmap natively handles
     // parallel host discovery and only port-scans alive hosts
@@ -813,11 +816,11 @@ export class NetworkScanner {
 
       // Count unique hosts discovered
       const uniqueHosts = new Set(results.filter(r => r.state === 'open').map(r => r.ip || r.target));
-      console.log(`✅ Scan CIDR concluído: ${results.length} portas encontradas em ${uniqueHosts.size} hosts ativos de ${cidr}`);
+      log.info(`✅ Scan CIDR concluído: ${results.length} portas encontradas em ${uniqueHosts.size} hosts ativos de ${cidr}`);
       return results;
     } catch (error) {
-      console.error(`❌ Erro no scan CIDR via nmap: ${error}`);
-      console.log(`🔄 Tentando fallback: expandindo range manualmente`);
+      log.error(`❌ Erro no scan CIDR via nmap: ${error}`);
+      log.info(`🔄 Tentando fallback: expandindo range manualmente`);
       return this.scanCidrFallback(cidr, nmapProfile, jobId);
     }
   }
@@ -830,14 +833,14 @@ export class NetworkScanner {
     const hosts = this.expandCidrRange(cidr);
     const results: PortScanResult[] = [];
 
-    console.log(`🔄 Fallback CIDR: escaneando ${hosts.length} hosts individualmente`);
+    log.info(`🔄 Fallback CIDR: escaneando ${hosts.length} hosts individualmente`);
 
     for (const host of hosts) {
       try {
         const hostResults = await this.scanPorts(host, undefined, nmapProfile, jobId);
         results.push(...hostResults);
       } catch (error) {
-        console.error(`Erro ao escanear ${host}:`, error);
+        log.error(`Erro ao escanear ${host}:`, error);
       }
     }
 
@@ -889,17 +892,17 @@ export class NetworkScanner {
     switch (profile) {
       case 'leve':
         // Top 1000 portas (usar --top-ports 1000 do nmap)
-        console.log('🚀 Perfil Leve selecionado: escaneando top 1000 portas');
+        log.info('🚀 Perfil Leve selecionado: escaneando top 1000 portas');
         return [];
 
       case 'profundo':
         // Todas as portas (1-65535)
-        console.log('⚠️  Perfil Profundo selecionado: escaneando TODAS as portas (1-65535)');
+        log.info('⚠️  Perfil Profundo selecionado: escaneando TODAS as portas (1-65535)');
         return [];
 
       default:
         // Padrão: top 1000 portas (leve)
-        console.log('🚀 Perfil padrão: escaneando top 1000 portas');
+        log.info('🚀 Perfil padrão: escaneando top 1000 portas');
         return [];
     }
   }
@@ -931,7 +934,7 @@ export class NetworkScanner {
     // Determinar tipo de scan baseado no perfil
     if (nmapProfile === 'tcp-fallback') {
       args.push('-sT'); // TCP connect scan forçado (fallback de privilégios)
-      console.log('🔄 Usando TCP connect scan como fallback por falta de privilégios root');
+      log.info('🔄 Usando TCP connect scan como fallback por falta de privilégios root');
     } else {
       args.push('-sT'); // TCP connect scan (não requer root)
     }
@@ -996,16 +999,16 @@ export class NetworkScanner {
     if (profile === 'profundo') {
       // Scan profundo: todas as portas
       args.push('-p', '1-65535');
-      console.log('🔍 Executando nmap profundo: portas 1-65535');
+      log.info('🔍 Executando nmap profundo: portas 1-65535');
     } else if (ports.length > 0) {
       // Portas específicas
       const portList = ports.join(',');
       args.push('-p', portList);
-      console.log(`🔍 Executando nmap com portas: ${portList}`);
+      log.info(`🔍 Executando nmap com portas: ${portList}`);
     } else {
       // Top 1000 portas (padrão do nmap)
       args.push('--top-ports', '1000');
-      console.log('🔍 Executando nmap leve: top 1000 portas');
+      log.info('🔍 Executando nmap leve: top 1000 portas');
     }
 
     args.push(target);

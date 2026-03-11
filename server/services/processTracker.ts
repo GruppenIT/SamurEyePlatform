@@ -1,5 +1,8 @@
 import { EventEmitter } from 'events';
 import { ChildProcess } from 'child_process';
+import { createLogger } from '../lib/logger';
+
+const log = createLogger('processTracker');
 
 export interface ProcessInfo {
   pid: number;
@@ -45,7 +48,7 @@ class ProcessTrackerService extends EventEmitter {
     }
     this.processes.get(jobId)!.push(processInfo);
 
-    console.log(`📍 Processo registrado: ${name} pid ${child.pid} para job ${jobId} - ${stage}`);
+    log.info(`📍 Processo registrado: ${name} pid ${child.pid} para job ${jobId} - ${stage}`);
 
     // Emitir evento inicial
     this.emit('processUpdate', {
@@ -78,7 +81,7 @@ class ProcessTrackerService extends EventEmitter {
     processInfo.stage = stage;
     processInfo.lastHeartbeat = new Date();
 
-    console.log(`🔄 Atualizando stage: ${processInfo.name} pid ${pid} - ${stage}`);
+    log.info(`🔄 Atualizando stage: ${processInfo.name} pid ${pid} - ${stage}`);
 
     // Emitir update
     this.emit('processUpdate', {
@@ -123,7 +126,7 @@ class ProcessTrackerService extends EventEmitter {
       this.heartbeatIntervals.delete(pid.toString());
     }
 
-    console.log(`🗑️ Processo removido: ${processInfo.name} pid ${pid} para job ${jobId}`);
+    log.info(`🗑️ Processo removido: ${processInfo.name} pid ${pid} para job ${jobId}`);
 
     // Emitir final update
     this.emit('processUpdate', {
@@ -150,7 +153,7 @@ class ProcessTrackerService extends EventEmitter {
     const processInfo = jobProcesses.find(p => p.pid === pid);
     if (!processInfo) return false;
 
-    console.log(`🔪 Matando processo: ${processInfo.name} pid ${pid}`);
+    log.info(`🔪 Matando processo: ${processInfo.name} pid ${pid}`);
 
     try {
       // Tentar SIGTERM primeiro
@@ -159,14 +162,14 @@ class ProcessTrackerService extends EventEmitter {
       // Force kill após 5s se não responder
       setTimeout(() => {
         if (this.isAlive(pid)) {
-          console.log(`🔪 Force kill: ${processInfo.name} pid ${pid}`);
+          log.info(`🔪 Force kill: ${processInfo.name} pid ${pid}`);
           processInfo.process.kill('SIGKILL');
         }
       }, 5000);
 
       return true;
     } catch (error) {
-      console.error(`❌ Erro ao matar processo ${pid}:`, error);
+      log.error(`❌ Erro ao matar processo ${pid}:`, error);
       return false;
     }
   }
@@ -178,7 +181,7 @@ class ProcessTrackerService extends EventEmitter {
     const jobProcesses = this.processes.get(jobId);
     if (!jobProcesses) return 0;
 
-    console.log(`🔪 Matando todos os processos do job ${jobId} (${jobProcesses.length} processos)`);
+    log.info(`🔪 Matando todos os processos do job ${jobId} (${jobProcesses.length} processos)`);
 
     let killed = 0;
     for (const processInfo of [...jobProcesses]) {
@@ -230,7 +233,7 @@ class ProcessTrackerService extends EventEmitter {
   private startHeartbeat(jobId: string, pid: number): void {
     const intervalId = setInterval(() => {
       if (!this.isAlive(pid)) {
-        console.log(`💔 Processo morreu: pid ${pid} no job ${jobId}`);
+        log.info(`💔 Processo morreu: pid ${pid} no job ${jobId}`);
         this.unregister(jobId, pid);
         return;
       }
@@ -261,7 +264,7 @@ class ProcessTrackerService extends EventEmitter {
    * Cleanup todos os processos ao desligar
    */
   shutdown(): void {
-    console.log('🔄 Encerrando ProcessTracker...');
+    log.info('🔄 Encerrando ProcessTracker...');
     
     for (const jobId of this.listAllJobs()) {
       this.killAll(jobId);
