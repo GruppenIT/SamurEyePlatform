@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. An AD scan result retains full group membership chains, GPO links, and trust attributes as nested structures — not flattened strings
   4. An EDR/AV scan result shows a per-host timeline with deployment timestamp, detection status, and diagnostic detail for each host
   5. All 30+ threat engine rules pass snapshot tests against known parser outputs, confirming the data contract is explicit and regression-safe
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 01-01: nmap parser rewrite — switch invocation to `-oX -` XML output and parse with fast-xml-parser, capturing OS detection, service version details (PARS-01, PARS-03, PARS-04)
