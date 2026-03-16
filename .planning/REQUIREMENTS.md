@@ -107,54 +107,54 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PARS-01 | — | Pending |
-| PARS-02 | — | Pending |
-| PARS-03 | — | Pending |
-| PARS-04 | — | Pending |
-| PARS-05 | — | Pending |
-| PARS-06 | — | Pending |
-| PARS-07 | — | Pending |
-| PARS-08 | — | Pending |
-| PARS-09 | — | Pending |
-| PARS-10 | — | Pending |
-| PARS-11 | — | Pending |
-| THRT-01 | — | Pending |
-| THRT-02 | — | Pending |
-| THRT-03 | — | Pending |
-| THRT-04 | — | Pending |
-| THRT-05 | — | Pending |
-| THRT-06 | — | Pending |
-| THRT-07 | — | Pending |
-| THRT-08 | — | Pending |
-| THRT-09 | — | Pending |
-| THRT-10 | — | Pending |
-| REMD-01 | — | Pending |
-| REMD-02 | — | Pending |
-| REMD-03 | — | Pending |
-| REMD-04 | — | Pending |
-| REMD-05 | — | Pending |
-| REMD-06 | — | Pending |
-| REMD-07 | — | Pending |
-| UIFN-01 | — | Pending |
-| UIFN-02 | — | Pending |
-| UIFN-03 | — | Pending |
-| UIFN-04 | — | Pending |
-| UIAP-01 | — | Pending |
-| UIAP-02 | — | Pending |
-| UIAP-03 | — | Pending |
-| UIAP-04 | — | Pending |
-| UIDB-01 | — | Pending |
-| UIDB-02 | — | Pending |
-| UIDB-03 | — | Pending |
-| UIDB-04 | — | Pending |
-| UIDB-05 | — | Pending |
-| UIDB-06 | — | Pending |
+| PARS-01 | Phase 1 | Pending |
+| PARS-02 | Phase 1 | Pending |
+| PARS-03 | Phase 1 | Pending |
+| PARS-04 | Phase 1 | Pending |
+| PARS-05 | Phase 1 | Pending |
+| PARS-06 | Phase 1 | Pending |
+| PARS-07 | Phase 1 | Pending |
+| PARS-08 | Phase 1 | Pending |
+| PARS-09 | Phase 1 | Pending |
+| PARS-10 | Phase 1 | Pending |
+| PARS-11 | Phase 1 | Pending |
+| THRT-01 | Phase 2 | Pending |
+| THRT-02 | Phase 2 | Pending |
+| THRT-03 | Phase 2 | Pending |
+| THRT-04 | Phase 2 | Pending |
+| THRT-05 | Phase 2 | Pending |
+| THRT-06 | Phase 2 | Pending |
+| THRT-07 | Phase 2 | Pending |
+| THRT-08 | Phase 2 | Pending |
+| THRT-09 | Phase 2 | Pending |
+| THRT-10 | Phase 2 | Pending |
+| REMD-01 | Phase 3 | Pending |
+| REMD-02 | Phase 3 | Pending |
+| REMD-03 | Phase 3 | Pending |
+| REMD-04 | Phase 3 | Pending |
+| REMD-05 | Phase 3 | Pending |
+| REMD-06 | Phase 3 | Pending |
+| REMD-07 | Phase 3 | Pending |
+| UIFN-01 | Phase 4 | Pending |
+| UIFN-02 | Phase 4 | Pending |
+| UIFN-03 | Phase 4 | Pending |
+| UIFN-04 | Phase 4 | Pending |
+| UIAP-01 | Phase 4 | Pending |
+| UIAP-02 | Phase 4 | Pending |
+| UIAP-03 | Phase 4 | Pending |
+| UIAP-04 | Phase 4 | Pending |
+| UIDB-01 | Phase 4 | Pending |
+| UIDB-02 | Phase 4 | Pending |
+| UIDB-03 | Phase 4 | Pending |
+| UIDB-04 | Phase 4 | Pending |
+| UIDB-05 | Phase 4 | Pending |
+| UIDB-06 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 42 total
-- Mapped to phases: 0
-- Unmapped: 42
+- Mapped to phases: 42
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after initial definition*
+*Last updated: 2026-03-16 after roadmap creation*
