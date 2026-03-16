@@ -12,7 +12,7 @@ The revision deepens the existing scan pipeline in 4 coarse phases that follow a
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Parser Foundation** - Replace fragile parsers with typed, structured output validated by Zod schemas and protected by snapshot tests
+- [x] **Phase 1: Parser Foundation** - Replace fragile parsers with typed, structured output validated by Zod schemas and protected by snapshot tests
 - [ ] **Phase 2: Threat Engine Intelligence** - Consolidate findings into grouped threat clusters with contextual severity scoring
 - [ ] **Phase 3: Remediation Engine** - Generate specific, host-referencing fix instructions and close the remediation lifecycle loop
 - [ ] **Phase 4: User-Facing Surfaces** - Expose the new data model through redesigned findings view, action plan, and executive dashboard

@@ -27,12 +27,12 @@ Requirements for the product revision. Each maps to roadmap phases.
 - [ ] **THRT-02**: Grouping keys vary by journey type: host+serviceFamily (Attack Surface), cveId (multi-host CVE), adCheckCategory (AD), hostId (EDR)
 - [ ] **THRT-03**: Parent threat severity equals highest severity among child findings
 - [ ] **THRT-04**: Parent threat status is open if any child finding is open
-- [ ] **THRT-05**: Existing correlation key format and stored threat history are preserved (grouping does not break existing data)
+- [x] **THRT-05**: Existing correlation key format and stored threat history are preserved (grouping does not break existing data)
 - [ ] **THRT-06**: Contextual severity scoring weights base severity (40%), asset criticality (25%), exposure context (20%), compensating controls (15%)
-- [ ] **THRT-07**: Score breakdown is stored as JSONB at persistence time (not computed at display time)
+- [x] **THRT-07**: Score breakdown is stored as JSONB at persistence time (not computed at display time)
 - [ ] **THRT-08**: Host type (DC, server, workstation) factors into asset criticality multiplier
 - [ ] **THRT-09**: Confirmed exploitability (nmap vuln script hit, nuclei match) increases score via multiplier
-- [ ] **THRT-10**: Each threat group has a projected score impact ("fixing this improves posture score by X")
+- [x] **THRT-10**: Each threat group has a projected score impact ("fixing this improves posture score by X")
 
 ### Remediation
 
@@ -122,12 +122,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | THRT-02 | Phase 2 | Pending |
 | THRT-03 | Phase 2 | Pending |
 | THRT-04 | Phase 2 | Pending |
-| THRT-05 | Phase 2 | Pending |
+| THRT-05 | Phase 2 | Complete |
 | THRT-06 | Phase 2 | Pending |
-| THRT-07 | Phase 2 | Pending |
+| THRT-07 | Phase 2 | Complete |
 | THRT-08 | Phase 2 | Pending |
 | THRT-09 | Phase 2 | Pending |
-| THRT-10 | Phase 2 | Pending |
+| THRT-10 | Phase 2 | Complete |
 | REMD-01 | Phase 3 | Pending |
 | REMD-02 | Phase 3 | Pending |
 | REMD-03 | Phase 3 | Pending |
