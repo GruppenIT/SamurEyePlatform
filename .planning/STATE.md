@@ -2,16 +2,32 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-16T17:28:30.805Z"
-last_activity: 2026-03-16 — Roadmap created, requirements mapped to 4 phases
+status: in_progress
+stopped_at: Completed 02-threat-engine-intelligence/02-01-PLAN.md
+last_updated: "2026-03-16T21:08:13.894Z"
+last_activity: "2026-03-16 — Phase 2 Plan 3 complete: ScoringEngineService, posture storage, simulate/history API"
 progress:
   total_phases: 4
   completed_phases: 1
+  total_plans: 6
+  completed_plans: 5
+  percent: 83
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: in_progress
+stopped_at: "Completed 02-03-PLAN.md"
+last_updated: "2026-03-16T21:10:00.000Z"
+last_activity: "2026-03-16 — Phase 2 Plan 3: Contextual scoring engine, posture storage, simulate API"
+progress:
+  [████████░░] 83%
+  completed_phases: 1
   total_plans: 3
   completed_plans: 3
-  percent: 0
+  percent: 25
 ---
 
 # Project State
@@ -21,37 +37,40 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** After running a security journey, the user must walk away with a prioritized, contextualized action plan — not a wall of raw findings.
-**Current focus:** Phase 1 — Parser Foundation
+**Current focus:** Phase 2 — Threat Engine Intelligence
 
 ## Current Position
 
-Phase: 1 of 4 (Parser Foundation)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-03-16 — Roadmap created, requirements mapped to 4 phases
+Phase: 2 of 4 (Threat Engine Intelligence)
+Plan: 3 of 3 in current phase
+Status: In progress
+Last activity: 2026-03-16 — Phase 2 Plan 3 complete: ScoringEngineService, posture storage, simulate/history API
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████░░░░] 25%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: —
+- Total plans completed: 3
+- Average duration: ~3h
+- Total execution time: ~9h
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-parser-foundation | 3 | ~20min | ~7min |
+| 02-threat-engine-intelligence | 3 | ~3h | ~1h |
 
 **Recent Trend:**
-- Last 5 plans: —
-- Trend: —
+- Last 5 plans: 01-01, 01-02, 01-03, 02-01, 02-02, 02-03
+- Trend: stable
 
 *Updated after each plan completion*
+| Phase 02-threat-engine-intelligence P03 | ~3h | 2 tasks | 6 files |
 | Phase 01-parser-foundation P02 | 9min | 2 tasks | 9 files |
 | Phase 01-parser-foundation P01 | 11 | 2 tasks | 10 files |
+| Phase 02-threat-engine-intelligence P01 | 200 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -69,6 +88,10 @@ Recent decisions affecting current work:
 - [Phase 01-parser-foundation]: NmapVulnFindingSchema uses type 'nmap_vuln' to preserve threatEngine cve-detected rule compatibility
 - [Phase 01-parser-foundation]: parseAttributeValue: true in XMLParser requires explicit String() coercion for all nmap service attributes
 - [Phase 01-parser-foundation]: parseNmapOutput marked @deprecated — deletion deferred to plan 01-02 after journeyExecutor wiring confirmed
+- [Phase 02-threat-engine-intelligence P03]: rawScore used for criticality comparison in tests — normalizedScore clamps both DC and desktop to 100 for critical+attack_surface threats
+- [Phase 02-threat-engine-intelligence P03]: getThreats() extended with jobId+category filters for scoring engine scoping and EDR status resolution
+- [Phase 02-threat-engine-intelligence]: Self-referential parentThreatId uses lambda references() to avoid Drizzle circular init
+- [Phase 02-threat-engine-intelligence]: InsertPostureSnapshot/Recommendation use .$inferInsert (not z.infer) — no custom omit needed
 
 ### Pending Todos
 
@@ -76,12 +99,10 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 1: Implicit data contract between parsers and 30+ threat engine rules — snapshot tests in Phase 1 are the mitigation; must be complete before Phase 2 starts
-- Phase 1: PowerShell AD script inventory required before PARS-07/PARS-08 work begins — audit all `ConvertTo-Json` calls in `adScanner.ts`
 - Phase 2: Grouping key strategy for Web Application journey (nuclei template cluster boundaries) needs validation against real scan output before THRT-02 implementation
 
 ## Session Continuity
 
-Last session: 2026-03-16T17:28:30.802Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-threat-engine-intelligence/02-CONTEXT.md
+Last session: 2026-03-16T21:08:13.890Z
+Stopped at: Completed 02-threat-engine-intelligence/02-01-PLAN.md
+Resume file: None
