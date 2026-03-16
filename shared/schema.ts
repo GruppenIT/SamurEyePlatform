@@ -1032,4 +1032,100 @@ export type ActivateAppliance = z.infer<typeof activateApplianceSchema>;
 export type HeartbeatRequest = z.infer<typeof heartbeatRequestSchema>;
 export type HeartbeatResponse = z.infer<typeof heartbeatResponseSchema>;
 export type ConsoleCommand = z.infer<typeof consoleCommandSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NormalizedFinding discriminated union — Phase 1: Parser Foundation
+// These schemas are NOT Drizzle tables; they represent parsed scanner output.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const BaseFindingSchema = z.object({
+  type: z.string(),
+  target: z.string(),
+  severity: z.enum(['low', 'medium', 'high', 'critical']),
+  timestamp: z.string().datetime().optional(),
+});
+
+export const NseScriptSchema = z.object({
+  id: z.string(),
+  output: z.string(),
+  cves: z.array(z.string()).optional(),
+  exploitState: z.string().optional(),
+  tables: z.record(z.unknown()).optional(),
+});
+
+export const NmapFindingSchema = BaseFindingSchema.extend({
+  type: z.literal('port'),
+  ip: z.string().optional(),
+  port: z.string(),
+  state: z.enum(['open', 'closed', 'filtered']),
+  service: z.string(),
+  product: z.string().optional(),
+  version: z.string().optional(),
+  extrainfo: z.string().optional(),
+  serviceCpe: z.string().optional(),
+  osName: z.string().optional(),
+  osAccuracy: z.number().optional(),
+  osCpe: z.array(z.string()).optional(),
+  nseScripts: z.array(NseScriptSchema).optional(),
+  banner: z.string().optional(),
+  osInfo: z.string().optional(),
+}).strip();
+
+/**
+ * NmapVulnFindingSchema — same shape as NmapFindingSchema but with
+ * type literal 'nmap_vuln'. Preserves compatibility with threatEngine
+ * rule 'cve-detected' which matches on finding.type === 'nmap_vuln'.
+ */
+export const NmapVulnFindingSchema = BaseFindingSchema.extend({
+  type: z.literal('nmap_vuln'),
+  ip: z.string().optional(),
+  port: z.string(),
+  state: z.enum(['open', 'closed', 'filtered']),
+  service: z.string(),
+  product: z.string().optional(),
+  version: z.string().optional(),
+  extrainfo: z.string().optional(),
+  serviceCpe: z.string().optional(),
+  osName: z.string().optional(),
+  osAccuracy: z.number().optional(),
+  osCpe: z.array(z.string()).optional(),
+  nseScripts: z.array(NseScriptSchema).optional(),
+  banner: z.string().optional(),
+  osInfo: z.string().optional(),
+}).strip();
+
+export type BaseFinding = z.infer<typeof BaseFindingSchema>;
+export type NseScript = z.infer<typeof NseScriptSchema>;
+export type NmapFinding = z.infer<typeof NmapFindingSchema>;
+export type NmapVulnFinding = z.infer<typeof NmapVulnFindingSchema>;
+
+/**
+ * NucleiFindingSchema — Zod-validated nuclei JSONL output shape.
+ * PARS-05: every line goes through safeParse; bad lines are logged and skipped.
+ * PARS-06: matcher-name, extracted-results, curl-command, and template tags captured.
+ */
+export const NucleiFindingSchema = BaseFindingSchema.extend({
+  type: z.literal('nuclei'),
+  templateId: z.string(),
+  matchedAt: z.string(),
+  matcherName: z.string().optional(),        // PARS-06: matcher-name
+  extractedResults: z.array(z.string()).optional(), // PARS-06: extracted-results
+  curlCommand: z.string().optional(),        // PARS-06: curl-command
+  info: z.object({
+    name: z.string(),
+    severity: z.string(),
+    description: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    classification: z.object({
+      cveId: z.array(z.string()).optional(),
+      cweId: z.array(z.string()).optional(),
+    }).optional(),
+    references: z.array(z.string()).optional(),
+    remediation: z.string().optional(),
+  }),
+  host: z.string().optional(),
+  port: z.string().optional(),
+}).strip();
+
+export type NucleiFinding = z.infer<typeof NucleiFindingSchema>;
 export type CommandResult = z.infer<typeof commandResultSchema>;

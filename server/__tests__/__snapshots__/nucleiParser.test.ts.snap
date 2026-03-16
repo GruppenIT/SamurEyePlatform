@@ -1,0 +1,162 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`nucleiParser - parseNuclei > parses cve-with-classification fixture and captures classification 1`] = `
+[
+  {
+    "curlCommand": undefined,
+    "extractedResults": undefined,
+    "host": "example.com",
+    "info": {
+      "classification": {
+        "cveId": [
+          "CVE-2021-44228",
+        ],
+        "cweId": [
+          "CWE-502",
+        ],
+      },
+      "description": "Apache Log4j2 2.0-beta9 through 2.15.0 JNDI features used in configuration allow a remote attacker to execute arbitrary code via the JNDI lookup feature.",
+      "name": "Apache Log4j2 Remote Code Execution",
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-44228",
+      ],
+      "remediation": undefined,
+      "severity": "critical",
+      "tags": [
+        "cve",
+        "log4j",
+        "rce",
+      ],
+    },
+    "matchedAt": "http://example.com/api/login",
+    "matcherName": undefined,
+    "port": "80",
+    "severity": "critical",
+    "target": "http://example.com/api/login",
+    "templateId": "CVE-2021-44228",
+    "type": "nuclei",
+  },
+]
+`;
+
+exports[`nucleiParser - parseNuclei > parses info-severity fixture with tags and references 1`] = `
+[
+  {
+    "curlCommand": undefined,
+    "extractedResults": undefined,
+    "host": "example.com",
+    "info": {
+      "classification": undefined,
+      "description": "Nginx HTTP server was detected on the target.",
+      "name": "Nginx HTTP Server Detected",
+      "references": [
+        "https://nginx.org/en/",
+      ],
+      "remediation": undefined,
+      "severity": "info",
+      "tags": [
+        "tech",
+        "detect",
+      ],
+    },
+    "matchedAt": "http://example.com/",
+    "matcherName": undefined,
+    "port": "80",
+    "severity": "low",
+    "target": "http://example.com/",
+    "templateId": "tech-detect-nginx",
+    "type": "nuclei",
+  },
+]
+`;
+
+exports[`nucleiParser - parseNuclei > parses xss-with-matcher fixture and populates PARS-06 fields 1`] = `
+[
+  {
+    "curlCommand": "curl -X GET 'http://example.com/search?q=%3Cscript%3Ealert(1)%3C/script%3E'",
+    "extractedResults": [
+      "<script>alert(1)</script>",
+      "alert(1)",
+    ],
+    "host": "example.com",
+    "info": {
+      "classification": {
+        "cveId": [],
+        "cweId": [
+          "CWE-79",
+        ],
+      },
+      "description": "Reflected XSS vulnerability detected",
+      "name": "Reflected XSS",
+      "references": [
+        "https://owasp.org/www-community/attacks/xss/",
+      ],
+      "remediation": undefined,
+      "severity": "high",
+      "tags": [
+        "xss",
+        "owasp",
+      ],
+    },
+    "matchedAt": "http://example.com/search?q=<script>alert(1)</script>",
+    "matcherName": "generic-xss-reflection",
+    "port": "80",
+    "severity": "high",
+    "target": "http://example.com/search?q=<script>alert(1)</script>",
+    "templateId": "http-xss-test",
+    "type": "nuclei",
+  },
+]
+`;
+
+exports[`nucleiParser - parseNuclei > skips malformed lines and returns only valid findings 1`] = `
+[
+  {
+    "curlCommand": undefined,
+    "extractedResults": undefined,
+    "host": "example.com",
+    "info": {
+      "classification": undefined,
+      "description": "SQL injection vulnerability detected in the target.",
+      "name": "SQL Injection Detected",
+      "references": undefined,
+      "remediation": undefined,
+      "severity": "high",
+      "tags": [
+        "sqli",
+        "owasp",
+      ],
+    },
+    "matchedAt": "http://example.com/user?id=1",
+    "matcherName": undefined,
+    "port": "80",
+    "severity": "high",
+    "target": "http://example.com/user?id=1",
+    "templateId": "sqli-test",
+    "type": "nuclei",
+  },
+  {
+    "curlCommand": undefined,
+    "extractedResults": undefined,
+    "host": "example.com",
+    "info": {
+      "classification": undefined,
+      "description": "Server-Side Request Forgery vulnerability detected.",
+      "name": "SSRF Vulnerability",
+      "references": undefined,
+      "remediation": undefined,
+      "severity": "medium",
+      "tags": [
+        "ssrf",
+      ],
+    },
+    "matchedAt": "http://example.com/fetch?url=http://169.254.169.254/",
+    "matcherName": undefined,
+    "port": "80",
+    "severity": "medium",
+    "target": "http://example.com/fetch?url=http://169.254.169.254/",
+    "templateId": "ssrf-test",
+    "type": "nuclei",
+  },
+]
+`;
