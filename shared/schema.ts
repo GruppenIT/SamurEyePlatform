@@ -251,6 +251,17 @@ export const hostEnrichments = pgTable("host_enrichments", {
   index("IDX_host_enrichments_collected_at").on(table.collectedAt),
 ]);
 
+// Phase 2: Score breakdown structure for contextual threat scoring
+export interface ScoreBreakdownRecord {
+  baseSeverityWeight: number;
+  criticalityMultiplier: number;
+  exposureFactor: number;
+  controlsReductionFactor: number;
+  exploitabilityMultiplier: number;
+  rawScore: number;
+  normalizedScore: number;
+}
+
 // Threats table
 export const threats = pgTable("threats", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -276,11 +287,20 @@ export const threats = pgTable("threats", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   assignedTo: varchar("assigned_to").references(() => users.id),
+  // Phase 2: Threat grouping and contextual scoring columns (all nullable — additive only)
+  parentThreatId: varchar("parent_threat_id").references((): any => threats.id), // Self-referential FK for threat grouping
+  groupingKey: text("grouping_key"), // Set only on parent threats, null on children
+  contextualScore: real("contextual_score"), // 0-100 scale, null until scoring runs
+  scoreBreakdown: jsonb("score_breakdown").$type<ScoreBreakdownRecord>(), // Typed JSONB, null until scoring runs
+  projectedScoreAfterFix: real("projected_score_after_fix"), // Posture delta, null until scoring runs
 }, (table) => [
   index("IDX_threats_correlation_key").on(table.correlationKey),
   uniqueIndex("UQ_threats_correlation_key").on(table.correlationKey).where(sql`correlation_key IS NOT NULL AND (status != 'closed' OR closure_reason != 'duplicate')`),
   index("IDX_threats_host_id").on(table.hostId),
   index("IDX_threats_status").on(table.status),
+  // Phase 2 indexes
+  uniqueIndex("UQ_threats_grouping_key").on(table.groupingKey).where(sql`grouping_key IS NOT NULL`),
+  index("IDX_threats_parent_threat_id").on(table.parentThreatId),
 ]);
 
 // Threat status history table
@@ -296,6 +316,44 @@ export const threatStatusHistory = pgTable("threat_status_history", {
 }, (table) => [
   index("IDX_threat_status_history_threat_id").on(table.threatId),
   index("IDX_threat_status_history_changed_at").on(table.changedAt),
+]);
+
+// Phase 2: Posture snapshots table — captures score at end of each job
+export const postureSnapshots = pgTable("posture_snapshots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  jobId: varchar("job_id").references(() => jobs.id).notNull(),
+  journeyId: varchar("journey_id").references(() => journeys.id).notNull(),
+  score: real("score").notNull(),
+  openThreatCount: integer("open_threat_count").notNull(),
+  criticalCount: integer("critical_count").notNull().default(0),
+  highCount: integer("high_count").notNull().default(0),
+  mediumCount: integer("medium_count").notNull().default(0),
+  lowCount: integer("low_count").notNull().default(0),
+  scoredAt: timestamp("scored_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_posture_snapshots_job_id").on(table.jobId),
+  index("IDX_posture_snapshots_journey_id").on(table.journeyId),
+  index("IDX_posture_snapshots_scored_at").on(table.scoredAt),
+]);
+
+// Phase 2: Recommendations table — populated by Phase 3, defined here to avoid second migration
+export const recommendations = pgTable("recommendations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  threatId: varchar("threat_id").references(() => threats.id).notNull(),
+  templateId: text("template_id").notNull(),
+  title: text("title").notNull(),
+  whatIsWrong: text("what_is_wrong").notNull(),
+  businessImpact: text("business_impact").notNull(),
+  fixSteps: jsonb("fix_steps").$type<string[]>().default([]).notNull(),
+  verificationStep: text("verification_step"),
+  references: jsonb("references").$type<string[]>().default([]),
+  effortTag: text("effort_tag"),
+  roleRequired: text("role_required"),
+  hostSpecificData: jsonb("host_specific_data").$type<Record<string, any>>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_recommendations_threat_id").on(table.threatId),
 ]);
 
 // Settings table
@@ -866,6 +924,10 @@ export const insertHostEnrichmentSchema = createInsertSchema(hostEnrichments).om
   collectedAt: true,
 });
 
+// Phase 2: Posture snapshot and recommendation schemas
+export const insertPostureSnapshotSchema = createInsertSchema(postureSnapshots);
+export const insertRecommendationSchema = createInsertSchema(recommendations);
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type RegisterUser = z.infer<typeof registerUserSchema>;
@@ -913,6 +975,11 @@ export type InsertJourneyCredential = z.infer<typeof insertJourneyCredentialSche
 export type HostEnrichment = typeof hostEnrichments.$inferSelect;
 export type InsertHostEnrichment = z.infer<typeof insertHostEnrichmentSchema>;
 export type ApplianceSubscription = typeof applianceSubscription.$inferSelect;
+// Phase 2: Posture snapshot and recommendation types
+export type PostureSnapshot = typeof postureSnapshots.$inferSelect;
+export type InsertPostureSnapshot = typeof postureSnapshots.$inferInsert;
+export type Recommendation = typeof recommendations.$inferSelect;
+export type InsertRecommendation = typeof recommendations.$inferInsert;
 
 // Appliance commands — tracks commands received from console via heartbeat
 export const commandStatusEnum = pgEnum("command_status", [

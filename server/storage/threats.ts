@@ -274,6 +274,12 @@ export async function listOpenThreatsByJourney(journeyId: string, category?: str
       createdAt: threats.createdAt,
       updatedAt: threats.updatedAt,
       assignedTo: threats.assignedTo,
+      // Phase 2 columns
+      parentThreatId: threats.parentThreatId,
+      groupingKey: threats.groupingKey,
+      contextualScore: threats.contextualScore,
+      scoreBreakdown: threats.scoreBreakdown,
+      projectedScoreAfterFix: threats.projectedScoreAfterFix,
     })
     .from(threats)
     .innerJoin(jobs, eq(threats.jobId, jobs.id))
@@ -429,6 +435,140 @@ export async function upsertThreat(threat: InsertThreat & { correlationKey: stri
       throw error;
     }
   }
+}
+
+// ─── Phase 2: Threat grouping storage operations ──────────────────────────────
+
+/** Severity rank map used by deriveParentAttributes */
+const SEVERITY_RANK: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 };
+
+/** Statuses that keep a parent threat "open" */
+const ACTIVE_STATUSES = new Set(['open', 'investigating']);
+
+/**
+ * Upserts a parent threat record.
+ * Conflict resolution is on groupingKey (via UQ_threats_grouping_key partial unique index).
+ * On conflict, updates severity, status, evidence, and timestamps — preserving the original parent id.
+ */
+export async function upsertParentThreat(
+  data: InsertThreat & { groupingKey: string; category: string },
+): Promise<{ threat: Threat; isNew: boolean }> {
+  log.info({ groupingKey: data.groupingKey }, 'upserting parent threat');
+
+  try {
+    const [result] = await db
+      .insert(threats)
+      .values({
+        ...data,
+        lastSeenAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: threats.groupingKey,
+        set: {
+          severity: data.severity,
+          status: data.status,
+          evidence: data.evidence,
+          title: data.title,
+          updatedAt: new Date(),
+          lastSeenAt: new Date(),
+        },
+      })
+      .returning();
+
+    log.info({ threatId: result.id, groupingKey: data.groupingKey }, 'parent threat upserted');
+    // Determine if new by checking createdAt vs updatedAt (created within last 5s means new)
+    const isNew = Math.abs(result.createdAt.getTime() - result.updatedAt.getTime()) < 5000;
+    return { threat: result, isNew };
+  } catch (error) {
+    // Fallback for environments without the unique index (42P10 = no unique index for ON CONFLICT)
+    if ((error as any)?.code === '42P10') {
+      log.warn('groupingKey unique index missing, falling back to lookup+insert');
+      const existing = await db
+        .select()
+        .from(threats)
+        .where(eq(threats.groupingKey, data.groupingKey))
+        .limit(1);
+
+      if (existing.length > 0) {
+        const [updated] = await db
+          .update(threats)
+          .set({
+            severity: data.severity,
+            status: data.status,
+            evidence: data.evidence,
+            title: data.title,
+            updatedAt: new Date(),
+            lastSeenAt: new Date(),
+          })
+          .where(eq(threats.id, existing[0].id))
+          .returning();
+        return { threat: updated, isNew: false };
+      }
+
+      const [newThreat] = await db
+        .insert(threats)
+        .values({ ...data, lastSeenAt: new Date() })
+        .returning();
+      return { threat: newThreat, isNew: true };
+    }
+    throw error;
+  }
+}
+
+/**
+ * Links a child threat to its parent by setting parentThreatId.
+ * Does NOT modify correlationKey (THRT-05 invariant).
+ */
+export async function linkChildToParent(
+  childThreatId: string,
+  parentThreatId: string,
+): Promise<void> {
+  await db
+    .update(threats)
+    .set({ parentThreatId, updatedAt: new Date() })
+    .where(eq(threats.id, childThreatId));
+  log.info({ childThreatId, parentThreatId }, 'child linked to parent');
+}
+
+/**
+ * Returns all threat records that have the given parentThreatId.
+ */
+export async function getChildThreats(parentThreatId: string): Promise<Threat[]> {
+  return await db
+    .select()
+    .from(threats)
+    .where(eq(threats.parentThreatId, parentThreatId));
+}
+
+/**
+ * Derives severity and status for a parent threat based on its current children.
+ * severity = highest severity among children.
+ * status = 'open' if any child is active (open/investigating), else 'mitigated'.
+ */
+export async function deriveParentAttributes(
+  parentId: string,
+): Promise<{ severity: 'low' | 'medium' | 'high' | 'critical'; status: 'open' | 'mitigated' }> {
+  const children = await getChildThreats(parentId);
+
+  let maxRank = 0;
+  let maxSeverity: 'low' | 'medium' | 'high' | 'critical' = 'low';
+  let anyActive = false;
+
+  for (const child of children) {
+    const rank = SEVERITY_RANK[child.severity] ?? 0;
+    if (rank > maxRank) {
+      maxRank = rank;
+      maxSeverity = child.severity as 'low' | 'medium' | 'high' | 'critical';
+    }
+    if (ACTIVE_STATUSES.has(child.status)) {
+      anyActive = true;
+    }
+  }
+
+  return {
+    severity: maxSeverity,
+    status: anyActive ? 'open' : 'mitigated',
+  };
 }
 
 // Threat status history operations
