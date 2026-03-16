@@ -1,0 +1,16 @@
+[
+  {
+    "type": "ad_hygiene",
+    "target": "corp.example.com",
+    "name": "Computadores Inativos",
+    "severity": "low",
+    "category": "computers",
+    "description": "Foram encontrados 4 computadores sem comunicação com o domínio há mais de 90 dias",
+    "evidence": {
+      "testId": "inactive_computers",
+      "count": 4,
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Desabilitar ou remover contas de computadores inativos"
+  }
+]

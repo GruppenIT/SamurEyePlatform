@@ -1,0 +1,16 @@
+[
+  {
+    "type": "ad_vulnerability",
+    "target": "corp.example.com",
+    "name": "Sistemas Operacionais Obsoletos",
+    "severity": "high",
+    "category": "computers",
+    "description": "Foram encontrados 2 computadores com sistemas operacionais obsoletos e sem suporte",
+    "evidence": {
+      "testId": "obsolete_os",
+      "count": 2,
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Atualizar ou descomissionar sistemas com SO obsoleto"
+  }
+]

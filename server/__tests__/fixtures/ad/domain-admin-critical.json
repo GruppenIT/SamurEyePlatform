@@ -1,0 +1,21 @@
+[
+  {
+    "type": "ad_vulnerability",
+    "target": "corp.example.com",
+    "name": "Domain Admin com Senha Crítica Expirada",
+    "severity": "critical",
+    "category": "users",
+    "description": "O administrador de domínio jsmith não altera sua senha há 365 dias",
+    "evidence": {
+      "testId": "domain_admin_critical_password",
+      "username": "jsmith",
+      "daysSincePasswordChange": 365,
+      "lastPasswordSet": "2023-03-16T00:00:00Z",
+      "lastLogon": "2024-03-01T00:00:00Z",
+      "passwordAgeLimit": 90,
+      "groupMembership": ["Domain Admins", "Enterprise Admins"],
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Forçar alteração imediata de senha para contas Domain Admin"
+  }
+]

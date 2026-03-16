@@ -1,0 +1,20 @@
+[
+  {
+    "type": "ad_hygiene",
+    "target": "corp.example.com",
+    "name": "Usuário Inativo Detectado",
+    "severity": "low",
+    "category": "users",
+    "description": "O usuário jdoe não realiza login há 180 dias",
+    "evidence": {
+      "testId": "privileged_inactive",
+      "username": "jdoe",
+      "objectId": "jdoe",
+      "daysSinceLastLogon": 180,
+      "lastLogon": "2023-09-16T00:00:00Z",
+      "inactiveUserLimit": 90,
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Desabilitar a conta jdoe após validação com o gestor responsável"
+  }
+]

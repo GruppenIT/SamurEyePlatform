@@ -1,0 +1,19 @@
+[
+  {
+    "type": "ad_hygiene",
+    "target": "corp.example.com",
+    "name": "Trust Bidirecional Detectado",
+    "severity": "low",
+    "category": "configuration",
+    "description": "Relação de confiança bidirecional detectada com o domínio partner.example.com",
+    "evidence": {
+      "testId": "trust_relationships",
+      "trustName": "partner.example.com",
+      "trustDirection": "Bidirecional (Inbound + Outbound)",
+      "trustType": "Forest",
+      "trustAttributes": "ForestTransitive",
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Revisar a necessidade de trusts bidirecionais e restringir quando possível"
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "type": "ad_misconfiguration",
+    "target": "corp.example.com",
+    "name": "Nenhum Controlador de Domínio Encontrado",
+    "severity": "critical",
+    "category": "configuration",
+    "description": "Não foi possível localizar controladores de domínio para o domínio especificado via DNS",
+    "evidence": {
+      "testId": "test_dc_discovery_error",
+      "errorType": "dns_resolution_failure",
+      "connectionAttempts": 3,
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Verificar configuração DNS e conectividade de rede. Especifique o IP do DC manualmente."
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "type": "ad_hygiene",
+    "target": "corp.example.com",
+    "name": "Usuários Inativos Identificados",
+    "severity": "low",
+    "category": "users",
+    "description": "Foram encontrados 5 usuários sem login há mais de 6 meses",
+    "evidence": {
+      "testId": "inactive_users",
+      "count": 5,
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Desabilitar ou remover contas de usuário inativas após validação com gestores"
+  }
+]

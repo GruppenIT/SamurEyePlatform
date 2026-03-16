@@ -1,0 +1,68 @@
+[
+  {
+    "type": "ad_misconfiguration",
+    "target": "corp.example.com",
+    "name": "Print Spooler Habilitado em DC",
+    "severity": "high",
+    "category": "configuration",
+    "description": "O serviço Print Spooler está habilitado em um Controlador de Domínio, vulnerável a PrintNightmare",
+    "evidence": {
+      "testId": "dc_print_spooler",
+      "command": "Get-Service -Name Spooler",
+      "stdout": "{\"Name\":\"Spooler\",\"Status\":\"Running\"}",
+      "stderr": "",
+      "exitCode": 0,
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Desabilitar o serviço Print Spooler em todos os Controladores de Domínio"
+  },
+  {
+    "type": "ad_vulnerability",
+    "target": "corp.example.com",
+    "name": "Senhas Sem Expiração",
+    "severity": "medium",
+    "category": "policies",
+    "description": "A política de senhas do domínio está configurada para nunca expirar (MaxPasswordAge = 0)",
+    "evidence": {
+      "testId": "passwords_never_expire",
+      "maxPwdAge": 0,
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Configurar MaxPasswordAge para um valor adequado (ex: 90 dias)"
+  },
+  {
+    "type": "ad_vulnerability",
+    "target": "WORKSTATION-XP01",
+    "name": "Sistema Operacional Obsoleto",
+    "severity": "medium",
+    "category": "computers",
+    "description": "O computador WORKSTATION-XP01 possui Windows XP que não é mais suportado",
+    "evidence": {
+      "testId": "obsolete_operating_system",
+      "computerName": "WORKSTATION-XP01",
+      "operatingSystem": "Windows XP",
+      "osVersion": "5.1.2600",
+      "objectId": "WORKSTATION-XP01",
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Substituir ou isolar o equipamento com sistema operacional obsoleto"
+  },
+  {
+    "type": "ad_hygiene",
+    "target": "DESKTOP-OLD01",
+    "name": "Computador Inativo no Domínio",
+    "severity": "low",
+    "category": "computers",
+    "description": "O computador DESKTOP-OLD01 não se comunica com o domínio há 150 dias",
+    "evidence": {
+      "testId": "inactive_computer_detected",
+      "computerName": "DESKTOP-OLD01",
+      "daysSinceLastLogon": 150,
+      "lastLogon": "2023-10-16T00:00:00Z",
+      "inactiveComputerLimit": 90,
+      "objectId": "DESKTOP-OLD01",
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Desabilitar ou remover a conta do computador após verificação"
+  }
+]
