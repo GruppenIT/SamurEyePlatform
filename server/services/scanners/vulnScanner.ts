@@ -5,6 +5,7 @@ import http from 'http';
 import { URL } from 'url';
 import { processTracker } from '../processTracker';
 import { createLogger } from '../../lib/logger';
+import { NucleiFindingSchema, type NucleiFinding } from '../../../shared/schema';
 
 const log = createLogger('vulnScanner');
 
@@ -471,7 +472,86 @@ export class VulnerabilityScanner {
   }
 
   /**
+   * Parses nuclei JSONL stdout and returns Zod-validated NucleiFinding[].
+   * PARS-05: every line goes through safeParse; malformed/invalid lines are logged and skipped.
+   * PARS-06: mapper captures matcher-name, extracted-results, curl-command, and info.tags.
+   */
+  public parseNuclei(stdout: string): NucleiFinding[] {
+    if (!stdout || stdout.trim().length === 0) {
+      return [];
+    }
+
+    const results: NucleiFinding[] = [];
+    const lines = stdout.split('\n').filter(line => line.trim().length > 0);
+
+    for (const line of lines) {
+      let raw: any;
+      try {
+        raw = JSON.parse(line);
+      } catch (err) {
+        log.warn(`[parseNuclei] Skipping malformed JSON line: ${line.substring(0, 100)}`);
+        continue;
+      }
+
+      // Map nuclei kebab-case fields to camelCase for Zod schema
+      const classification = raw.info?.classification
+        ? {
+            cveId: raw.info.classification['cve-id'] ?? raw.info.classification.cveId ?? [],
+            cweId: raw.info.classification['cwe-id'] ?? raw.info.classification.cweId ?? [],
+          }
+        : undefined;
+
+      const mapped: Record<string, unknown> = {
+        type: 'nuclei',
+        target: raw['matched-at'] ?? raw.matched_at ?? raw.host ?? '',
+        severity: this.mapNucleiSeverityZod(raw.info?.severity),
+        templateId: raw['template-id'] ?? raw.templateId ?? raw.templateID ?? raw.template ?? '',
+        matchedAt: raw['matched-at'] ?? raw.matched_at ?? '',
+        matcherName: raw['matcher-name'] ?? raw.matcher_name ?? undefined,
+        extractedResults: raw['extracted-results'] ?? raw.extracted_results ?? undefined,
+        curlCommand: raw['curl-command'] ?? raw.curl_command ?? undefined,
+        host: raw.host ?? undefined,
+        port: raw.port != null ? String(raw.port) : undefined,
+        info: {
+          name: raw.info?.name ?? '',
+          severity: raw.info?.severity ?? 'info',
+          description: raw.info?.description ?? undefined,
+          tags: raw.info?.tags ?? undefined,
+          classification: classification,
+          references: raw.info?.references ?? undefined,
+          remediation: raw.info?.remediation ?? undefined,
+        },
+      };
+
+      const result = NucleiFindingSchema.safeParse(mapped);
+      if (result.success) {
+        results.push(result.data);
+      } else {
+        log.warn(`[parseNuclei] Skipping invalid nuclei finding (Zod validation failed): ${JSON.stringify(result.error.flatten())}`);
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Maps nuclei severity string to the enum expected by BaseFindingSchema.
+   * Info severity maps to 'low' since the schema enum is ['low','medium','high','critical'].
+   */
+  private mapNucleiSeverityZod(severity?: string): 'low' | 'medium' | 'high' | 'critical' {
+    switch (severity?.toLowerCase()) {
+      case 'critical': return 'critical';
+      case 'high': return 'high';
+      case 'medium': return 'medium';
+      case 'low': return 'low';
+      case 'info':
+      default: return 'low';
+    }
+  }
+
+  /**
    * Parse da saída do nuclei
+   * @deprecated Use parseNuclei(stdout) instead — returns strongly-typed NucleiFinding[].
    */
   private parseNucleiOutput(output: string, target: string): VulnerabilityFinding[] {
     const results: VulnerabilityFinding[] = [];
