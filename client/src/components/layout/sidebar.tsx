@@ -22,6 +22,7 @@ import {
   Smartphone,
   FileBarChart,
   CreditCard,
+  ClipboardList,
 } from "lucide-react";
 
 interface NavItem {
@@ -63,6 +64,7 @@ const navGroups: NavGroup[] = [
     title: "Inteligência",
     items: [
       { href: "/threats", label: "Ameaças", icon: AlertTriangle },
+      { href: "/action-plan", label: "Plano de Acao", icon: ClipboardList },
       { href: "/relatorios", label: "Relatórios", icon: FileBarChart },
     ],
   },
