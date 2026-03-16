@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -sT -sV -O --script=vuln -Pn -T3 -oX - 192.168.1.50" start="1700000000" startstr="Mon Jan  1 00:00:00 2024" version="7.94" xmloutputversion="1.05">
+  <host starttime="1700000000" endtime="1700000300">
+    <status state="up" reason="syn-ack" reason_ttl="0"/>
+    <address addr="192.168.1.50" addrtype="ipv4"/>
+    <address addr="DE:AD:BE:EF:00:01" addrtype="mac" vendor="VMware"/>
+    <hostnames>
+      <hostname name="fullhost.corp.local" type="PTR"/>
+    </hostnames>
+    <ports>
+      <port protocol="tcp" portid="445">
+        <state state="open" reason="syn-ack" reason_ttl="0"/>
+        <service name="microsoft-ds" product="Microsoft Windows Server 2019" version="datacenter" extrainfo="workgroup: CORP" method="probed" conf="10">
+          <cpe>cpe:/o:microsoft:windows_server_2019</cpe>
+        </service>
+        <script id="smb-security-mode" output="&#xa;  account_used: guest&#xa;  authentication_level: user&#xa;  challenge_response: supported&#xa;  message_signing: disabled (dangerous, but default)">
+        </script>
+        <script id="smb-vuln-ms17-010" output="VULNERABLE">
+          <table key="VULNERABLE">
+            <table>
+              <elem key="title">Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)</elem>
+              <elem key="state">VULNERABLE</elem>
+              <table key="ids">
+                <elem>CVE:CVE-2017-0144</elem>
+              </table>
+            </table>
+          </table>
+        </script>
+      </port>
+      <port protocol="tcp" portid="3389">
+        <state state="open" reason="syn-ack" reason_ttl="0"/>
+        <service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10"/>
+      </port>
+    </ports>
+    <os>
+      <portused state="open" proto="tcp" portid="445"/>
+      <osmatch name="Windows Server 2019" accuracy="98">
+        <osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2019" accuracy="98">
+          <cpe>cpe:/o:microsoft:windows_server_2019</cpe>
+          <cpe>cpe:/o:microsoft:windows_server_2019::datacenter</cpe>
+        </osclass>
+      </osmatch>
+    </os>
+  </host>
+  <runstats>
+    <finished time="1700000300" timestr="Mon Jan  1 00:05:00 2024" elapsed="300" summary="Nmap done; 1 IP address (1 host up) scanned in 300.00 seconds" exit="success"/>
+    <hosts up="1" down="0" total="1"/>
+  </runstats>
+</nmaprun>

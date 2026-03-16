@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -sT -O --osscan-guess -Pn -T4 -oX - 192.168.1.11" start="1700000000" startstr="Mon Jan  1 00:00:00 2024" version="7.94" xmloutputversion="1.05">
+  <host starttime="1700000000" endtime="1700000120">
+    <status state="up" reason="syn-ack" reason_ttl="0"/>
+    <address addr="192.168.1.11" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="linux-srv.corp.local" type="PTR"/>
+    </hostnames>
+    <ports>
+      <port protocol="tcp" portid="22">
+        <state state="open" reason="syn-ack" reason_ttl="0"/>
+        <service name="ssh" product="OpenSSH" version="8.9p1 Ubuntu 3ubuntu0.6" method="probed" conf="10">
+          <cpe>cpe:/a:openbsd:openssh:8.9p1</cpe>
+        </service>
+      </port>
+    </ports>
+    <os>
+      <portused state="open" proto="tcp" portid="22"/>
+      <osmatch name="Linux 5.15" accuracy="97">
+        <osclass type="general purpose" vendor="Linux" osfamily="Linux" osgen="5.X" accuracy="97">
+          <cpe>cpe:/o:linux:linux_kernel:5.15</cpe>
+        </osclass>
+        <osclass type="general purpose" vendor="Canonical" osfamily="Ubuntu" osgen="22.04" accuracy="95">
+          <cpe>cpe:/o:canonical:ubuntu_linux:22.04</cpe>
+        </osclass>
+      </osmatch>
+      <osmatch name="Linux 5.10" accuracy="88">
+        <osclass type="general purpose" vendor="Linux" osfamily="Linux" osgen="5.X" accuracy="88">
+          <cpe>cpe:/o:linux:linux_kernel:5.10</cpe>
+        </osclass>
+      </osmatch>
+    </os>
+  </host>
+  <runstats>
+    <finished time="1700000120" timestr="Mon Jan  1 00:02:00 2024" elapsed="120" summary="Nmap done; 1 IP address (1 host up) scanned in 120.00 seconds" exit="success"/>
+    <hosts up="1" down="0" total="1"/>
+  </runstats>
+</nmaprun>

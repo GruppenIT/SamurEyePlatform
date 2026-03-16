@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -sT -sV -Pn -T4 -oX - 192.168.1.60" start="1700000000" startstr="Mon Jan  1 00:00:00 2024" version="7.94" xmloutputversion="1.05">
+  <host starttime="1700000000" endtime="1700000060">
+    <status state="up" reason="syn-ack" reason_ttl="0"/>
+    <address addr="192.168.1.60" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="mssql.corp.local" type="PTR"/>
+    </hostnames>
+    <ports>
+      <port protocol="tcp" portid="1433">
+        <state state="open" reason="syn-ack" reason_ttl="0"/>
+        <service name="ms-sql-s" product="Microsoft SQL Server" version="2019" extrainfo="RTM; build 15.00.2000; SP1" method="probed" conf="10">
+          <cpe>cpe:/a:microsoft:sql_server:2019</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="443">
+        <state state="open" reason="syn-ack" reason_ttl="0"/>
+        <service name="https" product="Microsoft IIS httpd" version="10.0" method="probed" conf="10">
+          <cpe>cpe:/a:microsoft:iis:10.0</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="5985">
+        <state state="open" reason="syn-ack" reason_ttl="0"/>
+        <service name="http" product="Microsoft HTTPAPI httpd" version="2.0" extrainfo="SSDP/UPnP" method="probed" conf="10">
+          <cpe>cpe:/a:microsoft:http_api:2.0</cpe>
+        </service>
+      </port>
+    </ports>
+  </host>
+  <runstats>
+    <finished time="1700000060" timestr="Mon Jan  1 00:01:00 2024" elapsed="60" summary="Nmap done; 1 IP address (1 host up) scanned in 60.00 seconds" exit="success"/>
+    <hosts up="1" down="0" total="1"/>
+  </runstats>
+</nmaprun>
