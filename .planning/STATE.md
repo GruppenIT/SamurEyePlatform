@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-02-PLAN.md - nuclei schema, NSE capture, journeyExecutor delegation
-last_updated: "2026-03-16T16:43:12.051Z"
+stopped_at: Completed 01-parser-foundation 01-01-PLAN.md
+last_updated: "2026-03-16T16:44:32.294Z"
 last_activity: 2026-03-16 — Roadmap created, requirements mapped to 4 phases
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01-parser-foundation P02 | 9min | 2 tasks | 9 files |
+| Phase 01-parser-foundation P01 | 11 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,9 @@ Recent decisions affecting current work:
 - Pre-roadmap: Threat grouping at engine level — single source of truth for threat count/severity
 - [Phase 01-parser-foundation]: NucleiFindingSchema uses type literal 'nuclei' and .strip() for unknown field removal (PARS-05/06)
 - [Phase 01-parser-foundation]: parseNmapXml() only emits open-state ports to align with PARS-01 spec and reduce noise
+- [Phase 01-parser-foundation]: NmapVulnFindingSchema uses type 'nmap_vuln' to preserve threatEngine cve-detected rule compatibility
+- [Phase 01-parser-foundation]: parseAttributeValue: true in XMLParser requires explicit String() coercion for all nmap service attributes
+- [Phase 01-parser-foundation]: parseNmapOutput marked @deprecated — deletion deferred to plan 01-02 after journeyExecutor wiring confirmed
 
 ### Pending Todos
 
@@ -78,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T16:43:12.049Z
-Stopped at: Completed 01-02-PLAN.md - nuclei schema, NSE capture, journeyExecutor delegation
+Last session: 2026-03-16T16:44:32.291Z
+Stopped at: Completed 01-parser-foundation 01-01-PLAN.md
 Resume file: None
