@@ -5,6 +5,7 @@ import { requireOperator, patchThreatSchema } from "./middleware";
 import { changeThreatStatusSchema } from "@shared/schema";
 import { threatEngine } from "../services/threatEngine";
 import { notificationService } from "../services/notificationService";
+import { recommendationEngine } from "../services/recommendationEngine";
 import { createLogger } from '../lib/logger';
 
 const log = createLogger('routes:threats');
@@ -132,6 +133,14 @@ export function registerThreatRoutes(app: Express) {
       } catch (notifError) {
         log.error({ err: notifError, threatId: id }, 'failed to send status change notifications');
         // Don't fail status change if notification fails
+      }
+
+      // Sync recommendation status after threat status change
+      try {
+        await recommendationEngine.syncRecommendationStatus(id, status);
+      } catch (recError) {
+        log.error({ err: recError, threatId: id }, 'failed to sync recommendation status');
+        // Don't fail status change if recommendation sync fails
       }
 
       // Recalculate host risk score after status change

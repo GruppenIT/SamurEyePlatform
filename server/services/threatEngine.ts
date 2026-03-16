@@ -1865,10 +1865,16 @@ class ThreatEngineService {
 
     // Recalculate host risk score after status change
     if (threat.hostId) {
-      await this.recalculateHostRiskScore(threat.hostId).catch(err => 
+      await this.recalculateHostRiskScore(threat.hostId).catch(err =>
         log.error(`⚠️ Erro ao recalcular escore de risco do host ${threat.hostId}:`, err)
       );
     }
+
+    // Phase 3: Sync recommendation status for system-driven transitions
+    // (mitigated->applied is handled by user-facing route; closed->verified and open->failed are handled here)
+    await recommendationEngine.syncRecommendationStatus(threatId, newStatus).catch(err =>
+      log.error({ err, threatId, newStatus }, 'failed to sync recommendation status in updateThreatStatus')
+    );
   }
 
   /**
