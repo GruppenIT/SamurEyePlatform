@@ -1,12 +1,13 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { db } from "../db";
-import { sql } from "drizzle-orm";
+import { sql, eq, and, desc, isNull } from "drizzle-orm";
 import { isAuthenticatedWithPasswordCheck } from "../localAuth";
 import { createLogger } from '../lib/logger';
 import { scoringEngine } from '../services/scoringEngine';
 import { getThreats } from '../storage/threats';
 import * as postureStorage from '../storage/posture';
+import { recommendations, threats } from '@shared/schema';
 
 const log = createLogger('routes:dashboard');
 
@@ -181,6 +182,106 @@ export function registerDashboardRoutes(app: Express) {
     } catch (error) {
       log.error({ err: error }, 'posture simulation failed');
       res.status(500).json({ error: 'Simulation failed' });
+    }
+  });
+
+  // GET /api/action-plan — prioritized remediation actions joined with threat data
+  app.get('/api/action-plan', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const { effortTag, roleRequired, category } = req.query as Record<string, string | undefined>;
+
+      const conditions = [
+        eq(threats.status, 'open'),
+        isNull(threats.parentThreatId),
+      ];
+
+      if (effortTag) conditions.push(eq(recommendations.effortTag, effortTag));
+      if (roleRequired) conditions.push(eq(recommendations.roleRequired, roleRequired));
+      if (category) conditions.push(eq(threats.category, category));
+
+      const rows = await db
+        .select({
+          recommendationId: recommendations.id,
+          threatId: threats.id,
+          threatTitle: threats.title,
+          threatSeverity: threats.severity,
+          threatCategory: threats.category,
+          contextualScore: threats.contextualScore,
+          projectedScoreAfterFix: threats.projectedScoreAfterFix,
+          whatIsWrong: recommendations.whatIsWrong,
+          fixSteps: recommendations.fixSteps,
+          effortTag: recommendations.effortTag,
+          roleRequired: recommendations.roleRequired,
+          status: recommendations.status,
+        })
+        .from(recommendations)
+        .innerJoin(threats, eq(recommendations.threatId, threats.id))
+        .where(and(...conditions))
+        .orderBy(desc(threats.contextualScore));
+
+      const result = rows.map(r => ({
+        recommendationId: r.recommendationId,
+        threatId: r.threatId,
+        threatTitle: r.threatTitle,
+        threatSeverity: r.threatSeverity,
+        threatCategory: r.threatCategory,
+        contextualScore: r.contextualScore,
+        projectedScoreAfterFix: r.projectedScoreAfterFix,
+        whatIsWrong: r.whatIsWrong,
+        fixPreview: Array.isArray(r.fixSteps) && r.fixSteps.length > 0 ? r.fixSteps[0] : '',
+        effortTag: r.effortTag,
+        roleRequired: r.roleRequired,
+        status: r.status,
+      }));
+
+      res.json(result);
+    } catch (error) {
+      log.error({ err: error }, 'failed to fetch action plan');
+      res.status(500).json({ message: "Falha ao buscar plano de acao" });
+    }
+  });
+
+  // GET /api/posture/coverage — return last run + status + open threat count for each journey type
+  app.get('/api/posture/coverage', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const journeyTypes = ['attack_surface', 'ad_security', 'edr_av', 'web_application'];
+      const results = await Promise.all(
+        journeyTypes.map(async (jType) => {
+          const lastJobRow = await db.execute(sql`
+            SELECT jobs.status, jobs.finished_at as "finishedAt"
+            FROM jobs
+            JOIN journeys ON jobs.journey_id = journeys.id
+            WHERE journeys.type = ${jType}
+              AND jobs.status IN ('completed', 'failed', 'timeout')
+              AND jobs.finished_at IS NOT NULL
+            ORDER BY jobs.finished_at DESC
+            LIMIT 1
+          `);
+
+          const openThreatRow = await db.execute(sql`
+            SELECT COUNT(*)::int as count
+            FROM threats
+            WHERE category = ${jType}
+              AND status = 'open'
+              AND parent_threat_id IS NULL
+          `);
+
+          const lastJob = (lastJobRow.rows || [])[0] as any;
+          const openCount = (openThreatRow.rows || [])[0] as any;
+
+          return {
+            journeyType: jType,
+            lastRunAt: lastJob?.finishedAt ?? null,
+            lastStatus: lastJob?.status ?? null,
+            openThreatCount: openCount?.count ?? 0,
+          };
+        })
+      );
+
+      res.json(results);
+    } catch (error) {
+      log.error({ err: error }, 'failed to fetch posture coverage');
+      res.status(500).json({ error: 'Failed to fetch coverage' });
     }
   });
 
