@@ -41,8 +41,8 @@ Requirements for the product revision. Each maps to roadmap phases.
 - [x] **REMD-03**: Each remediation includes: what is wrong (1 sentence), business impact, fix steps, verification step, references
 - [x] **REMD-04**: Each remediation has an effort tag (minutes, hours, days, weeks) and required role (sysadmin, developer, vendor, security)
 - [x] **REMD-05**: Recommendations are persisted in a dedicated `recommendations` table linked to threats
-- [ ] **REMD-06**: User can mark a remediation as "mitigated — pending scan confirmation"
-- [ ] **REMD-07**: Re-scan automatically confirms closure when correlation key is absent in new results
+- [x] **REMD-06**: User can mark a remediation as "mitigated — pending scan confirmation"
+- [x] **REMD-07**: Re-scan automatically confirms closure when correlation key is absent in new results
 
 ### UI — Findings
 
@@ -133,8 +133,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REMD-03 | Phase 3 | Complete |
 | REMD-04 | Phase 3 | Complete |
 | REMD-05 | Phase 3 | Complete |
-| REMD-06 | Phase 3 | Pending |
-| REMD-07 | Phase 3 | Pending |
+| REMD-06 | Phase 3 | Complete |
+| REMD-07 | Phase 3 | Complete |
 | UIFN-01 | Phase 4 | Pending |
 | UIFN-02 | Phase 4 | Pending |
 | UIFN-03 | Phase 4 | Pending |

@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Parser Foundation** - Replace fragile parsers with typed, structured output validated by Zod schemas and protected by snapshot tests
 - [x] **Phase 2: Threat Engine Intelligence** - Consolidate findings into grouped threat clusters with contextual severity scoring
-- [ ] **Phase 3: Remediation Engine** - Generate specific, host-referencing fix instructions and close the remediation lifecycle loop
+- [x] **Phase 3: Remediation Engine** - Generate specific, host-referencing fix instructions and close the remediation lifecycle loop (completed 2026-03-16)
 - [ ] **Phase 4: User-Facing Surfaces** - Expose the new data model through redesigned findings view, action plan, and executive dashboard
 
 ## Phase Details
@@ -94,5 +94,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Parser Foundation | 3/3 | Complete | 2026-03-16 |
 | 2. Threat Engine Intelligence | 3/3 | Complete   | 2026-03-16 |
-| 3. Remediation Engine | 1/2 | In Progress|  |
+| 3. Remediation Engine | 2/2 | Complete   | 2026-03-16 |
 | 4. User-Facing Surfaces | 0/3 | Not started | - |
