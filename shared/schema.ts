@@ -1129,3 +1129,86 @@ export const NucleiFindingSchema = BaseFindingSchema.extend({
 
 export type NucleiFinding = z.infer<typeof NucleiFindingSchema>;
 export type CommandResult = z.infer<typeof commandResultSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EdrTimelineEventSchema — per-host timeline event for EDR/AV test (PARS-09)
+// ─────────────────────────────────────────────────────────────────────────────
+export const EdrTimelineEventSchema = z.object({
+  timestamp: z.string(), // ISO-8601
+  action: z.enum([
+    'deploy_attempt',
+    'deploy_success',
+    'detected',
+    'not_detected',
+    'timeout',
+    'cleanup',
+  ]),
+  detail: z.string(),
+  share: z.string().optional(),
+});
+
+export type EdrTimelineEvent = z.infer<typeof EdrTimelineEventSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EdrFindingSchema — EDR/AV test result with timeline (PARS-09, PARS-10)
+// ─────────────────────────────────────────────────────────────────────────────
+export const EdrFindingSchema = BaseFindingSchema.extend({
+  type: z.literal('edr_test'),
+  hostname: z.string(),
+  eicarRemoved: z.boolean().nullable(),
+  testDuration: z.number(),
+  deploymentMethod: z.string(),
+  filePath: z.string().optional(),
+  share: z.string().optional(),
+  error: z.string().optional(),
+  timeline: z.array(EdrTimelineEventSchema),
+  sampleRate: z.number().optional(),
+  detected: z.boolean().nullable(),
+}).strip();
+
+export type EdrFinding = z.infer<typeof EdrFindingSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AdFindingSchema — typed AD security finding output (PARS-07, PARS-08, PARS-10)
+// ─────────────────────────────────────────────────────────────────────────────
+export const AdFindingSchema = BaseFindingSchema.extend({
+  type: z.literal('ad_finding'),
+  checkId: z.string(),
+  checkName: z.string(),
+  details: z.string().optional(),
+  groupMembership: z.array(z.string()).optional(), // PARS-08: ordered chain
+  gpoLinks: z.array(
+    z.object({
+      name: z.string(),
+      path: z.string(),
+      enabled: z.boolean().optional(),
+    })
+  ).optional(), // PARS-08: structured GPO links
+  trustAttributes: z.object({
+    direction: z.string(),
+    type: z.string(),
+    transitivity: z.string().optional(),
+  }).optional(), // PARS-08: typed trust attributes
+  uacFlags: z.array(
+    z.object({
+      flag: z.string(),
+      risk: z.string(),
+    })
+  ).optional(),
+  rawData: z.record(z.unknown()).optional(), // fallback for full PS output
+}).strip();
+
+export type AdFinding = z.infer<typeof AdFindingSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NormalizedFinding — discriminated union of all 4 parser types (PARS-10)
+// ─────────────────────────────────────────────────────────────────────────────
+export const NormalizedFindingSchema = z.discriminatedUnion('type', [
+  NmapFindingSchema,
+  NmapVulnFindingSchema,
+  NucleiFindingSchema,
+  AdFindingSchema,
+  EdrFindingSchema,
+]);
+
+export type NormalizedFinding = z.infer<typeof NormalizedFindingSchema>;

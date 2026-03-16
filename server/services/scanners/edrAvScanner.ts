@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import { storage } from '../../storage';
 import { createLogger } from '../../lib/logger';
+import { EdrFindingSchema, type EdrFinding, type EdrTimelineEvent } from '@shared/schema';
 
 const log = createLogger('edrScanner');
 
@@ -131,11 +132,20 @@ export class EDRAVScanner {
         
         findings.push({
           type: 'edr_test',
+          target: currentTarget,
+          severity: 'medium' as const,
           hostname: currentTarget,
           error: errorMessage,
           eicarRemoved: null,
+          detected: null,
+          deploymentMethod: 'smb',
           testDuration: 0,
           timestamp: new Date().toISOString(),
+          timeline: [{
+            timestamp: new Date().toISOString(),
+            action: 'timeout' as const,
+            detail: `Critical error: ${errorMessage}`,
+          }],
         });
       }
     }
@@ -185,72 +195,150 @@ export class EDRAVScanner {
 
   /**
    * Testa um único host com deployment EICAR
+   * PARS-09: returns an EdrFinding with per-host timeline array of granular events
    */
   private async testSingleHost(
     hostname: string,
     credential: { username: string; password: string; domain?: string },
     timeout: number = 30
-  ): Promise<any> {
+  ): Promise<EdrFinding> {
     const startTime = Date.now();
     log.debug({ host: hostname }, 'testing EDR/AV');
+
+    // Timeline accumulator — all significant steps are pushed here (PARS-09)
+    const timeline: EdrTimelineEvent[] = [];
 
     // Usar timeout da jornada (parâmetro recebido)
     const timeoutMs = Math.max(5, Math.min(3600, timeout)) * 1000; // Limitar entre 5s e 1h
     log.debug({ timeoutSec: Math.floor(timeoutMs / 1000) }, 'EICAR test timeout configured');
 
     try {
-      // 1. Primeiro, tentar deployment via SMB
+      // 1. Attempt SMB deployment
+      timeline.push({
+        timestamp: new Date().toISOString(),
+        action: 'deploy_attempt',
+        detail: `Attempting EICAR deployment via SMB to ${hostname}`,
+      });
       const smbResult = await this.deployEicarViaSMB(hostname, credential);
-      
+
       if (smbResult.success) {
+        timeline.push({
+          timestamp: new Date().toISOString(),
+          action: 'deploy_success',
+          detail: `EICAR file deployed via SMB to ${smbResult.filePath}`,
+        });
+
         // 2. Aguardar tempo configurado para o EDR/AV agir
         log.debug({ host: hostname, waitSec: Math.floor(timeoutMs / 1000) }, 'waiting for EDR/AV to process EICAR');
         await this.delay(timeoutMs);
-        
+
         // 3. Verificar se o arquivo ainda existe
         const fileExists = await this.checkEicarFileExists(hostname, credential, smbResult.filePath!);
-        
-        // 4. Tentar limpar o arquivo (se ainda existir)
+
         if (fileExists) {
+          timeline.push({
+            timestamp: new Date().toISOString(),
+            action: 'not_detected',
+            detail: 'EICAR file still present — EDR/AV did not remove it',
+          });
+          // 4. Tentar limpar o arquivo (se ainda existir)
           await this.cleanupEicarFile(hostname, credential, smbResult.filePath!);
+          timeline.push({
+            timestamp: new Date().toISOString(),
+            action: 'cleanup',
+            detail: 'EICAR file manually removed (cleanup)',
+          });
+        } else {
+          timeline.push({
+            timestamp: new Date().toISOString(),
+            action: 'detected',
+            detail: 'EICAR file removed by EDR/AV',
+          });
         }
 
         const testDuration = Math.floor((Date.now() - startTime) / 1000);
 
-        return {
-          type: 'edr_test',
+        const candidate = {
+          type: 'edr_test' as const,
+          target: hostname,
+          severity: fileExists ? ('critical' as const) : ('low' as const),
           hostname,
           filePath: smbResult.filePath!,
           eicarRemoved: !fileExists,
+          detected: !fileExists,
           deploymentMethod: 'smb',
           testDuration,
           timestamp: new Date().toISOString(),
+          timeline,
         };
+
+        const parsed = EdrFindingSchema.safeParse(candidate);
+        if (parsed.success) return parsed.data;
+        log.warn({ host: hostname, issues: parsed.error.issues }, 'EdrFinding validation warning — returning raw');
+        return candidate as EdrFinding;
+
       } else {
         // Fallback para WMI se SMB falhar
+        timeline.push({
+          timestamp: new Date().toISOString(),
+          action: 'deploy_attempt',
+          detail: `SMB failed (${smbResult.error}), attempting WMI deployment`,
+        });
         const wmiResult = await this.deployEicarViaWMI(hostname, credential);
-        
+
         if (wmiResult.success) {
+          timeline.push({
+            timestamp: new Date().toISOString(),
+            action: 'deploy_success',
+            detail: `EICAR file deployed via WMI to ${wmiResult.filePath}`,
+          });
+
           // Aguardar mesmo tempo configurado para WMI
           log.debug({ host: hostname, waitSec: Math.floor(timeoutMs / 1000) }, 'waiting after WMI deploy');
           await this.delay(timeoutMs);
           const fileExists = await this.checkEicarFileExists(hostname, credential, wmiResult.filePath!);
-          
+
           if (fileExists) {
+            timeline.push({
+              timestamp: new Date().toISOString(),
+              action: 'not_detected',
+              detail: 'EICAR file still present — EDR/AV did not remove it',
+            });
             await this.cleanupEicarFile(hostname, credential, wmiResult.filePath!);
+            timeline.push({
+              timestamp: new Date().toISOString(),
+              action: 'cleanup',
+              detail: 'EICAR file manually removed (cleanup)',
+            });
+          } else {
+            timeline.push({
+              timestamp: new Date().toISOString(),
+              action: 'detected',
+              detail: 'EICAR file removed by EDR/AV',
+            });
           }
 
           const testDuration = Math.floor((Date.now() - startTime) / 1000);
 
-          return {
-            type: 'edr_test',
+          const candidate = {
+            type: 'edr_test' as const,
+            target: hostname,
+            severity: fileExists ? ('critical' as const) : ('low' as const),
             hostname,
             filePath: wmiResult.filePath!,
             eicarRemoved: !fileExists,
+            detected: !fileExists,
             deploymentMethod: 'wmi',
             testDuration,
             timestamp: new Date().toISOString(),
+            timeline,
           };
+
+          const parsed = EdrFindingSchema.safeParse(candidate);
+          if (parsed.success) return parsed.data;
+          log.warn({ host: hostname, issues: parsed.error.issues }, 'EdrFinding validation warning — returning raw');
+          return candidate as EdrFinding;
+
         } else {
           throw new Error(`Falha em todos os métodos de deployment: SMB (${smbResult.error}), WMI (${wmiResult.error})`);
         }
@@ -258,15 +346,34 @@ export class EDRAVScanner {
     } catch (error) {
       const testDuration = Math.floor((Date.now() - startTime) / 1000);
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
-      return {
-        type: 'edr_test',
+
+      // Detect timeout vs other errors
+      const isTimeout = errorMessage.toLowerCase().includes('timeout') || errorMessage.toLowerCase().includes('excedeu');
+      if (isTimeout) {
+        timeline.push({
+          timestamp: new Date().toISOString(),
+          action: 'timeout',
+          detail: `Test timed out after ${testDuration}s: ${errorMessage}`,
+        });
+      }
+
+      const candidate = {
+        type: 'edr_test' as const,
+        target: hostname,
+        severity: 'medium' as const,
         hostname,
         error: errorMessage,
         eicarRemoved: null,
+        detected: null,
+        deploymentMethod: 'smb',
         testDuration,
         timestamp: new Date().toISOString(),
+        timeline,
       };
+
+      const parsed = EdrFindingSchema.safeParse(candidate);
+      if (parsed.success) return parsed.data;
+      return candidate as EdrFinding;
     }
   }
 

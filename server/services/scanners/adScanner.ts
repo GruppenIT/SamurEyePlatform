@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import dns from 'dns';
 import { promisify } from 'util';
 import { createLogger } from '../../lib/logger';
+import { AdFindingSchema, type AdFinding } from '@shared/schema';
 
 const log = createLogger('adScanner');
 
@@ -680,7 +681,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'dc_print_spooler',
         nome: 'Controlador de domínio com spooler de impressão ativado (PrintNightmare)',
-        powershell: 'Get-Service -Name Spooler | Select-Object Name, Status | ConvertTo-Json',
+        powershell: 'Get-Service -Name Spooler | Select-Object Name, Status | ConvertTo-Json -Depth 10',
         severidade: 'critical',
         description: 'O serviço Print Spooler está ativo no controlador de domínio, tornando-o vulnerável ao ataque PrintNightmare (CVE-2021-34527)',
         recommendation: 'Stop-Service -Name Spooler -Force; Set-Service -Name Spooler -StartupType Disabled'
@@ -688,7 +689,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'ldap_anonymous',
         nome: 'LDAP anônimo e sem assinatura permitido',
-        powershell: `Get-ADObject -Identity 'CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$baseDN' -Properties dSHeuristics | Select-Object -Property dSHeuristics | ConvertTo-Json`,
+        powershell: `Get-ADObject -Identity 'CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$baseDN' -Properties dSHeuristics | Select-Object -Property dSHeuristics | ConvertTo-Json -Depth 10`,
         severidade: 'critical',
         description: 'O atributo dSHeuristics está configurado, potencialmente permitindo LDAP anônimo ou sem assinatura',
         recommendation: 'Remover o valor do atributo dSHeuristics via ADSI Edit'
@@ -696,7 +697,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'smbv1_enabled',
         nome: 'Sessão SMBv1 fraca permitida',
-        powershell: 'Get-WindowsFeature -Name FS-SMB1 | Select-Object Name, InstallState | ConvertTo-Json',
+        powershell: 'Get-WindowsFeature -Name FS-SMB1 | Select-Object Name, InstallState | ConvertTo-Json -Depth 10',
         severidade: 'critical',
         description: 'O protocolo SMBv1 está habilitado, permitindo ataques como EternalBlue e WannaCry',
         recommendation: 'Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart'
@@ -704,7 +705,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'krbtgt_weak',
         nome: 'Conta KRBTGT fraca (Golden Ticket)',
-        powershell: 'Get-ADUser -Identity krbtgt -Property PasswordLastSet | Select-Object Name, PasswordLastSet | ConvertTo-Json',
+        powershell: 'Get-ADUser -Identity krbtgt -Property PasswordLastSet | Select-Object Name, PasswordLastSet | ConvertTo-Json -Depth 10',
         severidade: 'critical',
         description: 'A senha da conta KRBTGT não foi alterada recentemente, permitindo ataques Golden Ticket',
         recommendation: 'Realizar reset de senha da conta KRBTGT usando script oficial da Microsoft'
@@ -712,7 +713,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'schema_permissions',
         nome: 'Alterações de permissões padrão na partição do esquema',
-        powershell: `(Get-Acl 'AD:CN=Schema,CN=Configuration,$baseDN').Access | Where-Object {$_.IdentityReference -notmatch 'SYSTEM|Administrators|Schema Admins|Enterprise Admins'} | Select-Object IdentityReference, ActiveDirectoryRights | ConvertTo-Json`,
+        powershell: `(Get-Acl 'AD:CN=Schema,CN=Configuration,$baseDN').Access | Where-Object {$_.IdentityReference -notmatch 'SYSTEM|Administrators|Schema Admins|Enterprise Admins'} | Select-Object IdentityReference, ActiveDirectoryRights | ConvertTo-Json -Depth 10`,
         severidade: 'critical',
         description: 'Foram detectadas permissões não padrão na partição do esquema do Active Directory',
         recommendation: 'Remover usuários/grupos não privilegiados das permissões do Schema via ADSI Edit'
@@ -790,7 +791,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'privileged_spn',
         nome: 'Usuários privilegiados com Service Principal Names (SPN) definidos',
-        powershell: `Get-ADUser -Filter * -Properties servicePrincipalName, MemberOf | Where-Object {$_.servicePrincipalName -and ($_.MemberOf -match 'Admins')} | Select-Object Name, SamAccountName, servicePrincipalName | ConvertTo-Json`,
+        powershell: `Get-ADUser -Filter * -Properties servicePrincipalName, MemberOf | Where-Object {$_.servicePrincipalName -and ($_.MemberOf -match 'Admins')} | Select-Object Name, SamAccountName, servicePrincipalName | ConvertTo-Json -Depth 10`,
         severidade: 'high',
         description: 'Usuários com privilégios administrativos possuem SPNs configurados, vulneráveis a Kerberoasting',
         recommendation: 'Remover SPNs de contas administrativas ou usar contas de serviço gerenciadas (gMSA)'
@@ -798,7 +799,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'password_never_expires',
         nome: 'Contas com senha sem expiração',
-        powershell: 'Get-ADUser -Filter {PasswordNeverExpires -eq $true} -Property Name, PasswordNeverExpires | Select-Object Name, PasswordNeverExpires | ConvertTo-Json',
+        powershell: 'Get-ADUser -Filter {PasswordNeverExpires -eq $true} -Property Name, PasswordNeverExpires | Select-Object Name, PasswordNeverExpires | ConvertTo-Json -Depth 10',
         severidade: 'high',
         description: 'Foram identificadas contas com senha configurada para nunca expirar',
         recommendation: 'Desabilitar a opção "Senha nunca expira" e implementar política de rotação de senhas'
@@ -806,7 +807,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'preauth_disabled',
         nome: 'Contas com pré-autenticação desativada',
-        powershell: 'Get-ADUser -Filter * -Properties UserAccountControl | Where-Object {$_.UserAccountControl -band 0x400000} | Select-Object Name, SamAccountName | ConvertTo-Json',
+        powershell: 'Get-ADUser -Filter * -Properties UserAccountControl | Where-Object {$_.UserAccountControl -band 0x400000} | Select-Object Name, SamAccountName | ConvertTo-Json -Depth 10',
         severidade: 'high',
         description: 'Contas com pré-autenticação Kerberos desativada, vulneráveis a AS-REP Roasting',
         recommendation: 'Habilitar pré-autenticação Kerberos para todas as contas'
@@ -814,7 +815,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'admin_account_weak',
         nome: 'Conta de administrador padrão fraca',
-        powershell: `Get-ADUser -Identity 'Administrator' -Property PasswordLastSet, PasswordNeverExpires, LastLogonTimestamp | Select-Object Name, PasswordLastSet, PasswordNeverExpires, @{Name='LastLogon';Expression={[DateTime]::FromFileTime($_.LastLogonTimestamp)}} | ConvertTo-Json`,
+        powershell: `Get-ADUser -Identity 'Administrator' -Property PasswordLastSet, PasswordNeverExpires, LastLogonTimestamp | Select-Object Name, PasswordLastSet, PasswordNeverExpires, @{Name='LastLogon';Expression={[DateTime]::FromFileTime($_.LastLogonTimestamp)}} | ConvertTo-Json -Depth 10`,
         severidade: 'high',
         description: 'A conta Administrator padrão apresenta configurações de segurança fracas',
         recommendation: 'Configurar senha forte (15+ caracteres), alterar regularmente, e usar apenas quando necessário'
@@ -822,7 +823,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'dc_password_old',
         nome: 'Controladores de domínio com senha não alterada recentemente',
-        powershell: 'Get-ADDomainController -Filter * | ForEach-Object { Get-ADComputer -Identity $_.Name -Property PasswordLastSet | Select-Object Name, PasswordLastSet } | ConvertTo-Json',
+        powershell: 'Get-ADDomainController -Filter * | ForEach-Object { Get-ADComputer -Identity $_.Name -Property PasswordLastSet | Select-Object Name, PasswordLastSet } | ConvertTo-Json -Depth 10',
         severidade: 'high',
         description: 'Controladores de domínio com senhas de conta de computador não alteradas recentemente',
         recommendation: 'Investigar motivo da não rotação automática de senha e forçar reset se necessário'
@@ -830,7 +831,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'low_primary_group_id',
         nome: 'Contas com ID de grupo primário (PrimaryGroupID) menor que 1000',
-        powershell: 'Get-ADUser -Filter {primaryGroupId -lt 1000} -Property primaryGroupId | Select-Object Name, primaryGroupId | ConvertTo-Json',
+        powershell: 'Get-ADUser -Filter {primaryGroupId -lt 1000} -Property primaryGroupId | Select-Object Name, primaryGroupId | ConvertTo-Json -Depth 10',
         severidade: 'high',
         description: 'Usuários com PrimaryGroupID baixo podem ter privilégios ocultos ou pertencer a grupos críticos',
         recommendation: 'Revisar contas identificadas e validar se a configuração é intencional'
@@ -838,7 +839,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'admin_count_set',
         nome: 'Atributo AdminCount definido para usuários padrão',
-        powershell: 'Get-ADUser -Filter {admincount -gt 0} -Properties adminCount, MemberOf | Where-Object {-not ($_.MemberOf -match "Admins")} | Select-Object Name, SamAccountName, adminCount | ConvertTo-Json',
+        powershell: 'Get-ADUser -Filter {admincount -gt 0} -Properties adminCount, MemberOf | Where-Object {-not ($_.MemberOf -match "Admins")} | Select-Object Name, SamAccountName, adminCount | ConvertTo-Json -Depth 10',
         severidade: 'high',
         description: 'Usuários não-admin com AdminCount=1 podem ter sido admins no passado e manter permissões residuais',
         recommendation: 'Revisar e remover AdminCount de usuários que não são mais administradores'
@@ -846,7 +847,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'trust_relationships',
         nome: 'Relações de confiança de alto risco',
-        powershell: 'Get-ADTrust -Filter * | Select-Object Name, TrustType, TrustDirection, ForestTransitive | ConvertTo-Json',
+        powershell: 'Get-ADTrust -Filter * | Select-Object Name, TrustType, TrustDirection, ForestTransitive | ConvertTo-Json -Depth 10',
         severidade: 'high',
         description: 'Foram identificadas relações de confiança de domínio que podem representar riscos de segurança',
         recommendation: 'Revisar necessidade de cada trust e remover os desnecessários ou não documentados'
@@ -854,7 +855,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'hidden_privileged_sid',
         nome: 'Contas com SID privilegiado oculto',
-        powershell: 'Get-ADUser -Filter {admincount -gt 0} -Properties adminCount, sidHistory | Where-Object {$_.sidHistory} | Select-Object Name, SamAccountName, adminCount, sidHistory | ConvertTo-Json',
+        powershell: 'Get-ADUser -Filter {admincount -gt 0} -Properties adminCount, sidHistory | Where-Object {$_.sidHistory} | Select-Object Name, SamAccountName, adminCount, sidHistory | ConvertTo-Json -Depth 10',
         severidade: 'high',
         description: 'Contas com SIDs privilegiados no atributo sidHistory podem ter privilégios ocultos',
         recommendation: 'Investigar e remover sidHistory não autorizado'
@@ -862,7 +863,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'pre_win2000_access',
         nome: 'Contas usando controle de acesso compatível com pré-Windows 2000',
-        powershell: `Get-ADGroupMember -Identity 'Pre-Windows 2000 Compatible Access' -Recursive | Select-Object Name, SamAccountName | ConvertTo-Json`,
+        powershell: `Get-ADGroupMember -Identity 'Pre-Windows 2000 Compatible Access' -Recursive | Select-Object Name, SamAccountName | ConvertTo-Json -Depth 10`,
         severidade: 'medium',
         description: 'O grupo "Pre-Windows 2000 Compatible Access" contém membros, permitindo autenticação legada insegura',
         recommendation: 'Remover membros do grupo se não houver sistemas legados que dependam dele'
@@ -925,7 +926,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'krbtgt_rbcd',
         nome: 'Conta KRBTGT com delegação restrita baseada em recursos (RBCD) habilitada',
-        powershell: `Get-ADUser -Identity 'krbtgt' -Property 'msDS-AllowedToDelegateTo' | Select-Object SamAccountName, 'msDS-AllowedToDelegateTo' | ConvertTo-Json`,
+        powershell: `Get-ADUser -Identity 'krbtgt' -Property 'msDS-AllowedToDelegateTo' | Select-Object SamAccountName, 'msDS-AllowedToDelegateTo' | ConvertTo-Json -Depth 10`,
         severidade: 'high',
         description: 'A conta KRBTGT possui delegação configurada, o que nunca deveria ocorrer',
         recommendation: 'Remover imediatamente qualquer configuração de delegação da conta KRBTGT'
@@ -933,7 +934,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'gmsa_read_permissions',
         nome: 'Usuários padrão com permissão para leitura de senha de GMSA',
-        powershell: 'Get-ADServiceAccount -Filter * -Properties PrincipalsAllowedToRetrieveManagedPassword | Where-Object {$_.PrincipalsAllowedToRetrieveManagedPassword} | Select-Object Name, PrincipalsAllowedToRetrieveManagedPassword | ConvertTo-Json',
+        powershell: 'Get-ADServiceAccount -Filter * -Properties PrincipalsAllowedToRetrieveManagedPassword | Where-Object {$_.PrincipalsAllowedToRetrieveManagedPassword} | Select-Object Name, PrincipalsAllowedToRetrieveManagedPassword | ConvertTo-Json -Depth 10',
         severidade: 'high',
         description: 'Usuários não-autorizados têm permissão para ler senhas de contas de serviço gerenciadas (gMSA)',
         recommendation: 'Restringir PrincipalsAllowedToRetrieveManagedPassword apenas aos sistemas necessários'
@@ -941,7 +942,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'kerberos_vulnerabilities',
         nome: 'Avaliação de vulnerabilidades do Kerberos',
-        powershell: `Get-ADUser -Filter * -Properties 'msDS-SupportedEncryptionTypes' | Where-Object {$_.'msDS-SupportedEncryptionTypes' -lt 16} | Select-Object Name, SamAccountName, 'msDS-SupportedEncryptionTypes' | ConvertTo-Json`,
+        powershell: `Get-ADUser -Filter * -Properties 'msDS-SupportedEncryptionTypes' | Where-Object {$_.'msDS-SupportedEncryptionTypes' -lt 16} | Select-Object Name, SamAccountName, 'msDS-SupportedEncryptionTypes' | ConvertTo-Json -Depth 10`,
         severidade: 'medium',
         description: 'Contas configuradas com tipos de criptografia Kerberos fracos (DES, RC4)',
         recommendation: 'Configurar suporte apenas para AES128 e AES256 (msDS-SupportedEncryptionTypes = 24 ou 28)'
@@ -949,7 +950,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'kerberos_rbcd_computers',
         nome: 'Comprometimento de conta de computador via delegação restrita baseada em recursos do Kerberos (RBCD)',
-        powershell: 'Get-ADComputer -Filter * -Properties PrincipalsAllowedToDelegateToAccount | Where-Object {$_.PrincipalsAllowedToDelegateToAccount} | Select-Object Name, SamAccountName, PrincipalsAllowedToDelegateToAccount | ConvertTo-Json',
+        powershell: 'Get-ADComputer -Filter * -Properties PrincipalsAllowedToDelegateToAccount | Where-Object {$_.PrincipalsAllowedToDelegateToAccount} | Select-Object Name, SamAccountName, PrincipalsAllowedToDelegateToAccount | ConvertTo-Json -Depth 10',
         severidade: 'medium',
         description: 'Computadores com delegação RBCD configurada podem ser comprometidos para obter acesso a outros sistemas',
         recommendation: 'Revisar e remover delegações desnecessárias, usar delegação restrita quando possível'
@@ -957,7 +958,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'rodc_kdc_access',
         nome: 'Direitos de acesso perigosos na conta KDC do RODC',
-        powershell: `Get-ADDomainController -Filter {IsReadOnly -eq $true} | ForEach-Object { Get-ADComputer -Identity $_.Name -Properties 'msDS-RevealedUsers' | Select-Object Name, 'msDS-RevealedUsers' } | ConvertTo-Json`,
+        powershell: `Get-ADDomainController -Filter {IsReadOnly -eq $true} | ForEach-Object { Get-ADComputer -Identity $_.Name -Properties 'msDS-RevealedUsers' | Select-Object Name, 'msDS-RevealedUsers' } | ConvertTo-Json -Depth 10`,
         severidade: 'high',
         description: 'Read-Only Domain Controllers com configurações de segurança inadequadas',
         recommendation: 'Revisar políticas de cache de credenciais e grupo "Allowed RODC Password Replication Group"'
@@ -1020,7 +1021,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'credentials_in_shares',
         nome: 'Coleta de credenciais a partir de compartilhamentos de domínio',
-        powershell: `$paths = @('\\\\$domainName\\SYSVOL', '\\\\$domainName\\NETLOGON'); foreach ($path in $paths) { Get-ChildItem -Path $path -Recurse -Include *.ps1, *.vbs, *.bat, *.xml -ErrorAction SilentlyContinue | Select-String -Pattern 'password', 'pwd', 'pass', 'senha', 'segredo', 'credencial' -ErrorAction SilentlyContinue | Select-Object Path, LineNumber, Line } | ConvertTo-Json`,
+        powershell: `$paths = @('\\\\$domainName\\SYSVOL', '\\\\$domainName\\NETLOGON'); foreach ($path in $paths) { Get-ChildItem -Path $path -Recurse -Include *.ps1, *.vbs, *.bat, *.xml -ErrorAction SilentlyContinue | Select-String -Pattern 'password', 'pwd', 'pass', 'senha', 'segredo', 'credencial' -ErrorAction SilentlyContinue | Select-Object Path, LineNumber, Line } | ConvertTo-Json -Depth 10`,
         severidade: 'high',
         description: 'Foram encontradas credenciais ou palavras-chave relacionadas em arquivos nos compartilhamentos SYSVOL/NETLOGON',
         recommendation: 'Remover credenciais hard-coded de scripts. Usar credenciais gerenciadas ou Group Policy Preferences com criptografia AES256'
@@ -1028,7 +1029,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'sysvol_permissions',
         nome: 'Verificar objetos GPO sensíveis e permissões de arquivos',
-        powershell: `$path = '\\\\$domainName\\SYSVOL'; $acl = Get-Acl -Path $path; $acl.Access | Where-Object {$_.IdentityReference -notmatch 'Domain Admins|Enterprise Admins|SYSTEM|Administrators|Authenticated Users|Server Operators|Enterprise Domain Controllers'} | Select-Object IdentityReference, FileSystemRights, AccessControlType | ConvertTo-Json`,
+        powershell: `$path = '\\\\$domainName\\SYSVOL'; $acl = Get-Acl -Path $path; $acl.Access | Where-Object {$_.IdentityReference -notmatch 'Domain Admins|Enterprise Admins|SYSTEM|Administrators|Authenticated Users|Server Operators|Enterprise Domain Controllers'} | Select-Object IdentityReference, FileSystemRights, AccessControlType | ConvertTo-Json -Depth 10`,
         severidade: 'high',
         description: 'Permissões não-padrão detectadas no compartilhamento SYSVOL',
         recommendation: 'Revisar e remover permissões excessivas. Manter apenas: Domain Admins, Enterprise Admins, SYSTEM, Authenticated Users (Read)'
@@ -1036,7 +1037,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'smb_signing_weak',
         nome: 'Assinatura SMB fraca',
-        powershell: 'Get-SmbServerConfiguration | Select-Object RequireSecuritySignature, EnableSecuritySignature | ConvertTo-Json',
+        powershell: 'Get-SmbServerConfiguration | Select-Object RequireSecuritySignature, EnableSecuritySignature | ConvertTo-Json -Depth 10',
         severidade: 'medium',
         description: 'Assinatura SMB não está configurada como obrigatória, permitindo ataques man-in-the-middle',
         recommendation: 'Habilitar "RequireSecuritySignature=True" via GPO: Computer Configuration > Policies > Windows Settings > Security Settings > Local Policies > Security Options'
@@ -1112,7 +1113,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'risky_uac_params',
         nome: 'Contas com parâmetros de controle de conta de usuário arriscados',
-        powershell: 'Get-ADUser -Filter * -Property userAccountControl | Where-Object {($_.userAccountControl -band 0x10000) -or ($_.userAccountControl -band 0x80000)} | Select-Object Name, userAccountControl | ConvertTo-Json',
+        powershell: 'Get-ADUser -Filter * -Property userAccountControl | Where-Object {($_.userAccountControl -band 0x10000) -or ($_.userAccountControl -band 0x80000)} | Select-Object Name, userAccountControl | ConvertTo-Json -Depth 10',
         severidade: 'high',
         description: 'Contas com flags UserAccountControl arriscadas (DONT_EXPIRE_PASSWORD, ENCRYPTED_TEXT_PWD_ALLOWED)',
         recommendation: 'Revisar e corrigir UserAccountControl. Valor padrão recomendado: 512'
@@ -1120,7 +1121,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'domain_functional_level',
         nome: 'Domínios com nível funcional desatualizado',
-        powershell: 'Get-ADDomain | Select-Object DomainMode, DistinguishedName | ConvertTo-Json',
+        powershell: 'Get-ADDomain | Select-Object DomainMode, DistinguishedName | ConvertTo-Json -Depth 10',
         severidade: 'medium',
         description: 'Nível funcional do domínio está desatualizado, perdendo recursos de segurança modernos',
         recommendation: 'Elevar nível funcional do domínio para a versão mais recente suportada'
@@ -1128,7 +1129,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'laps_not_enabled',
         nome: 'Solução LAPS não habilitada',
-        powershell: `Get-ADComputer -Filter * -Properties 'ms-Mcs-AdmPwd' -ResultSetSize 100 | Where-Object {$_.'ms-Mcs-AdmPwd' -eq $null} | Measure-Object | Select-Object Count | ConvertTo-Json`,
+        powershell: `Get-ADComputer -Filter * -Properties 'ms-Mcs-AdmPwd' -ResultSetSize 100 | Where-Object {$_.'ms-Mcs-AdmPwd' -eq $null} | Measure-Object | Select-Object Count | ConvertTo-Json -Depth 10`,
         severidade: 'medium',
         description: 'Microsoft LAPS não está configurado para gerenciar senhas de administrador local',
         recommendation: 'Implementar LAPS para rotação automática de senhas de administrador local'
@@ -1136,7 +1137,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'dns_admins_standard_users',
         nome: 'Contas de usuário padrão como administradores DNS',
-        powershell: `Get-ADGroupMember -Identity 'DnsAdmins' -Recursive | Where-Object {$_.objectClass -eq 'user'} | Select-Object Name, SamAccountName | ConvertTo-Json`,
+        powershell: `Get-ADGroupMember -Identity 'DnsAdmins' -Recursive | Where-Object {$_.objectClass -eq 'user'} | Select-Object Name, SamAccountName | ConvertTo-Json -Depth 10`,
         severidade: 'medium',
         description: 'Usuários padrão são membros do grupo DnsAdmins, que tem privilégios elevados',
         recommendation: 'Remover usuários não-admin do grupo DnsAdmins'
@@ -1144,7 +1145,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'non_canonical_ace',
         nome: 'ACE não canônico em objetos',
-        powershell: `$objects = Get-ADObject -Filter * -Properties nTSecurityDescriptor -ResultSetSize 1000; $nonCanonical = $objects | Where-Object {$_.nTSecurityDescriptor.AreAccessRulesCanonical -eq $false}; $nonCanonical | Select-Object DistinguishedName | ConvertTo-Json`,
+        powershell: `$objects = Get-ADObject -Filter * -Properties nTSecurityDescriptor -ResultSetSize 1000; $nonCanonical = $objects | Where-Object {$_.nTSecurityDescriptor.AreAccessRulesCanonical -eq $false}; $nonCanonical | Select-Object DistinguishedName | ConvertTo-Json -Depth 10`,
         severidade: 'medium',
         description: 'Objetos com ACEs (Access Control Entries) em ordem não-canônica detectados',
         recommendation: 'Corrigir ordem das ACEs usando ferramentas administrativas ou scripts especializados'
@@ -1152,7 +1153,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'orphan_krbtgt_rodc',
         nome: 'Contas krbtgt de RODC órfãs',
-        powershell: `Get-ADObject -Filter {(objectclass -eq 'user') -and (name -like 'krbtgt*')} -Properties 'msDS-KrbTgtLinkBl' | Where-Object {-not $_.'msDS-KrbTgtLinkBl'} | Select-Object Name, 'msDS-KrbTgtLinkBl' | ConvertTo-Json`,
+        powershell: `Get-ADObject -Filter {(objectclass -eq 'user') -and (name -like 'krbtgt*')} -Properties 'msDS-KrbTgtLinkBl' | Where-Object {-not $_.'msDS-KrbTgtLinkBl'} | Select-Object Name, 'msDS-KrbTgtLinkBl' | ConvertTo-Json -Depth 10`,
         severidade: 'medium',
         description: 'Contas krbtgt órfãs de RODCs removidos permaneceram no domínio',
         recommendation: 'Remover contas krbtgt órfãs de RODCs que não existem mais'
@@ -1160,7 +1161,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'dsheuristics_dangerous',
         nome: 'Domínio com configuração de compatibilidade retroativa perigosa',
-        powershell: `Get-ADObject -Identity 'CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$baseDN' -Properties dSHeuristics | Where-Object {$_.dSHeuristics} | Select-Object -ExpandProperty dSHeuristics | ConvertTo-Json`,
+        powershell: `Get-ADObject -Identity 'CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$baseDN' -Properties dSHeuristics | Where-Object {$_.dSHeuristics} | Select-Object -ExpandProperty dSHeuristics | ConvertTo-Json -Depth 10`,
         severidade: 'medium',
         description: 'Atributo dSHeuristics configurado, potencialmente habilitando comportamentos legados inseguros',
         recommendation: 'Remover valor de dSHeuristics a menos que seja absolutamente necessário'
@@ -1236,7 +1237,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'privileged_inactive',
         nome: 'Contas privilegiadas inativas',
-        powershell: `$DaysInactive = 90; $InactiveDate = (Get-Date).AddDays(-$DaysInactive); Get-ADUser -Filter {Enabled -eq $True} -Properties LastLogonDate, MemberOf | Where-Object {($_.LastLogonDate -lt $InactiveDate) -and ($_.MemberOf -match 'Admins')} | Select-Object Name, SamAccountName, LastLogonDate | ConvertTo-Json`,
+        powershell: `$DaysInactive = 90; $InactiveDate = (Get-Date).AddDays(-$DaysInactive); Get-ADUser -Filter {Enabled -eq $True} -Properties LastLogonDate, MemberOf | Where-Object {($_.LastLogonDate -lt $InactiveDate) -and ($_.MemberOf -match 'Admins')} | Select-Object Name, SamAccountName, LastLogonDate | ConvertTo-Json -Depth 10`,
         severidade: 'medium',
         description: 'Contas com privilégios administrativos não utilizadas há mais de 90 dias',
         recommendation: 'Desabilitar ou remover contas privilegiadas inativas após aprovação'
@@ -1244,7 +1245,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'disabled_in_privileged_groups',
         nome: 'Contas desativadas em grupos privilegiados',
-        powershell: `Get-ADUser -Filter {Enabled -eq $false} -Properties MemberOf | Where-Object {$_.MemberOf -match 'Admins'} | Select-Object Name, SamAccountName | ConvertTo-Json`,
+        powershell: `Get-ADUser -Filter {Enabled -eq $false} -Properties MemberOf | Where-Object {$_.MemberOf -match 'Admins'} | Select-Object Name, SamAccountName | ConvertTo-Json -Depth 10`,
         severidade: 'medium',
         description: 'Contas desabilitadas ainda são membros de grupos privilegiados',
         recommendation: 'Remover contas desabilitadas de grupos administrativos'
@@ -1252,7 +1253,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'gmsa_password_old',
         nome: 'Contas gMSA com senha não alterada recentemente',
-        powershell: `$DaysThreshold = 90; $ThresholdDate = (Get-Date).AddDays(-$DaysThreshold); Get-ADServiceAccount -Filter * -Properties whenChanged | Where-Object {$_.whenChanged -lt $ThresholdDate} | Select-Object Name, SamAccountName, whenChanged | ConvertTo-Json`,
+        powershell: `$DaysThreshold = 90; $ThresholdDate = (Get-Date).AddDays(-$DaysThreshold); Get-ADServiceAccount -Filter * -Properties whenChanged | Where-Object {$_.whenChanged -lt $ThresholdDate} | Select-Object Name, SamAccountName, whenChanged | ConvertTo-Json -Depth 10`,
         severidade: 'medium',
         description: 'Contas de serviço gerenciadas (gMSA) sem alteração há mais de 90 dias',
         recommendation: 'Investigar motivo da ausência de rotação automática de senha'
@@ -1260,7 +1261,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'service_accounts_inactive',
         nome: 'Contas de serviço inativas há mais de 60 dias',
-        powershell: `$daysInactive = 60; $limitDate = (Get-Date).AddDays(-$daysInactive); Get-ADUser -Filter {(servicePrincipalName -like '*') -and (LastLogonDate -lt $limitDate)} -Properties LastLogonDate, servicePrincipalName | Select-Object Name, LastLogonDate | ConvertTo-Json`,
+        powershell: `$daysInactive = 60; $limitDate = (Get-Date).AddDays(-$daysInactive); Get-ADUser -Filter {(servicePrincipalName -like '*') -and (LastLogonDate -lt $limitDate)} -Properties LastLogonDate, servicePrincipalName | Select-Object Name, LastLogonDate | ConvertTo-Json -Depth 10`,
         severidade: 'medium',
         description: 'Contas de serviço não utilizadas há mais de 60 dias',
         recommendation: 'Desabilitar contas de serviço inativas após validação com proprietários'
@@ -1268,7 +1269,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'servers_password_old',
         nome: 'Servidores com senhas não alteradas há mais de 60 dias',
-        powershell: `$days = 60; $limitDate = (Get-Date).AddDays(-$days); Get-ADComputer -Filter {OperatingSystem -like '*Windows Server*'} -Properties PasswordLastSet | Where-Object {$_.PasswordLastSet -lt $limitDate} | Select-Object Name, PasswordLastSet | ConvertTo-Json`,
+        powershell: `$days = 60; $limitDate = (Get-Date).AddDays(-$days); Get-ADComputer -Filter {OperatingSystem -like '*Windows Server*'} -Properties PasswordLastSet | Where-Object {$_.PasswordLastSet -lt $limitDate} | Select-Object Name, PasswordLastSet | ConvertTo-Json -Depth 10`,
         severidade: 'medium',
         description: 'Servidores com senha de conta de computador não rotacionada há mais de 60 dias',
         recommendation: 'Investigar servidores inativos ou com problemas de comunicação com o DC'
@@ -1276,7 +1277,7 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
       {
         id: 'dormant_users',
         nome: 'Contas de usuário dormentes',
-        powershell: `$days = 90; $date = (Get-Date).AddDays(-$days); Get-ADUser -Filter {(Enabled -eq $true) -and (LastLogonDate -lt $date)} -Properties LastLogonDate -ResultSetSize 100 | Select-Object Name, LastLogonDate | ConvertTo-Json`,
+        powershell: `$days = 90; $date = (Get-Date).AddDays(-$days); Get-ADUser -Filter {(Enabled -eq $true) -and (LastLogonDate -lt $date)} -Properties LastLogonDate -ResultSetSize 100 | Select-Object Name, LastLogonDate | ConvertTo-Json -Depth 10`,
         severidade: 'low',
         description: 'Contas de usuário habilitadas sem login há mais de 90 dias',
         recommendation: 'Desabilitar contas dormentes após validação com gestores'
@@ -1933,5 +1934,126 @@ Invoke-Command -ComputerName ${dcHost} -Credential $credential -ScriptBlock {
    */
   private buildBaseDN(domain: string): string {
     return domain.split('.').map(part => `DC=${part}`).join(',');
+  }
+
+  /**
+   * Parses raw PowerShell JSON output and converts each record into a typed AdFinding.
+   *
+   * PARS-07/PARS-08: All PowerShell commands already use -Depth 10, so nested group
+   * membership chains, GPO links, and trust attributes are fully serialized.
+   *
+   * @param rawResults  Array of parsed PowerShell JSON objects (from -Depth 10 output)
+   * @param checkId     Short identifier for the AD check (e.g. 'password_never_expires')
+   * @param checkName   Human-readable check name
+   * @param domain      Target domain for the finding
+   * @param severity    Severity level
+   * @returns           Array of validated AdFinding objects; invalid records are logged and skipped
+   */
+  public parseAdResults(
+    rawResults: any[],
+    checkId: string,
+    checkName: string,
+    domain: string = 'unknown',
+    severity: 'low' | 'medium' | 'high' | 'critical' = 'medium'
+  ): AdFinding[] {
+    const findings: AdFinding[] = [];
+
+    for (const raw of rawResults) {
+      try {
+        // ── Group membership (PARS-08: ordered string array) ──────────────
+        let groupMembership: string[] | undefined;
+        if (raw.MemberOf || raw.memberOf) {
+          const raw_membership = raw.MemberOf || raw.memberOf;
+          if (Array.isArray(raw_membership)) {
+            groupMembership = raw_membership.map((m: any) => {
+              if (typeof m === 'string') return m;
+              // Distinguished name object from -Depth 10
+              return m?.DistinguishedName || m?.Name || String(m);
+            });
+          } else if (typeof raw_membership === 'string') {
+            groupMembership = [raw_membership];
+          }
+        }
+        // Also handle groups array from raw output
+        if (!groupMembership && raw.groups) {
+          groupMembership = Array.isArray(raw.groups)
+            ? raw.groups.map((g: any) => (typeof g === 'string' ? g : String(g)))
+            : [String(raw.groups)];
+        }
+
+        // ── GPO links (PARS-08: structured objects) ────────────────────────
+        let gpoLinks: Array<{ name: string; path: string; enabled?: boolean }> | undefined;
+        if (raw.GPOLinks || raw.gpoLinks || raw.LinkedGroupPolicyObjects) {
+          const rawLinks = raw.GPOLinks || raw.gpoLinks || raw.LinkedGroupPolicyObjects;
+          if (Array.isArray(rawLinks)) {
+            gpoLinks = rawLinks.map((link: any) => {
+              if (typeof link === 'string') {
+                return { name: link, path: link };
+              }
+              return {
+                name: link.DisplayName || link.Name || link.name || link.GpoId || String(link),
+                path: link.Path || link.path || link.DistinguishedName || '',
+                enabled: link.Enabled ?? link.enabled,
+              };
+            });
+          }
+        }
+
+        // ── Trust attributes (PARS-08: typed) ─────────────────────────────
+        let trustAttributes: { direction: string; type: string; transitivity?: string } | undefined;
+        if (raw.TrustDirection != null || raw.TrustType != null) {
+          trustAttributes = {
+            direction: raw.TrustDirection != null
+              ? decodeTrustDirection(raw.TrustDirection)
+              : 'Unknown',
+            type: raw.TrustType != null ? String(raw.TrustType) : 'Unknown',
+            transitivity: raw.ForestTransitive != null
+              ? (raw.ForestTransitive ? 'Transitive' : 'Non-transitive')
+              : undefined,
+          };
+        }
+
+        // ── UAC flags ─────────────────────────────────────────────────────
+        let uacFlags: Array<{ flag: string; risk: string }> | undefined;
+        const uacValue = raw.UserAccountControl ?? raw.userAccountControl;
+        if (uacValue != null) {
+          const numericUac = Number(uacValue);
+          // Build flag list with per-flag risk descriptions directly from UAC_FLAGS table
+          const uacResult: Array<{ flag: string; risk: string }> = [];
+          for (const [bit, info] of Object.entries(UAC_FLAGS)) {
+            if (numericUac & Number(bit)) {
+              uacResult.push({ flag: info.name, risk: info.risk });
+            }
+          }
+          if (uacResult.length > 0) uacFlags = uacResult;
+        }
+
+        // ── Build finding candidate ────────────────────────────────────────
+        const candidate = {
+          type: 'ad_finding' as const,
+          target: domain,
+          severity,
+          checkId,
+          checkName,
+          details: raw.Description || raw.description || undefined,
+          groupMembership,
+          gpoLinks,
+          trustAttributes,
+          uacFlags,
+          rawData: raw,
+        };
+
+        const parsed = AdFindingSchema.safeParse(candidate);
+        if (parsed.success) {
+          findings.push(parsed.data);
+        } else {
+          log.warn({ checkId, errors: parsed.error.issues }, 'AdFinding validation failed — skipping record');
+        }
+      } catch (err) {
+        log.warn({ checkId, err }, 'Error building AdFinding from raw record — skipping');
+      }
+    }
+
+    return findings;
   }
 }
