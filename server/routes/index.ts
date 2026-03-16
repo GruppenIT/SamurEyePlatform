@@ -17,6 +17,7 @@ import { registerScheduleRoutes } from "./schedules";
 import { registerJobRoutes } from "./jobs";
 import { registerThreatRoutes } from "./threats";
 import { registerUserRoutes } from "./users";
+import { registerRecommendationRoutes } from "./recommendations";
 import { createLogger } from '../lib/logger';
 
 const log = createLogger('routes');
@@ -59,6 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerScheduleRoutes(app);
   registerJobRoutes(app);
   registerThreatRoutes(app);
+  registerRecommendationRoutes(app);
   registerUserRoutes(app);
 
   // Health check
