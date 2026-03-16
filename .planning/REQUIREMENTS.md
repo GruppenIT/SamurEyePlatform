@@ -36,11 +36,11 @@ Requirements for the product revision. Each maps to roadmap phases.
 
 ### Remediation
 
-- [ ] **REMD-01**: Each of the 30+ threat rules has a static remediation template with host-specific commands/configs
-- [ ] **REMD-02**: Templates reference actual host, port, service, and version data from the finding evidence
-- [ ] **REMD-03**: Each remediation includes: what is wrong (1 sentence), business impact, fix steps, verification step, references
-- [ ] **REMD-04**: Each remediation has an effort tag (minutes, hours, days, weeks) and required role (sysadmin, developer, vendor, security)
-- [ ] **REMD-05**: Recommendations are persisted in a dedicated `recommendations` table linked to threats
+- [x] **REMD-01**: Each of the 30+ threat rules has a static remediation template with host-specific commands/configs
+- [x] **REMD-02**: Templates reference actual host, port, service, and version data from the finding evidence
+- [x] **REMD-03**: Each remediation includes: what is wrong (1 sentence), business impact, fix steps, verification step, references
+- [x] **REMD-04**: Each remediation has an effort tag (minutes, hours, days, weeks) and required role (sysadmin, developer, vendor, security)
+- [x] **REMD-05**: Recommendations are persisted in a dedicated `recommendations` table linked to threats
 - [ ] **REMD-06**: User can mark a remediation as "mitigated — pending scan confirmation"
 - [ ] **REMD-07**: Re-scan automatically confirms closure when correlation key is absent in new results
 
@@ -128,11 +128,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | THRT-08 | Phase 2 | Pending |
 | THRT-09 | Phase 2 | Pending |
 | THRT-10 | Phase 2 | Complete |
-| REMD-01 | Phase 3 | Pending |
-| REMD-02 | Phase 3 | Pending |
-| REMD-03 | Phase 3 | Pending |
-| REMD-04 | Phase 3 | Pending |
-| REMD-05 | Phase 3 | Pending |
+| REMD-01 | Phase 3 | Complete |
+| REMD-02 | Phase 3 | Complete |
+| REMD-03 | Phase 3 | Complete |
+| REMD-04 | Phase 3 | Complete |
+| REMD-05 | Phase 3 | Complete |
 | REMD-06 | Phase 3 | Pending |
 | REMD-07 | Phase 3 | Pending |
 | UIFN-01 | Phase 4 | Pending |
