@@ -60,10 +60,10 @@ Requirements for the product revision. Each maps to roadmap phases.
 
 ### UI — Dashboard
 
-- [ ] **UIDB-01**: Posture hero shows score + delta arrow (vs last run) + date-labeled trend sparkline
-- [ ] **UIDB-02**: Posture score history is reliably populated on every journey completion via posture_snapshots table
-- [ ] **UIDB-03**: Dashboard shows top 3 prioritized remediation actions with fix preview and projected impact
-- [ ] **UIDB-04**: Journey coverage grid shows 4 journey types with last-run date and pass/fail indicator
+- [x] **UIDB-01**: Posture hero shows score + delta arrow (vs last run) + date-labeled trend sparkline
+- [x] **UIDB-02**: Posture score history is reliably populated on every journey completion via posture_snapshots table
+- [x] **UIDB-03**: Dashboard shows top 3 prioritized remediation actions with fix preview and projected impact
+- [x] **UIDB-04**: Journey coverage grid shows 4 journey types with last-run date and pass/fail indicator
 - [ ] **UIDB-05**: Dashboard data refreshes via WebSocket-triggered React Query cache invalidation on job completion
 - [ ] **UIDB-06**: Journey comparison view shows delta between current and previous run (new failures, resolved items)
 
@@ -143,10 +143,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UIAP-02 | Phase 4 | Pending |
 | UIAP-03 | Phase 4 | Pending |
 | UIAP-04 | Phase 4 | Pending |
-| UIDB-01 | Phase 4 | Pending |
-| UIDB-02 | Phase 4 | Pending |
-| UIDB-03 | Phase 4 | Pending |
-| UIDB-04 | Phase 4 | Pending |
+| UIDB-01 | Phase 4 | Complete |
+| UIDB-02 | Phase 4 | Complete |
+| UIDB-03 | Phase 4 | Complete |
+| UIDB-04 | Phase 4 | Complete |
 | UIDB-05 | Phase 4 | Pending |
 | UIDB-06 | Phase 4 | Pending |
 

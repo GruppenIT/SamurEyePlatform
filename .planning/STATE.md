@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-03-16T22:42:34.636Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-03-16T23:17:52.130Z"
 last_activity: "2026-03-16 — Phase 2 Plan 3 complete: ScoringEngineService, posture storage, simulate/history API"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 12
+  completed_plans: 10
 ---
 
 ---
@@ -73,6 +73,8 @@ Progress: [████████░░] 83%
 | Phase 02-threat-engine-intelligence P02 | 200 | 2 tasks | 3 files |
 | Phase 03-remediation-engine P01 | 9min | 2 tasks | 32 files |
 | Phase 03-remediation-engine P02 | 12min | 2 tasks | 4 files |
+| Phase 04-user-facing-surfaces P03 | 15min | 2 tasks | 5 files |
+| Phase 04-user-facing-surfaces P02 | 15min | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -100,6 +102,10 @@ Recent decisions affecting current work:
 - [Phase 03-remediation-engine]: Upsert keyed on threatId unique index — templateId stored as audit trail, not uniqueness key (one recommendation per threat)
 - [Phase 03-remediation-engine]: ruleId column added additively to threats table — enables cleaner template dispatch vs relying solely on category
 - [Phase 03-remediation-engine]: syncRecommendationStatus is fire-and-forget in route and updateThreatStatus — recommendation sync failure must not break threat status change
+- [Phase 04-user-facing-surfaces]: Coverage endpoint uses 2 queries per journey type (last job + open threat count) instead of complex JOIN for clarity
+- [Phase 04-user-facing-surfaces]: postura.tsx completely rewritten — removed all legacy /api/posture/score references, score data now from postureSnapshots
+- [Phase 04-user-facing-surfaces]: GET /api/action-plan filters only open parent threats (parentThreatId IS NULL) to avoid surfacing duplicate child threat actions
+- [Phase 04-user-facing-surfaces]: useQuery queryKey includes filter object so each unique filter combination gets its own TanStack Query cache entry
 
 ### Pending Todos
 
@@ -111,6 +117,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T22:41:39.709Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-03-16T23:17:20.868Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
