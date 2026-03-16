@@ -46,17 +46,17 @@ Requirements for the product revision. Each maps to roadmap phases.
 
 ### UI — Findings
 
-- [ ] **UIFN-01**: Threat detail view shows problem → impact → fix hierarchy instead of raw JSON evidence
-- [ ] **UIFN-02**: Evidence is human-readable: parsed data with labels, not stdout strings or JSON blobs
-- [ ] **UIFN-03**: Threat list shows grouped parent threats with expandable child findings
-- [ ] **UIFN-04**: Each threat group shows its remediation preview (first fix step + effort tag)
+- [x] **UIFN-01**: Threat detail view shows problem → impact → fix hierarchy instead of raw JSON evidence
+- [x] **UIFN-02**: Evidence is human-readable: parsed data with labels, not stdout strings or JSON blobs
+- [x] **UIFN-03**: Threat list shows grouped parent threats with expandable child findings
+- [x] **UIFN-04**: Each threat group shows its remediation preview (first fix step + effort tag)
 
 ### UI — Action Plan
 
-- [ ] **UIAP-01**: Post-journey view shows prioritized remediation actions ordered by contextual score
-- [ ] **UIAP-02**: Each action shows: threat summary, fix preview, effort tag, required role, projected score delta
-- [ ] **UIAP-03**: User can filter actions by effort level, role, or journey type
-- [ ] **UIAP-04**: Action plan connects to threat detail for full remediation steps
+- [x] **UIAP-01**: Post-journey view shows prioritized remediation actions ordered by contextual score
+- [x] **UIAP-02**: Each action shows: threat summary, fix preview, effort tag, required role, projected score delta
+- [x] **UIAP-03**: User can filter actions by effort level, role, or journey type
+- [x] **UIAP-04**: Action plan connects to threat detail for full remediation steps
 
 ### UI — Dashboard
 
@@ -135,14 +135,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REMD-05 | Phase 3 | Complete |
 | REMD-06 | Phase 3 | Complete |
 | REMD-07 | Phase 3 | Complete |
-| UIFN-01 | Phase 4 | Pending |
-| UIFN-02 | Phase 4 | Pending |
-| UIFN-03 | Phase 4 | Pending |
-| UIFN-04 | Phase 4 | Pending |
-| UIAP-01 | Phase 4 | Pending |
-| UIAP-02 | Phase 4 | Pending |
-| UIAP-03 | Phase 4 | Pending |
-| UIAP-04 | Phase 4 | Pending |
+| UIFN-01 | Phase 4 | Complete |
+| UIFN-02 | Phase 4 | Complete |
+| UIFN-03 | Phase 4 | Complete |
+| UIFN-04 | Phase 4 | Complete |
+| UIAP-01 | Phase 4 | Complete |
+| UIAP-02 | Phase 4 | Complete |
+| UIAP-03 | Phase 4 | Complete |
+| UIAP-04 | Phase 4 | Complete |
 | UIDB-01 | Phase 4 | Complete |
 | UIDB-02 | Phase 4 | Complete |
 | UIDB-03 | Phase 4 | Complete |
