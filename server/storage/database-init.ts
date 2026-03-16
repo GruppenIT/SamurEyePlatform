@@ -98,6 +98,12 @@ export async function initializeDatabaseStructure(): Promise<void> {
       `);
     }
 
+    // Phase 3: rule_id column on threats for recommendation template lookup
+    await db.execute(sql`
+      ALTER TABLE threats ADD COLUMN IF NOT EXISTS rule_id TEXT
+    `);
+    log.info('threats.rule_id column ensured');
+
   } catch (error) {
     log.error({ err: error }, 'database initialization error');
     // Don't throw - let the system continue with fallback mode
