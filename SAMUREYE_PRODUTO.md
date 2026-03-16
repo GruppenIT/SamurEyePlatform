@@ -1,778 +1,772 @@
-# SamurEye - Plataforma de Validação Adversarial de Exposição
+# SamurEye - Plataforma de Validacao Adversarial de Exposicao
 
-## Sumário Executivo
-
-O **SamurEye** é uma plataforma SaaS de cibersegurança que oferece validação contínua e adversarial de exposição para organizações de todos os portes. Através de appliances locais (virtuais ou físicos) combinados com uma console cloud centralizada, o SamurEye automatiza assessments de segurança que tradicionalmente exigem equipes especializadas e ferramentas complexas.
-
-**Diferencial:** Produto totalmente autônomo e user-friendly que entrega valor imediato sem necessidade de expertise técnica em segurança ofensiva.
+**Versao do Documento:** 2.0
+**Data:** Marco 2026
+**Classificacao:** Confidencial - Somente uso interno
 
 ---
 
-## 1. Visão de Mercado
+## Sumario Executivo
 
-### 1.1 Demanda Identificada
+O **SamurEye** e uma plataforma SaaS de ciberseguranca que oferece validacao continua e adversarial de exposicao para organizacoes de todos os portes. Atraves de appliances locais (virtuais ou fisicos) combinados com uma console cloud centralizada, o SamurEye automatiza assessments de seguranca que tradicionalmente exigem equipes especializadas e ferramentas complexas.
 
-As organizações modernas enfrentam desafios críticos na gestão de sua postura de segurança:
+**Diferencial:** Produto totalmente autonomo e user-friendly que entrega valor imediato sem necessidade de expertise tecnica em seguranca ofensiva.
 
-**Problema #1: Visibilidade Limitada da Superfície de Ataque**
-- Equipes de TI não sabem exatamente o que está exposto na rede
-- Ativos desconhecidos (shadow IT) criam pontos cegos de segurança
-- Mudanças de configuração podem expor serviços inadvertidamente
+---
 
-**Problema #2: Validação Manual e Esporádica**
+## 1. Proposito e Visao
+
+### 1.1 Missao
+
+Democratizar a seguranca ofensiva, permitindo que organizacoes de qualquer porte validem continuamente sua postura de seguranca com a mesma profundidade de um pentest profissional -- sem depender de especialistas escassos ou ferramentas complexas.
+
+### 1.2 Problemas que Resolve
+
+**Problema #1: Visibilidade Limitada da Superficie de Ataque**
+- Equipes de TI nao sabem exatamente o que esta exposto na rede
+- Ativos desconhecidos (shadow IT) criam pontos cegos de seguranca
+- Mudancas de configuracao podem expor servicos inadvertidamente
+
+**Problema #2: Validacao Manual e Esporadica**
 - Pentests tradicionais custam R$ 20.000 - R$ 100.000+ e ocorrem 1-2x/ano
 - Ferramentas de scan exigem especialistas para configurar e interpretar
-- Resultados cheios de falsos positivos desperdiçam tempo das equipes
+- Resultados cheios de falsos positivos desperdicam tempo das equipes
 
-**Problema #3: Lacuna entre Detecção e Proteção**
-- Ter EDR/AV instalado não significa que está funcionando efetivamente
-- Active Directory mal configurado é porta de entrada #1 para ransomware
-- Compliance exige evidências de testes de segurança periódicos
+**Problema #3: Lacuna entre Deteccao e Protecao**
+- Ter EDR/AV instalado nao significa que esta funcionando efetivamente
+- Active Directory mal configurado e porta de entrada #1 para ransomware
+- Compliance exige evidencias de testes de seguranca periodicos
 
-**Problema #4: Custo-Benefício Desfavorável**
-- Pequenas e médias empresas não têm budget para pentests regulares
-- Soluções enterprise (Tenable, Qualys, Rapid7) custam US$ 50k-500k/ano
-- Falta de profissionais qualificados em segurança ofensiva no mercado
+**Problema #4: Custo-Beneficio Desfavoravel**
+- Pequenas e medias empresas nao tem budget para pentests regulares
+- Solucoes enterprise (Tenable, Qualys, Rapid7) custam US$ 50k-500k/ano
+- Falta de profissionais qualificados em seguranca ofensiva no mercado
 
-### 1.2 Oportunidade de Mercado
+### 1.3 Proposta de Valor
 
-**TAM (Total Addressable Market):**
-- Mercado global de Vulnerability Management: US$ 18.5 bilhões (2024)
-- Crescimento projetado: CAGR de 12.8% até 2030
-- Brasil representa ~3% do mercado global de cibersegurança (US$ 4.5 bi)
-
-**Segmentos-Alvo:**
-1. **Empresas médias (100-1000 funcionários):** Principal foco inicial
-   - Orçamento limitado para segurança, mas crescente pressão regulatória
-   - LGPD, ISO 27001, SOC2 exigem testes de segurança documentados
-   
-2. **Provedores de TI/MSPs:** Canal de distribuição estratégico
-   - Oferecer SamurEye como serviço gerenciado para clientes finais
-   - Modelo de white-label no roadmap
-   
-3. **Enterprise:** Expansão futura
-   - Complemento a soluções existentes (não substitui SIEM/EDR)
-   - Validação contínua de controles de segurança
-
-**Drivers de Adoção:**
-- ✅ Regulamentações (LGPD, PCI-DSS, ISO 27001, SOC2)
-- ✅ Aumento de 35% em ransomware em 2024 (fonte: Sophos)
-- ✅ Escassez de profissionais: 3.5 milhões de vagas em cibersegurança não preenchidas globalmente
-- ✅ Transformação digital acelera expansão da superfície de ataque
-
-### 1.3 Análise Competitiva
-
-| Solução | Preço Anual | Complexidade | Falsos Positivos | Validação Ativa | Modelo |
-|---------|-------------|--------------|------------------|-----------------|---------|
-| **SamurEye** | R$ 15k-60k | ⭐ Baixa | ⭐⭐⭐ Baixo | ✅ Sim | SaaS + Appliance |
-| Tenable.io | US$ 50k+ | ⭐⭐⭐ Alta | ⭐⭐ Médio | ❌ Não | Cloud |
-| Qualys VMDR | US$ 30k+ | ⭐⭐⭐ Alta | ⭐⭐ Médio | ❌ Não | Cloud |
-| Rapid7 InsightVM | US$ 40k+ | ⭐⭐⭐ Alta | ⭐⭐ Médio | ⚠️ Limitado | Cloud |
-| Nessus Pro | US$ 4k | ⭐⭐ Média | ⭐ Alto | ❌ Não | On-Prem |
-| OpenVAS | Grátis | ⭐⭐⭐⭐ Muito Alta | ⭐ Alto | ❌ Não | On-Prem |
-
-**Vantagens Competitivas:**
-
-1. **Validação Adversarial Real:** Não apenas lista CVEs - testa se são exploráveis
-2. **Inteligência de Patches:** Filtra CVEs já corrigidos (74% de redução em falsos positivos)
-3. **Zero-Config:** Instala, aponta alvos, recebe resultados - sem necessidade de tuning
-4. **Modelo Híbrido:** Dados sensíveis nunca saem da rede do cliente (appliance local)
-5. **Preço Acessível:** 70% mais barato que competitors enterprise
+| Persona | Proposta |
+|---------|----------|
+| **CISO / Gerente de TI** | Visibilidade continua da superficie de ataque, risk scoring preciso, relatorios de compliance prontos (ISO 27001, LGPD, PCI-DSS) |
+| **CFO** | OPEX previsivel (assinatura), sem headcount adicional, reducao de 80% em custos de pentest, documentacao para cyber insurance |
+| **Analista de Seguranca** | Interface intuitiva, alertas acionaveis com recomendacao de correcao, enriquecimento automatico com credenciais, historico de tendencias |
 
 ---
 
-## 2. Proposta de Valor
+## 2. Publico-Alvo
 
-### 2.1 Para o CISO / Gerente de TI
+### 2.1 Segmento Primario: Empresas Medias (100-1.000 funcionarios)
 
-**"Saiba exatamente o que um atacante vê da sua rede - 24/7"**
+- Orcamento limitado para seguranca, mas crescente pressao regulatoria
+- LGPD, ISO 27001, SOC2 exigem testes de seguranca documentados
+- Equipes de TI generalistas que precisam de ferramentas autonomas
+- Tipicamente possuem infraestrutura Windows/AD que requer auditoria
 
-✅ **Visibilidade Contínua:** Descubra ativos expostos automaticamente  
-✅ **Risk Scoring Preciso:** Priorize remediações com impacto real de negócio  
-✅ **Compliance Facilitado:** Relatórios prontos para auditores (ISO 27001, LGPD, PCI)  
-✅ **ROI Mensurável:** Cada ameaça bloqueada = economia de R$ 1.2M (custo médio de breach)
+### 2.2 Segmento Estrategico: Provedores de TI / MSPs
 
-### 2.2 Para o CFO
+- Canal de distribuicao para clientes finais
+- Oferecem SamurEye como servico gerenciado
+- Modelo de white-label no roadmap para branding proprio
+- Margem de 30% para parceiros
 
-**"Segurança enterprise por 1/5 do preço - sem surpresas no budget"**
+### 2.3 Segmento Futuro: Enterprise
 
-✅ **OPEX Previsível:** Assinatura mensal/anual sem custos escondidos  
-✅ **Sem Headcount Adicional:** Não precisa contratar especialistas em segurança  
-✅ **Redução de 80% em Custos de Pentest:** Automação substitui testes manuais recorrentes  
-✅ **Prova para Seguradoras:** Cyber insurance exige testes de segurança - SamurEye documenta tudo
+- Complemento a solucoes existentes (nao substitui SIEM/EDR)
+- Validacao continua de controles de seguranca
+- Multi-site com dashboard consolidado na console cloud
 
-### 2.3 Para o Analista de Segurança
+### 2.4 Drivers de Adocao
 
-**"Pare de brigar com ferramentas complexas - foque no que importa"**
-
-✅ **Interface Intuitiva:** Dashboard visual com drill-down em poucos cliques  
-✅ **Alertas Acionáveis:** Cada finding vem com contexto e recomendação de correção  
-✅ **Enriquecimento Automático:** Credenciais opcionais melhoram precisão em 74%  
-✅ **Histórico de Tendências:** Acompanhe evolução da postura de segurança ao longo do tempo
-
----
-
-## 3. Funcionalidades Principais
-
-### 3.1 Attack Surface Discovery (Descoberta de Superfície de Ataque)
-
-**O que faz:**
-- Escaneia ranges de IP, hosts individuais ou aplicações web
-- Identifica portas abertas, serviços expostos e versões de software
-- Detecta sistemas operacionais com precisão (Windows, Linux, network devices)
-- Descobre automaticamente aplicações web (HTTP/HTTPS) para análise OWASP
-
-**Diferencial Técnico:**
-- **Scan Inteligente:** Usa nmap com perfis otimizados (fast/thorough/stealth)
-- **Normalização de Versões:** Identifica Windows Server 2016 Build 14393.8422 vs 14393.0
-- **Auto-Discovery de Web Apps:** Se encontra HTTP/HTTPS, cria asset web_application automaticamente
-
-**Valor para o Cliente:**
-- Elimina shadow IT: "Tínhamos 43 servidores registrados. SamurEye encontrou 68."
-- Base para todos os assessments subsequentes
-
-### 3.2 CVE Detection com Inteligência de Patches (Detecção de CVEs)
-
-**O que faz:**
-- Consulta NIST NVD (National Vulnerability Database) em tempo real
-- Valida CVEs usando CPE (Common Platform Enumeration) exato
-- **EXCLUSIVO:** Filtra CVEs já corrigidos por patches instalados (Windows KB)
-
-**Arquitetura de Detecção (4 Camadas):**
-
-1. **CPE Matching (Primário):** 
-   - Valida CVEs contra OS/serviços detectados usando dados de configuração CPE do NVD
-   - Verifica ranges de versão (versionStartIncluding/Excluding, versionEndIncluding/Excluding)
-
-2. **Windows Version Extraction:**
-   - Extrai versões do Windows de nomes de produtos CPE e descrições
-   - Matching preciso de Windows Server 2016 10.0.14393 vs 10.0.17763
-
-3. **Enrichment Integration (Scan Autenticado):**
-   - **KB Patch Filtering:** Exclui automaticamente CVEs corrigidos por patches instalados
-   - **Exact OS Build Matching:** Usa `enrichment.osVersion + osBuild` para CPE matching
-   - **74% de redução em falsos positivos** quando credenciais fornecidas
-
-4. **Keyword Search Fallback:**
-   - Usado apenas quando CPE indisponível
-   - Previne vazamento de CVEs cross-OS (CVE de Linux não aparece em host Windows)
-
-**Valor para o Cliente:**
-- Economiza 20+ horas/semana investigando falsos positivos
-- CISO pode confiar nos números: "347 CVEs críticos" é real, não ruído
-
-### 3.3 Active Validation (Validação Ativa com Scripts Nmap)
-
-**O que faz:**
-- Executa scripts nmap de vulnerabilidades contra portas/serviços descobertos
-- Confirma se CVEs detectados são realmente exploráveis
-- Testa misconfigurations comuns (SMB signing, SSL/TLS fraco, etc.)
-
-**Categorias de Scripts:**
-```
-✅ Authentication Bypass    ✅ Credential Exposure
-✅ Remote Code Execution    ✅ SQL Injection  
-✅ Path Traversal           ✅ Default Credentials
-✅ Misconfigurations        ✅ SSL/TLS Issues
-```
-
-**Valor para o Cliente:**
-- Priorização correta: "Este CVE crítico não é explorável aqui - foque naquele"
-- Demonstra impacto real para executives: "Conseguimos executar código remotamente no servidor X"
-
-### 3.4 Active Directory Security Assessment (Avaliação de Segurança AD)
-
-**O que faz:**
-- 28 testes PowerShell-based distribuídos em 6 categorias:
-  - Password Policy, Account Security, Privileged Groups
-  - Kerberos, Trust Relationships, General Security
-- Execução via WinRM com failover automático entre DCs
-- **Keyword Enhancement:** Detecta credenciais expostas em scripts (português/inglês)
-
-**Exemplos de Testes:**
-- ✅ Detecta senhas fracas em contas de serviço
-- ✅ Identifica usuários com "Password Never Expires"
-- ✅ Lista membros de Domain Admins / Enterprise Admins
-- ✅ Valida configurações de Kerberos (Delegation, Pre-Auth)
-- ✅ Audita trusts de domínio não seguros
-
-**Valor para o Cliente:**
-- "80% dos ransomwares exploram AD mal configurado" - SamurEye encontra essas falhas
-- Compliance: PCI-DSS 8.2, ISO 27001 A.9.2 exigem auditoria de contas privilegiadas
-
-### 3.5 EDR/AV Effectiveness Testing (Teste de Eficácia EDR/AV)
-
-**Status:** Em desenvolvimento (Roadmap Q1 2025)
-
-**Conceito:**
-- Executa payloads de teste (não maliciosos) para validar detecção de EDR/AV
-- Simula técnicas MITRE ATT&CK (Credential Dumping, Lateral Movement, etc.)
-- Verifica se alertas são gerados e se resposta automática funciona
-
-**Valor para o Cliente:**
-- "Pagamos R$ 500k/ano por EDR enterprise - ele realmente funciona?" → SamurEye responde
-
-### 3.6 Web Application Security (OWASP Top 10)
-
-**O que faz:**
-- Escaneia aplicações web usando Nuclei (engine open-source)
-- Detecta vulnerabilidades OWASP Top 10:
-  - SQL Injection, XSS, SSRF, XXE, Path Traversal
-  - Broken Authentication, Security Misconfiguration
-  - Sensitive Data Exposure, etc.
-
-**Integração com Attack Surface:**
-- Assets web_application criados automaticamente quando HTTP/HTTPS detectado
-- Journeys dedicadas para deep-dive em aplicações críticas
-
-**Valor para o Cliente:**
-- Developers não precisam ser experts em AppSec - SamurEye encontra bugs antes de hackers
-
-### 3.7 Authenticated Scanning (Scan Autenticado - Opcional)
-
-**O que faz:**
-- Coleta dados enriquecidos de hosts usando credenciais fornecidas:
-  - **Windows (WMI/WinRM):** OS build completo, apps instalados (500), patches KB, serviços
-  - **Linux (SSH):** OS/kernel, pacotes dpkg/rpm (1000), serviços systemctl
-  - **Futuro (SNMP):** Network devices
-
-**Arquitetura de Prioridade:**
-- Credenciais ordenadas por prioridade (0 = mais alta)
-- Stop-on-success: Primeira credencial bem-sucedida por protocolo interrompe tentativas
-- Fail-safe: Falhas de enriquecimento nunca bloqueiam o scan
-
-**Inteligência de CVEs com Enrichment:**
-- CVEs filtrados por patches KB instalados (Windows)
-- Matching exato de OS build (10.0.17763.3532 vs 10.0.17763.0)
-- **74% de redução em falsos positivos** validado em ambientes reais
-
-**Valor para o Cliente:**
-- Sem credenciais: 1.234 CVEs detectados (30% falsos positivos)
-- Com credenciais: 347 CVEs detectados (precisão de 95%+)
+- Regulamentacoes crescentes (LGPD, PCI-DSS, ISO 27001, SOC2)
+- Aumento de ransomware e ameacas ciberneticas
+- Escassez global de profissionais de ciberseguranca (3.5 milhoes de vagas nao preenchidas)
+- Transformacao digital acelerando expansao da superficie de ataque
 
 ---
 
-## 4. Arquitetura do Sistema
+## 3. Arquitetura do Sistema
 
-### 4.1 Visão Geral - Modelo Híbrido SaaS
+### 3.1 Visao Geral - Modelo Hibrido SaaS
+
+O SamurEye adota uma arquitetura hibrida onde dados sensiveis de scan permanecem no appliance local do cliente, enquanto a console cloud centraliza telemetria, licenciamento e gestao multi-site.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                   CLOUD CONSOLE                             │
-│              app.samureye.com.br                            │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │ • Gerenciamento de Appliances                        │  │
-│  │ • Telemetria (CPU, Mem, Disco, Logs)                 │  │
-│  │ • Validação de Subscrição Ativa                      │  │
-│  │ • Estatísticas de Uso e Jornadas                     │  │
-│  │ • Dashboard Consolidado Multi-Site                   │  │
-│  │ • Billing & License Management                       │  │
-│  └──────────────────────────────────────────────────────┘  │
-└────────────────────────┬────────────────────────────────────┘
-                         │ HTTPS (TLS 1.3)
-                         │ Telemetria a cada 5 min
-                         │ Validação de licença a cada 1h
-                         │
-          ┌──────────────┴──────────────┐
-          │                             │
-┌─────────▼─────────┐         ┌─────────▼─────────┐
-│   APPLIANCE #1    │         │   APPLIANCE #2    │
-│   Cliente A       │         │   Cliente B       │
-│                   │         │                   │
-│ ┌───────────────┐ │         │ ┌───────────────┐ │
-│ │ SamurEye Core │ │         │ │ SamurEye Core │ │
-│ │ + PostgreSQL  │ │         │ │ + PostgreSQL  │ │
-│ │ + Web UI      │ │         │ │ + Web UI      │ │
-│ └───────┬───────┘ │         │ └───────┬───────┘ │
-│         │         │         │         │         │
-└─────────┼─────────┘         └─────────┼─────────┘
-          │                             │
-          │ Scan local                  │ Scan local
-          │ Dados nunca saem            │ Dados nunca saem
-          │                             │
-    ┌─────▼──────┐              ┌───────▼──────┐
-    │ REDE       │              │ REDE         │
-    │ CLIENTE A  │              │ CLIENTE B    │
-    └────────────┘              └──────────────┘
++-------------------------------------------------------------+
+|                   CLOUD CONSOLE                              |
+|              app.samureye.com.br                             |
+|  +--------------------------------------------------------+ |
+|  | - Gerenciamento de Appliances                           | |
+|  | - Telemetria (CPU, Mem, Disco, Rede, Servicos)          | |
+|  | - Validacao de Subscricao Ativa                         | |
+|  | - Estatisticas de Uso e Jornadas                        | |
+|  | - Dashboard Consolidado Multi-Site                      | |
+|  | - Billing & License Management                          | |
+|  | - Despacho de Comandos (update, restart)                | |
+|  +--------------------------------------------------------+ |
++-----------------------------+-------------------------------+
+                              | HTTPS (TLS 1.3)
+                              | Heartbeat a cada 5 min (ativo)
+                              | Heartbeat a cada 30 min (standby)
+                              | Validacao de licenca via API key
+                              |
+           +------------------+------------------+
+           |                                     |
++----------v----------+            +-------------v---------+
+|   APPLIANCE #1      |            |   APPLIANCE #2        |
+|   Cliente A         |            |   Cliente B           |
+|                     |            |                       |
+| +-----------------+ |            | +-----------------+   |
+| | SamurEye Core   | |            | | SamurEye Core   |   |
+| | + PostgreSQL 16 | |            | | + PostgreSQL 16 |   |
+| | + Web UI (React)| |            | | + Web UI (React)|   |
+| | + WebSocket     | |            | | + WebSocket     |   |
+| +--------+--------+ |            | +--------+--------+   |
+|          |           |            |          |            |
++----------+-----------+            +----------+------------+
+           |                                   |
+           | Scan local                        | Scan local
+           | Dados nunca saem                  | Dados nunca saem
+           |                                   |
+     +-----v------+                     +------v------+
+     | REDE       |                     | REDE        |
+     | CLIENTE A  |                     | CLIENTE B   |
+     +------------+                     +-------------+
 ```
 
-**Princípios Arquiteturais:**
+**Principios Arquiteturais:**
 
 1. **Data Sovereignty:** Dados de scan (IPs, CVEs, credenciais) nunca saem do appliance
-2. **Zero-Trust Cloud:** Console recebe apenas telemetria agregada (não PII/dados de scan)
-3. **Offline-Capable:** Appliance funciona até 72h sem conexão com cloud (grace period)
-4. **Fail-Safe:** Se validação de licença falhar, modo read-only ativado (não perde dados)
+2. **Zero-Trust Cloud:** Console recebe apenas telemetria agregada (contadores, metricas de performance -- nenhum PII ou dado de scan)
+3. **Offline-Capable:** Appliance funciona ate 72h sem conexao com cloud (grace period)
+4. **Fail-Safe:** Se validacao de licenca falhar, modo read-only ativado (dados preservados, novos scans bloqueados)
+5. **Graceful Shutdown:** Handlers para SIGTERM/SIGINT com timeout de 10s, fechamento ordenado de HTTP, WebSocket, scheduler e pool PostgreSQL
 
-### 4.2 Appliance SamurEye All-in-One
-
-**Formatos de Entrega:**
-
-| Formato | Especificações Mínimas | Casos de Uso |
-|---------|------------------------|--------------|
-| **Virtual Appliance (OVA/VMDK)** | 4 vCPU, 8GB RAM, 100GB SSD | SMB - deployment em VMware/Hyper-V existente |
-| **Docker Container** | 4 CPU cores, 8GB RAM, 100GB storage | DevOps teams, Kubernetes deployment |
-| **Hardware Appliance** | Intel i5, 16GB RAM, 256GB SSD | Enterprise - plug-and-play, sem gerenciar VMs |
-
-**Stack Técnico do Appliance:**
+### 3.2 Stack Tecnologico do Appliance
 
 ```
-Frontend:     React 18 + TypeScript + TanStack Query + Radix UI
-Backend:      Node.js 20 + Express + TypeScript
-Database:     PostgreSQL 16 (com Drizzle ORM)
-Job Queue:    In-process scheduler com WebSocket para updates real-time
-Security:     bcrypt (12 rounds), KEK/DEK encryption para credenciais
-Scanners:     nmap, Nuclei, PowerShell (via pywinrm), SSH2
+Frontend:     React 18 + TypeScript + TanStack Query v5 + Radix UI + shadcn/ui
+Estilizacao:  Tailwind CSS 3 + tailwindcss-animate + Framer Motion
+Roteamento:   Wouter (client-side routing leve)
+Backend:      Node.js 20 + Express 4 + TypeScript
+Database:     PostgreSQL 16 (Drizzle ORM + drizzle-zod para validacao)
+Sessoes:      express-session + connect-pg-simple (store PostgreSQL)
+Job Queue:    In-process scheduler (60s polling) + WebSocket real-time
+Logging:      Pino (structured JSON logging com modulos nomeados)
+Security:     bcryptjs (12 rounds), AES-256-GCM (KEK/DEK), Passport.js
+Scanners:     nmap (port scan + vuln scripts), Nuclei (web app scan)
+Collectors:   WMI/WinRM (Windows), SSH2 (Linux), PowerShell (AD)
+Integracao:   NIST NVD API v2.0 (CVE detection), LDAP (AD discovery)
+Email:        Nodemailer + OAuth2 (Gmail/Microsoft 365)
+Build:        Vite 6 (frontend) + esbuild (backend bundle)
+Testes:       Vitest 4
 ```
 
-**Serviços Principais:**
+### 3.3 Modelo de Dados (PostgreSQL)
 
-- **Journey Executor:** Orquestra execução de assessments (Attack Surface, AD Security, EDR/AV, Web App)
-- **Threat Engine:** Processa resultados de scans, gera inteligência de ameaças, cross-journey reactivation
-- **CVE Detection Service:** Integração com NIST NVD, CPE matching, KB patch filtering
-- **Host Enricher:** Coleta dados autenticados via WMI/SSH com retry logic e priorização
-- **Encryption Service:** KEK/DEK pattern para armazenar credenciais criptografadas
-- **WebSocket Service:** Updates em tempo real para UI durante scans
+O banco de dados e composto por **24 tabelas** organizadas em dominios funcionais, todas gerenciadas via Drizzle ORM com migracao automatica (`drizzle-kit push`).
 
-**Segurança do Appliance:**
+#### Dominio: Identidade e Acesso
+| Tabela | Descricao |
+|--------|-----------|
+| `users` | Usuarios com roles (global_administrator, operator, read_only), hash bcrypt, flag mustChangePassword |
+| `sessions` | Sessoes express-session persistidas em PostgreSQL (connect-pg-simple) |
+| `active_sessions` | Rastreamento de sessoes ativas por dispositivo com versionamento global para revogacao em massa |
+| `login_attempts` | Rate limiting persistente com bloqueio temporario apos tentativas falhas |
+| `session_version` | Controle de versao global para invalidacao de todas as sessoes |
 
-✅ Credenciais criptografadas em repouso (AES-256)  
-✅ RBAC com 3 roles (global_administrator, operator, read_only)  
-✅ Rate limiting em login com lockout automático  
-✅ Session management com revogação multi-device  
-✅ Audit logs completos (quem fez o quê, quando)  
-✅ Senhas hasheadas com bcrypt (12 rounds + salt)
+#### Dominio: Superficie de Ataque
+| Tabela | Descricao |
+|--------|-----------|
+| `assets` | Alvos de scan: hosts individuais (FQDN/IP), ranges CIDR, web applications. Suportam tags para agrupamento |
+| `credentials` | Credenciais criptografadas (AES-256-GCM KEK/DEK) para scan autenticado: SSH, WMI, OMI, AD |
+| `hosts` | Hosts descobertos com IPs, aliases, OS, tipo (server/desktop/firewall/switch/router), familia (linux/windows_server/windows_desktop/fortios/network_os), risk score (0-100) e raw score |
+| `host_enrichments` | Dados coletados via scan autenticado: OS build exato, apps instalados, patches KB, servicos com status e tipo de startup |
 
-### 4.3 Console Cloud (app.samureye.com.br)
+#### Dominio: Operacoes de Scan
+| Tabela | Descricao |
+|--------|-----------|
+| `journeys` | Configuracoes de assessment: tipo (attack_surface, ad_security, edr_av, web_application), alvos (individual ou por tag), parametros, credenciais associadas |
+| `journey_credentials` | Tabela de juncao que vincula credenciais a journeys com prioridade de tentativa |
+| `schedules` | Agendamentos flexiveis: on_demand, once, recurring (daily/weekly/monthly) com hora/minuto/dia, ou intervalo customizado (a cada X horas/dias) |
+| `jobs` | Execucoes de journeys com status (pending/running/completed/failed/timeout), progresso (0-100), task atual |
+| `job_results` | Artefatos de execucao: stdout, stderr, findings serializados em JSON |
 
-**Funcionalidades Planejadas (Roadmap Q2 2025):**
+#### Dominio: Inteligencia de Ameacas
+| Tabela | Descricao |
+|--------|-----------|
+| `threats` | Ameacas com lifecycle completo: severity (low/medium/high/critical), status (open/investigating/mitigated/closed/hibernated/accepted_risk), correlationKey para deduplicacao, lastSeenAt, atribuicao a usuario |
+| `threat_status_history` | Auditoria completa de mudancas de status com justificativa, usuario e timestamp |
+| `ad_security_test_results` | Resultados granulares de testes AD: 28 testes com status (pass/fail/error/skipped), evidencia, comando executado |
 
-#### Telemetria de Appliances
-```json
-{
-  "applianceId": "uuid",
-  "timestamp": "2025-01-15T14:30:00Z",
-  "health": {
-    "cpu_percent": 23.5,
-    "memory_percent": 41.2,
-    "disk_percent": 18.7,
-    "uptime_hours": 720,
-    "services_status": {
-      "api": "healthy",
-      "database": "healthy",
-      "job_queue": "healthy"
-    }
-  },
-  "usage_stats": {
-    "total_journeys": 147,
-    "journeys_last_24h": 8,
-    "active_hosts": 342,
-    "active_threats": 89,
-    "users_active": 5
-  },
-  "version": "1.2.3"
-}
+#### Dominio: Configuracao e Auditoria
+| Tabela | Descricao |
+|--------|-----------|
+| `settings` | Configuracoes chave-valor: timeout de nmap, fuso horario, perfil de scan, configuracoes de email (com OAuth2) |
+| `audit_log` | Log completo de acoes: ator, acao, objeto, estado before/after em JSON |
+| `notification_policies` | Regras de notificacao por email baseadas em severidade e status de ameaca |
+| `notification_log` | Historico de notificacoes enviadas/falhas |
+
+#### Dominio: Subscricao e Telemetria
+| Tabela | Descricao |
+|--------|-----------|
+| `appliance_subscription` | Estado da subscricao: API key (criptografada), console URL, tier, status (not_configured/active/expired/grace_period/unreachable), ultimo heartbeat |
+
+### 3.4 Servicos Backend (server/services/)
+
+O backend e composto por **18 servicos** especializados que orquestram toda a logica de negocio:
+
+#### Orquestracao
+| Servico | Arquivo | Funcao |
+|---------|---------|--------|
+| **JourneyExecutor** | `journeyExecutor.ts` | Orquestra execucao completa de assessments. Resolve alvos (individual ou por tag via LDAP), coordena fases de scan (discovery -> enrichment -> CVE -> validation -> threats), gerencia progresso via callback |
+| **JobQueue** | `jobQueue.ts` | Fila de execucao com EventEmitter para broadcasts WebSocket. Gerencia ciclo de vida de jobs (pending -> running -> completed/failed) |
+| **Scheduler** | `scheduler.ts` | Polling a cada 60s para agendamentos ativos. Suporta recorrencia daily/weekly/monthly e intervalos customizados (a cada X horas/dias). Timezone configuravel (padrao: America/Sao_Paulo) |
+
+#### Scanners
+| Servico | Arquivo | Funcao |
+|---------|---------|--------|
+| **NetworkScanner** | `scanners/networkScanner.ts` | Wrapper de nmap com perfis (fast/thorough/stealth). Detecta portas abertas, servicos, versoes, OS. Cria processos rastreados com timeout configuravel. Suporta host discovery (ping sweep) para ranges |
+| **VulnScanner** | `scanners/vulnScanner.ts` | Scanner de vulnerabilidades com nmap vuln scripts e Nuclei (templates OWASP). Verifica headers HTTP, directory listing, SSL/TLS, credenciais default |
+| **ADScanner** | `scanners/adScanner.ts` | 28+ testes PowerShell via WinRM contra Active Directory: password policy, account security, privileged groups, Kerberos delegation, trust relationships. Decodifica flags UAC (UserAccountControl) com descricoes de risco. Failover automatico entre DCs |
+| **EDR/AV Scanner** | `scanners/edrAvScanner.ts` | Testes de eficacia de EDR/AV via SMB shares. Credenciais temporarias em tmpfs (/dev/shm) com cleanup seguro (overwrite antes de delete). Usa smbclient para deploy de payloads de teste |
+
+#### Inteligencia
+| Servico | Arquivo | Funcao |
+|---------|---------|--------|
+| **ThreatEngine** | `threatEngine.ts` | Motor de regras para classificacao de ameacas. Categoriza servicos (admin/database/sharing/web/email/infrastructure) com severidade baseada em categoria. Deduplicacao por correlationKey, reativacao de ameacas hibernadas, monitor de hibernacao |
+| **CVEService** | `cveService.ts` | Integracao com NIST NVD API v2.0. CPE matching com ranges de versao (versionStart/End Including/Excluding). Rate limiting de 6s entre requests. Filtragem de CVEs por patches KB instalados. Traducao de descricoes para PT-BR |
+| **HostService** | `hostService.ts` | CRUD de hosts com calculo de risk score (0-100 baseado em intervalos CVSS), deduplicacao por IP/hostname, merge de aliases |
+| **HostEnricher** | `hostEnricher.ts` | Orquestra coleta autenticada com collectors registrados (WMI, SSH). Prioridade configuravel, stop-on-success por protocolo, fail-safe (falhas nunca bloqueiam scan) |
+
+#### Collectors
+| Servico | Arquivo | Funcao |
+|---------|---------|--------|
+| **WMICollector** | `collectors/wmiCollector.ts` | Coleta de dados Windows via WinRM/WMI: OS build completo, aplicacoes instaladas, patches KB, servicos com status e startup type |
+| **SSHCollector** | `collectors/sshCollector.ts` | Coleta de dados Linux via SSH2: OS/kernel, pacotes dpkg/rpm, servicos systemctl. Validacao TOFU de fingerprint SSH (FND-009) |
+
+#### Infraestrutura
+| Servico | Arquivo | Funcao |
+|---------|---------|--------|
+| **EncryptionService** | `encryption.ts` | Criptografia KEK/DEK com AES-256-GCM. KEK via variavel de ambiente (ENCRYPTION_KEK). IV de 96 bits, auth tag de 128 bits, AAD (Additional Authenticated Data) para contexto |
+| **SubscriptionService** | `subscriptionService.ts` | Heartbeat para console cloud: telemetria a cada 5min (ativo) ou 30min (standby). Validacao HTTPS obrigatoria (anti-MITM). Whitelist de comandos remotos (system_update, restart_service). Grace period de 72h. Retry com backoff exponencial (10s, 20s, 40s, 80s) |
+| **TelemetryService** | `telemetryService.ts` | Coleta metricas do appliance: CPU, memoria, disco, rede, uptime, servicos. Agrega contadores do banco (threats, hosts, jobs, usuarios). Nunca envia dados sensiveis |
+| **NotificationService** | `notificationService.ts` | Notificacoes por email baseadas em politicas. Match de severidade e status contra policies configuradas. Suporta OAuth2 (Gmail/Microsoft 365) |
+| **SettingsService** | `settingsService.ts` | Gerenciamento de configuracoes com valores padrao: timeout de nmap, perfil de scan, fuso horario do sistema |
+| **ProcessTracker** | `processTracker.ts` | Rastreamento de processos filhos (nmap, nuclei) com timeout e cleanup em caso de kill do job |
+
+### 3.5 API REST (server/routes/)
+
+A API e organizada em **12 modulos de rotas** com autenticacao obrigatoria (exceto login/health):
+
+| Modulo | Prefixo | Operacoes Principais |
+|--------|---------|---------------------|
+| **Dashboard** | `/api/dashboard/*` | Metricas agregadas, threats recentes, posture score, activity feed, stats por categoria |
+| **Assets** | `/api/assets` | CRUD de alvos (host/range/web_application) com tags, validacao Zod |
+| **Hosts** | `/api/hosts` | Listagem com filtros, detalhes com enrichments e threats vinculadas |
+| **Credentials** | `/api/credentials` | CRUD com criptografia automatica KEK/DEK, validacao de tipo (ssh/wmi/omi/ad) |
+| **Journeys** | `/api/journeys` | CRUD com credenciais associadas, execucao sob demanda |
+| **Schedules** | `/api/schedules` | Agendamentos com recorrencia flexivel |
+| **Jobs** | `/api/jobs` | Execucao, listagem, cancelamento, resultados com artefatos |
+| **Threats** | `/api/threats` | Listagem com filtros, mudanca de status com justificativa e auditoria, bulk operations |
+| **Users** | `/api/users` | CRUD de usuarios (admin only), reset de senha com flag mustChangePassword |
+| **Reports** | `/api/reports/*` | Trend de ameacas, resumo por journey, historico AD, export CSV |
+| **Admin** | `/api/admin/*` | Configuracoes do sistema, email settings (SMTP/OAuth2), audit log, gestao de sessoes |
+| **Subscription** | `/api/subscription/*` | Ativacao/desativacao de API key, status da subscricao |
+
+**Middlewares globais:**
+- `requireActiveSubscription`: Bloqueia operacoes de escrita quando subscricao expirada (GET/HEAD/OPTIONS sempre permitidos)
+- `requireAdmin`: Restringe rotas administrativas a `global_administrator`
+- `requireOperator`: Bloqueia `read_only` em operacoes de escrita
+- `isAuthenticatedWithPasswordCheck`: Valida sessao ativa + flag mustChangePassword
+
+### 3.6 WebSocket (Tempo Real)
+
+O servidor WebSocket (path `/ws`) fornece updates em tempo real para a UI:
+
+- **Autenticacao:** Verifica cookie `connect.sid` e valida sessao ativa em `active_sessions`
+- **Eventos emitidos:**
+  - `connected` - Confirmacao de conexao
+  - `jobUpdate` - Progresso de jobs (status, porcentagem, task atual)
+  - `threatCreated` - Nova ameaca detectada
+- **Broadcast:** Todos os clientes autenticados recebem todos os eventos
+- **Cleanup:** Desconexao automatica em erro, remocao do set de clientes
+
+### 3.7 Fluxo de Dados - Execucao de Journey (Attack Surface)
+
 ```
-
-#### Validação de Subscrição
-```
-GET /api/v1/license/validate?applianceId=uuid&licenseKey=xxx
-Response:
-{
-  "valid": true,
-  "tier": "professional", // starter | professional | enterprise
-  "features": ["attack_surface", "ad_security", "web_app", "authenticated_scan"],
-  "expiry": "2025-12-31T23:59:59Z",
-  "max_hosts": 1000,
-  "max_users": 10
-}
-```
-
-**Lógica de Enforcement:**
-- Appliance consulta console a cada 1 hora
-- Cache local de licença válido por 72h (grace period)
-- Se licença expirada: modo read-only (visualiza dados, não executa novos scans)
-- Se appliance offline >72h: soft-lock (alerta ao admin, continua funcionando)
-
-#### Dashboard Multi-Tenant
-- Visão consolidada de todos os appliances do cliente
-- Drill-down por site/localização
-- Alertas agregados (Critical/High threats across all sites)
-- Trending de postura de segurança ao longo do tempo
-
-#### Billing & License Management
-- Self-service para upgrade de tier (Starter → Professional → Enterprise)
-- Adicionar appliances / aumentar limites de hosts
-- Integração com Stripe/PagSeguro para pagamentos recorrentes
-
-### 4.4 Fluxo de Dados - Journey Execution
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ 1. USUÁRIO CRIA JOURNEY                                     │
-│    - Seleciona tipo (Attack Surface, AD Security, etc.)     │
-│    - Define alvos (IPs, ranges, tags)                       │
-│    - Configura parâmetros (nmap profile, credenciais)       │
-│    - Agenda (imediato ou recorrente)                        │
-└────────────────────┬────────────────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 2. JOB QUEUE DISPATCHER                                     │
-│    - Cria job no banco (status: pending)                    │
-│    - Enfileira para execução                                │
-│    - WebSocket notifica UI: "Journey iniciada"              │
-└────────────────────┬────────────────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 3. JOURNEY EXECUTOR (Attack Surface exemplo)               │
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │ FASE 1: DISCOVERY (nmap port scan)                     │ │
-│  │  • Executa nmap -sV -O -T4 --top-ports 1000            │ │
-│  │  • Detecta portas abertas, serviços, OS                │ │
-│  │  • Descobre web apps (HTTP/HTTPS)                      │ │
-│  │  Findings: [ {port: 445, service: "microsoft-ds"} ]    │ │
-│  └─────────────────────┬──────────────────────────────────┘ │
-│                        │                                     │
-│  ┌─────────────────────▼──────────────────────────────────┐ │
-│  │ FASE 1.5: HOST ENRICHMENT (se credenciais fornecidas) │ │
-│  │  • Tenta WMI: Coleta OS build, apps, KBs, serviços    │ │
-│  │  • Tenta SSH: Coleta kernel, pacotes, serviços        │ │
-│  │  • Cria/atualiza host no banco                        │ │
-│  │  Enrichment: {osVersion: "Win Server 2016 14393..."}  │ │
-│  └─────────────────────┬──────────────────────────────────┘ │
-│                        │                                     │
-│  ┌─────────────────────▼──────────────────────────────────┐ │
-│  │ FASE 2A: CVE DETECTION                                 │ │
-│  │  • Consulta NIST NVD por CPE                           │ │
-│  │  • Filtra por KB patches (se enrichment disponível)    │ │
-│  │  • Valida ranges de versão                             │ │
-│  │  CVEs: [ {id: "CVE-2024-1234", cvss: 9.8} ]           │ │
-│  └─────────────────────┬──────────────────────────────────┘ │
-│                        │                                     │
-│  ┌─────────────────────▼──────────────────────────────────┐ │
-│  │ FASE 2B: ACTIVE VALIDATION (nmap vuln scripts)        │ │
-│  │  • Executa scripts: smb-vuln-*, ssl-*, etc.            │ │
-│  │  • Confirma se CVEs são exploráveis                    │ │
-│  │  • Detecta misconfigurations                           │ │
-│  │  Validations: [ {script: "smb-vuln-ms17-010"} ]       │ │
-│  └─────────────────────┬──────────────────────────────────┘ │
-│                        │                                     │
-│  ┌─────────────────────▼──────────────────────────────────┐ │
-│  │ FASE 3: HOST DISCOVERY                                 │ │
-│  │  • Cria/atualiza hosts no banco (se ainda não feito)  │ │
-│  │  • Deduplica por IP/hostname                           │ │
-│  │  Hosts: [ {name: "srv-db-01", ips: ["10.0.1.50"]} ]   │ │
-│  └─────────────────────┬──────────────────────────────────┘ │
-│                        │                                     │
-│  ┌─────────────────────▼──────────────────────────────────┐ │
-│  │ FASE 4: THREAT GENERATION                              │ │
-│  │  • Agrupa findings por host + descrição                │ │
-│  │  • Calcula Risk Score (0-100) e Raw Score              │ │
-│  │  • Deduplica ameaças existentes (evita duplicatas)     │ │
-│  │  • Reativa ameaças antigas se detectadas novamente     │ │
-│  │  Threats: [ {description: "SMBv1 Enabled", risk: 85}] │ │
-│  └─────────────────────┬──────────────────────────────────┘ │
-│                        │                                     │
-└────────────────────────┼────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 4. RESULTS PERSISTENCE                                      │
-│    - Salva findings, threats, host enrichments no banco     │
-│    - Atualiza job status: completed                         │
-│    - WebSocket notifica UI: "Journey concluída - 47 threats"│
-└────────────────────┬────────────────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 5. UI AUTO-REFRESH                                          │
-│    - Dashboard atualiza contadores (hosts, threats, risk)   │
-│    - Usuário clica em host → Vê detalhes + histórico        │
-│    - Exporta relatório PDF para auditoria                   │
-└─────────────────────────────────────────────────────────────┘
++--------------------------------------------------------------+
+| 1. USUARIO CRIA JOURNEY                                       |
+|    - Seleciona tipo (Attack Surface, AD Security, etc.)       |
+|    - Define alvos (IPs, ranges, tags)                         |
+|    - Configura parametros (nmap profile, credenciais)          |
+|    - Agenda (imediato ou recorrente)                           |
++----------------------------+---------------------------------+
+                             |
+                             v
++--------------------------------------------------------------+
+| 2. JOB QUEUE DISPATCHER                                       |
+|    - Cria job no banco (status: pending)                      |
+|    - Enfileira para execucao                                  |
+|    - WebSocket notifica UI: "Journey iniciada"                |
++----------------------------+---------------------------------+
+                             |
+                             v
++--------------------------------------------------------------+
+| 3. JOURNEY EXECUTOR                                           |
+|                                                               |
+|  +----------------------------------------------------------+|
+|  | FASE 1: DISCOVERY (nmap port scan)                        ||
+|  |  - Executa nmap -sV -O com perfil configurado             ||
+|  |  - Detecta portas abertas, servicos, OS                   ||
+|  |  - Descobre web apps (HTTP/HTTPS)                         ||
+|  +-------------------------+--------------------------------+|
+|                            |                                  |
+|  +-------------------------v--------------------------------+|
+|  | FASE 1.5: HOST ENRICHMENT (se credenciais fornecidas)    ||
+|  |  - WMI: OS build, apps instalados, KBs, servicos         ||
+|  |  - SSH: kernel, pacotes dpkg/rpm, servicos systemctl      ||
+|  |  - Prioridade configuravel, stop-on-success               ||
+|  +-------------------------+--------------------------------+|
+|                            |                                  |
+|  +-------------------------v--------------------------------+|
+|  | FASE 2A: CVE DETECTION (NIST NVD API)                    ||
+|  |  - CPE matching com ranges de versao                      ||
+|  |  - Filtragem por KB patches instalados                    ||
+|  |  - 74% reducao de falsos positivos com enrichment         ||
+|  +-------------------------+--------------------------------+|
+|                            |                                  |
+|  +-------------------------v--------------------------------+|
+|  | FASE 2B: ACTIVE VALIDATION (nmap vuln scripts)           ||
+|  |  - Scripts: smb-vuln-*, ssl-*, http-vuln-*                ||
+|  |  - Confirma exploitabilidade de CVEs                      ||
+|  |  - Detecta misconfigurations                              ||
+|  +-------------------------+--------------------------------+|
+|                            |                                  |
+|  +-------------------------v--------------------------------+|
+|  | FASE 3: HOST DISCOVERY                                    ||
+|  |  - Cria/atualiza hosts no banco                           ||
+|  |  - Deduplicacao por IP/hostname                           ||
+|  |  - Classifica tipo e familia do host                      ||
+|  +-------------------------+--------------------------------+|
+|                            |                                  |
+|  +-------------------------v--------------------------------+|
+|  | FASE 4: THREAT GENERATION (ThreatEngine)                  ||
+|  |  - Categoriza por tipo de servico                         ||
+|  |  - Calcula Risk Score (0-100) e Raw Score                 ||
+|  |  - Deduplicacao por correlationKey                        ||
+|  |  - Reativacao de ameacas hibernadas                       ||
+|  +----------------------------------------------------------+|
++----------------------------+---------------------------------+
+                             |
+                             v
++--------------------------------------------------------------+
+| 4. RESULTS PERSISTENCE                                        |
+|    - Salva findings, threats, enrichments no banco            |
+|    - Atualiza job status: completed                           |
+|    - WebSocket notifica UI: "Journey concluida - N threats"   |
+|    - Notificacoes por email (se politicas configuradas)       |
++--------------------------------------------------------------+
 ```
 
 ---
 
-## 5. Modelo de Negócio
+## 4. Interface do Usuario (UI)
 
-### 5.1 Tiers de Subscrição
+### 4.1 Arquitetura Frontend
+
+A interface e construida como uma **Single-Page Application (SPA)** com React 18 e TypeScript, utilizando o design system **shadcn/ui** baseado em Radix UI primitives para componentes acessiveis e consistentes.
+
+**Stack de UI:**
+- **Componentes:** shadcn/ui (50+ componentes Radix UI wrappers) - Accordion, Dialog, DropdownMenu, Table, Tabs, Toast, Tooltip, etc.
+- **Estilizacao:** Tailwind CSS 3 com class-variance-authority (CVA) para variantes de componentes
+- **Icones:** Lucide React (Shield, AlertTriangle, Server, Monitor, Key, Route, etc.)
+- **Animacoes:** Framer Motion + tailwindcss-animate
+- **Graficos:** Recharts para visualizacoes de dados (trends, distribuicao de ameacas)
+- **Formularios:** React Hook Form + Zod (validacao compartilhada com backend via drizzle-zod)
+- **Estado servidor:** TanStack Query v5 com refetch automatico (polling intervals de 10s-60s)
+- **Roteamento:** Wouter (client-side routing leve, sem dependencia de React Router)
+- **Tempo real:** WebSocket nativo com hook customizado `useWebSocket`
+
+### 4.2 Layout e Navegacao
+
+A aplicacao usa um layout com **sidebar fixa lateral** + **topbar** para todas as paginas autenticadas:
+
+**Sidebar - Grupos de Navegacao:**
+
+| Grupo | Itens | Acesso |
+|-------|-------|--------|
+| **Principal** | Postura (dashboard de seguranca) | Todos |
+| **Superficie** | Alvos, Hosts, Credenciais | Todos (escrita: operator+) |
+| **Operacoes** | Jornadas, Agendamentos, Jobs | Todos (escrita: operator+) |
+| **Inteligencia** | Ameacas, Relatorios | Todos |
+| **Administracao** | Usuarios, Sessoes, Notificacoes, Subscricao, Configuracoes, Auditoria | Apenas global_administrator |
+
+### 4.3 Paginas da Aplicacao
+
+#### 4.3.1 Postura de Seguranca (`/postura` - pagina inicial)
+
+Dashboard principal que apresenta a visao consolidada da postura de seguranca:
+
+- **Posture Score (0-100):** Metrica agregada baseada nos risk scores de todos os hosts
+- **Hosts em Risco:** Contagem de hosts com ameacas abertas criticas/altas
+- **Stats por Categoria:** Distribuicao de ameacas por tipo de journey (Attack Surface, AD Security, EDR/AV, Web Application)
+- **Atencao Necessaria:** Alertas de acoes imediatas requeridas
+- **Activity Feed:** Timeline de ameacas e jobs recentes com atualizacao a cada 30s
+- **Ameacas Recentes:** Lista das ameacas mais recentes com severidade e status
+
+#### 4.3.2 Alvos (`/assets`)
+
+Gerenciamento de alvos de scan com suporte a:
+- **Tipos:** Host individual (FQDN/IP), Range CIDR, Web Application (URL)
+- **Tags:** Sistema de agrupamento flexivel para selecao por tag em journeys
+- **Formulario:** Criacao e edicao com validacao Zod em tempo real
+
+#### 4.3.3 Hosts (`/hosts` ou `/ativos`)
+
+Visualizacao dos hosts descobertos pelos scans:
+- **Detalhes:** Nome, IPs, aliases, OS detectado, tipo, familia
+- **Risk Score:** Indicador visual (0-100) com codigo de cores
+- **Enrichments:** Dados de scan autenticado (OS build, apps, patches, servicos)
+- **Ameacas Vinculadas:** Threats associadas ao host com severidade
+
+#### 4.3.4 Credenciais (`/credentials`)
+
+Gestao segura de credenciais para scan autenticado:
+- **Tipos suportados:** SSH (chave/senha), WMI (Windows), OMI, AD (LDAP)
+- **Criptografia:** Senhas nunca exibidas apos salvas, armazenadas com AES-256-GCM
+- **Host Override:** Opcao de restringir credencial a host especifico
+- **Porta customizada:** Sobrescrever porta padrao do protocolo
+
+#### 4.3.5 Jornadas (`/journeys`)
+
+Configuracao de assessments de seguranca:
+- **Attack Surface:** Scan de portas + CVE detection + validacao ativa
+- **AD Security:** 28 testes PowerShell contra Active Directory
+- **EDR/AV:** Testes de eficacia de endpoint protection
+- **Web Application:** Scan OWASP Top 10 com Nuclei
+- **Selecao de alvos:** Individual (selecao direta) ou por Tag (dinamica)
+- **Credenciais:** Associacao com prioridade para scan autenticado
+
+#### 4.3.6 Agendamentos (`/schedules`)
+
+Sistema de agendamento flexivel:
+- **On Demand:** Execucao manual unica
+- **Once:** Execucao agendada para data/hora especifica
+- **Recurring:** Daily, Weekly (dia da semana), Monthly (dia do mes)
+- **Intervalo customizado:** A cada X horas ou X dias
+- **Controle:** Habilitar/desabilitar sem deletar
+
+#### 4.3.7 Jobs (`/jobs`)
+
+Monitoramento de execucoes em andamento e historicas:
+- **Status em tempo real:** Via WebSocket (pending -> running -> completed/failed/timeout)
+- **Progresso:** Barra de progresso com porcentagem e tarefa atual
+- **Resultados:** Stdout, stderr, artefatos JSON com findings
+
+#### 4.3.8 Ameacas (`/threats`)
+
+Central de gestao de ameacas detectadas:
+- **Filtros:** Por severidade, status, categoria, host, busca textual
+- **Status lifecycle:** open -> investigating -> mitigated/closed/hibernated/accepted_risk
+- **Mudanca de status:** Requer justificativa obrigatoria (auditada)
+- **Detalhes:** Evidencia tecnica, CVEs associados, dados de scan PowerShell renderizados como tabela
+- **Bulk operations:** Selecao multipla para acoes em lote
+- **Export:** Download de dados para analise externa
+
+#### 4.3.9 Relatorios (`/relatorios`)
+
+Dashboards analiticos com abas:
+- **Trend de Ameacas:** Grafico temporal por severidade (critical/high/medium/low)
+- **Resumo por Journey:** Estatisticas por categoria com MTTR (Mean Time to Resolution)
+- **Historico AD:** Timeline de resultados de testes AD com pass/fail rates
+- **Distribuicao:** Graficos de pizza e barra com ameacas por status, severidade, categoria
+
+#### 4.3.10 Paginas Administrativas (global_administrator)
+
+- **Usuarios (`/users`):** CRUD completo com roles (global_administrator, operator, read_only), reset de senha, flag mustChangePassword
+- **Sessoes (`/sessions`):** Visualizacao de sessoes ativas por dispositivo, revogacao individual ou em massa
+- **Notificacoes (`/notification-policies`):** Politicas de email baseadas em severidade/status de ameacas
+- **Subscricao (`/subscription`):** Ativacao com API key, status da console cloud, tier da licenca
+- **Configuracoes (`/settings`):** Timeout de nmap, perfil de scan, fuso horario, configuracoes de email (SMTP, OAuth2 Gmail/Microsoft)
+- **Auditoria (`/audit`):** Log completo de acoes com ator, acao, objeto, estado before/after
+
+#### 4.3.11 Outras Paginas
+
+- **Login (`/login`):** Autenticacao local com email/senha
+- **Landing (`/`):** Pagina de apresentacao para usuarios nao autenticados
+- **Change Password (`/change-password`):** Forcada quando flag mustChangePassword esta ativa
+- **Not Found:** Pagina 404 customizada
+
+### 4.4 Experiencia do Usuario
+
+- **Idioma:** Interface completamente em Portugues Brasileiro (PT-BR)
+- **Tema:** Dark mode por padrao com design system consistente
+- **Responsividade:** Hook `use-mobile` para adaptacao a telas menores
+- **Error Boundary:** Componente React ErrorBoundary global previne tela branca em erros de renderizacao
+- **Toasts:** Sistema de notificacoes via Radix UI Toast para feedback de acoes
+- **Loading States:** Skeleton components durante carregamento de dados
+- **Validacao:** Feedback em tempo real nos formularios via React Hook Form + Zod
+- **WebSocket Indicator:** Indicador visual de conexao WebSocket ativa
+- **Subscription Banner:** Banner global quando subscricao esta expirada ou em grace period
+- **Auto-refresh:** Dados atualizados via polling (10s-60s) e WebSocket push
+
+---
+
+## 5. Seguranca
+
+### 5.1 Autenticacao
+
+| Mecanismo | Implementacao |
+|-----------|---------------|
+| **Hash de senha** | bcryptjs com 12 rounds + salt automatico |
+| **Sessoes** | express-session + connect-pg-simple (store PostgreSQL), cookie httpOnly + secure (auto-detect HTTPS) + sameSite=lax |
+| **Duracao de sessao** | 8 horas (TTL no cookie e na store), limpeza automatica a cada 10 minutos |
+| **Versionamento de sessao** | Incremento global ao reiniciar servidor invalida todas as sessoes anteriores |
+| **Rastreamento multi-dispositivo** | Tabela `active_sessions` com device info (browser + OS parseados do User-Agent) |
+| **Revogacao** | Revogacao individual ou em massa via tabela `active_sessions`; sessoes nao rastreadas sao bloqueadas |
+| **Primeiro acesso** | Flag `mustChangePassword` forca troca de senha antes de qualquer acesso |
+| **Bootstrap dev** | Admin padrao criado automaticamente em desenvolvimento (desabilitavel) |
+
+### 5.2 Autorizacao (RBAC)
+
+O sistema implementa 3 roles com permissoes hierarquicas:
+
+| Role | Permissoes |
+|------|-----------|
+| **global_administrator** | Acesso total: CRUD de usuarios, configuracoes do sistema, email settings, audit log, gestao de sessoes, subscricao, notification policies |
+| **operator** | Operacoes de scan: CRUD de assets/credentials/journeys/schedules, execucao de jobs, gestao de threats (mudanca de status) |
+| **read_only** | Somente leitura: visualizacao de dashboards, hosts, threats, jobs, relatorios. Bloqueado para qualquer operacao de escrita |
+
+**Middlewares de autorizacao:**
+- `requireAdmin` - Retorna 403 para non-admin em rotas `/users`, `/settings`, `/audit`, etc.
+- `requireOperator` - Retorna 403 para `read_only` em operacoes POST/PUT/PATCH/DELETE
+- `requireActiveSubscription` - Retorna 403 com codigo `SUBSCRIPTION_EXPIRED` para escrita quando licenca expirada
+- `AdminRoute` (frontend) - Componente React que redireciona non-admin para `/`
+
+### 5.3 Rate Limiting e Protecao contra Brute Force
+
+- **Rate limiting persistente** em PostgreSQL (tabela `login_attempts`)
+- Bloqueio temporario apos N tentativas falhas consecutivas (`blockedUntil` com timestamp)
+- Reset automatico do contador apos login bem-sucedido
+- Limpeza periodica de tentativas antigas
+
+### 5.4 Criptografia de Credenciais
+
+O sistema usa o padrao **KEK/DEK (Key Encryption Key / Data Encryption Key)** para proteger credenciais armazenadas:
+
+```
+Fluxo de Criptografia:
+1. Gera DEK aleatorio (32 bytes) para cada credencial
+2. Criptografa segredo com DEK usando AES-256-GCM
+   - IV: 96 bits (aleatorio)
+   - Auth Tag: 128 bits
+   - AAD: "samureye-credential"
+3. Criptografa DEK com KEK usando AES-256-GCM
+   - AAD: "samureye-dek"
+4. Armazena secretEncrypted + dekEncrypted no banco
+
+Fluxo de Descriptografia:
+1. Descriptografa DEK com KEK
+2. Descriptografa segredo com DEK
+```
+
+- **KEK em producao:** Variavel de ambiente `ENCRYPTION_KEK` (64 hex chars = 256 bits). Ausencia causa erro fatal
+- **KEK em desenvolvimento:** Derivada via `crypto.scryptSync` (warning no log)
+- **Rotacao de KEK:** Suportada (re-criptografar DEKs existentes com nova KEK)
+
+### 5.5 Seguranca de Comunicacao
+
+| Componente | Protecao |
+|-----------|----------|
+| **CORS** | Configuravel via `ALLOWED_ORIGINS`. Em producao, rejeita origens desconhecidas. Appliance single-host permite qualquer origem quando nao configurado |
+| **Console URL** | Validacao obrigatoria de HTTPS (anti-MITM). HTTP aceito apenas para localhost |
+| **Cookies de sessao** | `httpOnly: true`, `secure: auto` (detecta HTTPS), `sameSite: lax` (CSRF protection) |
+| **WebSocket** | Autenticacao via cookie de sessao, verificacao contra `active_sessions` |
+| **Heartbeat** | Whitelist de comandos remotos (`system_update`, `restart_service`). Validacao rigorosa de estrutura de comandos |
+
+### 5.6 Protecao de Dados Sensiveis
+
+| Dado | Protecao |
+|------|----------|
+| **Senhas de usuario** | bcrypt 12 rounds (nunca armazenadas em texto claro) |
+| **Credenciais de scan** | AES-256-GCM com KEK/DEK (nunca retornadas em API responses) |
+| **Arquivos temporarios de auth** | Criados em tmpfs (/dev/shm), nomes imprevisíveis (crypto.randomBytes), permissao 0o600, overwrite com zeros antes de delete |
+| **Dados de scan** | Permanecem no appliance (nunca enviados para cloud) |
+| **Telemetria** | Apenas contadores agregados (nao PII): total de threats, hosts, jobs, metricas de performance |
+| **SSH host keys** | Fingerprint SHA-256 armazenado para validacao TOFU (Trust On First Use) |
+
+### 5.7 Audit Trail
+
+- **Tabela `audit_log`:** Registra todas as acoes de escrita com:
+  - `actorId` - Usuario que executou a acao
+  - `action` - Tipo de acao (create, update, delete, login, logout, status_change, etc.)
+  - `objectType` - Tipo de objeto afetado (user, asset, credential, journey, threat, setting, etc.)
+  - `objectId` - ID do objeto afetado
+  - `before` / `after` - Estado JSON antes/depois da mudanca
+  - `createdAt` - Timestamp da acao
+- **Threat status history:** Tabela dedicada com justificativa obrigatoria para cada mudanca de status
+- **Notification log:** Historico de todas as notificacoes enviadas (sucesso/falha)
+
+### 5.8 Seguranca do Processo de Scan
+
+- **Timeout configuravel:** Timeout de nmap e nuclei configuravel via settings (padrao: 5 minutos por host)
+- **Process tracking:** Todos os processos filhos (nmap, nuclei, PowerShell) sao rastreados e podem ser cancelados
+- **Isolamento:** Scans executados localmente no appliance, sem transmissao de dados para cloud
+- **Credenciais em memoria:** Descriptografadas apenas no momento do uso, nunca persistidas em texto claro
+- **Validacao de input:** Schemas Zod para todos os endpoints de API, prevencao de injecao de comandos em alvos de scan
+- **HTML sanitization:** Funcao `escapeHtml` para conteudo de email (prevencao de XSS)
+
+---
+
+## 6. Funcionalidades Principais
+
+### 6.1 Attack Surface Discovery
+
+- Scan de portas com nmap usando perfis otimizados (fast/thorough/stealth)
+- Deteccao de servicos e versoes com precisao (alta/media/baixa)
+- Identificacao de OS (Windows, Linux, network devices, FortiOS)
+- Auto-discovery de web applications quando HTTP/HTTPS detectado
+- Host discovery via ping sweep para ranges CIDR
+
+### 6.2 CVE Detection com Inteligencia de Patches
+
+Deteccao em 4 camadas:
+1. **CPE Matching:** Validacao contra configuracoes CPE do NVD com ranges de versao
+2. **Windows Version Extraction:** Matching preciso de builds (10.0.14393 vs 10.0.17763)
+3. **Enrichment Integration:** KB patch filtering (74% reducao de falsos positivos)
+4. **Keyword Search Fallback:** Quando CPE indisponivel, com protecao cross-OS
+
+### 6.3 Active Validation (nmap vuln scripts)
+
+Scripts de verificacao em categorias: Authentication Bypass, Credential Exposure, Remote Code Execution, SQL Injection, Path Traversal, Default Credentials, Misconfigurations, SSL/TLS Issues.
+
+### 6.4 AD Security Assessment
+
+28+ testes PowerShell distribuidos em categorias:
+- Password Policy, Account Security, Privileged Groups
+- Kerberos (Delegation, Pre-Auth), Trust Relationships, General Security
+- Decodificacao UAC flags com descricoes de risco em PT-BR
+- Keyword Enhancement para deteccao de credenciais em scripts
+- Failover automatico entre Domain Controllers via DNS
+
+### 6.5 EDR/AV Effectiveness Testing
+
+- Deploy de payloads de teste via SMB para validar deteccao
+- Credenciais temporarias em tmpfs com cleanup seguro
+- Simulacao de tecnicas MITRE ATT&CK
+
+### 6.6 Web Application Security (OWASP Top 10)
+
+- Scan com engine Nuclei (templates open-source)
+- Verificacao de headers HTTP, directory listing, SSL/TLS, credenciais default
+- Assets web_application criados automaticamente quando HTTP/HTTPS detectado
+
+### 6.7 Authenticated Scanning
+
+- **Windows (WMI/WinRM):** OS build completo, apps instalados, patches KB, servicos
+- **Linux (SSH):** OS/kernel, pacotes dpkg/rpm, servicos systemctl
+- Prioridade configuravel, stop-on-success, fail-safe
+
+### 6.8 Sistema de Notificacoes
+
+- Politicas de notificacao por email baseadas em severidade e status
+- Suporte a SMTP, OAuth2 Gmail, OAuth2 Microsoft 365
+- Templates HTML para notificacoes de ameacas (criacao e mudanca de status)
+- Log de todas as notificacoes enviadas/falhas
+
+### 6.9 Agendamento de Scans
+
+- Recorrencia flexivel: diario, semanal, mensal, ou intervalo customizado
+- Timezone configuravel (padrao: America/Sao_Paulo)
+- Execucao automatica com polling a cada 60s
+- Rastreamento de ultima execucao para evitar execucoes duplicadas
+
+### 6.10 Sistema de Subscricao
+
+- Ativacao por API key criptografada
+- Heartbeat periodico para console central
+- Grace period de 72h para desconexao
+- Modo read-only quando expirado (preserva dados)
+- Atualizacao remota via comandos whitelisted
+
+---
+
+## 7. Modelo de Negocio
+
+### 7.1 Tiers de Subscricao
 
 | Feature | Starter | Professional | Enterprise |
 |---------|---------|--------------|------------|
-| **Preço Anual** | R$ 15.000 | R$ 36.000 | R$ 60.000+ |
+| **Preco Anual** | R$ 15.000 | R$ 36.000 | R$ 60.000+ |
 | **Max Hosts** | 100 | 500 | Ilimitado |
-| **Max Usuários** | 3 | 10 | Ilimitado |
-| **Attack Surface** | ✅ | ✅ | ✅ |
-| **CVE Detection** | ✅ | ✅ | ✅ |
-| **Authenticated Scan** | ❌ | ✅ | ✅ |
-| **AD Security** | ❌ | ✅ | ✅ |
-| **Web App Security** | ❌ | ✅ | ✅ |
-| **EDR/AV Testing** | ❌ | ❌ | ✅ (Q1 2025) |
-| **API Access** | ❌ | ✅ | ✅ |
-| **Multi-Site Dashboard** | ❌ | ❌ | ✅ |
+| **Max Usuarios** | 3 | 10 | Ilimitado |
+| **Attack Surface** | Sim | Sim | Sim |
+| **CVE Detection** | Sim | Sim | Sim |
+| **Authenticated Scan** | Nao | Sim | Sim |
+| **AD Security** | Nao | Sim | Sim |
+| **Web App Security** | Nao | Sim | Sim |
+| **EDR/AV Testing** | Nao | Nao | Sim |
+| **API Access** | Nao | Sim | Sim |
+| **Multi-Site Dashboard** | Nao | Nao | Sim |
 | **SLA** | Best-effort | 8x5 | 24x7 |
 | **Suporte** | Email | Email + Chat | Dedicated TAM |
 
-### 5.2 Canais de Distribuição
+### 7.2 Analise Competitiva
 
-**Canal Direto (60% da receita projetada):**
-- Vendas diretas para empresas médias/grandes
-- Trials de 30 dias com POC assistida
-- Marketing digital (SEO, Google Ads, LinkedIn)
+| Solucao | Preco Anual | Complexidade | Falsos Positivos | Validacao Ativa | Modelo |
+|---------|-------------|--------------|------------------|-----------------|---------|
+| **SamurEye** | R$ 15k-60k | Baixa | Baixo | Sim | SaaS + Appliance |
+| Tenable.io | US$ 50k+ | Alta | Medio | Nao | Cloud |
+| Qualys VMDR | US$ 30k+ | Alta | Medio | Nao | Cloud |
+| Rapid7 InsightVM | US$ 40k+ | Alta | Medio | Limitado | Cloud |
+| Nessus Pro | US$ 4k | Media | Alto | Nao | On-Prem |
+| OpenVAS | Gratis | Muito Alta | Alto | Nao | On-Prem |
 
-**Canal Indireto - MSPs/VARs (40% da receita projetada):**
-- Modelo de white-label (roadmap Q3 2025)
-- Margem de 30% para parceiros
-- Co-marketing com distribuidores de segurança
-
-**Marketplace (futuro):**
-- AWS Marketplace, Azure Marketplace
-- Facilita procurement em grandes empresas
-
-### 5.3 Custo de Aquisição vs. LTV
-
-**CAC (Customer Acquisition Cost):** R$ 12.000
-- Marketing: R$ 4.000 (ads, conteúdo, eventos)
-- Vendas: R$ 6.000 (salário proporcional + comissão)
-- POC/Trial: R$ 2.000 (suporte técnico pré-venda)
-
-**LTV (Lifetime Value):** R$ 108.000 (tier Professional, 3 anos)
-- Ano 1: R$ 36.000
-- Ano 2: R$ 36.000 (renovação 85%)
-- Ano 3: R$ 36.000 (renovação 85%)
-
-**LTV/CAC Ratio:** 9:1 (saudável acima de 3:1)
-
-**Payback Period:** 4 meses (excellent para SaaS B2B)
+**Vantagens Competitivas:**
+1. Inteligencia de Patches: KB filtering com 74% reducao de falsos positivos
+2. Modelo Hibrido: Dados sensiveis on-prem + conveniencia cloud
+3. Zero-Config: Instala, aponta alvos, recebe resultados
+4. Preco Disruptivo: 70% mais barato que competitors enterprise
+5. Validacao Adversarial: Prova que CVEs sao exploraveis (nao apenas lista)
+6. Compliance-Ready: Relatorios para ISO/PCI/LGPD
 
 ---
 
-## 6. Roadmap de Produto
+## 8. Formatos de Deploy
 
-### Q4 2024 - MVP ✅ (Estado Atual)
-- [x] Attack Surface Journey completa
-- [x] CVE Detection com CPE matching + KB filtering
-- [x] Active Validation (nmap vuln scripts)
-- [x] AD Security Journey (28 testes PowerShell)
-- [x] Authenticated Scanning (WMI + SSH)
-- [x] Web UI com dashboard, hosts, threats, journeys
-- [x] RBAC e session management
-- [x] Host enrichment com services metadata
-- [x] Risk scoring system
+| Formato | Especificacoes Minimas | Casos de Uso |
+|---------|------------------------|--------------|
+| **Virtual Appliance (OVA/VMDK)** | 4 vCPU, 8GB RAM, 100GB SSD | SMB - deployment em VMware/Hyper-V |
+| **Docker Container** | 4 CPU cores, 8GB RAM, 100GB storage | DevOps teams, Kubernetes |
+| **Hardware Appliance** | Intel i5, 16GB RAM, 256GB SSD | Enterprise plug-and-play |
 
-### Q1 2025 - Cloud Console & Enterprise Features
-- [ ] Console cloud (app.samureye.com.br)
-  - [ ] Telemetria de appliances
-  - [ ] Validação de subscrição ativa
-  - [ ] Dashboard multi-site
-  - [ ] Billing self-service
-- [ ] EDR/AV Effectiveness Testing
-- [ ] Relatórios PDF customizáveis
-- [ ] API REST completa (para integrações)
-- [ ] SNMP collector (network devices enrichment)
-- [ ] Integração Slack/Teams para alertas
-
-### Q2 2025 - Scale & Automation
-- [ ] Auto-remediation workflows (ex: desabilitar SMBv1 via script)
-- [ ] Compliance templates (ISO 27001, PCI-DSS, LGPD)
-- [ ] Trend analysis ML (predizer próximos riscos)
-- [ ] Mobile app (iOS/Android) para alertas
-- [ ] SSO/SAML integration (Okta, Azure AD)
-- [ ] Multi-tenancy na cloud console
-
-### Q3 2025 - Partner Enablement
-- [ ] White-label mode (MSPs vendem como produto próprio)
-- [ ] Partner portal (gerenciar clientes finais)
-- [ ] Custom branding (logo, cores, domínio)
-- [ ] Automated provisioning (API para criar appliances)
-
-### Q4 2025 - AI & Advanced Analytics
-- [ ] AI-powered threat prioritization (CVE + contexto de negócio)
-- [ ] Automated attack path analysis (como hacker chegaria ao DC?)
-- [ ] Predictive CVE scoring (qual CVE será exploited in-the-wild?)
-- [ ] Natural language queries ("Mostre hosts Windows críticos sem patch há >30 dias")
+**Instalacao automatizada:** Script `install.sh` (45KB) com provisionamento completo: PostgreSQL, Node.js, nmap, Nuclei, PowerShell, dependencias, systemd service, SSL, UFW firewall.
 
 ---
 
-## 7. Go-to-Market Strategy
+## 9. Glossario Tecnico
 
-### 7.1 Fase 1: Early Adopters (Meses 1-3)
-
-**Objetivo:** Validar PMF (Product-Market Fit) com 10 clientes pagantes
-
-**Táticas:**
-- **Outbound Direto:** LinkedIn Sales Navigator - CISOs de empresas 200-1000 funcionários
-- **POC Assistida:** 30 dias grátis + suporte hands-on para setup
-- **Case Studies:** Documentar 2-3 histórias de sucesso (antes/depois)
-- **Webinars:** "Como validar seu AD está seguro em 1 hora" (lead gen)
-
-**Métricas de Sucesso:**
-- 10 clientes pagantes (tier Professional)
-- NPS > 50
-- Churn < 10%
-- 3 referrals de clientes satisfeitos
-
-### 7.2 Fase 2: Market Expansion (Meses 4-12)
-
-**Objetivo:** Escalar para 100 clientes, construir canal indireto
-
-**Táticas:**
-- **Inbound Marketing:** 
-  - Blog técnico (SEO): "Top 10 AD misconfigurations que causam ransomware"
-  - eBooks: "Guia Definitivo de Pentest Automatizado"
-  - Ferramentas grátis: "AD Security Checklist Generator"
-- **Eventos:** 
-  - Sponsor em H2HC, BHack, Nullbyte
-  - Palestras em ISSA, ISACA chapters
-- **Partnerships:**
-  - 5 MSPs/VARs ativos (gerando 30% da pipeline)
-  - Co-marketing com fabricantes de firewall/EDR
-- **PR:** 
-  - Anúncio de funding (se aplicável)
-  - Ranking Gartner Peer Insights, G2 Crowd
-
-**Métricas de Sucesso:**
-- 100 clientes totais
-- MRR: R$ 300k
-- Canal indireto: 30% da nova receita
-- Magic Number (vendas eficiência): > 0.75
-
-### 7.3 Fase 3: Domínio de Mercado (Ano 2+)
-
-**Objetivo:** Líder em Continuous Security Validation no Brasil
-
-**Táticas:**
-- **Enterprise Sales:** Equipe dedicada para Fortune 500
-- **International Expansion:** LATAM (México, Colômbia, Argentina)
-- **Ecosystem Play:** 
-  - Integração nativa com SIEMs (Splunk, QRadar, Sentinel)
-  - Marketplace listings (AWS, Azure)
-- **Thought Leadership:**
-  - Pesquisa anual: "State of Attack Surface in Brazil"
-  - Contribuições open-source (scripts de validação)
+| Termo | Descricao |
+|-------|-----------|
+| **Attack Surface** | Soma de todos os pontos de entrada exploraveis |
+| **CVE** | Common Vulnerabilities and Exposures - ID padronizado para falhas |
+| **CPE** | Common Platform Enumeration - nomenclatura de produtos IT |
+| **CVSS** | Common Vulnerability Scoring System - escala 0-10 de gravidade |
+| **EDR** | Endpoint Detection and Response |
+| **Journey** | Configuracao de assessment de seguranca no SamurEye |
+| **KEK/DEK** | Key Encryption Key / Data Encryption Key - padrao de criptografia em camadas |
+| **Nmap** | Network Mapper - scanner de rede open-source |
+| **Nuclei** | Engine de scan de vulnerabilidades web open-source |
+| **OWASP Top 10** | Lista das 10 vulnerabilidades web mais criticas |
+| **Pentest** | Teste de penetracao - simulacao de ataque |
+| **RBAC** | Role-Based Access Control |
+| **SMBv1** | Protocolo antigo de compartilhamento Windows (vulneravel a WannaCry) |
+| **TOFU** | Trust On First Use - validacao de fingerprint SSH |
+| **UAC** | User Account Control flags do Active Directory |
+| **WinRM/WMI** | Windows Remote Management / Windows Management Instrumentation |
 
 ---
 
-## 8. Diferenciais Competitivos (Resumo)
-
-| Diferencial | Como Sustentamos |
-|-------------|------------------|
-| **1. Inteligência de Patches** | Tecnologia proprietária de KB filtering - sem equivalente no mercado |
-| **2. Modelo Híbrido** | Dados sensíveis on-prem + conveniência cloud = único no segmento |
-| **3. Zero-Config UX** | 3 anos de R&D em automation - concorrentes exigem tuning manual |
-| **4. Preço Disruptivo** | Custo Brasil + SaaS economies of scale = 70% mais barato que gringos |
-| **5. Validação Adversarial** | Não apenas lista CVEs - PROVA que são exploráveis (nmap vuln scripts) |
-| **6. Compliance-Ready** | Relatórios pré-configurados para ISO/PCI/LGPD - economiza 40h de auditoria |
-
----
-
-## 9. Riscos e Mitigações
-
-### 9.1 Riscos de Produto
-
-**Risco:** Falsos positivos minando confiança  
-**Mitigação:** KB filtering reduz 74% FPs + active validation confirma exploitability
-
-**Risco:** Performance em redes grandes (10k+ hosts)  
-**Mitigação:** Distributed scanning (múltiplos appliances) + incremental scans (apenas deltas)
-
-**Risco:** Dependência de NIST NVD (API pode cair)  
-**Mitigação:** Cache local de 90 dias + CVE feeds alternativos (VulnDB, OSV)
-
-### 9.2 Riscos de Mercado
-
-**Risco:** Concorrentes low-cost (ex: Acunetix à R$ 8k/ano)  
-**Mitigação:** Foco em network infrastructure (não apenas web apps) + enrichment único
-
-**Risco:** Consolidação de mercado (Tenable compra Nuclei, etc.)  
-**Mitigação:** Diversificar scanners (suporte a OpenVAS, Metasploit modules)
-
-**Risco:** Regulação de "hacking tools" no Brasil  
-**Mitigação:** Compliance total com Marco Civil + termos de uso proibitivos de uso malicioso
-
-### 9.3 Riscos de Execução
-
-**Risco:** Churn por suporte insuficiente  
-**Mitigação:** Knowledge base + chatbot + SLA tiers baseados em assinatura
-
-**Risco:** Scale de infraestrutura cloud  
-**Mitigação:** Arquitetura serverless (Lambda/Cloud Functions) para telemetria + auto-scaling
-
----
-
-## 10. Próximos Passos (Recomendações para Consultoria)
-
-### 10.1 Validação de Mercado
-1. **Entrevistas com 20 CISOs:** Validar pricing, features prioritários, canais preferidos
-2. **Análise competitiva profunda:** Tenable vs Qualys vs SamurEye (SWOT detalhado)
-3. **TAM/SAM/SOM refinado:** Quantas empresas 100-1000 func. no Brasil têm budget para isso?
-
-### 10.2 Produto
-1. **UX Research:** Sessões com 5 SOC analysts - onde UI trava workflow?
-2. **Beta Program:** 10 clientes piloto (grátis por 6 meses) em troca de feedback semanal
-3. **Feature Prioritization:** RICE scoring (Reach, Impact, Confidence, Effort) para roadmap Q1
-
-### 10.3 Go-to-Market
-1. **Positioning Workshop:** Mensagem para CISO vs CFO vs CTO (diferente para cada)
-2. **Canal Strategy:** Identificar top 10 MSPs/VARs para partnership
-3. **Content Calendar:** 12 meses de blog posts, webinars, eBooks (lead gen)
-
-### 10.4 Operações
-1. **Pricing Elasticity:** A/B test R$ 30k vs R$ 40k (tier Professional) - qual converte melhor?
-2. **Customer Success Playbook:** Onboarding checklist, health scores, renewal triggers
-3. **Sales Playbook:** Objeções comuns + respostas, demo scripts, ROI calculator
-
----
-
-## 11. Conclusão
-
-O **SamurEye** preenche uma lacuna crítica no mercado de cibersegurança: **organizações médias precisam de segurança enterprise, mas não têm budget nem expertise para ferramentas complexas**. 
-
-Nosso modelo híbrido SaaS + appliance local combina:
-- ✅ **Conveniência de cloud** (sem gerenciar infraestrutura)
-- ✅ **Privacidade de on-prem** (dados sensíveis não vazam)
-- ✅ **Automação radical** (zero-config, resultados em minutos)
-- ✅ **Inteligência proprietária** (KB filtering = 74% menos falsos positivos)
-
-Com um **TAM de US$ 18.5 bilhões** e **CAGR de 12.8%**, estamos entrando em um mercado em crescimento explosivo. Nosso preço disruptivo (70% mais barato que Tenable/Qualys) e UX superior nos posicionam para capturar **3-5% do mercado brasileiro em 3 anos** (R$ 135-225 milhões em receita recorrente).
-
-**O momento é agora:** regulamentações como LGPD, explosão de ransomware e escassez de profissionais criam um "perfect storm" para soluções automatizadas como SamurEye.
-
----
-
-## 12. Apêndices
-
-### A. Glossário Técnico
-
-**Attack Surface:** Soma de todos os pontos de entrada onde um atacante poderia explorar vulnerabilidades  
-**CVE (Common Vulnerabilities and Exposures):** ID padronizado para falhas de segurança conhecidas  
-**CPE (Common Platform Enumeration):** Esquema de nomenclatura para produtos de TI (ex: cpe:2.3:o:microsoft:windows_server_2016)  
-**CVSS (Common Vulnerability Scoring System):** Escala 0-10 para gravidade de CVEs  
-**EDR (Endpoint Detection and Response):** Software que monitora endpoints para detectar ameaças  
-**Nmap:** Scanner de rede open-source (Network Mapper)  
-**OWASP Top 10:** Lista das 10 vulnerabilidades web mais críticas  
-**Pentest:** Teste de penetração - simulação de ataque para encontrar falhas  
-**SMBv1:** Protocolo antigo de compartilhamento de arquivos Windows (vulnerável a WannaCry)
-
-### B. Recursos Adicionais
-
-**Demo Environment:** https://demo.samureye.com.br (user: demo@samureye.com.br / senha: Demo2025!)  
-**Documentação Técnica:** https://docs.samureye.com.br  
-**Repositório GitHub:** (privado - acesso sob NDA)  
-**Pitch Deck:** (solicitar versão atualizada para apresentações executivas)
-
-### C. Contatos
-
-**Founders/Liderança Técnica:** [Inserir contatos]  
-**Consultoria Go-to-Market:** [Inserir contatos da consultoria contratada]  
-**Investidores/Board:** [Se aplicável]
-
----
-
-**Versão do Documento:** 1.0  
-**Data:** Janeiro 2025  
-**Preparado para:** Consultoria de Go-to-Market  
-**Classificação:** Confidencial - Somente uso interno
+**Versao do Documento:** 2.0
+**Ultima Atualizacao:** Marco 2026
+**Preparado para:** Consultoria de Go-to-Market e Referencia Interna
+**Classificacao:** Confidencial - Somente uso interno
