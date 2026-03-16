@@ -82,7 +82,7 @@ Plans:
 
 Plans:
 - [ ] 04-01-PLAN.md — Findings redesign: grouped threat list with expandable children, structured detail dialog (problem/impact/fix), human-readable evidence labels, remediation preview per group (UIFN-01, UIFN-02, UIFN-03, UIFN-04)
-- [ ] 04-02-PLAN.md — Action plan: GET /api/action-plan endpoint, new /action-plan page with prioritized cards, filter by effort/role/journey, sidebar link (UIAP-01, UIAP-02, UIAP-03, UIAP-04)
+- [x] 04-02-PLAN.md — Action plan: GET /api/action-plan endpoint, new /action-plan page with prioritized cards, filter by effort/role/journey, sidebar link (UIAP-01, UIAP-02, UIAP-03, UIAP-04)
 - [ ] 04-03-PLAN.md — Dashboard core: GET /api/posture/coverage endpoint, posture hero with sparkline, journey coverage grid, top 3 actions (UIDB-01, UIDB-02, UIDB-03, UIDB-04)
 - [ ] 04-04-PLAN.md — Dashboard live updates: WebSocket-triggered cache invalidation, journey comparison delta view (UIDB-05, UIDB-06)
 
