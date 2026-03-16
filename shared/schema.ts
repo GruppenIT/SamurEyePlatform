@@ -277,6 +277,7 @@ export const threats = pgTable("threats", {
   // Lifecycle management fields
   correlationKey: text("correlation_key"), // Unique identifier for threat correlation
   category: text("category"), // Journey type semantics (attack_surface, ad_hygiene, edr_av)
+  ruleId: text("rule_id"), // Phase 3: Threat rule ID for recommendation template lookup (e.g. 'exposed-service', 'cve-detected')
   lastSeenAt: timestamp("last_seen_at"), // Last time threat was observed
   closureReason: text("closure_reason"), // Reason for closure ('system', 'manual', etc.)
   // Status management fields
@@ -350,10 +351,12 @@ export const recommendations = pgTable("recommendations", {
   effortTag: text("effort_tag"),
   roleRequired: text("role_required"),
   hostSpecificData: jsonb("host_specific_data").$type<Record<string, any>>().default({}),
+  status: text("status").default('pending').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [
   index("IDX_recommendations_threat_id").on(table.threatId),
+  uniqueIndex("UQ_recommendations_threat_id").on(table.threatId),
 ]);
 
 // Settings table

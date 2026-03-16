@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { users, threats, threatStatusHistory, postureSnapshots, recommendations } from "@shared/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, isNull } from "drizzle-orm";
 import * as crypto from "crypto";
 import { createLogger } from '../lib/logger';
 
@@ -67,6 +67,35 @@ export async function initializeDatabaseStructure(): Promise<void> {
         WHERE grouping_key IS NOT NULL
       `);
       log.info('grouping_key unique index created successfully');
+    }
+
+    // Phase 3: recommendations threat_id unique index for upsert support
+    const recommendationsUniqueCheck = await db.execute(sql`
+      SELECT indexname
+      FROM pg_indexes
+      WHERE tablename = 'recommendations'
+        AND indexname = 'UQ_recommendations_threat_id'
+    `);
+
+    const hasRecommendationsUniqueIndex = (recommendationsUniqueCheck.rowCount ?? 0) > 0;
+    log.info({ hasRecommendationsUniqueIndex }, 'recommendations threat_id unique index status');
+
+    if (!hasRecommendationsUniqueIndex) {
+      log.info('creating unique index for recommendations threat_id');
+      // First ensure status column exists (additive migration)
+      await db.execute(sql`
+        ALTER TABLE recommendations ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending'
+      `);
+      await db.execute(sql`
+        CREATE UNIQUE INDEX "UQ_recommendations_threat_id"
+        ON recommendations (threat_id)
+      `);
+      log.info('recommendations unique index created successfully');
+    } else {
+      // Ensure status column exists even if index was already present
+      await db.execute(sql`
+        ALTER TABLE recommendations ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending'
+      `);
     }
 
   } catch (error) {
