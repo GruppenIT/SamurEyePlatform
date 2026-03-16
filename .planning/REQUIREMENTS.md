@@ -9,16 +9,16 @@ Requirements for the product revision. Each maps to roadmap phases.
 
 ### Parsing
 
-- [ ] **PARS-01**: nmap parser uses XML output (`-oX -`) via fast-xml-parser instead of regex text parsing
+- [x] **PARS-01**: nmap parser uses XML output (`-oX -`) via fast-xml-parser instead of regex text parsing
 - [x] **PARS-02**: nmap parser captures full NSE script output blocks with CVE references and vuln details
-- [ ] **PARS-03**: nmap parser captures OS detection data (name, accuracy, CPE strings)
-- [ ] **PARS-04**: nmap parser captures service version details (product, version, extrainfo, CPE)
+- [x] **PARS-03**: nmap parser captures OS detection data (name, accuracy, CPE strings)
+- [x] **PARS-04**: nmap parser captures service version details (product, version, extrainfo, CPE)
 - [x] **PARS-05**: nuclei parser validates each JSONL line against a Zod schema at parse boundary
 - [x] **PARS-06**: nuclei parser captures matcher-name, extracted-results, curl-command, and template tags
 - [ ] **PARS-07**: AD PowerShell scripts use ConvertTo-Json -Depth 10 to preserve nested structures
 - [ ] **PARS-08**: AD parser captures full group membership chains, GPO links, and trust attributes
 - [ ] **PARS-09**: EDR/AV parser produces per-host timeline with deployment timestamp, detection status, and diagnostic detail
-- [ ] **PARS-10**: All 4 parsers output typed `NormalizedFinding` interfaces validated by Zod schemas
+- [x] **PARS-10**: All 4 parsers output typed `NormalizedFinding` interfaces validated by Zod schemas
 - [ ] **PARS-11**: Snapshot tests exist for all 30+ threat engine rules against known parser outputs before any refactor
 
 ### Threat Engine
@@ -107,16 +107,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PARS-01 | Phase 1 | Pending |
+| PARS-01 | Phase 1 | Complete |
 | PARS-02 | Phase 1 | Complete |
-| PARS-03 | Phase 1 | Pending |
-| PARS-04 | Phase 1 | Pending |
+| PARS-03 | Phase 1 | Complete |
+| PARS-04 | Phase 1 | Complete |
 | PARS-05 | Phase 1 | Complete |
 | PARS-06 | Phase 1 | Complete |
 | PARS-07 | Phase 1 | Pending |
 | PARS-08 | Phase 1 | Pending |
 | PARS-09 | Phase 1 | Pending |
-| PARS-10 | Phase 1 | Pending |
+| PARS-10 | Phase 1 | Complete |
 | PARS-11 | Phase 1 | Pending |
 | THRT-01 | Phase 2 | Pending |
 | THRT-02 | Phase 2 | Pending |
