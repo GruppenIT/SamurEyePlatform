@@ -13,7 +13,7 @@ The revision deepens the existing scan pipeline in 4 coarse phases that follow a
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Parser Foundation** - Replace fragile parsers with typed, structured output validated by Zod schemas and protected by snapshot tests
-- [ ] **Phase 2: Threat Engine Intelligence** - Consolidate findings into grouped threat clusters with contextual severity scoring
+- [x] **Phase 2: Threat Engine Intelligence** - Consolidate findings into grouped threat clusters with contextual severity scoring
 - [ ] **Phase 3: Remediation Engine** - Generate specific, host-referencing fix instructions and close the remediation lifecycle loop
 - [ ] **Phase 4: User-Facing Surfaces** - Expose the new data model through redesigned findings view, action plan, and executive dashboard
 
@@ -49,9 +49,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: Schema migrations — add `threats.contextual_score`, `threats.score_breakdown` (jsonb), `threats.projected_score_after_fix` columns; create `posture_snapshots` table; create `recommendations` table; add indexes (all additive)
-- [ ] 02-02: Threat grouping engine — extend `threatEngine.ts` with `groupFindings()` method using journey-specific grouping keys; preserve existing correlation key format and stored history (THRT-01, THRT-02, THRT-03, THRT-04, THRT-05)
-- [ ] 02-03: Contextual scoring engine — implement `scoringEngine.ts` with weighted formula (base 40%, criticality 25%, exposure 20%, controls 15%); persist score_breakdown as JSONB; write posture_snapshots on journey completion; add `/api/posture/simulate` endpoint (THRT-06, THRT-07, THRT-08, THRT-09, THRT-10)
+- [x] 02-01: Schema migrations — add `threats.contextual_score`, `threats.score_breakdown` (jsonb), `threats.projected_score_after_fix` columns; create `posture_snapshots` table; create `recommendations` table; add indexes (all additive)
+- [x] 02-02: Threat grouping engine — extend `threatEngine.ts` with `groupFindings()` method using journey-specific grouping keys; preserve existing correlation key format and stored history (THRT-01, THRT-02, THRT-03, THRT-04, THRT-05)
+- [x] 02-03: Contextual scoring engine — implement `scoringEngine.ts` with weighted formula (base 40%, criticality 25%, exposure 20%, controls 15%); persist score_breakdown as JSONB; write posture_snapshots on journey completion; add `/api/posture/simulate` endpoint (THRT-06, THRT-07, THRT-08, THRT-09, THRT-10)
 
 ### Phase 3: Remediation Engine
 **Goal**: Every threat group has a specific, actionable remediation that references actual hosts, ports, and service versions found — and users can mark remediations as complete to close the loop
@@ -92,7 +92,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Parser Foundation | 2/3 | In Progress|  |
-| 2. Threat Engine Intelligence | 0/3 | Not started | - |
+| 1. Parser Foundation | 3/3 | Complete | 2026-03-16 |
+| 2. Threat Engine Intelligence | 3/3 | Complete | 2026-03-16 |
 | 3. Remediation Engine | 0/2 | Not started | - |
 | 4. User-Facing Surfaces | 0/3 | Not started | - |
