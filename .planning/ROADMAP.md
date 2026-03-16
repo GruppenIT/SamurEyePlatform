@@ -62,11 +62,11 @@ Plans:
   2. Every remediation shows what is wrong (one sentence), the business impact, step-by-step fix commands, a verification step, and an effort estimate with required role
   3. A user can mark a remediation as "mitigated — pending scan confirmation" and see that status reflected in the threat list
   4. After a re-scan where the finding is gone, the threat automatically transitions to "verified closed" — the user does not need to manually close it
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Recommendation engine core — implement `recommendationEngine.ts` with TypeScript template functions per threat type; enforce `{{host}}`, `{{port}}`, `{{service}}` variable slots via types; persist Recommendation records linked to threats (REMD-01, REMD-02, REMD-03, REMD-04, REMD-05)
-- [ ] 03-02: Remediation lifecycle — implement "mitigated — pending scan confirmation" user action; implement auto-closure via correlation key absence detection on re-scan (REMD-06, REMD-07)
+- [ ] 03-01-PLAN.md — Recommendation engine core: schema migration (status column + unique index), 25 template functions, recommendationEngine singleton, storage CRUD, pipeline integration after scoring (REMD-01, REMD-02, REMD-03, REMD-04, REMD-05)
+- [ ] 03-02-PLAN.md — Remediation lifecycle: sync recommendation status on threat status changes (mitigated->applied, closed->verified, reactivated->failed), recommendation API endpoints (REMD-06, REMD-07)
 
 ### Phase 4: User-Facing Surfaces
 **Goal**: Users can navigate from a dashboard showing their security posture to specific threats, see a clear problem/impact/fix hierarchy, follow a prioritized action plan, and track remediation progress — without encountering raw JSON or an undifferentiated wall of findings
