@@ -17,13 +17,15 @@ import { createLogger } from '../lib/logger';
 
 const log = createLogger('storage');
 
-export async function getThreats(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string }): Promise<Threat[]> {
+export async function getThreats(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string; jobId?: string; category?: string }): Promise<Threat[]> {
   if (filters) {
     const conditions = [];
     if (filters.severity) conditions.push(eq(threats.severity, filters.severity as any));
     if (filters.status) conditions.push(eq(threats.status, filters.status as any));
     if (filters.assetId) conditions.push(eq(threats.assetId, filters.assetId));
     if (filters.hostId) conditions.push(eq(threats.hostId, filters.hostId));
+    if (filters.jobId) conditions.push(eq(threats.jobId, filters.jobId));
+    if (filters.category) conditions.push(eq(threats.category, filters.category));
 
     if (conditions.length > 0) {
       return await db

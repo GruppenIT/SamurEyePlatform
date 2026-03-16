@@ -4,6 +4,9 @@ import { db } from "../db";
 import { sql } from "drizzle-orm";
 import { isAuthenticatedWithPasswordCheck } from "../localAuth";
 import { createLogger } from '../lib/logger';
+import { scoringEngine } from '../services/scoringEngine';
+import { getThreats } from '../storage/threats';
+import * as postureStorage from '../storage/posture';
 
 const log = createLogger('routes:dashboard');
 
@@ -155,6 +158,44 @@ export function registerDashboardRoutes(app: Express) {
     } catch (error) {
       log.error({ err: error }, 'failed to fetch feed');
       res.status(500).json({ message: "Falha ao buscar feed" });
+    }
+  });
+
+  // POST /api/posture/simulate — compute score delta for removing given threats
+  app.post('/api/posture/simulate', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const { threatIds } = req.body;
+      if (!Array.isArray(threatIds) || threatIds.length === 0) {
+        return res.status(400).json({ error: 'threatIds must be a non-empty array' });
+      }
+      const allOpenThreats = await getThreats({ status: 'open' });
+      const currentScore = scoringEngine.computePostureFromThreats(allOpenThreats);
+      const remainingThreats = allOpenThreats.filter(t => !threatIds.includes(t.id));
+      const projectedScore = scoringEngine.computePostureFromThreats(remainingThreats);
+      res.json({
+        currentScore: Math.round(currentScore * 10) / 10,
+        projectedScore: Math.round(projectedScore * 10) / 10,
+        delta: Math.round((projectedScore - currentScore) * 10) / 10,
+        threatsRemoved: threatIds.length,
+      });
+    } catch (error) {
+      log.error({ err: error }, 'posture simulation failed');
+      res.status(500).json({ error: 'Simulation failed' });
+    }
+  });
+
+  // GET /api/posture/history — return posture snapshot time series
+  app.get('/api/posture/history', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const { journeyId, limit } = req.query;
+      const history = await postureStorage.getPostureHistory(
+        journeyId as string | undefined,
+        limit ? parseInt(limit as string, 10) : 30,
+      );
+      res.json(history);
+    } catch (error) {
+      log.error({ err: error }, 'posture history fetch failed');
+      res.status(500).json({ error: 'Failed to fetch posture history' });
     }
   });
 }
