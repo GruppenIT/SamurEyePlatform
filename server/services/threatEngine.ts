@@ -1073,7 +1073,7 @@ class ThreatEngineService {
     log.info({ jobId, groupCount: groups.size }, 'groupFindings: computed groups');
 
     // Use first child's context for parent FK fields (journeyId comes from job, use child's assetId/hostId)
-    for (const [groupingKey, children] of groups) {
+    for (const [groupingKey, children] of Array.from(groups)) {
       const representative = children[0];
 
       const severity = this.deriveGroupSeverity(children);
