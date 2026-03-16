@@ -1255,207 +1255,16 @@ class JourneyExecutorService {
   /**
    * Executa nmap vuln scripts para validação ativa de CVEs
    * Phase 2B: Active CVE detection using nmap --script=vuln
+   * Delegates to networkScanner.scanVulns() — no longer spawns nmap directly.
    */
   private async runNmapVulnScripts(host: string, ports: string[], jobId?: string, timeoutMs: number = 3600000): Promise<any[]> {
     try {
-      const { spawn } = await import('child_process');
-      
-      // Construir argumentos do nmap para validação de vulnerabilidades
-      const portList = ports.join(',');
-      const args = [
-        '-Pn',  // Skip ping
-        '-sT',  // TCP connect scan (não requer root)
-        '-p', portList,  // Portas específicas
-        '--script', 'vuln',  // Scripts de vulnerabilidade
-        '--script-args', 'vulns.showall',  // Mostrar todos os CVEs
-        host
-      ];
-      
-      log.info(`🎯 Executando nmap vuln scripts: nmap ${args.join(' ')}`);
-      
-      return new Promise((resolve, reject) => {
-        const child = spawn('nmap', args);
-        
-        let stdout = '';
-        let stderr = '';
-        
-        // Registrar no ProcessTracker para monitoramento e WebSocket updates
-        const stage = `Validando CVEs em ${host}`;
-        if (jobId) {
-          try {
-            processTracker.register(jobId, 'nmap', child, stage);
-          } catch (error) {
-            log.warn(`⚠️ Falha ao registrar nmap vuln no tracker: ${error}`);
-          }
-        }
-        
-        const timeout = setTimeout(() => {
-          child.kill('SIGTERM');
-          // Force kill after 5s if SIGTERM doesn't work
-          setTimeout(() => {
-            if (!child.killed) {
-              child.kill('SIGKILL');
-            }
-          }, 5000);
-          log.info(`⏱️ Nmap vuln scripts timeout após ${timeoutMs/60000}min para ${host}`);
-          resolve([]); // Retorna vazio em caso de timeout
-        }, timeoutMs);
-        
-        child.stdout?.on('data', (data) => {
-          stdout += data.toString();
-        });
-        
-        child.stderr?.on('data', (data) => {
-          stderr += data.toString();
-        });
-        
-        child.on('close', (code) => {
-          clearTimeout(timeout);
-          
-          if (code === 0 || stdout.length > 0) {
-            // Parse do output para extrair vulnerabilidades detectadas
-            const vulnFindings = this.parseNmapVulnOutput(stdout, host);
-            log.info(`✅ Nmap vuln scripts concluído: ${vulnFindings.length} vulnerabilidades encontradas`);
-            resolve(vulnFindings);
-          } else {
-            log.error(`❌ Nmap vuln scripts falhou (code ${code}): ${stderr}`);
-            resolve([]); // Retorna vazio em caso de erro
-          }
-        });
-        
-        child.on('error', (error) => {
-          clearTimeout(timeout);
-          log.error(`❌ Erro ao executar nmap vuln scripts:`, error);
-          resolve([]); // Retorna vazio em caso de erro
-        });
-      });
+      log.info(`🎯 Delegando nmap vuln scan para networkScanner.scanVulns(${host})`);
+      return await networkScanner.scanVulns(host, ports, jobId);
     } catch (error) {
-      log.error(`❌ Erro fatal ao executar nmap vuln scripts:`, error);
+      log.error(`❌ Erro ao executar nmap vuln scripts via networkScanner:`, error);
       return [];
     }
-  }
-
-  /**
-   * Parse do output do nmap --script=vuln para extrair vulnerabilidades
-   */
-  private parseNmapVulnOutput(output: string, host: string): any[] {
-    const findings: any[] = [];
-    const lines = output.split('\n');
-    
-    let currentPort = '';
-    let currentService = '';
-    let vulnerabilityBuffer = '';
-    let isInVulnBlock = false;
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      
-      // Detectar linha de porta: "445/tcp open  microsoft-ds"
-      const portMatch = line.match(/^(\d+)\/(tcp|udp)\s+(open|filtered)\s+(.+)/);
-      if (portMatch) {
-        // Processar vulnerabilidade anterior se existir
-        if (vulnerabilityBuffer && currentPort) {
-          const vuln = this.extractVulnerabilityFromBuffer(vulnerabilityBuffer, host, currentPort, currentService);
-          if (vuln) findings.push(vuln);
-        }
-        
-        currentPort = portMatch[1];
-        currentService = portMatch[4].trim();
-        vulnerabilityBuffer = '';
-        isInVulnBlock = false;
-        continue;
-      }
-      
-      // Detectar início de bloco de vulnerabilidade
-      // IMPORTANT: Skip "NOT VULNERABLE" entries - only match actual VULNERABLE state
-      if (line.includes('|') && (line.includes('CVE-') || line.includes('VULNERABLE')) && !line.includes('NOT VULNERABLE')) {
-        isInVulnBlock = true;
-      }
-      
-      // Acumular linhas do bloco de vulnerabilidade
-      if (isInVulnBlock && line.includes('|')) {
-        vulnerabilityBuffer += line + '\n';
-      }
-      
-      // Detectar fim do bloco de vulnerabilidade (linha vazia após '|_')
-      if (isInVulnBlock && line.match(/^\|_/)) {
-        vulnerabilityBuffer += line + '\n';
-        
-        // Processar vulnerabilidade acumulada
-        if (currentPort) {
-          const vuln = this.extractVulnerabilityFromBuffer(vulnerabilityBuffer, host, currentPort, currentService);
-          if (vuln) findings.push(vuln);
-        }
-        
-        vulnerabilityBuffer = '';
-        isInVulnBlock = false;
-      }
-    }
-    
-    // Processar última vulnerabilidade se existir
-    if (vulnerabilityBuffer && currentPort) {
-      const vuln = this.extractVulnerabilityFromBuffer(vulnerabilityBuffer, host, currentPort, currentService);
-      if (vuln) findings.push(vuln);
-    }
-    
-    return findings;
-  }
-
-  /**
-   * Extrai informações de vulnerabilidade de um bloco de output do nmap
-   */
-  private extractVulnerabilityFromBuffer(buffer: string, host: string, port: string, service: string): any | null {
-    // Skip NOT VULNERABLE entries - nmap with vulns.showall reports non-vulnerable services too
-    if (buffer.includes('NOT VULNERABLE') || buffer.includes('State: NOT VULNERABLE')) {
-      return null;
-    }
-
-    // Extrair CVE IDs
-    const cveMatches = buffer.match(/CVE-\d{4}-\d{4,7}/g);
-    if (!cveMatches || cveMatches.length === 0) {
-      return null; // Sem CVE, ignorar
-    }
-    
-    const cveId = cveMatches[0]; // Usar primeiro CVE encontrado
-    
-    // Extrair título/nome da vulnerabilidade
-    let title = '';
-    const titleMatch = buffer.match(/\|\s+(.+?):/);
-    if (titleMatch) {
-      title = titleMatch[1].trim();
-    }
-    
-    // Determinar severidade (padrão: high para CVEs confirmados)
-    let severity: 'low' | 'medium' | 'high' | 'critical' = 'high';
-    if (buffer.toLowerCase().includes('critical')) {
-      severity = 'critical';
-    } else if (buffer.toLowerCase().includes('high')) {
-      severity = 'high';
-    } else if (buffer.toLowerCase().includes('medium')) {
-      severity = 'medium';
-    } else if (buffer.toLowerCase().includes('low')) {
-      severity = 'low';
-    }
-    
-    // Extrair descrição
-    const description = buffer
-      .replace(/\|/g, '')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .substring(0, 500); // Limitar tamanho
-    
-    return {
-      type: 'nmap_vuln',
-      target: host,
-      port,
-      service,
-      cve: cveId,
-      name: title || `Vulnerabilidade ${cveId}`,
-      severity,
-      description: description || `CVE ${cveId} detectado ativamente via nmap vuln scripts`,
-      details: buffer.trim(),
-      timestamp: new Date().toISOString(),
-    };
   }
 
   /**
@@ -1555,10 +1364,7 @@ class JourneyExecutorService {
   private async runNucleiWebScan(urls: string[], jobId?: string, timeoutMs: number = 3600000): Promise<any[]> {
     const findings: any[] = [];
     const { spawn } = await import('child_process');
-    
-    // Garantir que templates Nuclei estão instalados
-    await this.ensureNucleiTemplates();
-    
+
     for (const url of urls) {
       try {
         log.info(`🔍 Executando Nuclei em ${url} (timeout: ${timeoutMs/60000}min)`);
@@ -1626,8 +1432,8 @@ class JourneyExecutorService {
           });
         });
         
-        // Parse do output JSON lines
-        const urlFindings = this.parseNucleiOutput(result, url);
+        // Parse do output JSON lines — delegate to vulnScanner.parseNuclei (PARS-05, PARS-06)
+        const urlFindings = vulnScanner.parseNuclei(result);
         findings.push(...urlFindings);
         log.info(`✅ Nuclei concluído para ${url}: ${urlFindings.length} vulnerabilidades`);
         
@@ -1639,112 +1445,6 @@ class JourneyExecutorService {
     return findings;
   }
   
-  /**
-   * Parse do output do Nuclei JSONL
-   */
-  private parseNucleiOutput(output: string, target: string): any[] {
-    const findings: any[] = [];
-    
-    if (!output || output.trim().length === 0) {
-      return findings;
-    }
-    
-    const lines = output.split('\n').filter(line => line.trim());
-    
-    for (const line of lines) {
-      try {
-        const finding = JSON.parse(line);
-        
-        findings.push({
-          type: 'vulnerability',
-          target,
-          name: finding.info?.name || finding.templateID || finding.template,
-          severity: this.mapNucleiSeverity(finding.info?.severity),
-          template: finding.templateID || finding.template,
-          description: finding.info?.description || '',
-          evidence: {
-            source: 'nuclei',
-            templateId: finding.templateID || finding.template,
-            url: finding['matched-at'] || finding.matched_at,
-            matcher: finding['matcher-name'] || finding.matcher_name,
-            info: finding.info,
-          },
-        });
-      } catch (error) {
-        // Ignorar linhas que não são JSON válido
-      }
-    }
-    
-    return findings;
-  }
-  
-  /**
-   * Mapeia severidade do Nuclei para padrão do sistema
-   */
-  private mapNucleiSeverity(severity?: string): 'low' | 'medium' | 'high' | 'critical' {
-    const sev = (severity || 'medium').toLowerCase();
-    if (['critical', 'high', 'medium', 'low'].includes(sev)) {
-      return sev as 'low' | 'medium' | 'high' | 'critical';
-    }
-    return 'medium';
-  }
-  
-  /**
-   * Garante que templates do Nuclei estão instalados
-   */
-  private async ensureNucleiTemplates(): Promise<void> {
-    const { spawn } = await import('child_process');
-    const { promises: fs } = await import('fs');
-    
-    const templatesDir = '/tmp/nuclei/nuclei-templates';
-    
-    try {
-      const stats = await fs.stat(templatesDir);
-      if (stats.isDirectory()) {
-        const files = await fs.readdir(templatesDir);
-        if (files.length > 0) {
-          return; // Templates já existem
-        }
-      }
-    } catch {
-      // Diretório não existe
-    }
-    
-    log.info('📥 Baixando templates Nuclei...');
-    
-    return new Promise((resolve, reject) => {
-      const child = spawn('nuclei', ['-update-templates', '-ud', templatesDir], {
-        stdio: ['ignore', 'pipe', 'pipe'],
-        env: {
-          ...process.env,
-          HOME: '/tmp/nuclei',
-          NUCLEI_CONFIG_DIR: '/tmp/nuclei/.config',
-        },
-      });
-      
-      const timeout = setTimeout(() => {
-        child.kill('SIGTERM');
-        setTimeout(() => { if (!child.killed) child.kill('SIGKILL'); }, 5000);
-        reject(new Error('Template download timeout'));
-      }, 120000);
-      
-      child.on('close', (code) => {
-        clearTimeout(timeout);
-        if (code === 0 || code === null) {
-          log.info('✅ Templates Nuclei baixados');
-          resolve();
-        } else {
-          reject(new Error(`Failed to download templates: code ${code}`));
-        }
-      });
-      
-      child.on('error', (error) => {
-        clearTimeout(timeout);
-        reject(error);
-      });
-    });
-  }
-
   /**
    * Expande um range CIDR em IPs individuais
    * Ex: 192.168.100.0/24 -> [192.168.100.1, 192.168.100.2, ...]

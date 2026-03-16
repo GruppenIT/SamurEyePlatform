@@ -2,8 +2,10 @@ import { spawn } from 'child_process';
 import dns from 'dns';
 import net from 'net';
 import { promisify } from 'util';
+import { XMLParser } from 'fast-xml-parser';
 import { processTracker } from '../processTracker';
 import { createLogger } from '../../lib/logger';
+import { NmapFindingSchema, NmapVulnFindingSchema, type NmapFinding, type NmapVulnFinding, type NseScript } from '../../../shared/schema';
 
 const log = createLogger('networkScanner');
 
@@ -185,9 +187,9 @@ export class NetworkScanner {
     
     try {
       const stdout = await this.spawnCommand('nmap', args, context);
-      const results = this.parseNmapOutput(stdout, originalTarget, resolvedTarget);
-      
-      // Log verboso das portas detectadas
+      const results = this.parseNmapXml(stdout, originalTarget);
+
+      // Log verbose port findings
       log.info(`📊 Nmap concluído para ${originalTarget} - ${results.length} portas processadas:`);
       for (const result of results) {
         log.info(`  🔍 Porta ${result.port}: ${result.state} | Serviço: ${result.service || 'desconhecido'} | Versão: ${result.version || 'N/A'}`);
@@ -198,7 +200,7 @@ export class NetworkScanner {
           log.info(`    💻 OS detectado: ${result.osInfo}`);
         }
       }
-      
+
       return results;
     } catch (error) {
       // Verificar se é erro de privilégios e fazer fallback para TCP scan
@@ -207,14 +209,14 @@ export class NetworkScanner {
         error.message.includes('You requested a scan type which requires root')
       )) {
         log.info(`⚠️ nmap requer privilégios de root para perfil ${nmapProfile}, fazendo fallback para TCP scan`);
-        
+
         // Reconstruir args com TCP scan
         args = this.buildNmapArgs(resolvedTarget, ports, 'tcp-fallback');
-        
+
         try {
           const stdout = await this.spawnCommand('nmap', args, context);
-          const results = this.parseNmapOutput(stdout, originalTarget, resolvedTarget);
-          
+          const results = this.parseNmapXml(stdout, originalTarget);
+
           log.info(`📊 Nmap TCP fallback concluído para ${originalTarget} - ${results.length} portas processadas`);
           return results;
         } catch (fallbackError) {
@@ -222,7 +224,7 @@ export class NetworkScanner {
           throw fallbackError;
         }
       }
-      
+
       // Re-throw outros erros
       throw error;
     }
@@ -362,7 +364,9 @@ export class NetworkScanner {
   }
 
   /**
-   * Parse da saída do nmap
+   * Parse da saída do nmap (formato texto/regex)
+   * @deprecated Use parseNmapXml(stdout, target) instead — requires '-oX -' flag.
+   *             This method is kept for reference only and will be removed in plan 01-02.
    */
   private parseNmapOutput(output: string, originalTarget: string, resolvedTarget: string): PortScanResult[] {
     const results: PortScanResult[] = [];
@@ -812,7 +816,7 @@ export class NetworkScanner {
 
     try {
       const stdout = await this.spawnCommand('nmap', args, context);
-      const results = this.parseNmapOutput(stdout, cidr, cidr);
+      const results = this.parseNmapXml(stdout, cidr);
 
       // Count unique hosts discovered
       const uniqueHosts = new Set(results.filter(r => r.state === 'open').map(r => r.ip || r.target));
@@ -922,6 +926,192 @@ export class NetworkScanner {
   }
 
   /**
+   * Parses nmap XML output (produced with -oX -) and returns NmapFinding[].
+   * Captures NSE script blocks including CVE references into nseScripts array (PARS-02).
+   * Uses fast-xml-parser for robust XML handling.
+   */
+  public parseNmapXml(xml: string, target: string): NmapFinding[] {
+    if (!xml || xml.trim().length === 0) return [];
+
+    const parser = new XMLParser({
+      ignoreAttributes: false,
+      attributeNamePrefix: '@_',
+      parseAttributeValue: true,
+      allowBooleanAttributes: true,
+      isArray: (name: string) =>
+        ['host', 'port', 'script', 'elem', 'table', 'osmatch', 'osclass', 'cpe', 'hostname', 'address'].includes(name),
+    });
+
+    let doc: any;
+    try {
+      doc = parser.parse(xml);
+    } catch (err) {
+      log.warn({ err }, '[parseNmapXml] Failed to parse XML — returning empty array');
+      return [];
+    }
+
+    const nmaprun = doc?.nmaprun;
+    if (!nmaprun) return [];
+
+    const hosts: any[] = nmaprun.host ?? [];
+    const findings: NmapFinding[] = [];
+
+    for (const host of hosts) {
+      // Resolve IP from address array (ipv4 type)
+      const addresses: any[] = host.address ?? [];
+      const ipAddr = addresses.find((a: any) => a['@_addrtype'] === 'ipv4')?.['@_addr'] ?? target;
+
+      // Resolve best hostname: prefer PTR hostname, fall back to target
+      const hostnames: any[] = host.hostnames?.hostname ?? [];
+      const hostname = hostnames[0]?.['@_name'] ?? target;
+
+      // OS info — use best osmatch (first = highest accuracy)
+      let osName: string | undefined;
+      let osAccuracy: number | undefined;
+      let osCpe: string[] | undefined;
+      const osmatches: any[] = host.os?.osmatch ?? [];
+      if (osmatches.length > 0) {
+        const bestOs = osmatches[0];
+        osName = bestOs['@_name'] as string | undefined;
+        const rawAccuracy = bestOs['@_accuracy'];
+        osAccuracy = rawAccuracy !== undefined ? Number(rawAccuracy) : undefined;
+        const osclasses: any[] = bestOs.osclass ?? [];
+        const cpes = osclasses.flatMap((c: any) => {
+          const cpelist: any[] = c.cpe ?? [];
+          return cpelist.map((cpeEntry: any) =>
+            typeof cpeEntry === 'string' ? cpeEntry : (cpeEntry['#text'] ?? String(cpeEntry))
+          );
+        }).filter(Boolean);
+        if (cpes.length > 0) osCpe = cpes;
+      }
+
+      const ports: any[] = host.ports?.port ?? [];
+      for (const port of ports) {
+        const portId = String(port['@_portid'] ?? '');
+        const rawState = port.state?.['@_state'];
+
+        // Only emit findings for open ports (per PARS-01 spec — skips filtered/closed)
+        if (rawState !== 'open') continue;
+
+        const svc = port.service ?? {};
+        const service = (svc['@_name'] != null ? String(svc['@_name']) : undefined) ?? 'unknown';
+        const product = svc['@_product'] != null ? String(svc['@_product']) : undefined;
+        // Coerce to string: parseAttributeValue may parse numeric-looking versions as numbers
+        const version = svc['@_version'] != null ? String(svc['@_version']) : undefined;
+        const extrainfo = svc['@_extrainfo'] != null ? String(svc['@_extrainfo']) : undefined;
+
+        // serviceCpe: nmap emits <cpe> as child element of <service>, not as attribute
+        const svcCpeList: any[] = svc.cpe ?? [];
+        const serviceCpe: string | undefined = svcCpeList.length > 0
+          ? (typeof svcCpeList[0] === 'string' ? svcCpeList[0] : (svcCpeList[0]['#text'] ?? undefined))
+          : undefined;
+
+        // Parse NSE scripts — extract CVE IDs from output text
+        const scripts: any[] = port.script ?? [];
+        const nseScripts: NseScript[] = scripts.map((script: any) => {
+          const scriptId = (script['@_id'] ?? '') as string;
+          const output = (script['@_output'] ?? '') as string;
+
+          // Extract CVE references from output attribute text
+          const cvePattern = /CVE-\d{4}-\d{4,7}/g;
+          const cveMatches = output.match(cvePattern);
+          const cves = cveMatches ? Array.from(new Set<string>(cveMatches)) : undefined;
+
+          // Extract exploit state from output
+          let exploitState: string | undefined;
+          const stateMatch = output.match(/State:\s*(\S+)/);
+          if (stateMatch) exploitState = stateMatch[1];
+
+          return { id: scriptId, output, cves, exploitState } satisfies NseScript;
+        });
+
+        const mapped: Record<string, unknown> = {
+          type: 'port',
+          target: hostname,
+          severity: 'medium',
+          ip: ipAddr,
+          port: portId,
+          state: 'open',
+          service,
+          product,
+          version,
+          extrainfo,
+          serviceCpe,
+          osName,
+          osAccuracy,
+          osCpe,
+          nseScripts: nseScripts.length > 0 ? nseScripts : undefined,
+          osInfo: osName,
+        };
+
+        const result = NmapFindingSchema.safeParse(mapped);
+        if (result.success) {
+          findings.push(result.data);
+        } else {
+          log.warn(
+            { raw: mapped, err: result.error.flatten() },
+            `[parseNmapXml] nmap finding validation failed for port ${portId} — skipping`,
+          );
+        }
+      }
+    }
+
+    log.info(`[parseNmapXml] Parsed ${findings.length} open port findings from XML for ${target}`);
+    return findings;
+  }
+
+  /**
+   * Runs nmap with --script=vuln against target and returns NmapVulnFinding[].
+   * Delegates XML parsing to parseNmapXml, then re-validates as NmapVulnFinding (type: 'nmap_vuln').
+   * Used by journeyExecutor to replace its private runNmapVulnScripts/parseNmapVulnOutput pattern.
+   */
+  public async scanVulns(target: string, ports?: string[], jobId?: string): Promise<NmapVulnFinding[]> {
+    const portList = ports && ports.length > 0 ? ports.join(',') : '1-65535';
+    const args = [
+      '-Pn',
+      '-sT',
+      '-p', portList,
+      '--script', 'vuln',
+      '--script-args', 'vulns.showall',
+      '-oX', '-',  // Output XML to stdout
+      target,
+    ];
+
+    const stage = `Validando CVEs em ${target}... nmap --script=vuln`;
+    log.info(`[scanVulns] ${stage}`);
+
+    const context: ProcessContext = {
+      jobId,
+      processName: 'nmap',
+      stage,
+      maxWaitTime: 3600000, // 60 min max for vuln scan
+    };
+
+    let stdout: string;
+    try {
+      stdout = await this.spawnCommand('nmap', args, context);
+    } catch (error) {
+      log.error(`[scanVulns] nmap vuln scan failed: ${error}`);
+      return [];
+    }
+
+    // Parse XML, then re-cast to NmapVulnFinding (type 'nmap_vuln')
+    const portFindings = this.parseNmapXml(stdout, target);
+    const vulnFindings: NmapVulnFinding[] = [];
+
+    for (const pf of portFindings) {
+      const vulnMapped = { ...pf, type: 'nmap_vuln' as const };
+      const result = NmapVulnFindingSchema.safeParse(vulnMapped);
+      if (result.success) {
+        vulnFindings.push(result.data);
+      }
+    }
+
+    log.info(`[scanVulns] Found ${vulnFindings.length} vuln findings for ${target}`);
+    return vulnFindings;
+  }
+
+  /**
    * Constrói argumentos do nmap baseado no perfil
    */
   private buildNmapArgs(target: string, ports: number[], nmapProfile?: string, skipOsDetection: boolean = false): string[] {
@@ -1010,6 +1200,10 @@ export class NetworkScanner {
       args.push('--top-ports', '1000');
       log.info('🔍 Executando nmap leve: top 1000 portas');
     }
+
+    // Output XML to stdout — required for parseNmapXml (PARS-01)
+    // Must come BEFORE target and NOT be combined with -oN/-oG flags
+    args.push('-oX', '-');
 
     args.push(target);
     return args;

@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`networkScanner.parseNmapXml - NSE script capture (PARS-02) > snapshots the full nseScripts array 1`] = `
+[
+  {
+    "cves": [
+      "CVE-2017-0144",
+    ],
+    "exploitState": "VULNERABLE&#xa;",
+    "id": "smb-vuln-ms17-010",
+    "output": "&#xa;  VULNERABLE:&#xa;  Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)&#xa;    State: VULNERABLE&#xa;    IDs:  CVE:CVE-2017-0144&#xa;    Risk factor: HIGH&#xa;    Description:&#xa;      A critical remote code execution vulnerability exists in Microsoft SMBv1&#xa;       servers (ms17-010).&#xa;    Disclosure date: 2017-03-14&#xa;    References:&#xa;      https://technet.microsoft.com/en-us/library/security/ms17-010.aspx&#xa;      https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-0144&#xa;",
+  },
+]
+`;
