@@ -1,0 +1,3 @@
+{"template-id":"sqli-test","info":{"name":"SQL Injection Detected","severity":"high","description":"SQL injection vulnerability detected in the target.","tags":["sqli","owasp"]},"matched-at":"http://example.com/user?id=1","host":"example.com","port":"80","type":"http"}
+{invalid json here -- this line should be skipped
+{"template-id":"ssrf-test","info":{"name":"SSRF Vulnerability","severity":"medium","description":"Server-Side Request Forgery vulnerability detected.","tags":["ssrf"]},"matched-at":"http://example.com/fetch?url=http://169.254.169.254/","host":"example.com","port":"80","type":"http"}
