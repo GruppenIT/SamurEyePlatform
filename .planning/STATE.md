@@ -3,6 +3,21 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
+stopped_at: Completed 02-02-PLAN.md (groupFindings engine)
+last_updated: "2026-03-16T21:09:39.325Z"
+last_activity: "2026-03-16 — Phase 2 Plan 3 complete: ScoringEngineService, posture storage, simulate/history API"
+progress:
+  total_phases: 4
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 6
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: in_progress
 stopped_at: "Completed 02-03-PLAN.md"
 last_updated: "2026-03-16T21:10:00.000Z"
 last_activity: "2026-03-16 — Phase 2 Plan 3 complete: ScoringEngineService, posture storage, simulate/history API"
@@ -55,6 +70,7 @@ Progress: [████████░░] 83%
 | Phase 02-threat-engine-intelligence P01 | 200s | 2 tasks | 3 files |
 | Phase 01-parser-foundation P02 | 9min | 2 tasks | 9 files |
 | Phase 01-parser-foundation P01 | 11min | 2 tasks | 10 files |
+| Phase 02-threat-engine-intelligence P02 | 200 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -76,6 +92,8 @@ Recent decisions affecting current work:
 - [Phase 02-threat-engine-intelligence]: InsertPostureSnapshot/Recommendation use .$inferInsert (not z.infer) — no custom omit needed
 - [Phase 02-threat-engine-intelligence P03]: rawScore used for criticality comparison in tests — normalizedScore clamps both DC and desktop to 100 for critical+attack_surface threats
 - [Phase 02-threat-engine-intelligence P03]: getThreats() extended with jobId+category filters for scoring engine scoping and EDR status resolution
+- [Phase 02-threat-engine-intelligence]: groupFindings uses grp: prefix to distinguish grouping keys from correlationKeys
+- [Phase 02-threat-engine-intelligence]: groupFindings idempotency: queries isNull(parentThreatId) per jobId so re-runs skip already-grouped threats
 
 ### Pending Todos
 
@@ -87,6 +105,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T21:10:00.000Z
-Stopped at: Completed 02-03-PLAN.md
-Resume file: .planning/phases/02-threat-engine-intelligence/02-03-SUMMARY.md
+Last session: 2026-03-16T21:09:39.320Z
+Stopped at: Completed 02-02-PLAN.md (groupFindings engine)
+Resume file: None
