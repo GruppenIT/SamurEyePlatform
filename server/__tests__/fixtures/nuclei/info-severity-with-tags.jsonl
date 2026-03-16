@@ -1,0 +1,1 @@
+{"template-id":"tech-detect-nginx","info":{"name":"Nginx HTTP Server Detected","severity":"info","description":"Nginx HTTP server was detected on the target.","tags":["tech","detect"],"references":["https://nginx.org/en/"]},"matched-at":"http://example.com/","host":"example.com","port":"80","type":"http"}
