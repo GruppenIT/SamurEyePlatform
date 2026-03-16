@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { users, threats, threatStatusHistory } from "@shared/schema";
+import { users, threats, threatStatusHistory, postureSnapshots, recommendations } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import * as crypto from "crypto";
 import { createLogger } from '../lib/logger';
@@ -46,6 +46,27 @@ export async function initializeDatabaseStructure(): Promise<void> {
       log.info('duplicate prevention system active');
     } else {
       log.info('database structure already up to date');
+    }
+
+    // Phase 2: grouping_key partial unique index for parent threat upsert
+    const groupingKeyCheck = await db.execute(sql`
+      SELECT indexname
+      FROM pg_indexes
+      WHERE tablename = 'threats'
+        AND indexname = 'UQ_threats_grouping_key'
+    `);
+
+    const hasGroupingKeyIndex = (groupingKeyCheck.rowCount ?? 0) > 0;
+    log.info({ hasGroupingKeyIndex }, 'grouping_key unique index status');
+
+    if (!hasGroupingKeyIndex) {
+      log.info('creating unique index for grouping_key');
+      await db.execute(sql`
+        CREATE UNIQUE INDEX "UQ_threats_grouping_key"
+        ON threats (grouping_key)
+        WHERE grouping_key IS NOT NULL
+      `);
+      log.info('grouping_key unique index created successfully');
     }
 
   } catch (error) {
