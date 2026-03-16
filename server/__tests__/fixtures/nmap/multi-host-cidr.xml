@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -sT -sV -Pn -T4 -oX - 192.168.1.0/24" start="1700000000" startstr="Mon Jan  1 00:00:00 2024" version="7.94" xmloutputversion="1.05">
+  <host starttime="1700000000" endtime="1700000060">
+    <status state="up" reason="syn-ack" reason_ttl="0"/>
+    <address addr="192.168.1.10" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="host1.corp.local" type="PTR"/>
+    </hostnames>
+    <ports>
+      <port protocol="tcp" portid="22">
+        <state state="open" reason="syn-ack" reason_ttl="0"/>
+        <service name="ssh" product="OpenSSH" version="8.9p1" method="probed" conf="10"/>
+      </port>
+      <port protocol="tcp" portid="80">
+        <state state="open" reason="syn-ack" reason_ttl="0"/>
+        <service name="http" product="Apache httpd" version="2.4.54" method="probed" conf="10"/>
+      </port>
+    </ports>
+  </host>
+  <host starttime="1700000010" endtime="1700000070">
+    <status state="up" reason="syn-ack" reason_ttl="0"/>
+    <address addr="192.168.1.20" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="host2.corp.local" type="PTR"/>
+    </hostnames>
+    <ports>
+      <port protocol="tcp" portid="443">
+        <state state="open" reason="syn-ack" reason_ttl="0"/>
+        <service name="https" product="nginx" version="1.22.1" method="probed" conf="10"/>
+      </port>
+      <port protocol="tcp" portid="8080">
+        <state state="filtered" reason="no-response" reason_ttl="0"/>
+        <service name="http-alt" method="table" conf="3"/>
+      </port>
+    </ports>
+  </host>
+  <host starttime="1700000020" endtime="1700000080">
+    <status state="up" reason="syn-ack" reason_ttl="0"/>
+    <address addr="192.168.1.30" addrtype="ipv4"/>
+    <hostnames/>
+    <ports>
+      <port protocol="tcp" portid="3389">
+        <state state="open" reason="syn-ack" reason_ttl="0"/>
+        <service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10"/>
+      </port>
+      <port protocol="tcp" portid="445">
+        <state state="open" reason="syn-ack" reason_ttl="0"/>
+        <service name="microsoft-ds" method="probed" conf="10"/>
+      </port>
+    </ports>
+  </host>
+  <runstats>
+    <finished time="1700000180" timestr="Mon Jan  1 00:03:00 2024" elapsed="180" summary="Nmap done; 256 IP addresses (3 hosts up) scanned in 180.00 seconds" exit="success"/>
+    <hosts up="3" down="253" total="256"/>
+  </runstats>
+</nmaprun>
