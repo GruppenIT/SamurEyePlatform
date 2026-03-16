@@ -1,0 +1,17 @@
+[
+  {
+    "type": "ad_misconfiguration",
+    "target": "corp.example.com",
+    "name": "Grupo Privilegiado com Muitos Membros",
+    "severity": "high",
+    "category": "groups",
+    "description": "O grupo Domain Admins possui 8 membros, excedendo o limite recomendado",
+    "evidence": {
+      "testId": "privileged_group_members",
+      "count": 8,
+      "memberCount": 8,
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Reduzir o número de membros em grupos administrativos privilegiados"
+  }
+]

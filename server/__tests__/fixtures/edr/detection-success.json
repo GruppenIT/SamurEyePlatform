@@ -1,0 +1,29 @@
+{
+  "type": "edr_test",
+  "target": "workstation01.corp.example.com",
+  "severity": "low",
+  "hostname": "workstation01.corp.example.com",
+  "eicarRemoved": true,
+  "detected": true,
+  "deploymentMethod": "smb",
+  "testDuration": 35,
+  "filePath": "\\\\workstation01\\C$\\Windows\\Temp\\samureye_eicar.txt",
+  "timestamp": "2024-03-16T10:00:00Z",
+  "timeline": [
+    {
+      "timestamp": "2024-03-16T10:00:00Z",
+      "action": "deploy_attempt",
+      "detail": "Attempting EICAR deployment via SMB to workstation01.corp.example.com"
+    },
+    {
+      "timestamp": "2024-03-16T10:00:02Z",
+      "action": "deploy_success",
+      "detail": "EICAR file deployed via SMB to \\\\workstation01\\C$\\Windows\\Temp\\samureye_eicar.txt"
+    },
+    {
+      "timestamp": "2024-03-16T10:00:32Z",
+      "action": "detected",
+      "detail": "EICAR file removed by EDR/AV"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "type": "ad_vulnerability",
+    "target": "corp.example.com",
+    "name": "Grupo Privilegiado com Muitos Membros",
+    "severity": "medium",
+    "category": "groups",
+    "description": "O grupo Domain Admins possui 12 membros, excedendo o máximo recomendado de 5",
+    "evidence": {
+      "testId": "privileged_group_too_many",
+      "groupName": "Domain Admins",
+      "memberCount": 12,
+      "maxRecommendedMembers": 5,
+      "members": ["admin1", "admin2", "admin3", "admin4", "admin5", "admin6", "admin7", "admin8", "admin9", "admin10", "admin11", "admin12"],
+      "objectId": "Domain Admins",
+      "domain": "corp.example.com"
+    },
+    "recommendation": "Reduzir o número de membros no grupo Domain Admins ao mínimo necessário"
+  }
+]
