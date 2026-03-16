@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { useWebSocket } from "@/lib/websocket";
+import { queryClient } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
 import {
@@ -11,9 +13,22 @@ import {
 import PostureHero from "@/components/dashboard/posture-hero";
 import TopActions from "@/components/dashboard/top-actions";
 import JourneyCoverage from "@/components/dashboard/journey-coverage";
+import JourneyComparison from "@/components/dashboard/journey-comparison";
 
 export default function Postura() {
-  const { connected } = useWebSocket();
+  const { connected, lastMessage } = useWebSocket();
+
+  useEffect(() => {
+    if (
+      lastMessage?.type === "jobUpdate" &&
+      ["completed", "failed", "timeout"].includes(lastMessage.data?.status)
+    ) {
+      queryClient.invalidateQueries({ queryKey: ["/api/posture/history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/posture/coverage"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/action-plan"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/threats"] });
+    }
+  }, [lastMessage]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -61,6 +76,19 @@ export default function Postura() {
             </CardHeader>
             <CardContent className="p-0">
               <JourneyCoverage />
+            </CardContent>
+          </Card>
+
+          {/* Journey Comparison — delta between current and previous run */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Comparacao entre Execucoes</CardTitle>
+              <CardDescription>
+                Delta entre a execucao atual e a anterior
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <JourneyComparison />
             </CardContent>
           </Card>
         </div>
