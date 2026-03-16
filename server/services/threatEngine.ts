@@ -4,6 +4,7 @@ import { type InsertThreat, type Threat } from '@shared/schema';
 import { notificationService } from './notificationService';
 import { createLogger } from '../lib/logger';
 import { scoringEngine } from './scoringEngine';
+import { recommendationEngine } from './recommendationEngine';
 import {
   upsertParentThreat,
   linkChildToParent,
@@ -769,6 +770,8 @@ class ThreatEngineService {
           matchedRules++;
           try {
             const threatData = rule.createThreat(finding, assetId, jobId);
+            // Phase 3: Store ruleId for recommendation template lookup
+            (threatData as any).ruleId = rule.id;
             const threat = await storage.createThreat(threatData);
             threats.push(threat);
             
@@ -838,10 +841,11 @@ class ThreatEngineService {
     // Phase 2: Group child threats into parent threat records
     await this.groupFindings(jobId, journey.type);
 
-    // Phase 2: Contextual scoring pipeline
-    // analyzeWithLifecycle → runJourneyPostProcessing → groupFindings → scoreAll → computeProjected → writeSnapshot
+    // Phase 2/3: Contextual scoring and recommendation pipeline
+    // analyzeWithLifecycle → runJourneyPostProcessing → groupFindings → scoreAll → computeProjected → generateRecommendations → writeSnapshot
     await scoringEngine.scoreAllThreatsForJob(jobId);
     await scoringEngine.computeProjectedScores(jobId);
+    await recommendationEngine.generateForJob(jobId);
     await scoringEngine.writePostureSnapshot(jobId, job.journeyId);
 
     return threats;
