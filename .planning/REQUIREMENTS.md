@@ -23,10 +23,10 @@ Requirements for the product revision. Each maps to roadmap phases.
 
 ### Threat Engine
 
-- [ ] **THRT-01**: Related findings on the same host are consolidated into parent threat groups (e.g., 3 open admin ports = 1 "Exposed Administration Services" threat)
-- [ ] **THRT-02**: Grouping keys vary by journey type: host+serviceFamily (Attack Surface), cveId (multi-host CVE), adCheckCategory (AD), hostId (EDR)
-- [ ] **THRT-03**: Parent threat severity equals highest severity among child findings
-- [ ] **THRT-04**: Parent threat status is open if any child finding is open
+- [x] **THRT-01**: Related findings on the same host are consolidated into parent threat groups (e.g., 3 open admin ports = 1 "Exposed Administration Services" threat)
+- [x] **THRT-02**: Grouping keys vary by journey type: host+serviceFamily (Attack Surface), cveId (multi-host CVE), adCheckCategory (AD), hostId (EDR)
+- [x] **THRT-03**: Parent threat severity equals highest severity among child findings
+- [x] **THRT-04**: Parent threat status is open if any child finding is open
 - [x] **THRT-05**: Existing correlation key format and stored threat history are preserved (grouping does not break existing data)
 - [ ] **THRT-06**: Contextual severity scoring weights base severity (40%), asset criticality (25%), exposure context (20%), compensating controls (15%)
 - [x] **THRT-07**: Score breakdown is stored as JSONB at persistence time (not computed at display time)
@@ -118,10 +118,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PARS-09 | Phase 1 | Pending |
 | PARS-10 | Phase 1 | Complete |
 | PARS-11 | Phase 1 | Pending |
-| THRT-01 | Phase 2 | Pending |
-| THRT-02 | Phase 2 | Pending |
-| THRT-03 | Phase 2 | Pending |
-| THRT-04 | Phase 2 | Pending |
+| THRT-01 | Phase 2 | Complete |
+| THRT-02 | Phase 2 | Complete |
+| THRT-03 | Phase 2 | Complete |
+| THRT-04 | Phase 2 | Complete |
 | THRT-05 | Phase 2 | Complete |
 | THRT-06 | Phase 2 | Pending |
 | THRT-07 | Phase 2 | Complete |
