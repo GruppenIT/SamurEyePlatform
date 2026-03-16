@@ -3,6 +3,14 @@ import { hostService } from './hostService';
 import { type InsertThreat, type Threat } from '@shared/schema';
 import { notificationService } from './notificationService';
 import { createLogger } from '../lib/logger';
+import { scoringEngine } from './scoringEngine';
+import {
+  upsertParentThreat,
+  linkChildToParent,
+} from '../storage/threats';
+import { db } from '../db';
+import { threats as threatsTable } from '@shared/schema';
+import { eq, isNull, and } from 'drizzle-orm';
 
 const log = createLogger('threatEngine');
 
@@ -826,17 +834,26 @@ class ThreatEngineService {
     
     // Run post-processing for journey-specific auto-closure logic
     await this.runJourneyPostProcessing(journey.type, job.journeyId, jobId, findings);
-    
+
+    // Phase 2: Group child threats into parent threat records
+    await this.groupFindings(jobId, journey.type);
+
+    // Phase 2: Contextual scoring pipeline
+    // analyzeWithLifecycle → runJourneyPostProcessing → groupFindings → scoreAll → computeProjected → writeSnapshot
+    await scoringEngine.scoreAllThreatsForJob(jobId);
+    await scoringEngine.computeProjectedScores(jobId);
+    await scoringEngine.writePostureSnapshot(jobId, job.journeyId);
+
     return threats;
   }
 
-  /**
-   * Computes a unique correlation key for a finding based on journey type
-   */
+  /** Normalizes a hostname to lowercase trimmed string for key construction */
+  private normalizeHost(host: string): string {
+    return host?.toLowerCase().trim() || '';
+  }
+
   private computeCorrelationKey(finding: any, journeyType: string): string {
-    const normalizeHost = (host: string): string => {
-      return host?.toLowerCase().trim() || '';
-    };
+    const normalizeHost = (host: string) => this.normalizeHost(host);
 
     switch (journeyType) {
       case 'attack_surface':
@@ -902,6 +919,202 @@ class ThreatEngineService {
         // Deterministic fallback for unknown journey types (no randomness)
         return `generic:${finding.type || 'unknown'}:${normalizeHost(finding.target || finding.hostname || '')}:${finding.name || finding.template || 'unknown'}`;
     }
+  }
+
+  /**
+   * Computes the grouping key for a child threat (not a correlation key).
+   * Groups findings that belong to the same parent threat bucket.
+   */
+  private computeGroupingKeyForThreat(threat: Threat, journeyType: string): string | null {
+    const evidence = (threat.evidence || {}) as Record<string, any>;
+    const normalizeHost = (host: string) => this.normalizeHost(host);
+
+    switch (journeyType) {
+      case 'attack_surface': {
+        // CVE-based grouping: one parent per CVE across all hosts
+        const cve = evidence.cve;
+        if (cve) {
+          return `grp:as:cve:${String(cve).toUpperCase()}`;
+        }
+        // Service-based grouping: one parent per host + service category
+        const host = evidence.host || evidence.target || '';
+        const port = evidence.port || '';
+        const service = evidence.service || evidence.serviceName || '';
+        if (host && (port || service)) {
+          const cat = this.classifyServiceCategory(String(port), service);
+          return `grp:as:${normalizeHost(host)}:${cat.category}`;
+        }
+        return null;
+      }
+
+      case 'ad_security': {
+        const category = evidence.adCheckCategory || 'general';
+        const domain = evidence.domain || threat.category || 'unknown';
+        return `grp:ad:${category}:${normalizeHost(domain)}`;
+      }
+
+      case 'edr_av': {
+        const hostId = threat.hostId || evidence.hostname || 'unknown';
+        return `grp:edr:${hostId}`;
+      }
+
+      case 'web_application': {
+        const host = evidence.host || evidence.target || '';
+        const tag = evidence.templateTags?.[0] || evidence.type || 'general';
+        return `grp:wa:${normalizeHost(host)}:${tag}`;
+      }
+
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Derives a human-readable parent threat title from a grouping key and journey type.
+   */
+  private deriveParentTitle(groupingKey: string, journeyType: string, childGroup: Threat[]): string {
+    // Provide a meaningful title from first child or from key segments
+    const parts = groupingKey.split(':');
+
+    if (journeyType === 'attack_surface') {
+      if (parts[1] === 'as' && parts[2] === 'cve') {
+        const cveId = parts.slice(3).join(':');
+        return `${cveId} Across Multiple Hosts`;
+      }
+      if (parts[1] === 'as') {
+        const host = parts[2] || 'unknown';
+        const category = parts[3] as ServiceCategory | undefined;
+        const label = category && SERVICE_CATEGORIES[category]
+          ? SERVICE_CATEGORIES[category].label
+          : category || 'unknown';
+        return `Serviços ${label} Expostos em ${host}`;
+      }
+    }
+    if (journeyType === 'ad_security') {
+      const category = parts[2] || 'general';
+      const domain = parts[3] || 'unknown';
+      return `Problemas ${category} em ${domain}`;
+    }
+    if (journeyType === 'edr_av') {
+      // Use hostname from first child evidence if available
+      const firstChild = childGroup[0];
+      const hostname = (firstChild?.evidence as any)?.hostname || parts[2] || 'unknown';
+      return `Problemas de Segurança do Endpoint em ${hostname}`;
+    }
+    if (journeyType === 'web_application') {
+      const host = parts[2] || 'unknown';
+      const tag = parts[3] || 'general';
+      return `Vulnerabilidades Web (${tag}) em ${host}`;
+    }
+    // Fallback
+    return `Grupo de Ameaças: ${groupingKey}`;
+  }
+
+  /**
+   * Derives the highest severity among a group of child threats.
+   */
+  private deriveGroupSeverity(children: Threat[]): 'low' | 'medium' | 'high' | 'critical' {
+    const SEVERITY_RANK: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 };
+    let maxRank = 0;
+    let maxSeverity: 'low' | 'medium' | 'high' | 'critical' = 'low';
+    for (const child of children) {
+      const rank = SEVERITY_RANK[child.severity] ?? 0;
+      if (rank > maxRank) {
+        maxRank = rank;
+        maxSeverity = child.severity as 'low' | 'medium' | 'high' | 'critical';
+      }
+    }
+    return maxSeverity;
+  }
+
+  /**
+   * Derives aggregate status for a parent based on children.
+   * open = any child is active (open/investigating)
+   * mitigated = all children are inactive
+   */
+  private deriveGroupStatus(children: Threat[]): 'open' | 'mitigated' {
+    const ACTIVE = new Set(['open', 'investigating']);
+    return children.some(c => ACTIVE.has(c.status)) ? 'open' : 'mitigated';
+  }
+
+  /**
+   * Groups child threats created during a job into parent threat records.
+   * Runs after runJourneyPostProcessing(). Does NOT modify correlationKey (THRT-05).
+   */
+  async groupFindings(jobId: string, journeyType: string): Promise<void> {
+    log.info({ jobId, journeyType }, 'groupFindings: starting threat grouping');
+
+    // Fetch all ungrouped child threats from this job (parentThreatId IS NULL)
+    const ungroupedThreats = await db
+      .select()
+      .from(threatsTable)
+      .where(and(eq(threatsTable.jobId, jobId), isNull(threatsTable.parentThreatId)));
+
+    if (ungroupedThreats.length === 0) {
+      log.info({ jobId }, 'groupFindings: no ungrouped threats, skipping');
+      return;
+    }
+
+    log.info({ jobId, count: ungroupedThreats.length }, 'groupFindings: found ungrouped threats');
+
+    // Compute grouping key per child and bucket them
+    const groups = new Map<string, Threat[]>();
+    for (const threat of ungroupedThreats) {
+      const key = this.computeGroupingKeyForThreat(threat, journeyType);
+      if (!key) {
+        // Cannot group this threat type — leave as standalone
+        continue;
+      }
+      const existing = groups.get(key) ?? [];
+      existing.push(threat);
+      groups.set(key, existing);
+    }
+
+    log.info({ jobId, groupCount: groups.size }, 'groupFindings: computed groups');
+
+    // Use first child's context for parent FK fields (journeyId comes from job, use child's assetId/hostId)
+    for (const [groupingKey, children] of groups) {
+      const representative = children[0];
+
+      const severity = this.deriveGroupSeverity(children);
+      const status = this.deriveGroupStatus(children);
+      const title = this.deriveParentTitle(groupingKey, journeyType, children);
+
+      const parentData = {
+        title,
+        description: `Grupo de ${children.length} ameaças relacionadas.`,
+        severity,
+        status,
+        source: 'journey' as const,
+        category: journeyType,
+        assetId: representative.assetId ?? undefined,
+        hostId: representative.hostId ?? undefined,
+        jobId,
+        groupingKey,
+        evidence: {} as Record<string, any>,
+      };
+
+      let parentId: string;
+      try {
+        const { threat: parent, isNew } = await upsertParentThreat(parentData);
+        parentId = parent.id;
+        log.info({ parentId, groupingKey, childCount: children.length, isNew }, 'groupFindings: parent upserted');
+      } catch (err) {
+        log.error({ err, groupingKey }, 'groupFindings: failed to upsert parent threat, skipping group');
+        continue;
+      }
+
+      // Link each child to the parent (does not touch correlationKey — THRT-05)
+      for (const child of children) {
+        try {
+          await linkChildToParent(child.id, parentId);
+        } catch (err) {
+          log.error({ err, childId: child.id, parentId }, 'groupFindings: failed to link child to parent');
+        }
+      }
+    }
+
+    log.info({ jobId, groupCount: groups.size }, 'groupFindings: completed threat grouping');
   }
 
   /**
