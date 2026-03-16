@@ -46,7 +46,7 @@ Plans:
   3. The score breakdown (base severity weight, criticality multiplier, exposure factor) is readable on the threat record — not computed fresh on every page load
   4. Each threat carries a projected score delta showing how much the overall posture score improves if that threat is remediated
   5. Existing threat history and correlation keys remain intact after grouping is introduced — previously mitigated threats are not re-opened under new keys
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 02-01: Schema migrations — add `threats.contextual_score`, `threats.score_breakdown` (jsonb), `threats.projected_score_after_fix` columns; create `posture_snapshots` table; create `recommendations` table; add indexes (all additive)
