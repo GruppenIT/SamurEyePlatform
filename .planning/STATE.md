@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-03-16T13:12:26.628Z"
+stopped_at: Completed 01-02-PLAN.md - nuclei schema, NSE capture, journeyExecutor delegation
+last_updated: "2026-03-16T16:43:12.051Z"
 last_activity: 2026-03-16 — Roadmap created, requirements mapped to 4 phases
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-parser-foundation P02 | 9min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,8 @@ Recent decisions affecting current work:
 - Pre-roadmap: Improve existing parsers rather than rewrite from scratch — preserve working functionality
 - Pre-roadmap: Additive schema changes only — protect existing data, allow rollback
 - Pre-roadmap: Threat grouping at engine level — single source of truth for threat count/severity
+- [Phase 01-parser-foundation]: NucleiFindingSchema uses type literal 'nuclei' and .strip() for unknown field removal (PARS-05/06)
+- [Phase 01-parser-foundation]: parseNmapXml() only emits open-state ports to align with PARS-01 spec and reduce noise
 
 ### Pending Todos
 
@@ -75,6 +78,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T13:12:26.625Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-parser-foundation/01-CONTEXT.md
+Last session: 2026-03-16T16:43:12.049Z
+Stopped at: Completed 01-02-PLAN.md - nuclei schema, NSE capture, journeyExecutor delegation
+Resume file: None
