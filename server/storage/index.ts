@@ -9,6 +9,7 @@ import * as settingsOps from "./settings";
 import * as sessionOps from "./sessions";
 import * as subscriptionOps from "./subscription";
 import * as databaseInitOps from "./database-init";
+import * as edrDeploymentOps from "./edrDeployments";
 
 export type { IStorage } from "./interface";
 
@@ -177,6 +178,10 @@ export class DatabaseStorage implements IStorage {
   updateCommandStatus = subscriptionOps.updateCommandStatus;
   getUnreportedCommandResults = subscriptionOps.getUnreportedCommandResults;
   markCommandsReported = subscriptionOps.markCommandsReported;
+
+  // EDR deployment operations
+  insertEdrDeployment = edrDeploymentOps.insertEdrDeployment;
+  getEdrDeploymentsByJourney = edrDeploymentOps.getEdrDeploymentsByJourney;
 
   // Database initialization
   async initializeDatabaseStructure() { return databaseInitOps.initializeDatabaseStructure(); }

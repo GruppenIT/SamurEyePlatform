@@ -38,6 +38,8 @@ import {
   type ApplianceSubscription,
   type ApplianceCommand,
   type ConsoleCommand,
+  type EdrDeployment,
+  type InsertEdrDeployment,
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -245,6 +247,10 @@ export interface IStorage {
   ): Promise<void>;
   getUnreportedCommandResults(): Promise<ApplianceCommand[]>;
   markCommandsReported(ids: string[]): Promise<void>;
+
+  // EDR deployment operations
+  insertEdrDeployment(data: InsertEdrDeployment): Promise<EdrDeployment>;
+  getEdrDeploymentsByJourney(journeyId: string): Promise<EdrDeployment[]>;
 
   // Database initialization
   initializeDatabaseStructure(): Promise<void>;

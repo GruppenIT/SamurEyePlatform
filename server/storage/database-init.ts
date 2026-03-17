@@ -104,6 +104,37 @@ export async function initializeDatabaseStructure(): Promise<void> {
     `);
     log.info('threats.rule_id column ensured');
 
+    // Phase 5: edr_deployments table for per-host EDR deployment metadata (PARS-10)
+    const edrDeploymentsCheck = await db.execute(sql`
+      SELECT tablename FROM pg_tables
+      WHERE schemaname = 'public' AND tablename = 'edr_deployments'
+    `);
+
+    if ((edrDeploymentsCheck.rowCount ?? 0) === 0) {
+      log.info('creating edr_deployments table');
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS edr_deployments (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          host_id VARCHAR NOT NULL REFERENCES hosts(id),
+          journey_id VARCHAR NOT NULL REFERENCES journeys(id),
+          job_id VARCHAR NOT NULL REFERENCES jobs(id),
+          deployment_timestamp TIMESTAMPTZ,
+          detection_timestamp TIMESTAMPTZ,
+          deployment_method TEXT NOT NULL,
+          detected BOOLEAN,
+          test_duration INTEGER NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT now() NOT NULL
+        )
+      `);
+      await db.execute(sql`
+        CREATE INDEX "IDX_edr_deployments_journey_id" ON edr_deployments (journey_id)
+      `);
+      await db.execute(sql`
+        CREATE INDEX "IDX_edr_deployments_host_id" ON edr_deployments (host_id)
+      `);
+      log.info('edr_deployments table created');
+    }
+
   } catch (error) {
     log.error({ err: error }, 'database initialization error');
     // Don't throw - let the system continue with fallback mode

@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { insertEdrDeployment } from '../storage/edrDeployments';
 import { threatEngine } from './threatEngine';
 import { encryptionService } from './encryption';
 import { networkScanner } from './scanners/networkScanner';
@@ -893,6 +894,37 @@ class JourneyExecutorService {
           },
         },
       });
+
+      // Phase 5 (PARS-10): Insert per-host EDR deployment metadata into edr_deployments table
+      // This runs AFTER createJobResult so scan results are persisted regardless of insert outcome.
+      // Host resolution uses hostService.findHostsByTarget() which searches hosts table by name/IP.
+      // Hosts for EDR targets are registered by the threat engine during threat processing.
+      for (const finding of findings) {
+        try {
+          const hostname = finding.hostname || finding.target;
+          if (!hostname) continue;
+
+          // Resolve hostId — host may or may not exist yet depending on threat engine timing
+          const hosts = await hostService.findHostsByTarget(hostname);
+          if (hosts.length === 0) {
+            log.debug({ host: hostname }, 'edr_deployments: host not yet registered, skipping insert');
+            continue;
+          }
+
+          await insertEdrDeployment({
+            hostId: hosts[0].id,
+            journeyId: journey.id,
+            jobId,
+            deploymentTimestamp: finding.deploymentTimestamp ? new Date(finding.deploymentTimestamp) : null,
+            detectionTimestamp: finding.detectionTimestamp ? new Date(finding.detectionTimestamp) : null,
+            deploymentMethod: finding.deploymentMethod || 'smb',
+            detected: finding.detected ?? null,
+            testDuration: finding.testDuration || 0,
+          });
+        } catch (insertErr) {
+          log.warn({ host: finding.hostname, err: insertErr }, 'edr_deployments insert failed — scan result unaffected');
+        }
+      }
 
     } catch (error) {
       log.error('Erro durante teste EDR/AV:', error);
