@@ -49,11 +49,11 @@ Plans:
   1. Running the full test suite produces zero failures (npx vitest run exits 0)
   2. All 25 threat rule test files have committed .snap files with current output
   3. Scoring component weights, host criticality multipliers, and exploitability multiplier are reviewed against real scan data with any inversions corrected and findings documented
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: Test suite health (QUAL-01 fix + PARS-11 snapshots)
-- [ ] 06-02: Scoring calibration review (THRT-06, THRT-08, THRT-09)
+- [ ] 06-01-PLAN.md — Test suite health verification (QUAL-01, PARS-11) and calibration regression tests (THRT-06, THRT-08, THRT-09 hierarchy invariants)
+- [ ] 06-02-PLAN.md — Calibration CLI script, live DB validation, auto-patch, and calibration report (THRT-06, THRT-08, THRT-09)
 
 ## Progress
 
