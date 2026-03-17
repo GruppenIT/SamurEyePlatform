@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Close Known Gaps
 status: planning
-stopped_at: Phase 7 context gathered
-last_updated: "2026-03-17T22:26:29.648Z"
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-03-17T22:48:43.269Z"
 last_activity: 2026-03-17 — v1.1 roadmap created, phases 5-6 defined
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
   percent: 0
 ---
 
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░] 0% (v1.1)
 | Phase 05 P01 | 8 | 3 tasks | 11 files |
 | Phase 06 P01 | 2 | 2 tasks | 1 files |
 | Phase 06 P02 | 4min | 2 tasks | 2 files |
+| Phase 07-edr-deployment-read-path P01 | 7 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,8 @@ Full decision log in PROJECT.md Key Decisions table.
 - [Phase 06]: Calibration regression tests appended to existing scoringEngine.test.ts as new describe block, not a separate file
 - [Phase 06]: scripts/calibrate.ts requires fileURLToPath(import.meta.url) for __dirname — project uses ESM not CommonJS
 - [Phase 06]: Live DB (361 scored threats): THRT-06 SKIPPED (no critical threats in dataset), THRT-08 PASS, THRT-09 PASS — no scoring constants patched
+- [Phase 07]: IStorage getEdrDeploymentsByJourneyWithHost uses inline return type to avoid circular imports from edrDeployments.ts
+- [Phase 07]: GET /api/edr-deployments returns 400 with Portuguese error 'journeyId é obrigatório' when journeyId param missing
 
 ### Pending Todos
 
@@ -73,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T22:26:29.644Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-edr-deployment-read-path/07-CONTEXT.md
+Last session: 2026-03-17T22:48:43.265Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: None

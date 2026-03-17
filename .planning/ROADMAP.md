@@ -81,4 +81,4 @@ Plans:
 | 4. User-Facing Surfaces | v1.0 | 4/4 | Complete | 2026-03-16 |
 | 5. EDR Timestamps | 1/1 | Complete   | 2026-03-17 | - |
 | 6. Calibration and Quality | 2/2 | Complete   | 2026-03-17 | - |
-| 7. EDR Deployment Read Path | v1.1 | 0/2 | Planned | - |
+| 7. EDR Deployment Read Path | 1/2 | In Progress|  | - |
