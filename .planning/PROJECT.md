@@ -10,13 +10,13 @@ After running a security journey, the user must walk away with a prioritized, co
 
 ## Current Milestone: v1.1 Close Known Gaps
 
-**Goal:** Close all known gaps from v1.0 — parser depth, test coverage, scoring calibration
+**Goal:** Close all known gaps from v1.0 — EDR timestamps, test coverage, scoring calibration, test quality
 
 **Target features:**
-- AD PowerShell -Depth 10 for full nested structures (PARS-07/08)
-- EDR per-host timeline with deployment timestamp (PARS-09)
-- Full snapshot test coverage for 30+ threat rules (PARS-11)
+- EDR per-host timeline with deployment/detection timestamps and queryable storage (PARS-09/10)
+- Snapshot test files generated and committed for all 25 threat rules (PARS-11)
 - Scoring weight calibration against real scan data (THRT-06/08/09)
+- Test suite quality: resolve pre-existing failures, ensure zero-failure baseline (QUAL-01/02)
 
 ## Current State
 
@@ -51,13 +51,19 @@ After running a security journey, the user must walk away with a prioritized, co
 - Executive dashboard: posture score, sparkline, coverage grid, top actions — v1.0
 - WebSocket-triggered dashboard refresh on job completion — v1.0
 - Journey comparison delta between snapshots — v1.0
+- AD PowerShell -Depth 10 for full nested structures (36 ConvertTo-Json calls) — v1.0
+- AD parser captures full group membership chains, GPO links, trust attributes — v1.0
 
 ### Active
 
-- [ ] AD PowerShell -Depth 10 for full nested structures (PARS-07/08)
-- [ ] EDR per-host timeline with deployment timestamp (PARS-09)
-- [ ] Full snapshot test coverage for 30+ threat rules (PARS-11)
-- [ ] Scoring weight calibration against real scan data (THRT-06/08/09)
+- [ ] EDR findings include explicit deploymentTimestamp and detectionTimestamp per host (PARS-09)
+- [ ] EDR per-host deployment metadata in queryable database table (PARS-10)
+- [ ] Snapshot files generated and committed for all 25 threat rules (PARS-11)
+- [ ] Scoring component weight distribution validated against real scan data (THRT-06)
+- [ ] Host type criticality multipliers validated against real scan data (THRT-08)
+- [ ] Exploitability multiplier validated against real scan data (THRT-09)
+- [ ] edrAvScanner.test.ts 7 pre-existing failures resolved (QUAL-01)
+- [ ] All test suites pass with zero failures (QUAL-02)
 
 ### Out of Scope
 
@@ -91,4 +97,4 @@ After running a security journey, the user must walk away with a prioritized, co
 | Coverage endpoint: 2 queries per journey | Clarity over complex JOIN | Good — maintainable and fast |
 
 ---
-*Last updated: 2026-03-17 after v1.1 milestone start*
+*Last updated: 2026-03-17 after v1.1 requirements definition*
