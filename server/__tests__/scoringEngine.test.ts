@@ -337,3 +337,67 @@ describe('ScoringEngineService — scoreAllThreatsForJob (mocked DB)', () => {
     expect(firstCall[1].scoreBreakdown).toHaveProperty('normalizedScore');
   });
 });
+
+describe('Calibration regression: hierarchy invariants (THRT-06, THRT-08, THRT-09)', () => {
+  let engine: ScoringEngineService;
+
+  beforeEach(() => {
+    engine = new ScoringEngineService();
+  });
+
+  it('THRT-06: severity rawScore strict ordering critical > high > medium > low', () => {
+    const scores = (['critical', 'high', 'medium', 'low'] as const).map(severity =>
+      engine.computeContextualScore(
+        makeThreat({ severity }),
+        undefined,
+        'attack_surface',
+        'unknown'
+      ).rawScore
+    );
+    expect(scores[0]).toBeGreaterThan(scores[1]); // critical > high
+    expect(scores[1]).toBeGreaterThan(scores[2]); // high > medium
+    expect(scores[2]).toBeGreaterThan(scores[3]); // medium > low
+  });
+
+  it('THRT-08: host criticality rawScore ordering domain > server > desktop (same severity)', () => {
+    const threat = makeThreat({ severity: 'high' });
+    const domain = engine.computeContextualScore(threat, makeHost({ type: 'domain' }), 'attack_surface', 'unknown').rawScore;
+    const server = engine.computeContextualScore(threat, makeHost({ type: 'server' }), 'attack_surface', 'unknown').rawScore;
+    const desktop = engine.computeContextualScore(threat, makeHost({ type: 'desktop' }), 'attack_surface', 'unknown').rawScore;
+    expect(domain).toBeGreaterThan(server);
+    expect(server).toBeGreaterThan(desktop);
+  });
+
+  it('THRT-08: firewall and router score equal to server (all 1.2x)', () => {
+    const threat = makeThreat({ severity: 'high' });
+    const serverScore = engine.computeContextualScore(threat, makeHost({ type: 'server' }), 'attack_surface', 'unknown').rawScore;
+    const firewallScore = engine.computeContextualScore(threat, makeHost({ type: 'firewall' }), 'attack_surface', 'unknown').rawScore;
+    const routerScore = engine.computeContextualScore(threat, makeHost({ type: 'router' }), 'attack_surface', 'unknown').rawScore;
+    expect(firewallScore).toBe(serverScore);
+    expect(routerScore).toBe(serverScore);
+  });
+
+  it('THRT-09: nmap_vuln rawScore is exactly 1.3x non-confirmed (same severity)', () => {
+    const base = engine.computeContextualScore(
+      makeThreat({ severity: 'high', source: 'journey' }),
+      undefined, 'attack_surface', 'unknown'
+    ).rawScore;
+    const confirmed = engine.computeContextualScore(
+      makeThreat({ severity: 'high', source: 'nmap_vuln' }),
+      undefined, 'attack_surface', 'unknown'
+    ).rawScore;
+    expect(confirmed / base).toBeCloseTo(1.3, 5);
+  });
+
+  it('THRT-09: nuclei confirmation produces same 1.3x multiplier as nmap_vuln', () => {
+    const nuclei = engine.computeContextualScore(
+      makeThreat({ severity: 'high', source: 'journey', evidence: { nucleiMatch: true } }),
+      undefined, 'attack_surface', 'unknown'
+    ).rawScore;
+    const nmapVuln = engine.computeContextualScore(
+      makeThreat({ severity: 'high', source: 'nmap_vuln' }),
+      undefined, 'attack_surface', 'unknown'
+    ).rawScore;
+    expect(nuclei).toBe(nmapVuln);
+  });
+});
