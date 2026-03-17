@@ -18,7 +18,11 @@ import { eq, isNotNull } from 'drizzle-orm';
 import * as schema from '../shared/schema';
 import { readFileSync, writeFileSync } from 'fs';
 import { writeFile } from 'fs/promises';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
