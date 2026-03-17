@@ -8,6 +8,16 @@ SamurEye is an Adversarial Exposure Validation platform for medium businesses. I
 
 After running a security journey, the user must walk away with a prioritized, contextualized action plan — not a wall of raw findings.
 
+## Current Milestone: v1.1 Close Known Gaps
+
+**Goal:** Close all known gaps from v1.0 — parser depth, test coverage, scoring calibration
+
+**Target features:**
+- AD PowerShell -Depth 10 for full nested structures (PARS-07/08)
+- EDR per-host timeline with deployment timestamp (PARS-09)
+- Full snapshot test coverage for 30+ threat rules (PARS-11)
+- Scoring weight calibration against real scan data (THRT-06/08/09)
+
 ## Current State
 
 **Shipped:** v1.0 (2026-03-17)
@@ -81,4 +91,4 @@ After running a security journey, the user must walk away with a prioritized, co
 | Coverage endpoint: 2 queries per journey | Clarity over complex JOIN | Good — maintainable and fast |
 
 ---
-*Last updated: 2026-03-17 after v1.0 milestone*
+*Last updated: 2026-03-17 after v1.1 milestone start*
