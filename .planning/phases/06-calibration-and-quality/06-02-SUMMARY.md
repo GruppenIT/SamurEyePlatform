@@ -121,3 +121,11 @@ None - no external service configuration required.
 ---
 *Phase: 06-calibration-and-quality*
 *Completed: 2026-03-17*
+
+## Self-Check: PASSED
+
+- `scripts/calibrate.ts` — FOUND
+- `.planning/phases/06-calibration-and-quality/CALIBRATION-REPORT.md` — FOUND
+- `.planning/phases/06-calibration-and-quality/06-02-SUMMARY.md` — FOUND
+- Commit `0a35098` (feat(06-02): create calibration CLI script) — FOUND
+- Commit `18bb78f` (feat(06-02): run calibration script and write CALIBRATION-REPORT.md) — FOUND
