@@ -36,10 +36,10 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
   1. Each EDR finding includes a deploymentTimestamp and detectionTimestamp field with a real value (not null) when the scanner reports them
   2. A dedicated database table stores per-host EDR deployment metadata, queryable by host identifier and journey ID
   3. Existing EDR scan results continue to load without errors after the schema migration
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 05-01: EDR parser fields and schema migration
+- [ ] 05-01-PLAN.md — EDR parser timestamp fields, edr_deployments table, migration guard, storage functions, and scanner/executor wiring
 
 ### Phase 6: Calibration and Quality
 **Goal**: Scoring weights are validated against real data, all 25 threat rules have snapshot coverage, and the test suite runs with zero failures
