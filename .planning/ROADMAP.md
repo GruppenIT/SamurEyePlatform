@@ -3,6 +3,7 @@
 ## Milestones
 
 - **v1.0 Product Revision** — Phases 1-4 (shipped 2026-03-17)
+- **v1.1 Close Known Gaps** — Phases 5-6 (in progress)
 
 ## Phases
 
@@ -18,6 +19,42 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 </details>
 
+### v1.1 Close Known Gaps (In Progress)
+
+**Milestone Goal:** Close all known gaps from v1.0 — EDR timestamps, scoring calibration, snapshot coverage, test suite health
+
+- [ ] **Phase 5: EDR Timestamps** - Add deployment/detection timestamps to EDR parser and expose them in a queryable database table
+- [ ] **Phase 6: Calibration and Quality** - Validate scoring weights against real scan data, complete snapshot coverage, and achieve zero-failure test baseline
+
+## Phase Details
+
+### Phase 5: EDR Timestamps
+**Goal**: EDR findings surface per-host deployment and detection timestamps in structured, queryable form
+**Depends on**: Phase 4 (v1.0 complete)
+**Requirements**: PARS-09, PARS-10
+**Success Criteria** (what must be TRUE):
+  1. Each EDR finding includes a deploymentTimestamp and detectionTimestamp field with a real value (not null) when the scanner reports them
+  2. A dedicated database table stores per-host EDR deployment metadata, queryable by host identifier and journey ID
+  3. Existing EDR scan results continue to load without errors after the schema migration
+**Plans**: TBD
+
+Plans:
+- [ ] 05-01: EDR parser fields and schema migration
+
+### Phase 6: Calibration and Quality
+**Goal**: Scoring weights are validated against real data, all 25 threat rules have snapshot coverage, and the test suite runs with zero failures
+**Depends on**: Phase 5
+**Requirements**: THRT-06, THRT-08, THRT-09, PARS-11, QUAL-01, QUAL-02
+**Success Criteria** (what must be TRUE):
+  1. Running the full test suite produces zero failures (npx vitest run exits 0)
+  2. All 25 threat rule test files have committed .snap files with current output
+  3. Scoring component weights, host criticality multipliers, and exploitability multiplier are reviewed against real scan data with any inversions corrected and findings documented
+**Plans**: TBD
+
+Plans:
+- [ ] 06-01: Test suite health (QUAL-01 fix + PARS-11 snapshots)
+- [ ] 06-02: Scoring calibration review (THRT-06, THRT-08, THRT-09)
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -26,3 +63,5 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 | 2. Threat Engine Intelligence | v1.0 | 3/3 | Complete | 2026-03-16 |
 | 3. Remediation Engine | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 4. User-Facing Surfaces | v1.0 | 4/4 | Complete | 2026-03-16 |
+| 5. EDR Timestamps | v1.1 | 0/1 | Not started | - |
+| 6. Calibration and Quality | v1.1 | 0/2 | Not started | - |
