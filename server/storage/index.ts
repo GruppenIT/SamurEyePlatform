@@ -1,4 +1,4 @@
-import { IStorage } from "./interface";
+import type { IStorage } from "./interface";
 import * as userOps from "./users";
 import * as assetOps from "./assets";
 import * as journeyOps from "./journeys";
@@ -10,7 +10,7 @@ import * as sessionOps from "./sessions";
 import * as subscriptionOps from "./subscription";
 import * as databaseInitOps from "./database-init";
 
-export { IStorage } from "./interface";
+export type { IStorage } from "./interface";
 
 export class DatabaseStorage implements IStorage {
   // User operations

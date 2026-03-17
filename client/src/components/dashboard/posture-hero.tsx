@@ -90,13 +90,13 @@ export default function PostureHero() {
               <linearGradient id="postureGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="hsl(var(--primary))"
-                  stopOpacity={0.3}
+                  stopColor="#3b82f6"
+                  stopOpacity={0.5}
                 />
                 <stop
                   offset="95%"
-                  stopColor="hsl(var(--primary))"
-                  stopOpacity={0}
+                  stopColor="#3b82f6"
+                  stopOpacity={0.05}
                 />
               </linearGradient>
             </defs>
@@ -112,8 +112,8 @@ export default function PostureHero() {
             <Area
               type="monotone"
               dataKey="score"
-              stroke="hsl(var(--primary))"
-              strokeWidth={2}
+              stroke="#3b82f6"
+              strokeWidth={2.5}
               fill="url(#postureGradient)"
               dot={false}
             />
