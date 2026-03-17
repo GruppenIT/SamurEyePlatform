@@ -42,20 +42,20 @@ Close known gaps from v1.0 — parser refinements, test coverage, scoring calibr
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PARS-09 | — | Pending |
-| PARS-10 | — | Pending |
-| PARS-11 | — | Pending |
-| THRT-06 | — | Pending |
-| THRT-08 | — | Pending |
-| THRT-09 | — | Pending |
-| QUAL-01 | — | Pending |
-| QUAL-02 | — | Pending |
+| PARS-09 | Phase 5 | Pending |
+| PARS-10 | Phase 5 | Pending |
+| PARS-11 | Phase 6 | Pending |
+| THRT-06 | Phase 6 | Pending |
+| THRT-08 | Phase 6 | Pending |
+| THRT-09 | Phase 6 | Pending |
+| QUAL-01 | Phase 6 | Pending |
+| QUAL-02 | Phase 6 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 8 total
-- Mapped to phases: 0
-- Unmapped: 8
+- Mapped to phases: 8
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after initial definition*
+*Last updated: 2026-03-17 after roadmap creation*
