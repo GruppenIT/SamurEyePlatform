@@ -71,9 +71,12 @@ Source: default (shadcn Tailwind scale, 8-point base).
 | Role | Size | Weight | Line Height | Font | Source |
 |------|------|--------|-------------|------|--------|
 | Body | 14px | 400 (regular) | 1.5 | Inter | existing codebase |
-| Label | 12px | 500 (medium) | 1.4 | Inter | existing codebase |
+| Label | 12px | 400 (regular) | 1.4 | Inter | existing codebase |
 | Heading | 20px | 600 (semibold) | 1.2 | Inter | existing codebase |
 | Display | 28px | 600 (semibold) | 1.2 | Inter | existing codebase |
+
+**Declared weights: 2 — 400 (regular) and 600 (semibold).** Label (12px) is differentiated
+from Body (14px) by size contrast alone; no separate medium weight is required.
 
 **Timestamp field rendering rule:** `deploymentTimestamp` and `detectionTimestamp` values,
 when surfaced in any UI component, MUST be rendered in `font-mono` (JetBrains Mono) at the
@@ -175,7 +178,7 @@ interaction code changes required.
 - [ ] Dimension 1 Copywriting: PASS — no new copy required; null display rule defined
 - [ ] Dimension 2 Visuals: PASS — no new visual components; existing design system governs
 - [ ] Dimension 3 Color: PASS — existing token set documented; EDR semantic mapping defined
-- [ ] Dimension 4 Typography: PASS — 4 sizes, 2 weights; mono face applied at body size via utility class
+- [ ] Dimension 4 Typography: PASS — 4 sizes, 2 weights (400 and 600); mono face applied at body size via utility class
 - [ ] Dimension 5 Spacing: PASS — existing 8-point scale applies; no exceptions
 - [ ] Dimension 6 Registry Safety: PASS — shadcn official only, no new components
 
