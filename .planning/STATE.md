@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Close Known Gaps
 status: planning
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-17T18:00:38.948Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-17T18:51:12.023Z"
 last_activity: 2026-03-17 — v1.1 roadmap created, phases 5-6 defined
 progress:
   total_phases: 2
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
   percent: 0
 ---
 
@@ -46,12 +46,16 @@ Progress: [░░░░░░░░░░] 0% (v1.1)
 | 6. Calibration and Quality | 0/2 | - | - |
 
 *Updated after each plan completion*
+| Phase 05 P01 | 8 | 3 tasks | 11 files |
 
 ## Accumulated Context
 
 ### Decisions
 
 Full decision log in PROJECT.md Key Decisions table.
+- [Phase 05]: Timestamps derived from timeline events using Array.find() — deploy_success for deploymentTimestamp, detected for detectionTimestamp
+- [Phase 05]: edr_deployments insert is non-blocking: wrapped per-finding in try/catch after createJobResult completes
+- [Phase 05]: Migration guard uses pg_tables check before CREATE TABLE IF NOT EXISTS for idempotent startup
 
 ### Pending Todos
 
@@ -63,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T18:00:38.945Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-edr-timestamps/05-CONTEXT.md
+Last session: 2026-03-17T18:51:12.019Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None
