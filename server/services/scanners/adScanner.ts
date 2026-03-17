@@ -447,6 +447,20 @@ export class ADScanner {
               ? 'Verifique se as credenciais estão corretas e se a conta tem permissão para acesso remoto WinRM'
               : 'Verifique conectividade de rede com o DC e se o serviço WinRM está habilitado'
           ));
+        } else if (evidence.exitCode !== 0) {
+          // Test error - wrapper/execution failure (e.g. missing Python venv, ENOENT)
+          const testMetadata = this.getTestMetadata(testId);
+          connectionErrorCount++;
+          testResults.push(this.createTestResult(
+            testId,
+            testMetadata.name,
+            testMetadata.category,
+            testMetadata.severity,
+            'error',
+            evidence,
+            `Erro de execução (exit code ${evidence.exitCode}): ${evidence.stderr?.substring(0, 200) || 'Erro desconhecido'}`,
+            'Verifique se o ambiente Python está configurado corretamente (execute install.sh) e se o serviço WinRM está acessível'
+          ));
         } else {
           // Test passed - create "pass" result
           const testMetadata = this.getTestMetadata(testId);
