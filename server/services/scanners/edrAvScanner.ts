@@ -257,6 +257,8 @@ export class EDRAVScanner {
         }
 
         const testDuration = Math.floor((Date.now() - startTime) / 1000);
+        const deploymentTimestamp = timeline.find(e => e.action === 'deploy_success')?.timestamp;
+        const detectionTimestamp = timeline.find(e => e.action === 'detected')?.timestamp;
 
         const candidate = {
           type: 'edr_test' as const,
@@ -270,6 +272,8 @@ export class EDRAVScanner {
           testDuration,
           timestamp: new Date().toISOString(),
           timeline,
+          deploymentTimestamp,
+          detectionTimestamp,
         };
 
         const parsed = EdrFindingSchema.safeParse(candidate);
@@ -319,6 +323,8 @@ export class EDRAVScanner {
           }
 
           const testDuration = Math.floor((Date.now() - startTime) / 1000);
+          const deploymentTimestamp = timeline.find(e => e.action === 'deploy_success')?.timestamp;
+          const detectionTimestamp = timeline.find(e => e.action === 'detected')?.timestamp;
 
           const candidate = {
             type: 'edr_test' as const,
@@ -332,6 +338,8 @@ export class EDRAVScanner {
             testDuration,
             timestamp: new Date().toISOString(),
             timeline,
+            deploymentTimestamp,
+            detectionTimestamp,
           };
 
           const parsed = EdrFindingSchema.safeParse(candidate);
@@ -357,6 +365,9 @@ export class EDRAVScanner {
         });
       }
 
+      const deploymentTimestamp = timeline.find(e => e.action === 'deploy_success')?.timestamp;
+      const detectionTimestamp = timeline.find(e => e.action === 'detected')?.timestamp;
+
       const candidate = {
         type: 'edr_test' as const,
         target: hostname,
@@ -369,6 +380,8 @@ export class EDRAVScanner {
         testDuration,
         timestamp: new Date().toISOString(),
         timeline,
+        deploymentTimestamp,
+        detectionTimestamp,
       };
 
       const parsed = EdrFindingSchema.safeParse(candidate);

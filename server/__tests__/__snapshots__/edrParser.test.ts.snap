@@ -1,0 +1,100 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`EDR fixture parsing > snapshot: detection-failure fixture 1`] = `
+{
+  "deploymentMethod": "smb",
+  "deploymentTimestamp": "2024-03-16T10:05:02Z",
+  "detected": false,
+  "eicarRemoved": false,
+  "filePath": "\\\\workstation02\\C$\\Windows\\Temp\\samureye_eicar.txt",
+  "hostname": "workstation02.corp.example.com",
+  "severity": "critical",
+  "target": "workstation02.corp.example.com",
+  "testDuration": 35,
+  "timeline": [
+    {
+      "action": "deploy_attempt",
+      "detail": "Attempting EICAR deployment via SMB to workstation02.corp.example.com",
+      "timestamp": "2024-03-16T10:05:00Z",
+    },
+    {
+      "action": "deploy_success",
+      "detail": "EICAR file deployed via SMB to \\\\workstation02\\C$\\Windows\\Temp\\samureye_eicar.txt",
+      "timestamp": "2024-03-16T10:05:02Z",
+    },
+    {
+      "action": "not_detected",
+      "detail": "EICAR file still present — EDR/AV did not remove it",
+      "timestamp": "2024-03-16T10:05:32Z",
+    },
+    {
+      "action": "cleanup",
+      "detail": "EICAR file manually removed (cleanup)",
+      "timestamp": "2024-03-16T10:05:33Z",
+    },
+  ],
+  "timestamp": "2024-03-16T10:05:00Z",
+  "type": "edr_test",
+}
+`;
+
+exports[`EDR fixture parsing > snapshot: detection-success fixture 1`] = `
+{
+  "deploymentMethod": "smb",
+  "deploymentTimestamp": "2024-03-16T10:00:02Z",
+  "detected": true,
+  "detectionTimestamp": "2024-03-16T10:00:32Z",
+  "eicarRemoved": true,
+  "filePath": "\\\\workstation01\\C$\\Windows\\Temp\\samureye_eicar.txt",
+  "hostname": "workstation01.corp.example.com",
+  "severity": "low",
+  "target": "workstation01.corp.example.com",
+  "testDuration": 35,
+  "timeline": [
+    {
+      "action": "deploy_attempt",
+      "detail": "Attempting EICAR deployment via SMB to workstation01.corp.example.com",
+      "timestamp": "2024-03-16T10:00:00Z",
+    },
+    {
+      "action": "deploy_success",
+      "detail": "EICAR file deployed via SMB to \\\\workstation01\\C$\\Windows\\Temp\\samureye_eicar.txt",
+      "timestamp": "2024-03-16T10:00:02Z",
+    },
+    {
+      "action": "detected",
+      "detail": "EICAR file removed by EDR/AV",
+      "timestamp": "2024-03-16T10:00:32Z",
+    },
+  ],
+  "timestamp": "2024-03-16T10:00:00Z",
+  "type": "edr_test",
+}
+`;
+
+exports[`EDR fixture parsing > snapshot: timeout-error fixture 1`] = `
+{
+  "deploymentMethod": "smb",
+  "detected": null,
+  "eicarRemoved": null,
+  "error": "timeout",
+  "hostname": "workstation03.corp.example.com",
+  "severity": "medium",
+  "target": "workstation03.corp.example.com",
+  "testDuration": 30,
+  "timeline": [
+    {
+      "action": "deploy_attempt",
+      "detail": "Attempting EICAR deployment via SMB to workstation03.corp.example.com",
+      "timestamp": "2024-03-16T10:10:00Z",
+    },
+    {
+      "action": "timeout",
+      "detail": "Test timed out after 30s: timeout",
+      "timestamp": "2024-03-16T10:10:30Z",
+    },
+  ],
+  "timestamp": "2024-03-16T10:10:00Z",
+  "type": "edr_test",
+}
+`;
