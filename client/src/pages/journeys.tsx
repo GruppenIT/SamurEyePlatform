@@ -17,6 +17,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import {
   Table,
   TableBody,
   TableCell,
@@ -25,15 +32,39 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, Play, Route, Search as SearchIcon, Users, Worm, Globe } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Play, Route, Search as SearchIcon, Users, Worm, Globe, Eye } from "lucide-react";
+import { format } from "date-fns";
 import { Journey } from "@shared/schema";
 import { JourneyFormData } from "@/types";
+
+type EdrDeploymentWithHost = {
+  id: string;
+  hostId: string;
+  journeyId: string;
+  jobId: string;
+  deploymentTimestamp: string | null;
+  detectionTimestamp: string | null;
+  deploymentMethod: string;
+  detected: boolean | null;
+  testDuration: number;
+  createdAt: string;
+  hostName: string | null;
+  hostIps: string[];
+  hostOperatingSystem: string | null;
+};
+
+function DetectionBadge({ detected }: { detected: boolean | null }) {
+  if (detected === true) return <Badge className="bg-green-500/20 text-green-500">Detectado</Badge>;
+  if (detected === false) return <Badge className="bg-red-500/20 text-red-500">Nao Detectado</Badge>;
+  return <Badge className="bg-muted text-muted-foreground">N/A</Badge>;
+}
 
 export default function Journeys() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingJourney, setEditingJourney] = useState<Journey | null>(null);
-  
+  const [selectedJourneyId, setSelectedJourneyId] = useState<string | null>(null);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { connected } = useWebSocket();
@@ -45,6 +76,11 @@ export default function Journeys() {
   const { data: journeyCredentials = [], isLoading: isLoadingCredentials } = useQuery<Array<{id: string; journeyId: string; credentialId: string; protocol: string; priority: number}>>({
     queryKey: [`/api/journeys/${editingJourney?.id}/credentials`],
     enabled: !!editingJourney,
+  });
+
+  const { data: edrDeployments = [], isLoading: isLoadingEdr } = useQuery<EdrDeploymentWithHost[]>({
+    queryKey: ["/api/edr-deployments", { journeyId: selectedJourneyId }],
+    enabled: !!selectedJourneyId,
   });
 
   const createJourneyMutation = useMutation({
@@ -178,6 +214,13 @@ export default function Journeys() {
     journey.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (journey.description && journey.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const edrTotalHosts = edrDeployments.length;
+  const edrDetectedCount = edrDeployments.filter(d => d.detected === true).length;
+  const edrDetectionRate = edrTotalHosts > 0 ? Math.round((edrDetectedCount / edrTotalHosts) * 100) : 0;
+  const edrAvgDuration = edrTotalHosts > 0
+    ? Math.round(edrDeployments.reduce((sum, d) => sum + (d.testDuration || 0), 0) / edrTotalHosts)
+    : 0;
 
   const handleCreateJourney = (data: JourneyFormData) => {
     createJourneyMutation.mutate(data);
@@ -368,6 +411,15 @@ export default function Journeys() {
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                onClick={() => setSelectedJourneyId(journey.id)}
+                                data-testid={`button-results-${journey.id}`}
+                                title="Ver Resultados EDR"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => handleExecuteJourney(journey.id)}
                                 disabled={executeJourneyMutation.isPending}
                                 data-testid={`button-execute-${journey.id}`}
@@ -445,13 +497,13 @@ export default function Journeys() {
                 priority: jc.priority
               }))
             };
-            
+
             console.group('🔍 [DEBUG] Journeys.tsx - Edit Journey');
             console.log('1. editingJourney:', editingJourney);
             console.log('2. journeyCredentials from query:', journeyCredentials);
             console.log('3. initialData being passed to JourneyForm:', initialDataPayload);
             console.groupEnd();
-            
+
             return (
               <JourneyForm
                 key={editingJourney.id}
@@ -464,6 +516,99 @@ export default function Journeys() {
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* EDR Deployment Results Sheet */}
+      <Sheet open={!!selectedJourneyId} onOpenChange={(open) => !open && setSelectedJourneyId(null)}>
+        <SheetContent side="right" className="w-[700px] sm:max-w-[700px] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Resultados EDR</SheetTitle>
+            <SheetDescription>Resultados de validacao EDR/AV por host</SheetDescription>
+          </SheetHeader>
+
+          <div className="mt-6 space-y-6">
+            {isLoadingEdr ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : edrDeployments.length === 0 ? (
+              <div className="text-center py-12">
+                <Eye className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">Nenhum resultado EDR</h3>
+                <p className="text-muted-foreground">
+                  Esta jornada ainda nao possui resultados de validacao EDR/AV.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Summary Stats Banner */}
+                <div className="grid grid-cols-3 gap-4">
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold">{edrTotalHosts}</div>
+                      <div className="text-sm text-muted-foreground">Hosts Testados</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold">{edrDetectionRate}%</div>
+                      <div className="text-sm text-muted-foreground">Taxa de Deteccao</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold">{edrAvgDuration}s</div>
+                      <div className="text-sm text-muted-foreground">Duracao Media</div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Per-Host Results Table */}
+                <Card>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Host</TableHead>
+                          <TableHead>SO</TableHead>
+                          <TableHead>Deteccao</TableHead>
+                          <TableHead>Metodo</TableHead>
+                          <TableHead>Duracao</TableHead>
+                          <TableHead>Implantacao</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {edrDeployments.map((dep) => (
+                          <TableRow key={dep.id}>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">{dep.hostName || dep.hostId}</div>
+                                {dep.hostIps && dep.hostIps.length > 0 && (
+                                  <div className="text-xs text-muted-foreground">{dep.hostIps.join(', ')}</div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {dep.hostOperatingSystem || '\u2014'}
+                            </TableCell>
+                            <TableCell>
+                              <DetectionBadge detected={dep.detected} />
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">{dep.deploymentMethod}</TableCell>
+                            <TableCell className="text-muted-foreground">{dep.testDuration}s</TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {dep.deploymentTimestamp ? format(new Date(dep.deploymentTimestamp), 'dd/MM/yyyy HH:mm') : '\u2014'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
