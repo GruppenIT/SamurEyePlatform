@@ -10,7 +10,7 @@ Close known gaps from v1.0 — parser refinements, test coverage, scoring calibr
 ### Parsers
 
 - [x] **PARS-09**: EDR findings include explicit deploymentTimestamp and detectionTimestamp fields per host
-- [x] **PARS-10**: EDR per-host deployment metadata stored in queryable database table (not buried in JSONB artifacts)
+- [ ] **PARS-10**: EDR per-host deployment metadata stored in queryable database table (not buried in JSONB artifacts)
 - [x] **PARS-11**: Snapshot files generated and committed for all 25 threat rule tests
 
 ### Scoring
@@ -43,7 +43,7 @@ Close known gaps from v1.0 — parser refinements, test coverage, scoring calibr
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PARS-09 | Phase 5 | Complete |
-| PARS-10 | Phase 5 | Complete |
+| PARS-10 | Phase 7 | Pending |
 | PARS-11 | Phase 6 | Complete |
 | THRT-06 | Phase 6 | Complete |
 | THRT-08 | Phase 6 | Complete |
@@ -53,7 +53,8 @@ Close known gaps from v1.0 — parser refinements, test coverage, scoring calibr
 
 **Coverage:**
 - v1.1 requirements: 8 total
-- Mapped to phases: 8
+- Satisfied: 7
+- Pending: 1 (PARS-10 → Phase 7)
 - Unmapped: 0
 
 ---

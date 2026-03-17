@@ -3,7 +3,7 @@
 ## Milestones
 
 - **v1.0 Product Revision** — Phases 1-4 (shipped 2026-03-17)
-- **v1.1 Close Known Gaps** — Phases 5-6 (in progress)
+- **v1.1 Close Known Gaps** — Phases 5-7 (in progress)
 
 ## Phases
 
@@ -25,6 +25,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 - [x] **Phase 5: EDR Timestamps** - Add deployment/detection timestamps to EDR parser and expose them in a queryable database table (completed 2026-03-17)
 - [x] **Phase 6: Calibration and Quality** - Validate scoring weights against real scan data, complete snapshot coverage, and achieve zero-failure test baseline (completed 2026-03-17)
+- [ ] **Phase 7: EDR Deployment Read Path** - Wire EDR deployment query to API endpoint and surface deployment metadata in journey detail UI (gap closure)
 
 ## Phase Details
 
@@ -55,6 +56,17 @@ Plans:
 - [ ] 06-01-PLAN.md — Test suite health verification (QUAL-01, PARS-11) and calibration regression tests (THRT-06, THRT-08, THRT-09 hierarchy invariants)
 - [ ] 06-02-PLAN.md — Calibration CLI script, live DB validation, auto-patch, and calibration report (THRT-06, THRT-08, THRT-09)
 
+### Phase 7: EDR Deployment Read Path
+**Goal**: EDR deployment metadata is retrievable via API and visible in the journey detail UI
+**Depends on**: Phase 5 (edr_deployments table and storage functions)
+**Requirements**: PARS-10
+**Gap Closure:** Closes PARS-10 partial gap and dormant read path integration issue from v1.1 audit
+**Success Criteria** (what must be TRUE):
+  1. An API endpoint returns EDR deployment records for a given journey ID
+  2. The journey detail UI displays EDR deployment metadata (host, product, timestamps) when records exist
+  3. `getEdrDeploymentsByJourney` is called by the API route (no longer dormant)
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -65,3 +77,4 @@ Plans:
 | 4. User-Facing Surfaces | v1.0 | 4/4 | Complete | 2026-03-16 |
 | 5. EDR Timestamps | 1/1 | Complete   | 2026-03-17 | - |
 | 6. Calibration and Quality | 2/2 | Complete   | 2026-03-17 | - |
+| 7. EDR Deployment Read Path | v1.1 | 0/0 | Planned | - |
