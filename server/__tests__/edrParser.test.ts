@@ -155,6 +155,80 @@ describe('EdrFindingSchema', () => {
       expect((result.data as Record<string, unknown>).unknownField).toBeUndefined();
     }
   });
+
+  it('accepts deploymentTimestamp and detectionTimestamp optional fields', () => {
+    const valid = {
+      type: 'edr_test', target: 'host01.corp.com', severity: 'low',
+      hostname: 'host01.corp.com', eicarRemoved: true, detected: true,
+      deploymentMethod: 'smb', testDuration: 30,
+      timeline: [
+        { timestamp: '2024-03-16T10:00:00Z', action: 'deploy_attempt', detail: 'Attempting' },
+        { timestamp: '2024-03-16T10:00:02Z', action: 'deploy_success', detail: 'Deployed' },
+        { timestamp: '2024-03-16T10:00:32Z', action: 'detected', detail: 'Removed' },
+      ],
+      deploymentTimestamp: '2024-03-16T10:00:02Z',
+      detectionTimestamp: '2024-03-16T10:00:32Z',
+    };
+    const result = EdrFindingSchema.safeParse(valid);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.deploymentTimestamp).toBe('2024-03-16T10:00:02Z');
+      expect(result.data.detectionTimestamp).toBe('2024-03-16T10:00:32Z');
+    }
+  });
+
+  it('accepts EdrFinding without timestamp fields (backward compatibility)', () => {
+    const valid = {
+      type: 'edr_test', target: 'host01.corp.com', severity: 'low',
+      hostname: 'host01.corp.com', eicarRemoved: true, detected: true,
+      deploymentMethod: 'smb', testDuration: 30,
+      timeline: [
+        { timestamp: '2024-03-16T10:00:00Z', action: 'deploy_attempt', detail: 'Attempting' },
+      ],
+    };
+    const result = EdrFindingSchema.safeParse(valid);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.deploymentTimestamp).toBeUndefined();
+      expect(result.data.detectionTimestamp).toBeUndefined();
+    }
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────
+// EDR fixture timestamp fields (PARS-09)
+// ──────────────────────────────────────────────────────────────────────────
+
+describe('EDR fixture timestamp fields (PARS-09)', () => {
+  it('detection-success has both timestamps', () => {
+    const fixture = loadFixture('detection-success.json');
+    const result = EdrFindingSchema.safeParse(fixture);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.deploymentTimestamp).toBe('2024-03-16T10:00:02Z');
+      expect(result.data.detectionTimestamp).toBe('2024-03-16T10:00:32Z');
+    }
+  });
+
+  it('detection-failure has deploymentTimestamp only', () => {
+    const fixture = loadFixture('detection-failure.json');
+    const result = EdrFindingSchema.safeParse(fixture);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.deploymentTimestamp).toBe('2024-03-16T10:05:02Z');
+      expect(result.data.detectionTimestamp).toBeUndefined();
+    }
+  });
+
+  it('timeout-error has neither timestamp', () => {
+    const fixture = loadFixture('timeout-error.json');
+    const result = EdrFindingSchema.safeParse(fixture);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.deploymentTimestamp).toBeUndefined();
+      expect(result.data.detectionTimestamp).toBeUndefined();
+    }
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────────
