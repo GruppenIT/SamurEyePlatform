@@ -182,6 +182,7 @@ export class DatabaseStorage implements IStorage {
   // EDR deployment operations
   insertEdrDeployment = edrDeploymentOps.insertEdrDeployment;
   getEdrDeploymentsByJourney = edrDeploymentOps.getEdrDeploymentsByJourney;
+  getEdrDeploymentsByJourneyWithHost = edrDeploymentOps.getEdrDeploymentsByJourneyWithHost;
 
   // Database initialization
   async initializeDatabaseStructure() { return databaseInitOps.initializeDatabaseStructure(); }

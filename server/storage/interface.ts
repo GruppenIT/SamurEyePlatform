@@ -251,6 +251,7 @@ export interface IStorage {
   // EDR deployment operations
   insertEdrDeployment(data: InsertEdrDeployment): Promise<EdrDeployment>;
   getEdrDeploymentsByJourney(journeyId: string): Promise<EdrDeployment[]>;
+  getEdrDeploymentsByJourneyWithHost(journeyId: string): Promise<Array<EdrDeployment & { hostName: string | null; hostIps: string[]; hostOperatingSystem: string | null }>>;
 
   // Database initialization
   initializeDatabaseStructure(): Promise<void>;
