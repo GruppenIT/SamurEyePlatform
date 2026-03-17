@@ -1,0 +1,501 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AD rules > ad-domain-controller-not-found: dc not found finding triggers rule > ad-domain-controller-not-found 1`] = `
+{
+  "assetId": undefined,
+  "description": "Não foi possível localizar controladores de domínio para o domínio especificado via DNS",
+  "evidence": {
+    "category": "configuration",
+    "connectionAttempts": 3,
+    "errorType": "dns_resolution_failure",
+    "recommendation": "Verificar configuração DNS e conectividade de rede. Especifique o IP do DC manualmente.",
+    "target": "corp.example.com",
+  },
+  "jobId": "test-job-id",
+  "severity": "critical",
+  "source": "journey",
+  "title": "Controlador de domínio inacessível: corp.example.com",
+}
+`;
+
+exports[`AD rules > ad-inactive-computers: inactive computers finding triggers rule > ad-inactive-computers 1`] = `
+{
+  "assetId": undefined,
+  "description": "Foram encontrados 4 computadores sem comunicação com o domínio há mais de 90 dias",
+  "evidence": {
+    "category": "computers",
+    "count": 4,
+    "recommendation": "Desabilitar ou remover contas de computadores inativos",
+    "target": "corp.example.com",
+  },
+  "jobId": "test-job-id",
+  "severity": "low",
+  "source": "journey",
+  "title": "Computadores Inativos",
+}
+`;
+
+exports[`AD rules > ad-inactive-users: inactive users finding triggers rule > ad-inactive-users 1`] = `
+{
+  "assetId": undefined,
+  "description": "Foram encontrados 5 usuários sem login há mais de 6 meses",
+  "evidence": {
+    "category": "users",
+    "count": 5,
+    "recommendation": "Desabilitar ou remover contas de usuário inativas após validação com gestores",
+    "target": "corp.example.com",
+  },
+  "jobId": "test-job-id",
+  "severity": "low",
+  "source": "journey",
+  "title": "Usuários Inativos Identificados",
+}
+`;
+
+exports[`AD rules > ad-obsolete-os: obsolete OS finding triggers rule > ad-obsolete-os 1`] = `
+{
+  "assetId": undefined,
+  "description": "Foram encontrados 2 computadores com sistemas operacionais obsoletos e sem suporte",
+  "evidence": {
+    "category": "computers",
+    "count": 2,
+    "recommendation": "Atualizar ou descomissionar sistemas com SO obsoleto",
+    "target": "corp.example.com",
+  },
+  "jobId": "test-job-id",
+  "severity": "high",
+  "source": "journey",
+  "title": "Sistemas Operacionais Obsoletos",
+}
+`;
+
+exports[`AD rules > ad-privileged-group-members: privileged group finding triggers rule > ad-privileged-group-members 1`] = `
+{
+  "assetId": undefined,
+  "description": "O grupo Domain Admins possui 8 membros, excedendo o limite recomendado",
+  "evidence": {
+    "category": "groups",
+    "count": 8,
+    "memberCount": 8,
+    "recommendation": "Reduzir o número de membros em grupos administrativos privilegiados",
+    "target": "corp.example.com",
+  },
+  "jobId": "test-job-id",
+  "severity": "high",
+  "source": "journey",
+  "title": "Grupo Privilegiado com Muitos Membros: corp.example.com",
+}
+`;
+
+exports[`AD rules > ad-security-generic: ad_misconfiguration type triggers generic rule > ad-security-generic 1`] = `
+{
+  "assetId": undefined,
+  "category": "ad_misconfiguration",
+  "description": "O serviço Print Spooler está habilitado em um Controlador de Domínio, vulnerável a PrintNightmare",
+  "evidence": {
+    "category": "configuration",
+    "command": "Get-Service -Name Spooler",
+    "exitCode": 0,
+    "recommendation": "Desabilitar o serviço Print Spooler em todos os Controladores de Domínio",
+    "stderr": "",
+    "stdout": "{"Name":"Spooler","Status":"Running"}",
+    "target": "corp.example.com",
+    "testId": "dc_print_spooler",
+  },
+  "jobId": "test-job-id",
+  "severity": "high",
+  "source": "journey",
+  "title": "Print Spooler Habilitado em DC",
+}
+`;
+
+exports[`AD rules > ad-users-old-passwords: old passwords finding triggers rule > ad-users-old-passwords 1`] = `
+{
+  "assetId": undefined,
+  "description": "Foram encontrados 7 usuários com senhas não alteradas há mais de 90 dias",
+  "evidence": {
+    "category": "users",
+    "count": 7,
+    "recommendation": "Implementar política de rotação de senhas e exigir alteração imediata",
+    "target": "corp.example.com",
+  },
+  "jobId": "test-job-id",
+  "severity": "medium",
+  "source": "journey",
+  "title": "Usuários com Senhas Antigas",
+}
+`;
+
+exports[`AD rules > ad-users-password-never-expires: matching finding triggers rule > ad-users-password-never-expires 1`] = `
+{
+  "assetId": undefined,
+  "description": "Foram encontrados 3 usuários com senhas configuradas para nunca expirar",
+  "evidence": {
+    "category": "users",
+    "count": 3,
+    "recommendation": "Configurar políticas de expiração de senha para todos os usuários",
+    "target": "corp.example.com",
+  },
+  "jobId": "test-job-id",
+  "severity": "medium",
+  "source": "journey",
+  "title": "Usuários com Senhas que Nunca Expiram",
+}
+`;
+
+exports[`AD rules > ad-weak-password-policy: weak password policy finding triggers rule > ad-weak-password-policy 1`] = `
+{
+  "assetId": undefined,
+  "description": "A política de senhas do domínio não atende os padrões mínimos de segurança",
+  "evidence": {
+    "category": "policies",
+    "recommendation": "Fortalecer a política de senhas do domínio",
+    "target": "corp.example.com",
+  },
+  "jobId": "test-job-id",
+  "severity": "medium",
+  "source": "journey",
+  "title": "Política de Senha Fraca",
+}
+`;
+
+exports[`AD rules > bidirectional-trust-detected: bidirectional trust finding triggers rule > bidirectional-trust-detected 1`] = `
+{
+  "assetId": undefined,
+  "description": "Relação de confiança bidirecional detectada com o domínio partner.example.com",
+  "evidence": {
+    "recommendation": "Revisar a necessidade de trusts bidirecionais e restringir quando possível",
+    "trustAttributes": "ForestTransitive",
+    "trustDirection": "Bidirecional (Inbound + Outbound)",
+    "trustName": "partner.example.com",
+    "trustType": "Forest",
+  },
+  "jobId": "test-job-id",
+  "severity": "low",
+  "source": "journey",
+  "title": "Trust bidirecional: corp.example.com",
+}
+`;
+
+exports[`AD rules > domain-admin-critical-password-expired: critical domain admin finding triggers rule > domain-admin-critical-password-expired 1`] = `
+{
+  "assetId": undefined,
+  "description": "O administrador de domínio jsmith não altera sua senha há 365 dias",
+  "evidence": {
+    "daysSincePasswordChange": 365,
+    "groupMembership": [
+      "Domain Admins",
+      "Enterprise Admins",
+    ],
+    "lastLogon": "2024-03-01T00:00:00Z",
+    "lastPasswordSet": "2023-03-16T00:00:00Z",
+    "passwordAgeLimit": 90,
+    "recommendation": "Forçar alteração imediata de senha para contas Domain Admin",
+    "target": "corp.example.com",
+    "username": "jsmith",
+  },
+  "jobId": "test-job-id",
+  "severity": "critical",
+  "source": "journey",
+  "title": "Domain Admin com Senha Crítica Expirada",
+}
+`;
+
+exports[`AD rules > domain-admin-old-password: domain admin with old password triggers rule > domain-admin-old-password 1`] = `
+{
+  "assetId": undefined,
+  "description": "Conta privilegiada da-jones sem rotação de senha",
+  "evidence": {
+    "domain": "corp.example.com",
+    "groups": [
+      "Domain Admins",
+      "Domain Users",
+    ],
+    "lastLogon": "2024-03-01T00:00:00Z",
+    "passwordAge": 120,
+    "username": "da-jones",
+  },
+  "jobId": "test-job-id",
+  "severity": "high",
+  "source": "journey",
+  "title": "Domain Admin com senha expirada há 120 dias",
+}
+`;
+
+exports[`AD rules > inactive-computer-detected: specific inactive computer finding triggers rule > inactive-computer-detected 1`] = `
+{
+  "assetId": undefined,
+  "description": "O computador DESKTOP-OLD01 não se comunica com o domínio há 150 dias",
+  "evidence": {
+    "computerName": "DESKTOP-OLD01",
+    "daysSinceLastLogon": 150,
+    "inactiveComputerLimit": 90,
+    "lastLogon": "2023-10-16T00:00:00Z",
+    "recommendation": "Desabilitar ou remover a conta do computador após verificação",
+  },
+  "jobId": "test-job-id",
+  "severity": "low",
+  "source": "journey",
+  "title": "Computador inativo: DESKTOP-OLD01",
+}
+`;
+
+exports[`AD rules > obsolete-operating-system: specific obsolete OS finding triggers rule > obsolete-operating-system 1`] = `
+{
+  "assetId": undefined,
+  "description": "O computador WORKSTATION-XP01 possui Windows XP que não é mais suportado",
+  "evidence": {
+    "computerName": "WORKSTATION-XP01",
+    "operatingSystem": "Windows XP",
+    "osVersion": "5.1.2600",
+    "recommendation": "Substituir ou isolar o equipamento com sistema operacional obsoleto",
+  },
+  "jobId": "test-job-id",
+  "severity": "medium",
+  "source": "journey",
+  "title": "SO obsoleto: WORKSTATION-XP01",
+}
+`;
+
+exports[`AD rules > password-complexity-disabled: complexity disabled finding triggers rule > password-complexity-disabled 1`] = `
+{
+  "assetId": undefined,
+  "description": "A política de complexidade de senhas não está habilitada no domínio",
+  "evidence": {
+    "complexityEnabled": false,
+    "pwdProperties": 0,
+    "recommendation": "Habilitar política de complexidade de senhas no domínio",
+  },
+  "jobId": "test-job-id",
+  "severity": "high",
+  "source": "journey",
+  "title": "Complexidade de Senha Desabilitada",
+}
+`;
+
+exports[`AD rules > password-history-insufficient: insufficient history finding triggers rule > password-history-insufficient 1`] = `
+{
+  "assetId": undefined,
+  "description": "O histórico de senhas está configurado para apenas 5 senhas (mínimo recomendado: 12)",
+  "evidence": {
+    "currentHistoryLength": 5,
+    "recommendation": "Configurar histórico de senhas para pelo menos 12 senhas anteriores",
+  },
+  "jobId": "test-job-id",
+  "severity": "low",
+  "source": "journey",
+  "title": "Histórico de Senhas Insuficiente",
+}
+`;
+
+exports[`AD rules > password-never-expires: account with passwordNeverExpires=true triggers rule > password-never-expires 1`] = `
+{
+  "assetId": undefined,
+  "description": "Conta configurada para senha nunca expirar",
+  "evidence": {
+    "domain": "corp.example.com",
+    "enabled": true,
+    "lastLogon": "2024-01-15T00:00:00Z",
+    "username": "svc-backup",
+  },
+  "jobId": "test-job-id",
+  "severity": "medium",
+  "source": "journey",
+  "title": "Conta svc-backup com PasswordNeverExpires",
+}
+`;
+
+exports[`AD rules > passwords-never-expire: passwords never expire policy finding triggers rule > passwords-never-expire 1`] = `
+{
+  "assetId": undefined,
+  "description": "A política de senhas do domínio está configurada para nunca expirar (MaxPasswordAge = 0)",
+  "evidence": {
+    "maxPwdAge": 0,
+    "recommendation": "Configurar MaxPasswordAge para um valor adequado (ex: 90 dias)",
+  },
+  "jobId": "test-job-id",
+  "severity": "medium",
+  "source": "journey",
+  "title": "Senhas Sem Expiração",
+}
+`;
+
+exports[`AD rules > privileged-group-too-many-members: too many members finding triggers rule > privileged-group-too-many-members 1`] = `
+{
+  "assetId": undefined,
+  "description": "O grupo Domain Admins possui 12 membros, excedendo o máximo recomendado de 5",
+  "evidence": {
+    "groupName": "Domain Admins",
+    "maxRecommendedMembers": 5,
+    "memberCount": 12,
+    "members": [
+      "admin1",
+      "admin2",
+      "admin3",
+      "admin4",
+      "admin5",
+      "admin6",
+      "admin7",
+      "admin8",
+      "admin9",
+      "admin10",
+      "admin11",
+      "admin12",
+    ],
+    "recommendation": "Reduzir o número de membros no grupo Domain Admins ao mínimo necessário",
+  },
+  "jobId": "test-job-id",
+  "severity": "medium",
+  "source": "journey",
+  "title": "Grupo privilegiado: corp.example.com",
+}
+`;
+
+exports[`AD rules > specific-inactive-user: specific inactive user finding triggers rule > specific-inactive-user 1`] = `
+{
+  "assetId": undefined,
+  "description": "O usuário jdoe não realiza login há 180 dias",
+  "evidence": {
+    "daysSinceLastLogon": 180,
+    "inactiveUserLimit": 90,
+    "lastLogon": "2023-09-16T00:00:00Z",
+    "recommendation": "Desabilitar a conta jdoe após validação com o gestor responsável",
+    "target": "corp.example.com",
+    "username": "jdoe",
+  },
+  "jobId": "test-job-id",
+  "severity": "low",
+  "source": "journey",
+  "title": "Usuário inativo: corp.example.com",
+}
+`;
+
+exports[`EDR rules > edr-av-failure: detection-failure fixture triggers edr-av-failure rule > edr-av-failure 1`] = `
+{
+  "assetId": undefined,
+  "description": "Sistema de proteção EDR/AV no computador workstation02.corp.example.com falhou em detectar e remover arquivo EICAR malicioso. Isso indica uma falha crítica na proteção de endpoint.",
+  "evidence": {
+    "deploymentMethod": "smb",
+    "eicarPersisted": true,
+    "filePath": "\\\\workstation02\\C$\\Windows\\Temp\\samureye_eicar.txt",
+    "hostname": "workstation02.corp.example.com",
+    "recommendation": "Verificar configuração e funcionamento do EDR/AV no endpoint. Considerar atualização de assinaturas e revisão de políticas de segurança.",
+    "testDuration": 35,
+    "timestamp": "2024-03-16T10:05:00Z",
+  },
+  "jobId": "test-job-id",
+  "severity": "critical",
+  "source": "journey",
+  "title": "EDR/AV Falhou - workstation02.corp.example.com",
+}
+`;
+
+exports[`nmap rules > cve-detected: nmap_vuln finding with CVE triggers rule > cve-detected 1`] = `
+{
+  "assetId": undefined,
+  "description": "EternalBlue vulnerability",
+  "evidence": {
+    "cve": "CVE-2017-0144",
+    "cvssScore": undefined,
+    "details": undefined,
+    "detectionMethod": "nmap_vuln_scripts",
+    "host": "192.168.1.1",
+    "nmapValidated": true,
+    "port": "445",
+    "publishedDate": undefined,
+    "remediation": undefined,
+    "service": "microsoft-ds",
+    "version": undefined,
+  },
+  "jobId": "test-job-id",
+  "severity": "critical",
+  "source": "journey",
+  "title": "CVE-2017-0144: microsoft-ds",
+}
+`;
+
+exports[`nmap rules > exposed-service: smb port triggers rule > exposed-service 1`] = `
+{
+  "assetId": undefined,
+  "description": "Serviço microsoft-ds está exposto na porta 445. Categoria: Compartilhamento. Avalie a necessidade deste serviço e considere restringir o acesso.",
+  "evidence": {
+    "banner": undefined,
+    "host": "dc01.corp.local",
+    "ip": "192.168.1.10",
+    "osInfo": undefined,
+    "port": "445",
+    "service": "microsoft-ds",
+    "serviceCategory": "sharing",
+    "serviceCategoryLabel": "Compartilhamento",
+    "state": "open",
+    "version": undefined,
+  },
+  "jobId": "test-job-id",
+  "severity": "high",
+  "source": "journey",
+  "title": "Serviço Exposto: microsoft-ds (porta 445)",
+}
+`;
+
+exports[`nuclei rules > nuclei-vulnerability: vulnerability finding from nuclei scan triggers rule > nuclei-vulnerability 1`] = `
+{
+  "assetId": undefined,
+  "description": "Vulnerabilidade: Apache Log4j2 2.0-beta9 through 2.15.0 JNDI features used in configuration allow a remote attacker to execute arbitrary code via the JNDI lookup feature.",
+  "evidence": {
+    "curl": undefined,
+    "cve": undefined,
+    "extractedResults": undefined,
+    "matcher": undefined,
+    "nucleiInfo": {
+      "classification": {
+        "cve-id": [
+          "CVE-2021-44228",
+        ],
+        "cwe-id": [
+          "CWE-502",
+        ],
+      },
+      "description": "Apache Log4j2 2.0-beta9 through 2.15.0 JNDI features used in configuration allow a remote attacker to execute arbitrary code via the JNDI lookup feature.",
+      "name": "Apache Log4j2 Remote Code Execution",
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-44228",
+      ],
+      "severity": "critical",
+      "tags": [
+        "cve",
+        "log4j",
+        "rce",
+      ],
+    },
+    "templateId": "CVE-2021-44228",
+    "url": "http://example.com/api/login",
+  },
+  "jobId": "test-job-id",
+  "severity": "critical",
+  "source": "journey",
+  "title": "Apache Log4j2 Remote Code Execution detectado",
+}
+`;
+
+exports[`nuclei rules > web-vulnerability: web_vulnerability type triggers rule > web-vulnerability 1`] = `
+{
+  "assetId": undefined,
+  "description": "Vulnerabilidade web: The X-Frame-Options header is not set",
+  "evidence": {
+    "description": "The X-Frame-Options header is not set",
+    "details": {
+      "host": "example.com",
+      "port": "443",
+    },
+    "host": "https://example.com",
+    "port": "443",
+    "service": "https",
+    "template": "missing-x-frame-options",
+    "vulnerabilityType": "X-Frame-Options Missing",
+  },
+  "jobId": "test-job-id",
+  "severity": "medium",
+  "source": "journey",
+  "title": "X-Frame-Options Missing detectado",
+}
+`;

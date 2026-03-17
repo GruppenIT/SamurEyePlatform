@@ -1,0 +1,60 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ADScanner.parseAdResults > snapshot: parses password-never-expires fixture 1`] = `
+[
+  {
+    "checkId": "password_never_expires",
+    "checkName": "Usuários com Senhas que Nunca Expiram",
+    "details": undefined,
+    "gpoLinks": undefined,
+    "groupMembership": undefined,
+    "rawData": {
+      "Name": "alice",
+      "UserAccountControl": 66048,
+    },
+    "severity": "medium",
+    "target": "corp.example.com",
+    "trustAttributes": undefined,
+    "type": "ad_finding",
+    "uacFlags": [
+      {
+        "flag": "NORMAL_ACCOUNT",
+        "risk": "",
+      },
+      {
+        "flag": "DONT_EXPIRE_PASSWORD",
+        "risk": "Senha nunca expira - se comprometida, o atacante mantém acesso indefinidamente",
+      },
+    ],
+  },
+]
+`;
+
+exports[`ADScanner.parseAdResults > snapshot: parses trust relationship raw output with -Depth 10 1`] = `
+[
+  {
+    "checkId": "trust_relationships",
+    "checkName": "Trust Relationships",
+    "details": undefined,
+    "gpoLinks": [],
+    "groupMembership": [],
+    "rawData": {
+      "ForestTransitive": true,
+      "LinkedGroupPolicyObjects": [],
+      "MemberOf": [],
+      "Name": "partner.example.com",
+      "TrustDirection": 3,
+      "TrustType": 2,
+    },
+    "severity": "low",
+    "target": "corp.example.com",
+    "trustAttributes": {
+      "direction": "Bidirecional (Inbound + Outbound)",
+      "transitivity": "Transitive",
+      "type": "2",
+    },
+    "type": "ad_finding",
+    "uacFlags": undefined,
+  },
+]
+`;
