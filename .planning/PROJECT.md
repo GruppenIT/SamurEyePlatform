@@ -2,88 +2,83 @@
 
 ## What This Is
 
-SamurEye is an Adversarial Exposure Validation platform for medium businesses. It runs automated security journeys (network scanning, AD security assessment, EDR/AV validation, web application testing) using industry tools (nmap, nuclei, PowerShell, smbclient) and translates findings into prioritized, actionable remediation plans. Targeted at sysadmins and junior security analysts who need clear guidance on what to fix first and how.
+SamurEye is an Adversarial Exposure Validation platform for medium businesses. It runs automated security journeys (network scanning, AD security assessment, EDR/AV validation, web application testing) using industry tools (nmap, nuclei, PowerShell, smbclient) and translates findings into prioritized, actionable remediation plans with contextual scoring, threat grouping, and executive dashboards. Targeted at sysadmins and junior security analysts who need clear guidance on what to fix first and how.
 
 ## Core Value
 
 After running a security journey, the user must walk away with a prioritized, contextualized action plan — not a wall of raw findings.
 
+## Current State
+
+**Shipped:** v1.0 (2026-03-17)
+**Stack:** TypeScript full-stack (React + Express + PostgreSQL), Drizzle ORM, Radix UI + Tailwind CSS
+**Deployment:** Single-port appliance (Express serves API + Vite frontend)
+
+### What v1.0 Delivered
+
+- Typed, validated parsers for nmap (XML), nuclei (JSONL), AD (PowerShell), EDR (SMB)
+- Threat grouping engine with parent/child clusters and journey-specific grouping keys
+- Contextual scoring with weighted formula and projected posture delta per threat
+- 25 remediation templates with host-specific commands, effort tags, and role requirements
+- Redesigned threats page with expandable grouping, structured detail dialog, human-readable evidence
+- Action plan page with prioritized cards, filters by effort/role/journey
+- Executive dashboard with posture score hero, sparkline, journey coverage, top actions, WebSocket auto-refresh
+
 ## Requirements
 
 ### Validated
 
-<!-- Shipped and confirmed valuable — existing capabilities from current codebase. -->
-
-- ✓ 4 journey types operational: Attack Surface, AD Security, EDR/AV, Web Application — existing
-- ✓ nmap integration: host discovery, port scanning, service detection, vuln scripts — existing
-- ✓ nuclei integration: template-based web vulnerability detection (JSONL parsing) — existing
-- ✓ PowerShell/WinRM AD security tests: 6 categories (critical config, account mgmt, kerberos, shares/GPOs, policies, inactive accounts) — existing
-- ✓ EDR/AV testing via EICAR deployment over SMB with sample rate calculation — existing
-- ✓ Threat engine with 30+ detection rules, correlation keys, deduplication — existing
-- ✓ CVE enrichment via NVD API — existing
-- ✓ Host enrichment via SSH/WMI (OS, services, patches) — existing
-- ✓ Role-based access control (global_admin, operator, read_only) — existing
-- ✓ Real-time job progress via WebSocket — existing
-- ✓ Credential encryption (AES-256-GCM, DEK/KEK) — existing
-- ✓ Scheduler for recurring journey execution — existing
-- ✓ Email notifications (SMTP/OAuth2) — existing
-- ✓ Subscription/license management with read-only mode — existing
+- Nmap XML parser with OS detection, service versions, NSE scripts, CVE refs — v1.0
+- Nuclei JSONL parser with Zod validation, matcher-name, extracted-results — v1.0
+- NormalizedFinding type system across all 4 parsers — v1.0
+- Threat grouping with parent/child clusters and journey-specific keys — v1.0
+- Contextual scoring with JSONB score breakdown persistence — v1.0
+- Projected posture delta per threat — v1.0
+- 25 remediation templates with host-specific data interpolation — v1.0
+- Remediation lifecycle: mitigate, verify on re-scan, auto-close — v1.0
+- Threat detail: problem/impact/fix hierarchy with human-readable evidence — v1.0
+- Action plan: prioritized cards with effort/role filters — v1.0
+- Executive dashboard: posture score, sparkline, coverage grid, top actions — v1.0
+- WebSocket-triggered dashboard refresh on job completion — v1.0
+- Journey comparison delta between snapshots — v1.0
 
 ### Active
 
-<!-- Current scope — the product revision. -->
-
-- [ ] Improved parsing: nmap output parser captures full script output, service details, and OS detection data
-- [ ] Improved parsing: nuclei parser preserves template metadata, matcher details, extracted evidence
-- [ ] Improved parsing: AD PowerShell parser retains full context (group membership chains, GPO links, trust attributes)
-- [ ] Improved parsing: EDR/AV results include timeline and per-host diagnostic detail
-- [ ] Threat grouping: related findings consolidated into single threat (e.g., multiple ports on same host = one "exposed service" threat with details)
-- [ ] Contextual severity scoring: scores factor in asset criticality, exposure context, and compensating controls
-- [ ] Contextualized remediation: each threat generates specific, actionable recommendations with commands/configs referencing actual hosts, ports, services found
-- [ ] Prioritized action plan: post-journey view showing ordered remediation steps with estimated impact per fix
-- [ ] Executive dashboard: security posture overview with exposure score, trend over time, top risks, journey coverage
-- [ ] Findings redesign: threat detail view restructured to show problem → impact → fix in clear hierarchy
-- [ ] Navigation improvement: streamlined flow from dashboard → journey results → specific threat → remediation action
-- [ ] Impact visualization: "what improves if I fix this" — projected score change per remediation action
-- [ ] Remediation tracking: mark actions as done, see posture improvement after re-scan
+- [ ] AD PowerShell -Depth 10 for full nested structures (PARS-07/08)
+- [ ] EDR per-host timeline with deployment timestamp (PARS-09)
+- [ ] Full snapshot test coverage for 30+ threat rules (PARS-11)
+- [ ] Scoring weight calibration against real scan data (THRT-06/08/09)
 
 ### Out of Scope
 
-- AI/LLM-generated recommendations — complexity and cost; static contextual templates are sufficient for v1
-- New journey types — focus on improving existing 4 journeys, not adding new ones
+- AI/LLM-generated recommendations — complexity and cost; static contextual templates are sufficient
+- New journey types — focus on improving existing 4 journeys
 - Mobile app — web-first, responsive improvements only
 - Multi-tenant architecture — single-tenant appliance model stays
-- Agent-based scanning — agentless architecture stays (nmap, nuclei, WinRM, SMB)
-
-## Context
-
-- **Product category**: Adversarial Exposure Validation (AEV) — sits between vulnerability scanning and pentesting
-- **Target user**: Mix of sysadmin generalist and junior cybersecurity analyst at medium businesses (50-500 employees)
-- **User pain point**: "Não sabe por onde começar" — gets findings but can't prioritize or translate to action
-- **Current weakness**: Findings are confusing — parsers lose data, grouping is wrong, scores don't reflect real risk, recommendations are generic
-- **Stack**: TypeScript full-stack (React + Express + PostgreSQL), Drizzle ORM, Radix UI + Tailwind CSS
-- **Deployment**: Single-port appliance (Express serves both API and static frontend on port 5000)
-- **Binary tools**: nmap, nuclei, PowerShell/WinRM, smbclient — spawned as subprocesses
+- Agent-based scanning — agentless architecture stays
+- Network topology graph visualization — high complexity, low actionable value
+- Microservices / message queues — monolith is correct architecture
 
 ## Constraints
 
-- **Stack**: Must remain TypeScript full-stack (React/Express/PostgreSQL) — no framework migration
-- **Binary tools**: Must continue using nmap, nuclei, PowerShell, smbclient — no tool replacement
-- **Deployment**: Single appliance model, single port — no microservices
+- **Stack**: TypeScript full-stack (React/Express/PostgreSQL) — no framework migration
+- **Binary tools**: nmap, nuclei, PowerShell, smbclient — no tool replacement
+- **Deployment**: Single appliance, single port — no microservices
 - **UI framework**: Radix UI + Tailwind CSS — no component library migration
-- **Backward compatibility**: Existing journey definitions and credentials must continue working after revision
-- **Database**: Schema changes must be additive (migrations only, no destructive changes to existing data)
+- **Backward compatibility**: Existing journey definitions and credentials must continue working
+- **Database**: Schema changes must be additive
 
 ## Key Decisions
 
-<!-- Decisions that constrain future work. Add throughout project lifecycle. -->
-
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Contextual templates over AI/LLM for recommendations | Cost, latency, reliability for medium business deployments without internet dependency | — Pending |
-| Improve existing parsers rather than rewrite from scratch | Preserve working functionality, reduce risk of regression | — Pending |
-| Additive schema changes only | Protect existing data, allow rollback | — Pending |
-| Threat grouping at engine level, not UI level | Single source of truth for threat count/severity, consistent across dashboard and detail views | — Pending |
+| Contextual templates over AI/LLM | Cost, latency, reliability for offline appliance | Good — 25 templates cover all rules |
+| Improve parsers, not rewrite | Preserve working functionality, reduce regression risk | Good — incremental improvement worked |
+| Additive schema changes only | Protect existing data, allow rollback | Good — no data loss |
+| Threat grouping at engine level | Single source of truth for count/severity | Good — consistent across all views |
+| Self-referential parentThreatId with lambda | Drizzle circular init workaround | Good — clean FK relationship |
+| Static TS templates over Handlebars | Type safety, compile-time validation | Good — easy to add new templates |
+| Coverage endpoint: 2 queries per journey | Clarity over complex JOIN | Good — maintainable and fast |
 
 ---
-*Last updated: 2026-03-16 after initialization*
+*Last updated: 2026-03-17 after v1.0 milestone*
