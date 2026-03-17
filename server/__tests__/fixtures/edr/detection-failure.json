@@ -5,6 +5,7 @@
   "hostname": "workstation02.corp.example.com",
   "eicarRemoved": false,
   "detected": false,
+  "deploymentTimestamp": "2024-03-16T10:05:02Z",
   "deploymentMethod": "smb",
   "testDuration": 35,
   "filePath": "\\\\workstation02\\C$\\Windows\\Temp\\samureye_eicar.txt",

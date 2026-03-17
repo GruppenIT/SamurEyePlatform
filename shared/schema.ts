@@ -220,6 +220,26 @@ export const hosts = pgTable("hosts", {
   index("IDX_hosts_risk_score").on(table.riskScore),
 ]);
 
+// Phase 5: EDR deployment metadata table (PARS-10) — one row per host test
+export const edrDeployments = pgTable("edr_deployments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  hostId: varchar("host_id").references(() => hosts.id).notNull(),
+  journeyId: varchar("journey_id").references(() => journeys.id).notNull(),
+  jobId: varchar("job_id").references(() => jobs.id).notNull(),
+  deploymentTimestamp: timestamp("deployment_timestamp"),
+  detectionTimestamp: timestamp("detection_timestamp"),
+  deploymentMethod: text("deployment_method").notNull(),
+  detected: boolean("detected"),
+  testDuration: integer("test_duration").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_edr_deployments_journey_id").on(table.journeyId),
+  index("IDX_edr_deployments_host_id").on(table.hostId),
+]);
+
+export type EdrDeployment = typeof edrDeployments.$inferSelect;
+export type InsertEdrDeployment = typeof edrDeployments.$inferInsert;
+
 // Host enrichments table - stores authenticated scan data collected from hosts
 export const hostEnrichments = pgTable("host_enrichments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1234,6 +1254,9 @@ export const EdrFindingSchema = BaseFindingSchema.extend({
   timeline: z.array(EdrTimelineEventSchema),
   sampleRate: z.number().optional(),
   detected: z.boolean().nullable(),
+  // PARS-09: explicit per-host timestamps
+  deploymentTimestamp: z.string().optional(),  // ISO-8601, from first deploy_success event
+  detectionTimestamp: z.string().optional(),   // ISO-8601, from detected event; null when not detected
 }).strip();
 
 export type EdrFinding = z.infer<typeof EdrFindingSchema>;
