@@ -24,7 +24,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 **Milestone Goal:** Close all known gaps from v1.0 — EDR timestamps, scoring calibration, snapshot coverage, test suite health
 
 - [x] **Phase 5: EDR Timestamps** - Add deployment/detection timestamps to EDR parser and expose them in a queryable database table (completed 2026-03-17)
-- [ ] **Phase 6: Calibration and Quality** - Validate scoring weights against real scan data, complete snapshot coverage, and achieve zero-failure test baseline
+- [x] **Phase 6: Calibration and Quality** - Validate scoring weights against real scan data, complete snapshot coverage, and achieve zero-failure test baseline (completed 2026-03-17)
 
 ## Phase Details
 
@@ -64,4 +64,4 @@ Plans:
 | 3. Remediation Engine | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 4. User-Facing Surfaces | v1.0 | 4/4 | Complete | 2026-03-16 |
 | 5. EDR Timestamps | 1/1 | Complete   | 2026-03-17 | - |
-| 6. Calibration and Quality | 1/2 | In Progress|  | - |
+| 6. Calibration and Quality | 2/2 | Complete   | 2026-03-17 | - |

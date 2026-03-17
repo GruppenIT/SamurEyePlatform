@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Close Known Gaps
 status: planning
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-17T20:22:48.232Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-03-17T20:28:47.164Z"
 last_activity: 2026-03-17 — v1.1 roadmap created, phases 5-6 defined
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0% (v1.1)
 *Updated after each plan completion*
 | Phase 05 P01 | 8 | 3 tasks | 11 files |
 | Phase 06 P01 | 2 | 2 tasks | 1 files |
+| Phase 06 P02 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -59,6 +60,8 @@ Full decision log in PROJECT.md Key Decisions table.
 - [Phase 05]: Migration guard uses pg_tables check before CREATE TABLE IF NOT EXISTS for idempotent startup
 - [Phase 06]: QUAL-01 pre-resolved: edrAvScanner.test.ts passed without C:\tmp\ failures — Linux uses /dev/shm or /tmp
 - [Phase 06]: Calibration regression tests appended to existing scoringEngine.test.ts as new describe block, not a separate file
+- [Phase 06]: scripts/calibrate.ts requires fileURLToPath(import.meta.url) for __dirname — project uses ESM not CommonJS
+- [Phase 06]: Live DB (361 scored threats): THRT-06 SKIPPED (no critical threats in dataset), THRT-08 PASS, THRT-09 PASS — no scoring constants patched
 
 ### Pending Todos
 
@@ -70,6 +73,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T20:22:48.229Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-03-17T20:28:47.161Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
