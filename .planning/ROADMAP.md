@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Parser Foundation** - Replace fragile parsers with typed, structured output validated by Zod schemas and protected by snapshot tests
 - [x] **Phase 2: Threat Engine Intelligence** - Consolidate findings into grouped threat clusters with contextual severity scoring
 - [x] **Phase 3: Remediation Engine** - Generate specific, host-referencing fix instructions and close the remediation lifecycle loop (completed 2026-03-16)
-- [ ] **Phase 4: User-Facing Surfaces** - Expose the new data model through redesigned findings view, action plan, and executive dashboard
+- [x] **Phase 4: User-Facing Surfaces** - Expose the new data model through redesigned findings view, action plan, and executive dashboard (completed 2026-03-16)
 
 ## Phase Details
 
@@ -81,10 +81,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Findings redesign: grouped threat list with expandable children, structured detail dialog (problem/impact/fix), human-readable evidence labels, remediation preview per group (UIFN-01, UIFN-02, UIFN-03, UIFN-04)
+- [x] 04-01-PLAN.md — Findings redesign: grouped threat list with expandable children, structured detail dialog (problem/impact/fix), human-readable evidence labels, remediation preview per group (UIFN-01, UIFN-02, UIFN-03, UIFN-04)
 - [x] 04-02-PLAN.md — Action plan: GET /api/action-plan endpoint, new /action-plan page with prioritized cards, filter by effort/role/journey, sidebar link (UIAP-01, UIAP-02, UIAP-03, UIAP-04)
-- [ ] 04-03-PLAN.md — Dashboard core: GET /api/posture/coverage endpoint, posture hero with sparkline, journey coverage grid, top 3 actions (UIDB-01, UIDB-02, UIDB-03, UIDB-04)
-- [ ] 04-04-PLAN.md — Dashboard live updates: WebSocket-triggered cache invalidation, journey comparison delta view (UIDB-05, UIDB-06)
+- [x] 04-03-PLAN.md — Dashboard core: GET /api/posture/coverage endpoint, posture hero with sparkline, journey coverage grid, top 3 actions (UIDB-01, UIDB-02, UIDB-03, UIDB-04)
+- [x] 04-04-PLAN.md — Dashboard live updates: WebSocket-triggered cache invalidation, journey comparison delta view (UIDB-05, UIDB-06)
 
 ## Progress
 
@@ -96,4 +96,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Parser Foundation | 3/3 | Complete | 2026-03-16 |
 | 2. Threat Engine Intelligence | 3/3 | Complete   | 2026-03-16 |
 | 3. Remediation Engine | 2/2 | Complete   | 2026-03-16 |
-| 4. User-Facing Surfaces | 3/4 | In Progress|  |
+| 4. User-Facing Surfaces | 4/4 | Complete | 2026-03-16 |
