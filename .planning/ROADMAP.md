@@ -65,7 +65,11 @@ Plans:
   1. An API endpoint returns EDR deployment records for a given journey ID
   2. The journey detail UI displays EDR deployment metadata (host, product, timestamps) when records exist
   3. `getEdrDeploymentsByJourney` is called by the API route (no longer dormant)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Storage join query (getEdrDeploymentsByJourneyWithHost), IStorage/DatabaseStorage wiring, API route registration
+- [ ] 07-02-PLAN.md — Journeys page UI: View Results button, side Sheet with summary stats and per-host results table
 
 ## Progress
 
@@ -77,4 +81,4 @@ Plans:
 | 4. User-Facing Surfaces | v1.0 | 4/4 | Complete | 2026-03-16 |
 | 5. EDR Timestamps | 1/1 | Complete   | 2026-03-17 | - |
 | 6. Calibration and Quality | 2/2 | Complete   | 2026-03-17 | - |
-| 7. EDR Deployment Read Path | v1.1 | 0/0 | Planned | - |
+| 7. EDR Deployment Read Path | v1.1 | 0/2 | Planned | - |
