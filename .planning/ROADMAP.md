@@ -64,4 +64,4 @@ Plans:
 | 3. Remediation Engine | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 4. User-Facing Surfaces | v1.0 | 4/4 | Complete | 2026-03-16 |
 | 5. EDR Timestamps | 1/1 | Complete   | 2026-03-17 | - |
-| 6. Calibration and Quality | v1.1 | 0/2 | Not started | - |
+| 6. Calibration and Quality | 1/2 | In Progress|  | - |

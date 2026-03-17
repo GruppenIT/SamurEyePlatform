@@ -11,18 +11,18 @@ Close known gaps from v1.0 — parser refinements, test coverage, scoring calibr
 
 - [x] **PARS-09**: EDR findings include explicit deploymentTimestamp and detectionTimestamp fields per host
 - [x] **PARS-10**: EDR per-host deployment metadata stored in queryable database table (not buried in JSONB artifacts)
-- [ ] **PARS-11**: Snapshot files generated and committed for all 25 threat rule tests
+- [x] **PARS-11**: Snapshot files generated and committed for all 25 threat rule tests
 
 ### Scoring
 
-- [ ] **THRT-06**: Scoring component weight distribution (40/25/20/15) validated against real scan data and adjusted if inversions found
-- [ ] **THRT-08**: Host type criticality multipliers (domain 1.5, server/firewall/router 1.2) validated against real scan data
-- [ ] **THRT-09**: Exploitability multiplier (1.3x for confirmed) validated against real scan data
+- [x] **THRT-06**: Scoring component weight distribution (40/25/20/15) validated against real scan data and adjusted if inversions found
+- [x] **THRT-08**: Host type criticality multipliers (domain 1.5, server/firewall/router 1.2) validated against real scan data
+- [x] **THRT-09**: Exploitability multiplier (1.3x for confirmed) validated against real scan data
 
 ### Quality
 
-- [ ] **QUAL-01**: edrAvScanner.test.ts 7 pre-existing failures resolved (missing C:\tmp\ directory dependency)
-- [ ] **QUAL-02**: All existing test suites pass with zero failures before milestone close
+- [x] **QUAL-01**: edrAvScanner.test.ts 7 pre-existing failures resolved (missing C:\tmp\ directory dependency)
+- [x] **QUAL-02**: All existing test suites pass with zero failures before milestone close
 
 ## Validated (from v1.0)
 
@@ -44,12 +44,12 @@ Close known gaps from v1.0 — parser refinements, test coverage, scoring calibr
 |-------------|-------|--------|
 | PARS-09 | Phase 5 | Complete |
 | PARS-10 | Phase 5 | Complete |
-| PARS-11 | Phase 6 | Pending |
-| THRT-06 | Phase 6 | Pending |
-| THRT-08 | Phase 6 | Pending |
-| THRT-09 | Phase 6 | Pending |
-| QUAL-01 | Phase 6 | Pending |
-| QUAL-02 | Phase 6 | Pending |
+| PARS-11 | Phase 6 | Complete |
+| THRT-06 | Phase 6 | Complete |
+| THRT-08 | Phase 6 | Complete |
+| THRT-09 | Phase 6 | Complete |
+| QUAL-01 | Phase 6 | Complete |
+| QUAL-02 | Phase 6 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 8 total
