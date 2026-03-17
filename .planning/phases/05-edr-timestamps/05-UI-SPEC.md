@@ -74,11 +74,12 @@ Source: default (shadcn Tailwind scale, 8-point base).
 | Label | 12px | 500 (medium) | 1.4 | Inter | existing codebase |
 | Heading | 20px | 600 (semibold) | 1.2 | Inter | existing codebase |
 | Display | 28px | 600 (semibold) | 1.2 | Inter | existing codebase |
-| Mono / code | 13px | 400 (regular) | 1.5 | JetBrains Mono | existing codebase (timestamps rendered in mono) |
 
 **Timestamp field rendering rule:** `deploymentTimestamp` and `detectionTimestamp` values,
-when surfaced in any UI component, MUST be rendered in `font-mono` (JetBrains Mono, 13px,
-weight 400) to distinguish machine-generated ISO-8601 strings from human-readable text.
+when surfaced in any UI component, MUST be rendered in `font-mono` (JetBrains Mono) at the
+existing body size (14px, weight 400) to distinguish machine-generated ISO-8601 strings from
+human-readable text. No separate type-scale entry is introduced — the mono face is applied
+via the `font-mono` utility class at the standard 14px body size.
 
 ---
 
@@ -174,7 +175,7 @@ interaction code changes required.
 - [ ] Dimension 1 Copywriting: PASS — no new copy required; null display rule defined
 - [ ] Dimension 2 Visuals: PASS — no new visual components; existing design system governs
 - [ ] Dimension 3 Color: PASS — existing token set documented; EDR semantic mapping defined
-- [ ] Dimension 4 Typography: PASS — mono rule for timestamp fields declared
+- [ ] Dimension 4 Typography: PASS — 4 sizes, 2 weights; mono face applied at body size via utility class
 - [ ] Dimension 5 Spacing: PASS — existing 8-point scale applies; no exceptions
 - [ ] Dimension 6 Registry Safety: PASS — shadcn official only, no new components
 
