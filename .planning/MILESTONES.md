@@ -1,5 +1,32 @@
 # Milestones
 
+## v1.1 Close Known Gaps (Shipped: 2026-03-23)
+
+**Phases:** 3 | **Plans:** 5
+**Timeline:** 2026-03-17 to 2026-03-23 (7 days)
+**Files changed:** 46 | **Lines:** +6,981
+
+### Key Accomplishments
+
+1. EDR timestamp extraction from timeline events — deploymentTimestamp/detectionTimestamp per host finding
+2. Queryable edr_deployments table with idempotent migration guard and storage functions
+3. Scoring calibration regression tests encoding THRT-06/08/09 hierarchy invariants
+4. Reusable calibration CLI (scripts/calibrate.ts) for live DB validation of scoring constants
+5. Full-stack EDR deployment read path: LEFT JOIN API endpoint + Sheet UI with per-host results
+6. Zero-failure test baseline established: 298 tests across 17 files, 25/25 threat rule snapshots
+
+### Tech Debt Carried Forward
+
+- `getEdrDeploymentsByJourney` dormant (superseded by `getEdrDeploymentsByJourneyWithHost`)
+- Direct import pattern in journeyExecutor bypasses storage facade (intentional)
+- Nyquist validation incomplete for Phases 5-7
+- THRT-06 live validation skipped (no critical threats in DB)
+- PARS-09 missing from 05-01-SUMMARY.md frontmatter (metadata only)
+
+**Archive:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`
+
+---
+
 ## v1.0 — SamurEye Product Revision
 
 **Shipped:** 2026-03-17
