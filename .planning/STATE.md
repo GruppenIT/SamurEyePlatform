@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Close Known Gaps
-status: planning
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-03-23T17:53:54.280Z"
-last_activity: 2026-03-17 — v1.1 roadmap created, phases 5-6 defined
+milestone: null
+milestone_name: null
+status: between_milestones
+stopped_at: v1.1 milestone completed
+last_updated: "2026-03-23T18:10:00.000Z"
+last_activity: 2026-03-23 — v1.1 milestone completed and archived
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
@@ -18,56 +18,39 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-17)
+See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** After running a security journey, the user must walk away with a prioritized, contextualized action plan — not a wall of raw findings.
-**Current focus:** v1.1 Close Known Gaps — Phase 5: EDR Timestamps
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 5 of 6 (EDR Timestamps)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-17 — v1.1 roadmap created, phases 5-6 defined
-
-Progress: [░░░░░░░░░░] 0% (v1.1)
+Milestone: v1.1 completed (2026-03-23)
+Next milestone: TBD — run `/gsd:new-milestone` to start
+Status: Between milestones
 
 ## Performance Metrics
 
-**Velocity (v1.0):**
-- Total plans completed: 12
-- v1.1 plans completed: 0
+**Velocity:**
+- v1.0 plans completed: 12
+- v1.1 plans completed: 5
+- Total plans completed: 17
 
 **v1.1 By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 5. EDR Timestamps | 0/1 | - | - |
-| 6. Calibration and Quality | 0/2 | - | - |
-
-*Updated after each plan completion*
-| Phase 05 P01 | 8 | 3 tasks | 11 files |
-| Phase 06 P01 | 2 | 2 tasks | 1 files |
-| Phase 06 P02 | 4min | 2 tasks | 2 files |
-| Phase 07-edr-deployment-read-path P01 | 7 | 2 tasks | 5 files |
-| Phase 07-edr-deployment-read-path P02 | 5 | 1 tasks | 1 files |
+| Phase | Plans | Tasks | Files |
+|-------|-------|-------|-------|
+| Phase 05 P01 | 1 | 3 tasks | 11 files |
+| Phase 06 P01 | 1 | 2 tasks | 1 file |
+| Phase 06 P02 | 1 | 2 tasks | 2 files |
+| Phase 07 P01 | 1 | 2 tasks | 5 files |
+| Phase 07 P02 | 1 | 1 task | 1 file |
 
 ## Accumulated Context
 
 ### Decisions
 
 Full decision log in PROJECT.md Key Decisions table.
-- [Phase 05]: Timestamps derived from timeline events using Array.find() — deploy_success for deploymentTimestamp, detected for detectionTimestamp
-- [Phase 05]: edr_deployments insert is non-blocking: wrapped per-finding in try/catch after createJobResult completes
-- [Phase 05]: Migration guard uses pg_tables check before CREATE TABLE IF NOT EXISTS for idempotent startup
-- [Phase 06]: QUAL-01 pre-resolved: edrAvScanner.test.ts passed without C:\tmp\ failures — Linux uses /dev/shm or /tmp
-- [Phase 06]: Calibration regression tests appended to existing scoringEngine.test.ts as new describe block, not a separate file
-- [Phase 06]: scripts/calibrate.ts requires fileURLToPath(import.meta.url) for __dirname — project uses ESM not CommonJS
-- [Phase 06]: Live DB (361 scored threats): THRT-06 SKIPPED (no critical threats in dataset), THRT-08 PASS, THRT-09 PASS — no scoring constants patched
-- [Phase 07]: IStorage getEdrDeploymentsByJourneyWithHost uses inline return type to avoid circular imports from edrDeployments.ts
-- [Phase 07]: GET /api/edr-deployments returns 400 with Portuguese error 'journeyId é obrigatório' when journeyId param missing
-- [Phase 07-edr-deployment-read-path]: Sheet width overridden to 700px to accommodate 6-column EDR per-host table
-- [Phase 07-edr-deployment-read-path]: edrDeployments useQuery enabled only when selectedJourneyId non-null to prevent page-load API calls
 
 ### Pending Todos
 
@@ -75,10 +58,10 @@ None.
 
 ### Blockers/Concerns
 
-- [Phase 6] edrAvScanner.test.ts has 7 pre-existing failures (missing C:\tmp\ directory) — QUAL-01 must fix these before milestone close
+None.
 
 ## Session Continuity
 
-Last session: 2026-03-23T17:52:35.426Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-03-23
+Stopped at: v1.1 milestone completed
 Resume file: None
