@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Close Known Gaps
 status: planning
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-03-17T22:48:43.269Z"
+stopped_at: "Completed 07-02-PLAN.md (checkpoint:human-verify pending)"
+last_updated: "2026-03-23T17:42:43.907Z"
 last_activity: 2026-03-17 — v1.1 roadmap created, phases 5-6 defined
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0% (v1.1)
 | Phase 06 P01 | 2 | 2 tasks | 1 files |
 | Phase 06 P02 | 4min | 2 tasks | 2 files |
 | Phase 07-edr-deployment-read-path P01 | 7 | 2 tasks | 5 files |
+| Phase 07-edr-deployment-read-path P02 | 5 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,8 @@ Full decision log in PROJECT.md Key Decisions table.
 - [Phase 06]: Live DB (361 scored threats): THRT-06 SKIPPED (no critical threats in dataset), THRT-08 PASS, THRT-09 PASS — no scoring constants patched
 - [Phase 07]: IStorage getEdrDeploymentsByJourneyWithHost uses inline return type to avoid circular imports from edrDeployments.ts
 - [Phase 07]: GET /api/edr-deployments returns 400 with Portuguese error 'journeyId é obrigatório' when journeyId param missing
+- [Phase 07-edr-deployment-read-path]: Sheet width overridden to 700px to accommodate 6-column EDR per-host table
+- [Phase 07-edr-deployment-read-path]: edrDeployments useQuery enabled only when selectedJourneyId non-null to prevent page-load API calls
 
 ### Pending Todos
 
@@ -76,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T22:48:43.265Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-03-23T17:42:43.903Z
+Stopped at: Completed 07-02-PLAN.md (checkpoint:human-verify pending)
 Resume file: None
