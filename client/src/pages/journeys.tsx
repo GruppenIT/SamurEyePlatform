@@ -408,15 +408,17 @@ export default function Journeys() {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setSelectedJourneyId(journey.id)}
-                                data-testid={`button-results-${journey.id}`}
-                                title="Ver Resultados EDR"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
+                              {journey.type === 'edr_av' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedJourneyId(journey.id)}
+                                  data-testid={`button-results-${journey.id}`}
+                                  title="Ver Resultados EDR"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="sm"
