@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -91,9 +91,24 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
     queryKey: ["/api/assets"],
   });
 
-  const { data: webApplicationAssets = [] } = useQuery<Asset[]>({
+  const { data: webApplicationAssets = [] } = useQuery<Array<Asset & { parentAssetId?: string | null }>>({
     queryKey: ["/api/assets/by-type/web_application"],
   });
+
+  const { data: allAssets = [] } = useQuery<Asset[]>({
+    queryKey: ["/api/assets?flat=1"],
+    queryFn: async () => {
+      const r = await fetch("/api/assets?flat=1", { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to fetch assets");
+      return r.json();
+    },
+  });
+
+  const hostById = useMemo(() => {
+    const map = new Map<string, Asset>();
+    for (const a of allAssets) if (a.type === "host") map.set(a.id, a);
+    return map;
+  }, [allAssets]);
 
   const { data: credentials = [], isLoading: isLoadingCredentials } = useQuery<Credential[]>({
     queryKey: ["/api/credentials"],
@@ -1007,14 +1022,21 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                       <Checkbox
                         id={asset.id}
                         checked={selectedAssets.includes(asset.id)}
-                        onCheckedChange={(checked) => 
+                        onCheckedChange={(checked) =>
                           handleAssetSelection(asset.id, checked as boolean)
                         }
                         data-testid={`checkbox-webapp-${asset.id}`}
                       />
-                      <label htmlFor={asset.id} className="text-sm cursor-pointer">
-                        {asset.value}
-                      </label>
+                      <div className="flex-1">
+                        <label htmlFor={asset.id} className="text-sm font-medium cursor-pointer">
+                          {asset.value}
+                        </label>
+                        <p className="text-xs text-muted-foreground">
+                          {asset.parentAssetId && hostById.get(asset.parentAssetId)
+                            ? `Host: ${hostById.get(asset.parentAssetId)!.value}`
+                            : "Sem host associado"}
+                        </p>
+                      </div>
                     </div>
                   ))
                 )}
