@@ -117,7 +117,8 @@ export default function Journeys() {
 
   const updateJourneyMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<JourneyFormData> }) => {
-      return await apiRequest('PATCH', `/api/journeys/${id}`, data);
+      const { type: _t, createdAt: _c, createdBy: _cb, id: _i, ...editablePayload } = data as any;
+      return await apiRequest('PATCH', `/api/journeys/${id}`, editablePayload);
     },
     onSuccess: () => {
       toast({
@@ -509,6 +510,7 @@ export default function Journeys() {
             return (
               <JourneyForm
                 key={editingJourney.id}
+                mode="edit"
                 onSubmit={handleUpdateJourney}
                 onCancel={() => setEditingJourney(null)}
                 isLoading={updateJourneyMutation.isPending}
