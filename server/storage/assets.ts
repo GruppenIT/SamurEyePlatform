@@ -8,6 +8,7 @@ import {
 } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { createLogger } from '../lib/logger';
+import { normalizeTarget } from '../services/journeys/urls';
 
 const log = createLogger('storage');
 
@@ -87,6 +88,15 @@ async function inferParentHostForWebApp(asset: InsertAsset): Promise<string | nu
 }
 
 export async function createAsset(asset: InsertAsset, userId: string): Promise<Asset> {
+  // Normalize web_application URLs so the stored value always carries an explicit port
+  if (asset.type === 'web_application') {
+    const normalized = normalizeTarget(asset.value);
+    if (normalized && normalized !== asset.value) {
+      log.info({ from: asset.value, to: normalized }, 'web_application URL normalized on create');
+      asset = { ...asset, value: normalized };
+    }
+  }
+
   // Check for existing asset with same value and type
   const existing = await db
     .select()
