@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -36,22 +36,180 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, Server, Globe } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Server, Globe, ChevronRight, ChevronDown } from "lucide-react";
 import { Asset } from "@shared/schema";
 import { AssetFormData } from "@/types";
+
+type AssetWithChildren = Asset & { children?: Asset[] };
+
+type AssetViewMode = "tree" | "flat";
+const VIEW_KEY = "samureye:assets:view";
+
+function matchesSearch(asset: AssetWithChildren, term: string): boolean {
+  if (!term) return true;
+  const needle = term.toLowerCase();
+  const own =
+    asset.value.toLowerCase().includes(needle) ||
+    (asset.tags ?? []).some((t: string) => t.toLowerCase().includes(needle));
+  if (own) return true;
+  return (asset.children ?? []).some((c) => matchesSearch(c as AssetWithChildren, term));
+}
+
+interface AssetRowProps {
+  asset: Asset;
+  depth: number;
+  hasChildren?: boolean;
+  expanded?: boolean;
+  onToggle?: () => void;
+  childCount?: number;
+  onEdit: (asset: Asset) => void;
+  onDelete: (id: string) => void;
+  getAssetIcon: (type: string) => React.ComponentType<{ className?: string }>;
+  getAssetTypeLabel: (type: string) => string;
+}
+
+function AssetRow({
+  asset,
+  depth,
+  hasChildren = false,
+  expanded = false,
+  onToggle,
+  childCount = 0,
+  onEdit,
+  onDelete,
+  getAssetIcon,
+  getAssetTypeLabel,
+}: AssetRowProps) {
+  const Icon = getAssetIcon(asset.type);
+  return (
+    <TableRow
+      key={asset.id}
+      data-testid={`asset-row-${asset.id}`}
+      className={depth > 0 ? "bg-muted/30" : undefined}
+    >
+      <TableCell>
+        <div className="flex items-center space-x-2" style={depth > 0 ? { paddingLeft: "2rem" } : undefined}>
+          {hasChildren && depth === 0 ? (
+            <button
+              onClick={onToggle}
+              className="mr-1 text-muted-foreground hover:text-foreground focus:outline-none"
+              aria-label={expanded ? "Recolher" : "Expandir"}
+            >
+              {expanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </button>
+          ) : (
+            depth === 0 && <span className="inline-block w-5" />
+          )}
+          <Icon className="h-4 w-4 text-muted-foreground" />
+          <span>{getAssetTypeLabel(asset.type)}</span>
+        </div>
+      </TableCell>
+      <TableCell className="font-mono">
+        {depth > 0 ? (
+          <span className="pl-8">{asset.value}</span>
+        ) : (
+          <span>
+            {asset.value}
+            {hasChildren && childCount > 0 && (
+              <span className="ml-2 text-xs text-muted-foreground font-sans">
+                ({childCount} web {childCount === 1 ? "app" : "apps"})
+              </span>
+            )}
+          </span>
+        )}
+      </TableCell>
+      <TableCell>
+        <div className="flex flex-wrap gap-1">
+          {asset.tags.map((tag, index) => (
+            <Badge key={index} variant="outline" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      </TableCell>
+      <TableCell className="text-muted-foreground">
+        {new Date(asset.createdAt).toLocaleDateString("pt-BR")}
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex justify-end space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEdit(asset)}
+            data-testid={`button-edit-${asset.id}`}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(asset.id)}
+            className="text-destructive hover:text-destructive"
+            data-testid={`button-delete-${asset.id}`}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
 
 export default function Assets() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
-  
+
+  const [viewMode, setViewMode] = useState<AssetViewMode>(() => {
+    if (typeof window === "undefined") return "tree";
+    const v = window.localStorage.getItem(VIEW_KEY);
+    return v === "flat" || v === "tree" ? v : "tree";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem(VIEW_KEY, viewMode);
+  }, [viewMode]);
+
+  const [expandedHosts, setExpandedHosts] = useState<Set<string>>(new Set());
+
+  const toggleHost = (id: string) => {
+    setExpandedHosts((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { connected } = useWebSocket();
 
-  const { data: assets = [], isLoading } = useQuery<Asset[]>({
-    queryKey: ["/api/assets"],
+  const { data: assets = [], isLoading } = useQuery<AssetWithChildren[]>({
+    queryKey: ["/api/assets", viewMode],
+    queryFn: async () => {
+      const url = viewMode === "flat" ? "/api/assets?flat=1" : "/api/assets";
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch assets");
+      return res.json();
+    },
   });
+
+  // Auto-expand parents when search matches a child
+  useEffect(() => {
+    if (!searchTerm || viewMode !== "tree") return;
+    const toExpand = new Set<string>();
+    for (const a of assets) {
+      if ((a.children ?? []).some((c) => matchesSearch(c as AssetWithChildren, searchTerm))) {
+        toExpand.add(a.id);
+      }
+    }
+    setExpandedHosts(toExpand);
+  }, [searchTerm, viewMode, assets]);
 
   const createAssetMutation = useMutation({
     mutationFn: async (data: AssetFormData) => {
@@ -148,10 +306,7 @@ export default function Assets() {
     },
   });
 
-  const filteredAssets = assets.filter(asset =>
-    asset.value.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    asset.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredAssets = assets.filter((a) => matchesSearch(a, searchTerm));
 
   const handleCreateAsset = (data: AssetFormData) => {
     createAssetMutation.mutate(data);
@@ -181,12 +336,19 @@ export default function Assets() {
     return 'Faixa de IPs'; // range
   };
 
+  const rowProps = {
+    onEdit: setEditingAsset,
+    onDelete: handleDeleteAsset,
+    getAssetIcon,
+    getAssetTypeLabel,
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
-      
+
       <main className="flex-1 overflow-auto">
-        <TopBar 
+        <TopBar
           title="Gestão de Alvos"
           subtitle="Configure e gerencie hosts e faixas de IP para monitoramento"
           wsConnected={connected}
@@ -200,7 +362,7 @@ export default function Assets() {
             </Button>
           }
         />
-        
+
         <div className="p-6 space-y-6">
           {/* Search and Filters */}
           <Card>
@@ -215,6 +377,22 @@ export default function Assets() {
                     className="pl-10"
                     data-testid="input-search-assets"
                   />
+                </div>
+                <div className="inline-flex rounded-md border" data-testid="asset-view-toggle">
+                  <Button
+                    variant={viewMode === "tree" ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("tree")}
+                  >
+                    Árvore
+                  </Button>
+                  <Button
+                    variant={viewMode === "flat" ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("flat")}
+                  >
+                    Plano
+                  </Button>
                 </div>
                 <Badge variant="secondary" data-testid="assets-count">
                   {filteredAssets.length} alvos
@@ -241,7 +419,7 @@ export default function Assets() {
                     {searchTerm ? 'Nenhum alvo encontrado' : 'Nenhum alvo cadastrado'}
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    {searchTerm 
+                    {searchTerm
                       ? 'Tente ajustar os termos de busca'
                       : 'Comece adicionando seu primeiro alvo para monitoramento'
                     }
@@ -266,55 +444,41 @@ export default function Assets() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredAssets.map((asset) => {
-                      const Icon = getAssetIcon(asset.type);
-                      return (
-                        <TableRow key={asset.id} data-testid={`asset-row-${asset.id}`}>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              <Icon className="h-4 w-4 text-muted-foreground" />
-                              <span>{getAssetTypeLabel(asset.type)}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-mono">
-                            {asset.value}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {asset.tags.map((tag, index) => (
-                                <Badge key={index} variant="outline" className="text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {new Date(asset.createdAt).toLocaleDateString('pt-BR')}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setEditingAsset(asset)}
-                                data-testid={`button-edit-${asset.id}`}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteAsset(asset.id)}
-                                className="text-destructive hover:text-destructive"
-                                data-testid={`button-delete-${asset.id}`}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                    {viewMode === "flat" ? (
+                      filteredAssets.map((asset) => (
+                        <AssetRow key={asset.id} asset={asset} depth={0} {...rowProps} />
+                      ))
+                    ) : (
+                      filteredAssets.flatMap((asset) => {
+                        const childCount = asset.children?.length ?? 0;
+                        const rows: React.ReactNode[] = [
+                          <AssetRow
+                            key={asset.id}
+                            asset={asset}
+                            depth={0}
+                            hasChildren={childCount > 0}
+                            expanded={expandedHosts.has(asset.id)}
+                            onToggle={() => toggleHost(asset.id)}
+                            childCount={childCount}
+                            {...rowProps}
+                          />,
+                        ];
+                        if (expandedHosts.has(asset.id)) {
+                          for (const child of asset.children ?? []) {
+                            if (searchTerm && !matchesSearch(child as AssetWithChildren, searchTerm)) continue;
+                            rows.push(
+                              <AssetRow
+                                key={child.id}
+                                asset={child}
+                                depth={1}
+                                {...rowProps}
+                              />
+                            );
+                          }
+                        }
+                        return rows;
+                      })
+                    )}
                   </TableBody>
                 </Table>
                 </div>
