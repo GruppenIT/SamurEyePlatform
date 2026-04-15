@@ -85,6 +85,8 @@ export default function AssetForm({ onSubmit, onCancel, isLoading = false, initi
         return 'Ex: 192.168.1.10 ou web-server.corp.local';
       case 'range':
         return 'Ex: 192.168.1.0/24 ou 10.0.0.1-10.0.0.50';
+      case 'web_application':
+        return 'Ex: https://app.empresa.local ou http://192.168.1.10:8080';
       default:
         return '';
     }
@@ -96,6 +98,8 @@ export default function AssetForm({ onSubmit, onCancel, isLoading = false, initi
         return 'IP único (IPv4/IPv6) ou FQDN';
       case 'range':
         return 'Notação CIDR ou intervalo com hífen';
+      case 'web_application':
+        return 'URL completa com esquema http:// ou https://';
       default:
         return '';
     }
@@ -130,6 +134,7 @@ export default function AssetForm({ onSubmit, onCancel, isLoading = false, initi
                   <SelectContent>
                     <SelectItem value="host">Host Individual</SelectItem>
                     <SelectItem value="range">Faixa de IPs</SelectItem>
+                    <SelectItem value="web_application">Aplicação Web</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
