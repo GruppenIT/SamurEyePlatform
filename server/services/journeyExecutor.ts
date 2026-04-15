@@ -13,8 +13,11 @@ import { cveService } from './cveService';
 import { hostEnricher } from './hostEnricher';
 import { WMICollector } from './collectors/wmiCollector';
 import { SSHCollector } from './collectors/sshCollector';
-import { type Journey, type Job } from '@shared/schema';
+import { type Journey, type Job, assets as assetsTable } from '@shared/schema';
 import { createLogger } from '../lib/logger';
+import { buildWebAppUrl, detectWebScheme } from './journeys/urls';
+import { and, eq } from 'drizzle-orm';
+import { db } from '../db';
 
 const log = createLogger('journey');
 const adScanner = new ADScanner();
@@ -1305,52 +1308,86 @@ class JourneyExecutorService {
    */
   private async createWebApplicationAssets(findings: any[], createdBy: string, jobId: string): Promise<any[]> {
     const webApps: any[] = [];
-    const webPorts = new Set(['80', '443', '8080', '8443', '3000', '5000', '8000', '8888']);
-    const webServiceNames = ['http', 'https', 'http-alt', 'https-alt', 'http-proxy', 'ssl/http'];
-    const createdUrls = new Set<string>(); // Track to avoid duplicates
-    
+    const createdUrls = new Set<string>(); // Within-job dedup short-circuit
+
+    // Load host assets once to resolve parent links efficiently
+    const allAssets = await storage.getAssets();
+    const hostAssets = allAssets.filter((a: any) => a.type === 'host');
+    const hostByValue = new Map<string, any>();
+    for (const h of hostAssets) {
+      hostByValue.set(h.value, h);
+    }
+
     for (const finding of findings) {
-      // Only process open ports
       if (finding.type !== 'port' || finding.state !== 'open') continue;
-      
+
       const host = finding.target || finding.ip;
       if (!host) continue;
-      
-      const port = finding.port?.toString().replace(/\/(tcp|udp)$/i, ''); // Clean port
-      const service = finding.service?.toLowerCase() || '';
-      
-      // Determine if this is a web service
-      let protocol = '';
-      
-      if (port === '443' || port === '8443' || service.includes('https') || service.includes('ssl')) {
-        protocol = 'https';
-      } else if (webPorts.has(port) || webServiceNames.some(name => service.includes(name))) {
-        protocol = 'http';
-      }
-      
-      // Create web_application asset if web service detected
-      if (protocol) {
-        const url = `${protocol}://${host}:${port}`;
-        
-        // Avoid duplicates
-        if (createdUrls.has(url)) continue;
-        createdUrls.add(url);
-        
-        try {
-          const asset = await storage.createAsset({
+
+      const port = finding.port?.toString().replace(/\/(tcp|udp)$/i, '') ?? '';
+      const service = finding.service?.toLowerCase() ?? '';
+
+      const scheme = detectWebScheme(port, service);
+      if (!scheme) continue;
+
+      const url = buildWebAppUrl(host, port, scheme);
+
+      if (createdUrls.has(url)) continue;
+      createdUrls.add(url);
+
+      // Resolve parent host asset (by exact value match on IP or hostname)
+      const parentHost = hostByValue.get(host) ?? hostByValue.get(finding.ip) ?? null;
+      const parentAssetId = parentHost?.id ?? null;
+
+      const signals = {
+        source: 'attack_surface_job',
+        jobId,
+        port,
+        service,
+        detectionSignals: ['nmap_port_service'],
+      };
+
+      try {
+        // Cross-job idempotency: does a web_application with this value + parent already exist?
+        const whereClause = parentAssetId
+          ? and(
+              eq(assetsTable.type, 'web_application' as any),
+              eq(assetsTable.value, url),
+              eq(assetsTable.parentAssetId, parentAssetId),
+            )
+          : and(
+              eq(assetsTable.type, 'web_application' as any),
+              eq(assetsTable.value, url),
+            );
+
+        const [existing] = await db.select().from(assetsTable).where(whereClause).limit(1);
+
+        if (existing) {
+          webApps.push(existing);
+          log.info(`🌐 Aplicação web já catalogada: ${url} (parent=${parentHost?.value ?? 'none'})`);
+          continue;
+        }
+
+        const asset = await storage.createAsset(
+          {
             type: 'web_application',
             value: url,
             tags: ['auto-discovered', `job:${jobId.substring(0, 8)}`],
-          }, createdBy);
-          
-          webApps.push(asset);
-          log.info(`🌐 Aplicação web criada como ativo: ${url} (service: ${service || 'unknown'})`);
-        } catch (error) {
-          log.error(`❌ Erro ao criar ativo web_application para ${url}:`, error);
-        }
+            parentAssetId,
+          } as any,
+          createdBy,
+        );
+        webApps.push(asset);
+        log.info(`🌐 Aplicação web criada como ativo: ${url} (parent=${parentHost?.value ?? 'none'}, service=${service || 'unknown'})`);
+      } catch (error) {
+        log.error(`❌ Erro ao criar/linkar ativo web_application para ${url}:`, error);
       }
+
+      // Note: promotionMetadata will be wired in a later task when that column is added
+      // (Problem 3 plan noted it as optional — omitting here to keep the change minimal).
+      void signals;
     }
-    
+
     return webApps;
   }
 
