@@ -10,7 +10,8 @@ const log = createLogger('routes:assets');
 export function registerAssetRoutes(app: Express) {
   app.get('/api/assets', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
-      const assets = await storage.getAssets();
+      const flat = String((req.query as any).flat ?? "") === "1";
+      const assets = flat ? await storage.getAssets() : await storage.getAssetsTree();
       res.json(assets);
     } catch (error) {
       log.error({ err: error }, 'failed to fetch assets');
