@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildWebAppUrl, detectWebScheme } from "./urls";
+import { buildWebAppUrl, detectWebScheme, normalizeTarget } from "./urls";
 
 describe("buildWebAppUrl", () => {
   it("omits port 80 for http", () => {
@@ -39,5 +39,32 @@ describe("detectWebScheme", () => {
   });
   it("strips /tcp suffix", () => {
     expect(detectWebScheme("443/tcp")).toBe("https");
+  });
+});
+
+describe("normalizeTarget", () => {
+  it("strips trailing slash on root path", () => {
+    expect(normalizeTarget("http://example.com/")).toBe("http://example.com");
+  });
+  it("removes default http port 80", () => {
+    expect(normalizeTarget("http://example.com:80")).toBe("http://example.com");
+  });
+  it("removes default https port 443", () => {
+    expect(normalizeTarget("https://example.com:443/")).toBe("https://example.com");
+  });
+  it("keeps non-default port", () => {
+    expect(normalizeTarget("http://example.com:8080")).toBe("http://example.com:8080/");
+  });
+  it("rejects non-http/https", () => {
+    expect(normalizeTarget("ftp://example.com")).toBeNull();
+  });
+  it("rejects invalid URLs", () => {
+    expect(normalizeTarget("not a url")).toBeNull();
+    expect(normalizeTarget("")).toBeNull();
+    expect(normalizeTarget(null)).toBeNull();
+    expect(normalizeTarget(undefined)).toBeNull();
+  });
+  it("preserves path and query", () => {
+    expect(normalizeTarget("http://example.com/api/v1?x=1")).toBe("http://example.com/api/v1?x=1");
   });
 });

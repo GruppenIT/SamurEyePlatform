@@ -35,3 +35,36 @@ export function detectWebScheme(port: string | number, service?: string): WebSch
   if (httpPorts.has(portStr) || httpServiceNames.some((n) => svc.includes(n))) return "http";
   return null;
 }
+
+/**
+ * Validate and canonicalize a web target URL.
+ * Returns a normalized URL string, or null if the input can't be parsed or
+ * isn't an http/https URL.
+ *
+ * Canonicalization:
+ *  - strips trailing slashes
+ *  - removes default ports (80/443)
+ *  - lowercases scheme and hostname
+ */
+export function normalizeTarget(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const u = new URL(value.trim());
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    // Remove default ports
+    const isDefault =
+      (u.protocol === "http:" && u.port === "80") ||
+      (u.protocol === "https:" && u.port === "443");
+    if (isDefault) u.port = "";
+    // Lowercase host (already done by URL), lowercase scheme (done by URL)
+    // Strip trailing slash on root path only when there is no non-default port
+    const hasNonDefaultPort = u.port !== "" &&
+      !(u.protocol === "http:" && u.port === "80") &&
+      !(u.protocol === "https:" && u.port === "443");
+    let out = u.toString();
+    if (!hasNonDefaultPort && out.endsWith("/") && u.pathname === "/") out = out.replace(/\/$/, "");
+    return out;
+  } catch {
+    return null;
+  }
+}
