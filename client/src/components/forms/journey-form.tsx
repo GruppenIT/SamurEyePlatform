@@ -73,7 +73,6 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
       params: {
         ...initialData?.params,
         nmapProfile: initialData?.params?.nmapProfile || 'leve',
-        webScanEnabled: initialData?.params?.webScanEnabled || false,
         edrAvType: initialData?.params?.edrAvType || 'network_based',
         sampleRate: initialData?.params?.sampleRate || '15',
         timeout: initialData?.params?.timeout || 30,
@@ -146,7 +145,6 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         }
         params.nmapProfile = form.getValues('params.nmapProfile') || 'leve';
         params.vulnScriptTimeout = parseInt(form.getValues('params.vulnScriptTimeout')) || 60;
-        params.webScanEnabled = form.getValues('params.webScanEnabled') === true;
 
         // Add credentials if authentication is enabled
         if (enableAuthentication && selectedCredentials.length > 0) {
@@ -349,27 +347,10 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="params.webScanEnabled"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value === true}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-web-scan-enabled"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Avaliar Aplicações Web</FormLabel>
-                      <FormDescription>
-                        Executa Nuclei nas URLs HTTP/HTTPS descobertas (OWASP Top 10, misconfigurations)
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
+              <div className="rounded-md border border-muted bg-muted/30 p-3 text-xs text-muted-foreground" data-testid="attack-surface-webscan-note">
+                Esta jornada apenas descobre web applications nos hosts escaneados. Para avaliá-las com Nuclei,
+                crie uma jornada do tipo <strong>Web Application</strong> apontando para os ativos descobertos.
+              </div>
             </div>
 
             {/* Seção: Varredura Autenticada */}
