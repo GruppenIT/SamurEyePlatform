@@ -1575,6 +1575,32 @@ class ThreatEngineService {
           }
           break;
 
+        case 'web_application': {
+          // For web_application, target/matchedAt is a URL — parse hostname and match hosts table.
+          let waHost: string | null = null;
+          const sources = [finding.target, finding.matchedAt, finding.host, finding.evidence?.url];
+          for (const s of sources) {
+            if (!s) continue;
+            try {
+              waHost = new URL(String(s)).hostname;
+              if (waHost) break;
+            } catch {
+              // If it's not a URL, treat the raw string as hostname
+              waHost = String(s);
+              break;
+            }
+          }
+          if (waHost) {
+            const hosts = await hostService.findHostsByTarget(waHost);
+            if (hosts.length > 0) {
+              log.info(`🔗 Linking web_application threat to host: ${hosts[0].name} (${waHost})`);
+              return hosts[0].id;
+            }
+            log.info(`🔍 Debug: web_application host lookup for '${waHost}' found no match`);
+          }
+          break;
+        }
+
         case 'edr_av':
           // For EDR/AV, use the hostname from the finding
           const hostname = finding.hostname || finding.target;
