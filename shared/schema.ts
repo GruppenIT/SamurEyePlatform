@@ -96,9 +96,12 @@ export const assets = pgTable("assets", {
   type: assetTypeEnum("type").notNull(),
   value: text("value").notNull(), // FQDN, IP, or CIDR range
   tags: jsonb("tags").$type<string[]>().default([]).notNull(),
+  parentAssetId: varchar("parent_asset_id").references((): any => assets.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: varchar("created_by").references(() => users.id).notNull(),
-});
+}, (table) => [
+  index("IDX_assets_parent").on(table.parentAssetId),
+]);
 
 // Credentials table
 export const credentials = pgTable("credentials", {
@@ -560,10 +563,9 @@ export const usersRelations = relations(users, ({ many }) => ({
 }));
 
 export const assetsRelations = relations(assets, ({ one, many }) => ({
-  createdBy: one(users, {
-    fields: [assets.createdBy],
-    references: [users.id],
-  }),
+  createdBy: one(users, { fields: [assets.createdBy], references: [users.id] }),
+  parent: one(assets, { fields: [assets.parentAssetId], references: [assets.id], relationName: "assetParent" }),
+  children: many(assets, { relationName: "assetParent" }),
   threats: many(threats),
 }));
 
