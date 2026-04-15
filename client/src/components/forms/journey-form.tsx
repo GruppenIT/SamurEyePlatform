@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Form,
@@ -44,9 +45,10 @@ interface JourneyFormProps {
   onCancel: () => void;
   isLoading?: boolean;
   initialData?: Partial<JourneyFormData>;
+  mode?: 'create' | 'edit';
 }
 
-export default function JourneyForm({ onSubmit, onCancel, isLoading = false, initialData }: JourneyFormProps) {
+export default function JourneyForm({ onSubmit, onCancel, isLoading = false, initialData, mode = 'create' }: JourneyFormProps) {
   const { toast } = useToast();
   const [selectedAssets, setSelectedAssets] = useState<string[]>(
     initialData?.params?.assetIds || []
@@ -1081,6 +1083,21 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {mode === 'edit' && initialData && (
+          <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/30 p-3 text-sm" data-testid="journey-edit-header">
+            <Badge variant="secondary" className="text-xs uppercase">{initialData.type}</Badge>
+            {(initialData as any).createdAt && (
+              <span className="text-xs text-muted-foreground">
+                Criada em: {new Date((initialData as any).createdAt).toLocaleString('pt-BR')}
+              </span>
+            )}
+            {(initialData as any).createdBy && (
+              <span className="text-xs text-muted-foreground">
+                Por: {(initialData as any).createdBy}
+              </span>
+            )}
+          </div>
+        )}
         <FormField
           control={form.control}
           name="name"
@@ -1099,29 +1116,31 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo de Jornada</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger data-testid="select-journey-type">
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="attack_surface">Attack Surface</SelectItem>
-                  <SelectItem value="ad_security">AD Security</SelectItem>
-                  <SelectItem value="edr_av">Teste EDR/AV</SelectItem>
-                  <SelectItem value="web_application">Web Application</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {mode !== 'edit' && (
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de Jornada</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger data-testid="select-journey-type">
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="attack_surface">Attack Surface</SelectItem>
+                    <SelectItem value="ad_security">AD Security</SelectItem>
+                    <SelectItem value="edr_av">Teste EDR/AV</SelectItem>
+                    <SelectItem value="web_application">Web Application</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
