@@ -64,6 +64,28 @@ export async function getUniqueTags(): Promise<string[]> {
   return result.rows.map(row => row.tag);
 }
 
+/**
+ * If this is a web_application without an explicit parentAssetId, try to
+ * auto-link it to an existing host asset by matching the URL's hostname.
+ */
+async function inferParentHostForWebApp(asset: InsertAsset): Promise<string | null> {
+  if (asset.type !== 'web_application') return null;
+  if (asset.parentAssetId) return asset.parentAssetId;
+  let hostname: string;
+  try {
+    hostname = new URL(asset.value).hostname;
+  } catch {
+    return null;
+  }
+  if (!hostname) return null;
+  const [host] = await db
+    .select({ id: assets.id })
+    .from(assets)
+    .where(and(eq(assets.type, 'host' as any), eq(assets.value, hostname)))
+    .limit(1);
+  return host?.id ?? null;
+}
+
 export async function createAsset(asset: InsertAsset, userId: string): Promise<Asset> {
   // Check for existing asset with same value and type
   const existing = await db
@@ -80,11 +102,13 @@ export async function createAsset(asset: InsertAsset, userId: string): Promise<A
     return existing[0];
   }
 
+  const inferredParent = await inferParentHostForWebApp(asset);
+
   const assetValues = {
     type: asset.type,
     value: asset.value,
     tags: asset.tags || [],
-    parentAssetId: asset.parentAssetId ?? null,
+    parentAssetId: inferredParent,
     createdBy: userId,
   } as any;
 
@@ -92,6 +116,11 @@ export async function createAsset(asset: InsertAsset, userId: string): Promise<A
     .insert(assets)
     .values(assetValues)
     .returning();
+
+  if (inferredParent && !asset.parentAssetId) {
+    log.info({ assetId: newAsset.id, value: asset.value, parentAssetId: inferredParent }, 'web_application auto-linked to host');
+  }
+
   return newAsset;
 }
 
