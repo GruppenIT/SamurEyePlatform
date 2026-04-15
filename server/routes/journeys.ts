@@ -81,6 +81,11 @@ export function registerJourneyRoutes(app: Express) {
       const userId = req.user.id;
       const { id } = req.params;
 
+      // Defensive check: block attempts to change journey type
+      if (req.body && 'type' in req.body) {
+        log.warn({ journeyId: id, userId, attemptedType: req.body.type }, 'blocked attempt to change journey type');
+      }
+
       // Validate allowed fields
       const updates = patchJourneySchema.parse(req.body);
 

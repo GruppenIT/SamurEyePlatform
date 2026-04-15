@@ -65,7 +65,6 @@ export const patchAssetSchema = z.object({
 
 export const patchJourneySchema = z.object({
   name: z.string().min(1).optional(),
-  type: z.enum(['attack_surface', 'ad_security', 'edr_av', 'web_application']).optional(),
   description: z.string().optional(),
   params: z.record(z.any()).optional(),
   targetSelectionMode: z.enum(['individual', 'by_tag']).optional(),
