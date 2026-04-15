@@ -15,6 +15,24 @@ export async function getAssets(): Promise<Asset[]> {
   return await db.select().from(assets).orderBy(desc(assets.createdAt));
 }
 
+export async function getAssetsTree(): Promise<any[]> {
+  const all = await getAssets();
+  const byId = new Map<string, any>();
+  for (const a of all) {
+    byId.set(a.id, { ...a, children: [] as any[] });
+  }
+  const roots: any[] = [];
+  for (const a of all) {
+    const node = byId.get(a.id);
+    if (a.parentAssetId && byId.has(a.parentAssetId)) {
+      byId.get(a.parentAssetId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  return roots;
+}
+
 export async function getAsset(id: string): Promise<Asset | undefined> {
   const [asset] = await db.select().from(assets).where(eq(assets.id, id));
   return asset;

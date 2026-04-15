@@ -27,6 +27,7 @@ export class DatabaseStorage implements IStorage {
 
   // Asset operations
   getAssets = assetOps.getAssets;
+  getAssetsTree = assetOps.getAssetsTree;
   getAsset = assetOps.getAsset;
   getAssetsByTags = assetOps.getAssetsByTags;
   getAssetsByType = assetOps.getAssetsByType;
