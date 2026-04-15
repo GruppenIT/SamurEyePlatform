@@ -25,21 +25,28 @@ import { X } from "lucide-react";
 import { AssetFormData } from "@/types";
 
 const assetSchema = z.object({
-  type: z.enum(['host', 'range'], {
+  type: z.enum(['host', 'range', 'web_application'], {
     required_error: "Tipo de alvo é obrigatório",
   }),
   value: z.string().min(1, "Valor é obrigatório"),
   tags: z.array(z.string()).default([]),
 });
 
+const TYPE_LABELS: Record<string, string> = {
+  host: "Host Individual",
+  range: "Faixa de IPs",
+  web_application: "Aplicação Web",
+};
+
 interface AssetFormProps {
   onSubmit: (data: AssetFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
   initialData?: Partial<AssetFormData>;
+  mode?: 'create' | 'edit';
 }
 
-export default function AssetForm({ onSubmit, onCancel, isLoading = false, initialData }: AssetFormProps) {
+export default function AssetForm({ onSubmit, onCancel, isLoading = false, initialData, mode = 'create' }: AssetFormProps) {
   const [tagInput, setTagInput] = useState("");
 
   const form = useForm<AssetFormData>({
@@ -97,27 +104,39 @@ export default function AssetForm({ onSubmit, onCancel, isLoading = false, initi
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo de Alvo</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger data-testid="select-asset-type">
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="host">Host Individual</SelectItem>
-                  <SelectItem value="range">Faixa de IPs</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {mode === 'edit' ? (
+          <FormItem>
+            <FormLabel>Tipo de Alvo</FormLabel>
+            <div className="flex items-center">
+              <Badge variant="secondary" className="text-xs uppercase" data-testid="asset-type-badge">
+                {TYPE_LABELS[form.getValues('type')] ?? form.getValues('type')}
+              </Badge>
+            </div>
+            <FormDescription>O tipo do alvo é definido na criação e não pode ser alterado.</FormDescription>
+          </FormItem>
+        ) : (
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de Alvo</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger data-testid="select-asset-type">
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="host">Host Individual</SelectItem>
+                    <SelectItem value="range">Faixa de IPs</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}

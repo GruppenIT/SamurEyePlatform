@@ -510,6 +510,7 @@ export default function Assets() {
           </DialogHeader>
           {editingAsset && (
             <AssetForm
+              mode="edit"
               onSubmit={handleUpdateAsset}
               onCancel={() => setEditingAsset(null)}
               isLoading={updateAssetMutation.isPending}
