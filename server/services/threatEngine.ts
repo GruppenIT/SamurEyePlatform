@@ -187,7 +187,7 @@ class ThreatEngineService {
         },
       },
 
-      // Nuclei vulnerability findings
+      // Nuclei vulnerability findings (legacy shape emitted by parseNucleiOutput)
       {
         id: 'nuclei-vulnerability',
         name: 'Vulnerabilidade Detectada pelo Nuclei',
@@ -213,6 +213,46 @@ class ThreatEngineService {
             nucleiInfo: finding.evidence?.info,
           },
         }),
+      },
+
+      // Nuclei findings emitted by parseNuclei (new typed shape)
+      {
+        id: 'nuclei-finding',
+        name: 'Finding Nuclei',
+        description: 'Finding emitido pelo parser tipado do Nuclei',
+        severity: 'high',
+        matcher: (finding) => finding.type === 'nuclei',
+        createThreat: (finding, assetId, jobId) => {
+          const infoName = finding.info?.name || finding.templateId || 'Nuclei finding';
+          const description = finding.info?.description || finding.info?.name || infoName;
+          const cveIds = finding.info?.classification?.cveId ?? [];
+          const cve = Array.isArray(cveIds) && cveIds.length > 0 ? cveIds[0] : undefined;
+          const tags = finding.info?.tags ?? [];
+          return {
+            title: `${infoName} detectado`,
+            description: `Vulnerabilidade: ${description}`,
+            severity: finding.severity || finding.info?.severity || 'medium',
+            source: 'journey',
+            assetId,
+            jobId,
+            evidence: {
+              templateId: finding.templateId,
+              cve,
+              cveIds,
+              cweIds: finding.info?.classification?.cweId ?? [],
+              url: finding.matchedAt || finding.target,
+              target: finding.target,
+              host: finding.host,
+              port: finding.port,
+              matcher: finding.matcherName,
+              extractedResults: finding.extractedResults,
+              curl: finding.curlCommand,
+              templateTags: tags,
+              type: 'nuclei',
+              nucleiInfo: finding.info,
+            },
+          };
+        },
       },
 
       // Web vulnerability (built-in checks)
@@ -908,12 +948,18 @@ class ThreatEngineService {
 
       case 'web_application':
         // For web app: wa:{target}:{template/cve}:{path}
-        const waTemplate = finding.template || finding.cve || finding.name || 'unknown';
+        // Supports both the legacy 'vulnerability' shape and the new 'nuclei' shape.
+        const waTemplate =
+          finding.templateId ||
+          finding.template ||
+          finding.cve ||
+          finding.info?.name ||
+          finding.name ||
+          'unknown';
         let waPath = '';
+        const waUrl = finding.matchedAt || finding.evidence?.url || finding.target;
         try {
-          if (finding.evidence?.url) {
-            waPath = new URL(finding.evidence.url).pathname;
-          }
+          if (waUrl) waPath = new URL(waUrl).pathname;
         } catch {
           waPath = '';
         }
