@@ -385,48 +385,12 @@ class JourneyExecutorService {
           log.info(`⏭️  FASE 3: Detecção de CVEs desabilitada - pulando Fases 3A e 3B`);
         }
 
-        // ==================== PHASE 3C: WEB VULNERABILITY SCAN (OPTIONAL) ====================
-        const webScanEnabled = params.webScanEnabled === true;
-        if (webScanEnabled) {
-          const webUrls: string[] = [];
-          const webPorts = new Set(['80', '443', '8080', '8443', '8000', '8888', '8008', '9443', '3000', '4443']);
-          const httpServices = new Set(['http', 'https', 'http-proxy', 'http-alt', 'https-alt', 'nginx', 'apache']);
-
-          for (const result of portResults) {
-            if (result.state !== 'open') continue;
-            const cleanPort = String(result.port).replace(/\/(tcp|udp)$/i, '');
-            const svcLower = (result.service || '').toLowerCase();
-            const isWeb = webPorts.has(cleanPort) || httpServices.has(svcLower);
-            if (!isWeb) continue;
-
-            const host = result.ip || result.target || asset.value;
-            const isHttps = cleanPort === '443' || cleanPort === '8443' || cleanPort === '9443' || cleanPort === '4443' || svcLower === 'https';
-            const scheme = isHttps ? 'https' : 'http';
-            const portSuffix = (scheme === 'http' && cleanPort === '80') || (scheme === 'https' && cleanPort === '443') ? '' : `:${cleanPort}`;
-            webUrls.push(`${scheme}://${host}${portSuffix}`);
-          }
-
-          if (webUrls.length > 0) {
-            onProgress({
-              status: 'running',
-              progress: Math.round(assetBase + assetSlice * 0.75),
-              currentTask: `Fase 3C: Nuclei - Analisando ${webUrls.length} URLs web em ${asset.value}`
-            });
-
-            log.info(`🌐 FASE 3C: Executando Nuclei em ${webUrls.length} URLs web`);
-            try {
-              const nucleiTimeoutMs = vulnScriptTimeoutMs;
-              const nucleiFindings = await this.runNucleiWebScan(webUrls, jobId, nucleiTimeoutMs);
-              findings.push(...nucleiFindings);
-              log.info(`✅ FASE 3C: ${nucleiFindings.length} vulnerabilidades web encontradas via Nuclei`);
-            } catch (error) {
-              log.error(`❌ FASE 3C: Erro durante scan Nuclei:`, error);
-            }
-          } else {
-            log.info(`⏭️  FASE 3C: Nenhum serviço web encontrado para análise Nuclei`);
-          }
-        } else {
-          log.info(`⏭️  FASE 3C: Varredura web desabilitada`);
+        // Phase 3C (Nuclei web scan) was removed — attack_surface is now discovery-only.
+        // Web application assets are auto-created in Phase 4 and must be scanned via a
+        // dedicated web_application journey. `params.webScanEnabled` from legacy journeys
+        // is silently ignored.
+        if (params.webScanEnabled === true) {
+          log.info(`ℹ️  webScanEnabled ignorado: use jornada web_application para avaliar os web apps descobertos`);
         }
 
       } catch (error) {
