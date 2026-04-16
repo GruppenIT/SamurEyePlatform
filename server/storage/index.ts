@@ -10,6 +10,7 @@ import * as sessionOps from "./sessions";
 import * as subscriptionOps from "./subscription";
 import * as databaseInitOps from "./database-init";
 import * as edrDeploymentOps from "./edrDeployments";
+import * as mfaOps from "./mfa";
 
 export type { IStorage } from "./interface";
 
@@ -188,6 +189,13 @@ export class DatabaseStorage implements IStorage {
   insertEdrDeployment = edrDeploymentOps.insertEdrDeployment;
   getEdrDeploymentsByJourney = edrDeploymentOps.getEdrDeploymentsByJourney;
   getEdrDeploymentsByJourneyWithHost = edrDeploymentOps.getEdrDeploymentsByJourneyWithHost;
+
+  // MFA email challenges
+  createMfaEmailChallenge = mfaOps.createMfaEmailChallenge;
+  getActiveChallenges = mfaOps.getActiveChallenges;
+  consumeChallenge = mfaOps.consumeChallenge;
+  countRecentChallenges = mfaOps.countRecentChallenges;
+  cleanupOldChallenges = mfaOps.cleanupOldChallenges;
 
   // Database initialization
   async initializeDatabaseStructure() { return databaseInitOps.initializeDatabaseStructure(); }
