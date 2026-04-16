@@ -11,6 +11,7 @@ import * as subscriptionOps from "./subscription";
 import * as databaseInitOps from "./database-init";
 import * as edrDeploymentOps from "./edrDeployments";
 import * as mfaOps from "./mfa";
+import * as passwordResetOps from "./password-reset";
 
 export type { IStorage } from "./interface";
 
@@ -197,6 +198,13 @@ export class DatabaseStorage implements IStorage {
   consumeChallenge = mfaOps.consumeChallenge;
   countRecentChallenges = mfaOps.countRecentChallenges;
   cleanupOldChallenges = mfaOps.cleanupOldChallenges;
+
+  // Password reset token operations
+  createPasswordResetToken = passwordResetOps.createPasswordResetToken;
+  getActivePasswordResetTokens = passwordResetOps.getActivePasswordResetTokens;
+  consumePasswordResetToken = passwordResetOps.consumePasswordResetToken;
+  consumeAllPasswordResetTokensForUser = passwordResetOps.consumeAllPasswordResetTokensForUser;
+  cleanupOldPasswordResetTokens = passwordResetOps.cleanupOldPasswordResetTokens;
 
   // Database initialization
   async initializeDatabaseStructure() { return databaseInitOps.initializeDatabaseStructure(); }

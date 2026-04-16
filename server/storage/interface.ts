@@ -42,6 +42,8 @@ import {
   type InsertEdrDeployment,
   type MfaEmailChallenge,
   type InsertMfaEmailChallenge,
+  type PasswordResetToken,
+  type InsertPasswordResetToken,
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -266,6 +268,13 @@ export interface IStorage {
   consumeChallenge(id: string): Promise<void>;
   countRecentChallenges(userId: string, sinceMs: number): Promise<number>;
   cleanupOldChallenges(userId: string): Promise<void>;
+
+  // Password reset tokens
+  createPasswordResetToken(data: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  getActivePasswordResetTokens(): Promise<PasswordResetToken[]>;
+  consumePasswordResetToken(id: string): Promise<void>;
+  consumeAllPasswordResetTokensForUser(userId: string): Promise<void>;
+  cleanupOldPasswordResetTokens(userId: string): Promise<void>;
 
   // Database initialization
   initializeDatabaseStructure(): Promise<void>;
