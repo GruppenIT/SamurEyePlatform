@@ -29,6 +29,9 @@ import Subscription from "@/pages/subscription";
 import SubscriptionBanner from "@/components/subscription-banner";
 import { SetupAdminBanner } from "@/components/layout/setup-admin-banner";
 import { MfaInvitationDialog } from "@/components/account/mfa-invitation-dialog";
+import AccountPage from "@/pages/account";
+import AccountMfaPage from "@/pages/account-mfa";
+import MfaChallengePage from "@/pages/mfa-challenge";
 
 // Error Boundary to prevent full white screen on render errors
 interface ErrorBoundaryState {
@@ -88,7 +91,7 @@ function AdminRoute({ component: PageComponent }: { component: React.ComponentTy
 }
 
 function Router() {
-  const { isAuthenticated, mustChangePassword, isLoading } = useAuth();
+  const { isAuthenticated, mustChangePassword, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -123,6 +126,16 @@ function Router() {
     );
   }
 
+  const pendingMfa = (user as any)?.pendingMfa === true;
+  if (pendingMfa) {
+    return (
+      <Switch>
+        <Route path="/mfa-challenge" component={MfaChallengePage} />
+        <Route>{() => <Redirect to="/mfa-challenge" />}</Route>
+      </Switch>
+    );
+  }
+
   return (
     <>
       <SetupAdminBanner />
@@ -143,6 +156,8 @@ function Router() {
         <Route path="/threats" component={Threats} />
         <Route path="/action-plan" component={ActionPlan} />
         <Route path="/sessions" component={Sessions} />
+        <Route path="/account" component={AccountPage} />
+        <Route path="/account/mfa" component={AccountMfaPage} />
 
         {/* Admin-only routes */}
         <Route path="/users">{() => <AdminRoute component={Users} />}</Route>
