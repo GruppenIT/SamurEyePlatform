@@ -24,6 +24,10 @@ export class DatabaseStorage implements IStorage {
   updateUserPassword = userOps.updateUserPassword;
   setMustChangePassword = userOps.setMustChangePassword;
   getAllUsers = userOps.getAllUsers;
+  getUserMfa = userOps.getUserMfa;
+  setUserMfa = userOps.setUserMfa;
+  updateBackupCodes = userOps.updateBackupCodes;
+  dismissMfaInvitation = userOps.dismissMfaInvitation;
 
   // Asset operations
   getAssets = assetOps.getAssets;

@@ -80,3 +80,57 @@ export async function setMustChangePassword(id: string, mustChange: boolean): Pr
 export async function getAllUsers(): Promise<User[]> {
   return await db.select().from(users).orderBy(desc(users.createdAt));
 }
+
+export async function getUserMfa(id: string): Promise<Pick<User, 'id' | 'email' | 'mfaEnabled' | 'mfaSecretEncrypted' | 'mfaSecretDek' | 'mfaBackupCodes' | 'mfaInvitationDismissed' | 'mfaEnabledAt'> | undefined> {
+  const [row] = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      mfaEnabled: users.mfaEnabled,
+      mfaSecretEncrypted: users.mfaSecretEncrypted,
+      mfaSecretDek: users.mfaSecretDek,
+      mfaBackupCodes: users.mfaBackupCodes,
+      mfaInvitationDismissed: users.mfaInvitationDismissed,
+      mfaEnabledAt: users.mfaEnabledAt,
+    })
+    .from(users)
+    .where(eq(users.id, id));
+  return row;
+}
+
+export async function setUserMfa(
+  id: string,
+  data: {
+    mfaEnabled: boolean;
+    mfaSecretEncrypted: string | null;
+    mfaSecretDek: string | null;
+    mfaBackupCodes: string[] | null;
+    mfaEnabledAt: Date | null;
+  },
+): Promise<void> {
+  await db
+    .update(users)
+    .set({
+      mfaEnabled: data.mfaEnabled,
+      mfaSecretEncrypted: data.mfaSecretEncrypted,
+      mfaSecretDek: data.mfaSecretDek,
+      mfaBackupCodes: data.mfaBackupCodes,
+      mfaEnabledAt: data.mfaEnabledAt,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, id));
+}
+
+export async function updateBackupCodes(id: string, codes: string[]): Promise<void> {
+  await db
+    .update(users)
+    .set({ mfaBackupCodes: codes, updatedAt: new Date() })
+    .where(eq(users.id, id));
+}
+
+export async function dismissMfaInvitation(id: string): Promise<void> {
+  await db
+    .update(users)
+    .set({ mfaInvitationDismissed: true, updatedAt: new Date() })
+    .where(eq(users.id, id));
+}
