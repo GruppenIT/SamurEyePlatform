@@ -19,6 +19,7 @@ import { registerThreatRoutes } from "./threats";
 import { registerUserRoutes } from "./users";
 import { registerRecommendationRoutes } from "./recommendations";
 import { registerEdrDeploymentRoutes } from "./edrDeployments";
+import { registerAuthMfaRoutes } from "./auth-mfa";
 import { createLogger } from '../lib/logger';
 
 const log = createLogger('routes');
@@ -64,6 +65,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerRecommendationRoutes(app);
   registerUserRoutes(app);
   registerEdrDeploymentRoutes(app);
+  registerAuthMfaRoutes(app);
 
   // Health check
   app.get('/api/health', (req, res) => {
