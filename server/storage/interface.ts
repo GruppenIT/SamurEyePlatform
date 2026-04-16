@@ -176,6 +176,7 @@ export interface IStorage {
   // Email settings operations
   getEmailSettings(): Promise<EmailSettings | undefined>;
   setEmailSettings(settings: Omit<EmailSettings, 'id' | 'updatedAt'>, userId: string): Promise<EmailSettings>;
+  touchEmailSettingsTest(id: string, at: Date): Promise<void>;
 
   // Notification policy operations
   getNotificationPolicies(): Promise<NotificationPolicy[]>;

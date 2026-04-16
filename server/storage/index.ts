@@ -125,6 +125,7 @@ export class DatabaseStorage implements IStorage {
   // Email settings operations
   getEmailSettings = notificationOps.getEmailSettings;
   setEmailSettings = notificationOps.setEmailSettings;
+  touchEmailSettingsTest = notificationOps.touchEmailSettingsTest;
 
   // Notification policy operations
   getNotificationPolicies = notificationOps.getNotificationPolicies;
