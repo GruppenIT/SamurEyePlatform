@@ -166,6 +166,7 @@ export function registerAdminRoutes(app: Express) {
         fromEmail: settingsData.fromEmail,
         fromName: settingsData.fromName,
         updatedBy: userId,
+        lastTestSuccessAt: before?.lastTestSuccessAt ?? null,
       }, userId);
 
       // Log audit with redacted sensitive fields
