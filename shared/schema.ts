@@ -1097,6 +1097,11 @@ export const heartbeatRequestSchema = z.object({
     jobsExecuted24h: z.number(),
     loginsToday: z.number(),
   }),
+  identity: z.object({
+    applianceName: z.string().max(100),
+    locationType: z.string().max(50),
+    locationDetail: z.string().max(200),
+  }).optional(),
   commandResults: z.array(commandResultSchema).optional(),
 });
 
