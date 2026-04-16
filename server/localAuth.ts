@@ -575,6 +575,9 @@ export async function setupAuth(app: Express) {
   // Get current user route
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
+      if ((req.session as any).pendingMfa === true) {
+        return res.json({ pendingMfa: true });
+      }
       const user = req.user;
       res.json({
         id: user.id,
@@ -583,7 +586,9 @@ export async function setupAuth(app: Express) {
         lastName: user.lastName,
         role: user.role,
         mustChangePassword: user.mustChangePassword,
-        lastLogin: user.lastLogin
+        lastLogin: user.lastLogin,
+        mfaEnabled: user.mfaEnabled,
+        mfaInvitationDismissed: user.mfaInvitationDismissed
       });
     } catch (error) {
       log.error({ err: error }, 'failed to fetch user');
@@ -694,11 +699,22 @@ export async function setupAuth(app: Express) {
   });
 }
 
+const PENDING_MFA_ALLOWLIST = new Set<string>([
+  '/api/auth/mfa/verify',
+  '/api/auth/mfa/email',
+  '/api/auth/logout',
+  '/api/auth/user',
+]);
+
 export const isAuthenticated: RequestHandler = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Não autorizado" });
   }
-  res.status(401).json({ message: "Não autorizado" });
+  const pendingMfa = (req.session as any).pendingMfa === true;
+  if (pendingMfa && !PENDING_MFA_ALLOWLIST.has(req.path)) {
+    return res.status(401).json({ message: "MFA requerido", mfaRequired: true });
+  }
+  return next();
 };
 
 // Middleware to enforce password change when required
