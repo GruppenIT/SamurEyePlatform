@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 
 interface ChallengeState {
@@ -65,29 +66,68 @@ export default function MfaChallengePage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="mfa-token">Código</Label>
-            <Input
-              id="mfa-token"
-              value={sanitized}
-              onChange={(e) => setToken(e.target.value)}
-              maxLength={state.useRecoveryCode ? 12 : 6}
-              inputMode={state.useRecoveryCode ? "text" : "numeric"}
-              autoComplete="one-time-code"
-              className={state.useRecoveryCode ? "font-mono" : "font-mono text-center text-lg tracking-widest"}
-              placeholder={state.useRecoveryCode ? "abc123def456" : "000000"}
-              data-testid="input-mfa-token"
-              autoFocus
-            />
-          </div>
-          <Button
-            onClick={() => verifyMutation.mutate()}
-            disabled={!sanitized || verifyMutation.isPending}
-            className="w-full"
-            data-testid="button-verify-mfa"
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (sanitized && !verifyMutation.isPending) verifyMutation.mutate();
+            }}
+            className="space-y-4"
           >
-            {verifyMutation.isPending ? "Validando..." : "Validar"}
-          </Button>
+            {state.useRecoveryCode ? (
+              <div>
+                <Label htmlFor="mfa-token">Código de recuperação</Label>
+                <Input
+                  id="mfa-token"
+                  value={sanitized}
+                  onChange={(e) => setToken(e.target.value)}
+                  maxLength={12}
+                  inputMode="text"
+                  autoComplete="one-time-code"
+                  className="font-mono"
+                  placeholder="abc123def456"
+                  data-testid="input-mfa-token"
+                  autoFocus
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2">
+                <Label htmlFor="mfa-token" className="self-start">Código do app autenticador</Label>
+                <InputOTP
+                  id="mfa-token"
+                  maxLength={6}
+                  value={sanitized}
+                  onChange={(value) => setToken(value)}
+                  onComplete={(value) => {
+                    if (!verifyMutation.isPending) {
+                      setToken(value);
+                      verifyMutation.mutate();
+                    }
+                  }}
+                  autoFocus
+                  inputMode="numeric"
+                  pattern="^[0-9]*$"
+                  data-testid="input-mfa-token"
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} className="h-14 w-14 text-2xl" />
+                    <InputOTPSlot index={1} className="h-14 w-14 text-2xl" />
+                    <InputOTPSlot index={2} className="h-14 w-14 text-2xl" />
+                    <InputOTPSlot index={3} className="h-14 w-14 text-2xl" />
+                    <InputOTPSlot index={4} className="h-14 w-14 text-2xl" />
+                    <InputOTPSlot index={5} className="h-14 w-14 text-2xl" />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+            )}
+            <Button
+              type="submit"
+              disabled={!sanitized || verifyMutation.isPending}
+              className="w-full"
+              data-testid="button-verify-mfa"
+            >
+              {verifyMutation.isPending ? "Validando..." : "Validar"}
+            </Button>
+          </form>
 
           <div className="flex flex-col gap-2 pt-2 text-sm">
             {state.emailDeliveryAvailable && !state.useRecoveryCode && (
