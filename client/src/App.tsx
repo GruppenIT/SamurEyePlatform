@@ -27,6 +27,8 @@ import Audit from "@/pages/audit";
 import NotificationPolicies from "@/pages/notification-policies";
 import Subscription from "@/pages/subscription";
 import SubscriptionBanner from "@/components/subscription-banner";
+import { SetupAdminBanner } from "@/components/layout/setup-admin-banner";
+import { MfaInvitationDialog } from "@/components/account/mfa-invitation-dialog";
 
 // Error Boundary to prevent full white screen on render errors
 interface ErrorBoundaryState {
@@ -122,33 +124,37 @@ function Router() {
   }
 
   return (
-    <Switch>
-      {/* Landing */}
-      <Route path="/" component={Postura} />
-      <Route path="/postura" component={Postura} />
+    <>
+      <SetupAdminBanner />
+      <Switch>
+        {/* Landing */}
+        <Route path="/" component={Postura} />
+        <Route path="/postura" component={Postura} />
 
-      {/* Operator+ routes */}
-      <Route path="/relatorios" component={Relatorios} />
-      <Route path="/assets" component={Assets} />
-      <Route path="/ativos" component={Hosts} />
-      <Route path="/hosts" component={Hosts} />
-      <Route path="/credentials" component={Credentials} />
-      <Route path="/journeys" component={Journeys} />
-      <Route path="/schedules" component={Schedules} />
-      <Route path="/jobs" component={Jobs} />
-      <Route path="/threats" component={Threats} />
-      <Route path="/action-plan" component={ActionPlan} />
-      <Route path="/sessions" component={Sessions} />
+        {/* Operator+ routes */}
+        <Route path="/relatorios" component={Relatorios} />
+        <Route path="/assets" component={Assets} />
+        <Route path="/ativos" component={Hosts} />
+        <Route path="/hosts" component={Hosts} />
+        <Route path="/credentials" component={Credentials} />
+        <Route path="/journeys" component={Journeys} />
+        <Route path="/schedules" component={Schedules} />
+        <Route path="/jobs" component={Jobs} />
+        <Route path="/threats" component={Threats} />
+        <Route path="/action-plan" component={ActionPlan} />
+        <Route path="/sessions" component={Sessions} />
 
-      {/* Admin-only routes */}
-      <Route path="/users">{() => <AdminRoute component={Users} />}</Route>
-      <Route path="/subscription">{() => <AdminRoute component={Subscription} />}</Route>
-      <Route path="/settings">{() => <AdminRoute component={Settings} />}</Route>
-      <Route path="/notification-policies">{() => <AdminRoute component={NotificationPolicies} />}</Route>
-      <Route path="/audit">{() => <AdminRoute component={Audit} />}</Route>
+        {/* Admin-only routes */}
+        <Route path="/users">{() => <AdminRoute component={Users} />}</Route>
+        <Route path="/subscription">{() => <AdminRoute component={Subscription} />}</Route>
+        <Route path="/settings">{() => <AdminRoute component={Settings} />}</Route>
+        <Route path="/notification-policies">{() => <AdminRoute component={NotificationPolicies} />}</Route>
+        <Route path="/audit">{() => <AdminRoute component={Audit} />}</Route>
 
-      <Route component={NotFound} />
-    </Switch>
+        <Route component={NotFound} />
+      </Switch>
+      <MfaInvitationDialog />
+    </>
   );
 }
 

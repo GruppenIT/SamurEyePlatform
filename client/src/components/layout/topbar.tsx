@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Plus } from "lucide-react";
 import { Link } from "wouter";
 import SystemStatusPopup from "@/components/system-status-popup";
+import { UserMenu } from "@/components/account/user-menu";
 
 interface TopBarProps {
   title: string;
@@ -50,6 +51,7 @@ export default function TopBar({ title, subtitle, wsConnected = false, actions }
               </Link>
             </>
           )}
+          <UserMenu />
         </div>
       </div>
     </header>
