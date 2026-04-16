@@ -686,127 +686,150 @@ export default function Settings() {
               </TabsContent>
 
               {/* Tab: Mensageria */}
+              {/* Tab: Mensageria */}
               <TabsContent value="mensageria">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
-                      <Mail className="h-5 w-5" />
-                      <span>Configurações de E-mail SMTP</span>
+                      <Inbox className="h-5 w-5" />
+                      <span>Mensageria</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-6">
                     <p className="text-sm text-muted-foreground">
-                      Configure o servidor SMTP para envio de notificações por e-mail. Estas configurações são globais e afetam todas as políticas de notificação.
+                      Configure como o SamurEye envia e-mails de notificação. Escolha um provedor e preencha suas credenciais.
                     </p>
 
-                    <Separator />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="smtpHost">Servidor SMTP</Label>
-                        <Input
-                          id="smtpHost"
-                          placeholder="smtp.gmail.com"
-                          value={emailSettings.smtpHost}
-                          onChange={(e) => handleEmailSettingChange('smtpHost', e.target.value)}
-                          data-testid="input-smtp-host"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="smtpPort">Porta</Label>
-                        <Input
-                          id="smtpPort"
-                          type="number"
-                          placeholder="587"
-                          value={emailSettings.smtpPort}
-                          onChange={(e) => handleEmailSettingChange('smtpPort', parseInt(e.target.value))}
-                          data-testid="input-smtp-port"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label htmlFor="smtpSecure">Conexão Segura (TLS/SSL)</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Usar conexão criptografada (recomendado)
-                        </p>
-                      </div>
-                      <Switch
-                        id="smtpSecure"
-                        checked={emailSettings.smtpSecure}
-                        onCheckedChange={(checked) => handleEmailSettingChange('smtpSecure', checked)}
-                        data-testid="switch-smtp-secure"
+                    <div
+                      role="radiogroup"
+                      aria-label="Provedor de mensageria"
+                      className="grid grid-cols-1 gap-4 md:grid-cols-3"
+                    >
+                      <MessagingProviderCard
+                        id="google"
+                        name="Google Workspace"
+                        subtitle="OAuth2 — recomendado"
+                        logo={<GoogleWorkspaceLogo className="h-7 w-7" />}
+                        selected={selectedProvider === "google"}
+                        configured={isProviderConfigured("google")}
+                        onSelect={() => handleSelectProvider("google")}
+                        tabIndex={selectedProvider === "google" ? 0 : -1}
+                        onKeyDown={handleProviderKeyDown("google")}
+                      />
+                      <MessagingProviderCard
+                        id="microsoft"
+                        name="Microsoft 365"
+                        subtitle="OAuth2 — recomendado"
+                        logo={<MicrosoftLogo className="h-7 w-7" />}
+                        selected={selectedProvider === "microsoft"}
+                        configured={isProviderConfigured("microsoft")}
+                        onSelect={() => handleSelectProvider("microsoft")}
+                        tabIndex={selectedProvider === "microsoft" ? 0 : -1}
+                        onKeyDown={handleProviderKeyDown("microsoft")}
+                      />
+                      <MessagingProviderCard
+                        id="smtp"
+                        name="SMTP tradicional"
+                        subtitle="Usuário e senha — legado"
+                        logo={<ServerCog className="h-7 w-7 text-muted-foreground" />}
+                        selected={selectedProvider === "smtp"}
+                        configured={isProviderConfigured("smtp")}
+                        onSelect={() => handleSelectProvider("smtp")}
+                        tabIndex={selectedProvider === "smtp" ? 0 : -1}
+                        onKeyDown={handleProviderKeyDown("smtp")}
                       />
                     </div>
 
-                    <Separator />
+                    <MessagingProviderGuide
+                      provider={selectedProvider}
+                      defaultOpen={!isProviderConfigured(selectedProvider)}
+                    />
 
-                    <div>
-                      <Label htmlFor="authType">Tipo de Autenticação</Label>
-                      <Select
-                        value={emailSettings.authType}
-                        onValueChange={(value) => handleEmailSettingChange('authType', value as 'password' | 'oauth2_gmail' | 'oauth2_microsoft')}
-                      >
-                        <SelectTrigger id="authType" data-testid="select-auth-type">
-                          <SelectValue placeholder="Selecione o tipo de autenticação" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="password">Senha Básica (Legacy)</SelectItem>
-                          <SelectItem value="oauth2_gmail">OAuth2 - Google Workspace/Gmail</SelectItem>
-                          <SelectItem value="oauth2_microsoft">OAuth2 - Microsoft 365</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        OAuth2 é recomendado para Gmail e Microsoft 365 (senha básica será descontinuada em 2025)
-                      </p>
-                    </div>
+                    {selectedProvider === "smtp" ? (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="smtpHost">Servidor SMTP</Label>
+                            <Input
+                              id="smtpHost"
+                              placeholder="smtp.seudominio.com"
+                              value={emailSettings.smtpHost}
+                              onChange={(e) => handleEmailSettingChange('smtpHost', e.target.value)}
+                              data-testid="input-smtp-host"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="smtpPort">Porta</Label>
+                            <Input
+                              id="smtpPort"
+                              type="number"
+                              placeholder="587"
+                              value={emailSettings.smtpPort}
+                              onChange={(e) => handleEmailSettingChange('smtpPort', parseInt(e.target.value))}
+                              data-testid="input-smtp-port"
+                            />
+                          </div>
+                        </div>
 
-                    {emailSettings.authType === 'password' && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="authUser">Usuário SMTP</Label>
-                          <Input
-                            id="authUser"
-                            placeholder="usuario@dominio.com"
-                            value={emailSettings.authUser}
-                            onChange={(e) => handleEmailSettingChange('authUser', e.target.value)}
-                            data-testid="input-auth-user"
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label htmlFor="smtpSecure">Conexão Segura (TLS/SSL)</Label>
+                            <p className="text-sm text-muted-foreground">
+                              Usar conexão criptografada (recomendado)
+                            </p>
+                          </div>
+                          <Switch
+                            id="smtpSecure"
+                            checked={emailSettings.smtpSecure}
+                            onCheckedChange={(checked) => handleEmailSettingChange('smtpSecure', checked)}
+                            data-testid="switch-smtp-secure"
                           />
                         </div>
 
-                        <div>
-                          <Label htmlFor="authPassword">Senha SMTP</Label>
-                          <Input
-                            id="authPassword"
-                            type="password"
-                            placeholder="••••••••"
-                            value={emailSettings.authPasswordPlain}
-                            onChange={(e) => handleEmailSettingChange('authPasswordPlain', e.target.value)}
-                            data-testid="input-auth-password"
-                          />
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Deixe em branco para manter a senha atual
-                          </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="authUser">Usuário SMTP</Label>
+                            <Input
+                              id="authUser"
+                              placeholder="usuario@dominio.com"
+                              value={emailSettings.authUser}
+                              onChange={(e) => handleEmailSettingChange('authUser', e.target.value)}
+                              data-testid="input-auth-user"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="authPassword">Senha SMTP</Label>
+                            <Input
+                              id="authPassword"
+                              type="password"
+                              placeholder="••••••••"
+                              value={emailSettings.authPasswordPlain}
+                              onChange={(e) => handleEmailSettingChange('authPasswordPlain', e.target.value)}
+                              data-testid="input-auth-password"
+                            />
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Deixe em branco para manter a senha atual
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    )}
-
-                    {(emailSettings.authType === 'oauth2_gmail' || emailSettings.authType === 'oauth2_microsoft') && (
+                    ) : (
                       <div className="space-y-4">
+                        <p className="rounded-md border border-dashed border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                          Servidor: <code>{emailSettings.smtpHost}</code> · Porta: <code>{emailSettings.smtpPort}</code> · TLS {emailSettings.smtpSecure ? "ativo" : "desativado"}
+                        </p>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <Label htmlFor="oauth2ClientId">Client ID</Label>
                             <Input
                               id="oauth2ClientId"
-                              placeholder="seu-client-id.apps.googleusercontent.com"
+                              placeholder={selectedProvider === "google" ? "seu-client-id.apps.googleusercontent.com" : "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"}
                               value={emailSettings.oauth2ClientId}
                               onChange={(e) => handleEmailSettingChange('oauth2ClientId', e.target.value)}
                               data-testid="input-oauth2-client-id"
                             />
                           </div>
-
                           <div>
                             <Label htmlFor="oauth2ClientSecret">Client Secret</Label>
                             <Input
@@ -838,10 +861,9 @@ export default function Settings() {
                               Deixe em branco para manter o token atual
                             </p>
                           </div>
-
-                          {emailSettings.authType === 'oauth2_microsoft' && (
+                          {selectedProvider === "microsoft" && (
                             <div>
-                              <Label htmlFor="oauth2TenantId">Tenant ID (Microsoft)</Label>
+                              <Label htmlFor="oauth2TenantId">Tenant ID</Label>
                               <Input
                                 id="oauth2TenantId"
                                 placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -869,7 +891,6 @@ export default function Settings() {
                           data-testid="input-from-email"
                         />
                       </div>
-
                       <div>
                         <Label htmlFor="fromName">Nome do Remetente</Label>
                         <Input
@@ -891,14 +912,14 @@ export default function Settings() {
                         data-testid="button-save-email-settings"
                       >
                         <Save className="mr-2 h-4 w-4" />
-                        {saveEmailSettingsMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
+                        {saveEmailSettingsMutation.isPending ? 'Salvando...' : 'Salvar configurações de mensageria'}
                       </Button>
                     </div>
 
                     <Separator />
 
                     <div className="space-y-2">
-                      <Label htmlFor="testEmail">Testar Configuração</Label>
+                      <Label htmlFor="testEmail">Testar envio</Label>
                       <div className="flex gap-2">
                         <Input
                           id="testEmail"
@@ -914,7 +935,7 @@ export default function Settings() {
                           disabled={testEmailMutation.isPending}
                           data-testid="button-test-email"
                         >
-                          {testEmailMutation.isPending ? 'Enviando...' : 'Enviar Teste'}
+                          {testEmailMutation.isPending ? 'Enviando...' : 'Enviar teste'}
                         </Button>
                       </div>
                       <p className="text-sm text-muted-foreground">
