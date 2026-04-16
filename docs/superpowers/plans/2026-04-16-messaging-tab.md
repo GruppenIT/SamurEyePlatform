@@ -418,11 +418,13 @@ function isProviderConfigured(provider: MessagingProvider): boolean {
 }
 ```
 
-- [ ] **Step 5: Add a handler to switch providers and apply defaults**
+- [ ] **Step 5: Add handlers to switch providers (with defaults) and manage radio-group keyboard navigation**
 
 Below `isProviderConfigured`, add:
 
 ```tsx
+const PROVIDER_ORDER: MessagingProvider[] = ["google", "microsoft", "smtp"];
+
 const handleSelectProvider = (provider: MessagingProvider) => {
   setEmailSettings((prev) => {
     const defaults = PROVIDER_DEFAULTS[provider];
@@ -435,7 +437,25 @@ const handleSelectProvider = (provider: MessagingProvider) => {
     };
   });
 };
+
+const handleProviderKeyDown = (provider: MessagingProvider) =>
+  (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
+    if (!keys.includes(event.key)) return;
+    event.preventDefault();
+    const currentIndex = PROVIDER_ORDER.indexOf(provider);
+    const delta = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1;
+    const nextIndex = (currentIndex + delta + PROVIDER_ORDER.length) % PROVIDER_ORDER.length;
+    const nextProvider = PROVIDER_ORDER[nextIndex];
+    handleSelectProvider(nextProvider);
+    const nextCard = document.querySelector<HTMLButtonElement>(
+      `[data-testid="card-messaging-provider-${nextProvider}"]`,
+    );
+    nextCard?.focus();
+  };
 ```
+
+(The `React.KeyboardEvent` type comes from the top-level `import * as React from "react"` or a named `KeyboardEvent` import — use whichever pattern already exists in `settings.tsx`; if the file imports the default React namespace, `React.KeyboardEvent` works without a new import.)
 
 - [ ] **Step 6: Type-check**
 
@@ -488,6 +508,8 @@ Locate the block that starts at `<TabsContent value="mensageria">` and ends at t
                         selected={selectedProvider === "google"}
                         configured={isProviderConfigured("google")}
                         onSelect={() => handleSelectProvider("google")}
+                        tabIndex={selectedProvider === "google" ? 0 : -1}
+                        onKeyDown={handleProviderKeyDown("google")}
                       />
                       <MessagingProviderCard
                         id="microsoft"
@@ -497,6 +519,8 @@ Locate the block that starts at `<TabsContent value="mensageria">` and ends at t
                         selected={selectedProvider === "microsoft"}
                         configured={isProviderConfigured("microsoft")}
                         onSelect={() => handleSelectProvider("microsoft")}
+                        tabIndex={selectedProvider === "microsoft" ? 0 : -1}
+                        onKeyDown={handleProviderKeyDown("microsoft")}
                       />
                       <MessagingProviderCard
                         id="smtp"
@@ -506,6 +530,8 @@ Locate the block that starts at `<TabsContent value="mensageria">` and ends at t
                         selected={selectedProvider === "smtp"}
                         configured={isProviderConfigured("smtp")}
                         onSelect={() => handleSelectProvider("smtp")}
+                        tabIndex={selectedProvider === "smtp" ? 0 : -1}
+                        onKeyDown={handleProviderKeyDown("smtp")}
                       />
                     </div>
 
