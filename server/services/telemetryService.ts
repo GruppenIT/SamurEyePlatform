@@ -6,6 +6,7 @@ import { threats, hosts, assets, jobs, users, activeSessions, loginAttempts } fr
 import { sql, and, eq } from 'drizzle-orm';
 import type { HeartbeatRequest } from '@shared/schema';
 import { APP_VERSION } from '../version';
+import { storage } from '../storage';
 
 /**
  * TelemetryService
@@ -21,14 +22,15 @@ class TelemetryService {
    * Collect all telemetry data for the heartbeat payload
    */
   async collect(applianceId: string): Promise<HeartbeatRequest> {
-    const [system, performance, threatStats, usage] = await Promise.all([
+    const [system, performance, threatStats, usage, identity] = await Promise.all([
       this.collectSystem(),
       this.collectPerformance(),
       this.collectThreatStats(),
       this.collectUsage(),
+      this.collectIdentity(),
     ]);
 
-    return {
+    const payload: HeartbeatRequest = {
       applianceId,
       version: APP_VERSION,
       timestamp: new Date().toISOString(),
@@ -36,6 +38,38 @@ class TelemetryService {
       performance,
       threatStats,
       usage,
+    };
+
+    if (identity) {
+      payload.identity = identity;
+    }
+
+    return payload;
+  }
+
+  private async collectIdentity(): Promise<HeartbeatRequest['identity'] | undefined> {
+    const [nameSetting, typeSetting, detailSetting] = await Promise.all([
+      storage.getSetting('applianceName'),
+      storage.getSetting('locationType'),
+      storage.getSetting('locationDetail'),
+    ]);
+
+    // Omit the block entirely when the user has never configured any of the three fields.
+    // A setting that exists with value "" means the user explicitly cleared it and the
+    // console should receive "" (which it converts to NULL).
+    if (!nameSetting && !typeSetting && !detailSetting) {
+      return undefined;
+    }
+
+    const asString = (s: typeof nameSetting): string => {
+      if (!s) return '';
+      return typeof s.value === 'string' ? s.value : '';
+    };
+
+    return {
+      applianceName: asString(nameSetting),
+      locationType: asString(typeSetting),
+      locationDetail: asString(detailSetting),
     };
   }
 
