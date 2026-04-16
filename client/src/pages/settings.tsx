@@ -686,7 +686,6 @@ export default function Settings() {
               </TabsContent>
 
               {/* Tab: Mensageria */}
-              {/* Tab: Mensageria */}
               <TabsContent value="mensageria">
                 <Card>
                   <CardHeader>
