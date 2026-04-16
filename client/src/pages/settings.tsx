@@ -24,7 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Settings as SettingsIcon, Save, Shield, Clock, Globe, Mail, Key, CheckCircle, AlertTriangle, XCircle, Wifi, WifiOff, Loader2, Copy } from "lucide-react";
+import { Settings as SettingsIcon, Save, Shield, Clock, Globe, Inbox, Mail, Key, CheckCircle, AlertTriangle, XCircle, Wifi, WifiOff, Loader2, Copy } from "lucide-react";
 import { Setting } from "@shared/schema";
 
 interface SettingsForm {
@@ -350,9 +350,9 @@ export default function Settings() {
                   <Mail className="h-4 w-4" />
                   Notificações
                 </TabsTrigger>
-                <TabsTrigger value="smtp" className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  SMTP
+                <TabsTrigger value="mensageria" className="flex items-center gap-2">
+                  <Inbox className="h-4 w-4" />
+                  Mensageria
                 </TabsTrigger>
                 <TabsTrigger value="subscricao" className="flex items-center gap-2">
                   <Key className="h-4 w-4" />
@@ -594,8 +594,8 @@ export default function Settings() {
                 </Card>
               </TabsContent>
 
-              {/* Tab: SMTP */}
-              <TabsContent value="smtp">
+              {/* Tab: Mensageria */}
+              <TabsContent value="mensageria">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
