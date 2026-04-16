@@ -1,4 +1,4 @@
-import { generateSecret, generateURI, verify } from 'otplib';
+import { generateSecret, generateURI, verifySync } from 'otplib';
 import bcrypt from 'bcryptjs';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
@@ -41,11 +41,10 @@ export class MfaService {
     return crypto.randomBytes(BACKUP_CODE_BYTES).toString('hex').slice(0, 10);
   }
 
-  async verifyTotp(token: string, secret: string): Promise<boolean> {
+  verifyTotp(token: string, secret: string): boolean {
     if (!/^\d{6}$/.test(token)) return false;
     try {
-      const result = await verify({ token, secret, epochTolerance: TOTP_EPOCH_TOLERANCE });
-      return result.valid;
+      return verifySync({ token, secret, epochTolerance: TOTP_EPOCH_TOLERANCE }).valid;
     } catch {
       return false;
     }
