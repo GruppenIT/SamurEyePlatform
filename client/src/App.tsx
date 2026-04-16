@@ -159,6 +159,8 @@ function Router() {
         <Route path="/account" component={AccountPage} />
         <Route path="/account/mfa" component={AccountMfaPage} />
         <Route path="/change-password" component={ChangePassword} />
+        {/* After successful MFA verify the user may momentarily still be on /mfa-challenge — send them home. */}
+        <Route path="/mfa-challenge">{() => <Redirect to="/" />}</Route>
 
         {/* Admin-only routes */}
         <Route path="/users">{() => <AdminRoute component={Users} />}</Route>
