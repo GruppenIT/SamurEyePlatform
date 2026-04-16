@@ -85,6 +85,13 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   role: userRoleEnum("role").default('read_only').notNull(),
   mustChangePassword: boolean("must_change_password").default(false).notNull(),
+  // MFA (TOTP) fields
+  mfaEnabled: boolean("mfa_enabled").default(false).notNull(),
+  mfaSecretEncrypted: text("mfa_secret_encrypted"),
+  mfaSecretDek: text("mfa_secret_dek"),
+  mfaBackupCodes: text("mfa_backup_codes").array(),
+  mfaEnabledAt: timestamp("mfa_enabled_at"),
+  mfaInvitationDismissed: boolean("mfa_invitation_dismissed").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastLogin: timestamp("last_login"),
@@ -490,6 +497,7 @@ export const emailSettings = pgTable("email_settings", {
   fromName: text("from_name").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   updatedBy: varchar("updated_by").references(() => users.id).notNull(),
+  lastTestSuccessAt: timestamp("last_test_success_at"),
 });
 
 // Notification policies table
@@ -694,6 +702,9 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   passwordHash: true,
   mustChangePassword: true, // Security: não expor via API pública
+  mfaSecretEncrypted: true,
+  mfaSecretDek: true,
+  mfaBackupCodes: true,
   createdAt: true,
   updatedAt: true,
   lastLogin: true,
@@ -1031,6 +1042,20 @@ export const applianceCommands = pgTable("appliance_commands", {
 ]);
 
 export type ApplianceCommand = typeof applianceCommands.$inferSelect;
+
+export const mfaEmailChallenges = pgTable("mfa_email_challenges", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  codeHash: text("code_hash").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  consumedAt: timestamp("consumed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_mfa_email_challenges_user_active").on(table.userId, table.expiresAt),
+]);
+
+export type MfaEmailChallenge = typeof mfaEmailChallenges.$inferSelect;
+export type InsertMfaEmailChallenge = typeof mfaEmailChallenges.$inferInsert;
 
 // API contract types for appliance ↔ console communication
 export const activateApplianceSchema = z.object({
