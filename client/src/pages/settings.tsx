@@ -66,9 +66,11 @@ const AUTH_TYPE_TO_PROVIDER: Record<"oauth2_gmail" | "oauth2_microsoft" | "passw
   password: "smtp",
 };
 
+// Google and Microsoft 365 SMTP submission (port 587) use STARTTLS, not implicit TLS,
+// so smtpSecure must be false. The backend then sets requireTLS=true to negotiate TLS.
 const PROVIDER_DEFAULTS: Record<MessagingProvider, { smtpHost: string; smtpPort: number; smtpSecure: boolean } | null> = {
-  google: { smtpHost: "smtp.gmail.com", smtpPort: 587, smtpSecure: true },
-  microsoft: { smtpHost: "smtp.office365.com", smtpPort: 587, smtpSecure: true },
+  google: { smtpHost: "smtp.gmail.com", smtpPort: 587, smtpSecure: false },
+  microsoft: { smtpHost: "smtp.office365.com", smtpPort: 587, smtpSecure: false },
   smtp: null,
 };
 
@@ -824,7 +826,7 @@ export default function Settings() {
                     ) : (
                       <div className="space-y-4">
                         <p className="rounded-md border border-dashed border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-                          Servidor: <code>{emailSettings.smtpHost}</code> · Porta: <code>{emailSettings.smtpPort}</code> · TLS {emailSettings.smtpSecure ? "ativo" : "desativado"}
+                          Servidor: <code>{emailSettings.smtpHost}</code> · Porta: <code>{emailSettings.smtpPort}</code> · TLS via STARTTLS
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -134,10 +134,25 @@ export class EmailService {
   }
 
   async createTransporter(settings: EmailSettings): Promise<Transporter> {
+    // Google and Microsoft 365 SMTP submission always use port 587 with STARTTLS.
+    // Override whatever is stored to keep legacy configs (e.g. smtpSecure=true) working.
+    let host = settings.smtpHost;
+    let port = settings.smtpPort;
+    let secure = settings.smtpSecure;
+    if (settings.authType === 'oauth2_gmail') {
+      host = 'smtp.gmail.com';
+      port = 587;
+      secure = false;
+    } else if (settings.authType === 'oauth2_microsoft') {
+      host = 'smtp.office365.com';
+      port = 587;
+      secure = false;
+    }
+
     const config: any = {
-      host: settings.smtpHost,
-      port: settings.smtpPort,
-      secure: settings.smtpSecure,
+      host,
+      port,
+      secure,
     };
 
     // Configure authentication based on authType
@@ -197,13 +212,13 @@ export class EmailService {
       };
     }
 
-    // Configure TLS for port 587
-    if (!settings.smtpSecure && settings.smtpPort === 587) {
+    // Configure STARTTLS for port 587 (use the effective host/port/secure, not the stored settings)
+    if (!secure && port === 587) {
       config.requireTLS = true;
       if (!config.tls) {
         config.tls = {};
       }
-      config.tls.servername = settings.smtpHost;
+      config.tls.servername = host;
     }
 
     return nodemailer.createTransport(config);
