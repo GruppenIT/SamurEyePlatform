@@ -40,6 +40,8 @@ import {
   type ConsoleCommand,
   type EdrDeployment,
   type InsertEdrDeployment,
+  type MfaEmailChallenge,
+  type InsertMfaEmailChallenge,
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -256,6 +258,13 @@ export interface IStorage {
   insertEdrDeployment(data: InsertEdrDeployment): Promise<EdrDeployment>;
   getEdrDeploymentsByJourney(journeyId: string): Promise<EdrDeployment[]>;
   getEdrDeploymentsByJourneyWithHost(journeyId: string): Promise<Array<EdrDeployment & { hostName: string | null; hostIps: string[]; hostOperatingSystem: string | null }>>;
+
+  // MFA email challenges
+  createMfaEmailChallenge(data: InsertMfaEmailChallenge): Promise<MfaEmailChallenge>;
+  getActiveChallenges(userId: string): Promise<MfaEmailChallenge[]>;
+  consumeChallenge(id: string): Promise<void>;
+  countRecentChallenges(userId: string, sinceMs: number): Promise<number>;
+  cleanupOldChallenges(userId: string): Promise<void>;
 
   // Database initialization
   initializeDatabaseStructure(): Promise<void>;
