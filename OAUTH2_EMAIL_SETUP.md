@@ -198,50 +198,20 @@ Após o registro, na página **Visão Geral**:
    - Você NÃO poderá visualizá-lo novamente (apenas o ID do Segredo)
    - Guarde-o com segurança
 
-### 4. Adicionar Permissões de API SMTP
+### 4. Adicionar Permissão Mail.Send (Microsoft Graph)
 
 1. Vá para **Permissões de API** → **Adicionar uma permissão**
-2. Selecione **APIs que a minha organização usa**
-3. Busque por **"Office 365 Exchange Online"**
-4. Clique em **Permissões de aplicativo** (não Delegadas)
-5. Selecione a permissão: **SMTP.Send** ou **SMTP.SendAsApp**
-6. Clique em **Adicionar permissões**
-7. Clique em **Conceder consentimento de administrador para [Nome do Locatário]** → **Sim**
+2. Selecione **Microsoft Graph**
+3. Clique em **Permissões de aplicativo** (não Delegadas)
+4. Busque e selecione **Mail.Send**
+5. Clique em **Adicionar permissões**
+6. Clique em **Conceder consentimento de administrador para [Nome do Locatário]** → **Sim**
 
-### 5. Registrar Service Principal no Exchange Online
+> **Nota:** O SamurEye envia e-mails via **Microsoft Graph API** (endpoint `sendMail`), não via SMTP. Por isso não é necessário registrar Service Principal no Exchange Online, nem habilitar SMTP Autenticado, nem conceder `SendAs` via PowerShell — `Mail.Send` no Graph já cobre tudo para envios em nome de qualquer caixa do tenant.
 
-Este é um passo crítico frequentemente esquecido. Execute estes comandos PowerShell:
+### 5. Credenciais Necessárias para o SamurEye (Microsoft 365)
 
-```powershell
-# Instalar módulo Exchange Online Management
-Install-Module -Name ExchangeOnlineManagement -Force
-
-# Conectar ao Exchange Online
-Connect-ExchangeOnline -UserPrincipalName admin@seudominio.com
-
-# Registrar o service principal (use seu Client ID)
-New-ServicePrincipal -AppId SEU_CLIENT_ID -ObjectId SEU_OBJECT_ID
-
-# Conceder permissões de caixa de correio (para a caixa que enviará emails)
-Add-MailboxPermission -Identity "remetente@seudominio.com" -User SEU_CLIENT_ID -AccessRights FullAccess
-
-Add-RecipientPermission -Identity "remetente@seudominio.com" -Trustee SEU_CLIENT_ID -AccessRights SendAs -Confirm:$false
-```
-
-**Nota**: Obtenha seu **Object ID** em:
-Azure Portal → **Aplicativos Empresariais** → Busque seu app → Copie **ID do Objeto**
-
-### 6. Habilitar SMTP Autenticado
-
-1. Acesse [Centro de Administração do Microsoft 365](https://admin.microsoft.com)
-2. Vá para **Usuários** → **Usuários ativos**
-3. Selecione o usuário da caixa de correio que enviará emails
-4. Clique em **Email** → **Gerenciar aplicativos de email**
-5. Certifique-se de que **SMTP Autenticado** está habilitado
-
-### 7. Credenciais Necessárias para o SamurEye (Microsoft 365)
-
-O SamurEye usa **Client Credentials Flow** para autenticar com o Microsoft 365 — o app envia e-mails em nome próprio através da permissão de aplicativo `SMTP.SendAsApp`. Com isso, não é necessário obter Refresh Token nem executar fluxo de autorização por usuário.
+O SamurEye usa **Client Credentials Flow** + **Microsoft Graph API**. Basta o app ter `Mail.Send` (permissão de aplicativo) concedida pelo admin do tenant. Não há Refresh Token nem etapas no Exchange PowerShell.
 
 Após concluir os passos 1–6, você terá tudo o que o SamurEye precisa:
 
