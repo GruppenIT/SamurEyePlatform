@@ -323,15 +323,21 @@ export default function Settings() {
 
   const handleSave = async () => {
     const updates = Object.entries(formData).map(([key, value]) => ({ key, value }));
-    
+
     try {
       await Promise.all(
         updates.map(update => updateSettingMutation.mutateAsync(update))
       );
-      
+
       toast({
         title: "Sucesso",
         description: "Configurações salvas com sucesso",
+      });
+
+      // Fire-and-forget: notify the console immediately with the new identity block.
+      // Any failure is logged server-side and a regular heartbeat will reconcile on the next cycle.
+      apiRequest('POST', '/api/appliance/heartbeat-now').catch(() => {
+        /* swallowed on purpose — non-blocking */
       });
     } catch (error) {
       // Error handling is done in the mutation
