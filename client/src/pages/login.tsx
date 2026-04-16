@@ -42,6 +42,7 @@ export default function Login() {
     onSuccess: async (data: any) => {
       if (data?.pendingMfa) {
         sessionStorage.setItem("mfa-email-available", data.emailDeliveryAvailable ? "true" : "false");
+        await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
         setLocation("/mfa-challenge");
         return;
       }
