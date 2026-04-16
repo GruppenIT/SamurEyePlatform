@@ -33,8 +33,7 @@ const GUIDES: Record<Provider, { title: string; steps: Step[] }> = {
       { text: "Em Permissões de API, adicione a permissão de aplicativo SMTP.SendAsApp (Office 365 Exchange Online) e conceda consentimento do admin." },
       { text: "Registre o Service Principal no Exchange Online via PowerShell (New-ServicePrincipal) e conceda SendAs à caixa remetente." },
       { text: "No Microsoft 365 Admin Center, habilite SMTP Autenticado para a caixa de correio remetente." },
-      { text: "Obtenha o Refresh Token via Authorization Code Flow com scope offline_access https://outlook.office365.com/.default." },
-      { text: "Cole Client ID, Tenant ID, Client Secret e Refresh Token nos campos abaixo e salve." },
+      { text: "Cole Client ID, Tenant ID e Client Secret nos campos abaixo e salve. O SamurEye usa Client Credentials Flow — não é necessário Refresh Token." },
     ],
   },
   smtp: {
