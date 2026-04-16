@@ -1,9 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 import {
   Shield,
   ShieldCheck,
@@ -16,7 +14,6 @@ import {
   Users,
   Settings,
   History,
-  LogOut,
   Monitor,
   Bell,
   Smartphone,
@@ -82,7 +79,6 @@ const adminItems: NavItem[] = [
 export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   // Buscar ameaças críticas abertas para o contador do menu
   const { data: criticalThreats = [] } = useQuery({
@@ -103,27 +99,6 @@ export default function Sidebar() {
 
   const isAdmin = user?.role === 'global_administrator';
   const canViewAdminItems = isAdmin;
-
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest('POST', '/api/auth/logout', {});
-    },
-    onSuccess: () => {
-      // Limpa o cache de usuário e redireciona para landing
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      queryClient.clear();
-      window.location.href = '/';
-    },
-    onError: () => {
-      // Em caso de erro, força redirecionamento
-      queryClient.clear();
-      window.location.href = '/';
-    },
-  });
-
-  const handleLogout = () => {
-    logoutMutation.mutate();
-  };
 
   return (
     <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
@@ -213,39 +188,9 @@ export default function Sidebar() {
         )}
       </nav>
       
-      {/* User Profile */}
       <div className="p-4 border-t border-sidebar-border">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
-            <span className="text-secondary-foreground text-sm font-medium">
-              {user?.firstName?.[0] || user?.email?.[0] || 'U'}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">
-              {user?.firstName && user?.lastName
-                ? `${user.firstName} ${user.lastName}`
-                : user?.email || 'Usuário'
-              }
-            </p>
-            <p className="text-xs text-muted-foreground truncate">
-              {user?.role === 'global_administrator' && 'Administrador Global'}
-              {user?.role === 'operator' && 'Operador'}
-              {user?.role === 'read_only' && 'Somente Leitura'}
-            </p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="text-muted-foreground hover:text-sidebar-foreground"
-            data-testid="button-logout"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </div>
         {appVersion && (
-          <p className="mt-2 text-[10px] text-muted-foreground/50 text-center select-all" title={`Build: ${appVersion}`}>
+          <p className="text-[10px] text-muted-foreground/50 text-center select-all" title={`Build: ${appVersion}`}>
             v{appVersion}
           </p>
         )}
