@@ -218,6 +218,26 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
+  app.post('/api/appliance/heartbeat-now', isAuthenticatedWithPasswordCheck, requireAdmin, async (req, res) => {
+    try {
+      const sub = await storage.getSubscription();
+      if (!sub || !sub.apiKey) {
+        return res.status(400).json({ message: "Subscription não configurada — heartbeat indisponível" });
+      }
+
+      // Fire-and-forget: respond 202 immediately, let sendHeartbeat finish in background.
+      // Any failure is already logged inside subscriptionService and visible in next cached status.
+      subscriptionService.sendHeartbeat().catch((err) => {
+        log.warn({ err }, 'out-of-band heartbeat failed');
+      });
+
+      res.status(202).json({ message: "Heartbeat disparado" });
+    } catch (error) {
+      log.error({ err: error }, 'failed to trigger out-of-band heartbeat');
+      res.status(500).json({ message: "Falha ao disparar heartbeat" });
+    }
+  });
+
   // ═══════════════════════════════════════════════════════════
   // Subscription management routes
   // ═══════════════════════════════════════════════════════════
