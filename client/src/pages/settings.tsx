@@ -546,7 +546,7 @@ export default function Settings() {
                     <Separator />
 
                     <div>
-                      <h3 className="text-base font-semibold">Identificação e Localização</h3>
+                      <h4 className="text-base font-semibold">Identificação e Localização</h4>
                       <p className="mt-2 rounded-md border border-dashed border-border bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
                         Estes campos são enviados ao console no próximo heartbeat e usados para organizar seus appliances por localização.
                       </p>
