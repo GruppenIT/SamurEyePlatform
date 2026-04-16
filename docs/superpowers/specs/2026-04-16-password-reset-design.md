@@ -13,7 +13,7 @@ Um usuário que esquece a senha hoje só consegue recuperar acesso pedindo a out
 Adicionar fluxo de recuperação de senha na tela de login:
 
 1. Link "Esqueci minha senha" visível **apenas** quando a mensageria está configurada e testada (mesma condição usada pelo MFA por e-mail).
-2. Usuário informa e-mail; servidor envia link com token de uso único (TTL 1 hora).
+2. Usuário informa e-mail; servidor envia link com token de uso único (TTL 30 minutos).
 3. Link abre tela onde usuário define nova senha.
 4. Pós-reset: todas sessões ativas do usuário invalidadas; MFA continua exigido no próximo login.
 
@@ -72,7 +72,7 @@ Pipeline:
 1. Rate limits (nunca rejeitar — só deixar de enviar): `pwreset:ip:<ip>` 3/5min, `pwreset:email:<hash>` 3/15min.
 2. Lookup `storage.getUserByEmail(email)`. Se não existir, ainda responde 202.
 3. Se `passwordRecoveryAvailable` = false, ainda responde 202 (silencioso).
-4. Gera `token = crypto.randomBytes(32).toString('base64url')`. Hash bcrypt 10. Insere em `password_reset_tokens` com `expiresAt = now + 1h`. Remove tokens do user com >24h de idade.
+4. Gera `token = crypto.randomBytes(32).toString('base64url')`. Hash bcrypt 10. Insere em `password_reset_tokens` com `expiresAt = now + 30min`. Remove tokens do user com >24h de idade.
 5. Envia e-mail: `to = user.email`, subject `Recuperação de senha SamurEye`, body html curto com link `{APP_BASE_URL}/reset-password?token={raw}`. Erros de envio são logados, não expostos.
 6. `upsertLoginAttempt('pwreset:ip:<ip>', true)` + `upsertLoginAttempt('pwreset:email:<hash>', true)` (só para rate limit — nem bloqueia agora).
 7. Retorna 202 `{ message: "Se o e-mail existir em nossa base, enviaremos um link em instantes." }`.
@@ -88,7 +88,7 @@ Body: `{ token, newPassword }`.
 Pipeline:
 1. Rate limit `pwreset:confirm:ip:<ip>` (5/15min). Se bloqueado → 429.
 2. Percorre tokens não-consumidos não-expirados, bcrypt.compare contra cada `token_hash`. Se nenhum bate → incrementa rate limit + 401.
-3. Valida `newPassword` — mínimo 8 chars (manter alinhado com change-password atual, caso seja mais rígido; verificar na implementação).
+3. Valida `newPassword` pela política unificada (§ 6.5): mínimo 12 caracteres, pelo menos 1 maiúscula, 1 minúscula, 1 dígito e 1 caractere especial. Cliente valida também localmente antes do submit.
 4. `users.passwordHash = bcrypt.hash(newPassword, 12)` + `mustChangePassword = false`.
 5. Marca o token `consumed_at = now`. Marca todos os outros tokens ativos do mesmo user como `consumed_at = now` (invalida duplicatas).
 6. Invalida todas sessões ativas do user: bump do `session_version` global **apenas se não houver helper dedicado por-user** (checar no código). Se existir `storage.invalidateUserSessions(userId)`, usar. Caso contrário, adicionar essa função baseada no padrão de `active_sessions` (DELETE WHERE user_id = ?).
@@ -124,6 +124,23 @@ Lê `token` da query string.
 - Se 200 → form com "Nova senha" + "Confirmar nova senha" (com regras de mínimo local).
 - Submit → POST `/api/auth/password-reset/confirm`. Sucesso → `setLocation("/login")` com toast "Senha atualizada. Faça login novamente."
 
+### 6.5. Política de senha (reforçada)
+
+Aplicada tanto em `/reset-password` quanto no `/change-password` existente (alinhar a política em um único ponto para evitar divergência):
+
+- Mínimo 12 caracteres.
+- Pelo menos 1 letra maiúscula.
+- Pelo menos 1 letra minúscula.
+- Pelo menos 1 dígito.
+- Pelo menos 1 caractere especial (não alfanumérico).
+
+Implementação:
+- `shared/schema.ts` expõe `passwordComplexitySchema` (Zod) reutilizável — `z.string().min(12).regex(/[A-Z]/).regex(/[a-z]/).regex(/\d/).regex(/[^A-Za-z0-9]/)`.
+- Backend `POST /password-reset/confirm` e a rota existente `POST /api/auth/change-password` passam a usar esse schema.
+- Cliente `/reset-password` e `/change-password` exibem checklist visual (ícones ✓/✗ abaixo do campo "Nova senha" mostrando cada requisito) com feedback em tempo real.
+
+Usuários existentes com senhas que não atendem à nova política **não são forçados a trocar** automaticamente — a validação só dispara em mudança (change-password ou reset).
+
 ### 6.4. `App.tsx`
 
 No branch `!isAuthenticated`, adicionar antes do fallback:
@@ -137,7 +154,7 @@ No branch `!isAuthenticated`, adicionar antes do fallback:
 
 ```html
 <p>Você solicitou a redefinição de senha para sua conta SamurEye.</p>
-<p>Clique no link abaixo (válido por 1 hora):</p>
+<p>Clique no link abaixo (válido por 30 minutos):</p>
 <p><a href="{link}">{link}</a></p>
 <p>Se você não fez essa solicitação, ignore este e-mail — sua senha permanece inalterada.</p>
 ```
@@ -152,10 +169,12 @@ No branch `!isAuthenticated`, adicionar antes do fallback:
 - `client/src/pages/reset-password.tsx`.
 
 ### Modificados
-- `shared/schema.ts` — tabela + types.
+- `shared/schema.ts` — tabela + types + `passwordComplexitySchema` compartilhado.
 - `server/storage/interface.ts` + `server/storage/index.ts` — wire novos helpers + `invalidateUserSessions` se não existir.
 - `server/routes/index.ts` — registrar rotas.
+- `server/localAuth.ts` — `POST /api/auth/change-password` passa a usar `passwordComplexitySchema`.
 - `client/src/pages/login.tsx` — link condicional via `/api/auth/features`.
+- `client/src/pages/change-password.tsx` — checklist visual da política reforçada.
 - `client/src/App.tsx` — rotas novas no branch não-autenticado.
 
 ### Não alterados
@@ -168,9 +187,9 @@ No branch `!isAuthenticated`, adicionar antes do fallback:
 1. `/login` mostra link "Esqueci minha senha" apenas quando a mensageria foi testada nos últimos 30 dias.
 2. Sem mensageria testada: link sumido + `POST /password-reset/request` continua 202 sem enviar e-mail (com log).
 3. `/forgot-password` sempre responde "Se o e-mail existir, enviaremos link" — não vaza existência.
-4. E-mail de recuperação chega com link contendo token válido por 1h.
+4. E-mail de recuperação chega com link contendo token válido por 30 minutos.
 5. Link inválido/expirado em `/reset-password` mostra "Link inválido" e CTA para solicitar novo.
-6. Link válido aceita nova senha; após submit com sucesso, redireciona para `/login` com toast.
+6. Link válido aceita nova senha que atenda a política reforçada (§ 6.5) e após submit redireciona para `/login` com toast. Senha fraca → erro no submit e checklist visual mostrando critérios faltantes.
 7. Após reset bem-sucedido: todas sessões ativas do usuário são invalidadas; próxima requisição autenticada dá 401.
 8. Token usado fica com `consumed_at` preenchido e não pode ser reutilizado.
 9. Se usuário tem MFA ativo, login pós-reset passa normalmente pela tela de `/mfa-challenge`.
@@ -186,7 +205,7 @@ No branch `!isAuthenticated`, adicionar antes do fallback:
 
 ## 11. Fora de escopo
 
-- Política de complexidade de senha (mantém o mínimo atual).
+(A política reforçada, descrita na §6.5, passa a ser compartilhada com `/change-password`.)
 - Histórico de senhas / "não pode repetir últimas N".
 - Reset iniciado pelo admin (já existe via troca de senha do user em `/users`).
 - Internacionalização além do pt-BR.
