@@ -483,7 +483,18 @@ export async function setupAuth(app: Express) {
             // Não falhar o login se houver erro ao criar sessão ativa
           }
           
-          res.json({ 
+          if (user.mfaEnabled) {
+            (req.session as any).pendingMfa = true;
+            (req.session as any).mfaUserId = user.id;
+            const emailSettings = await storage.getEmailSettings();
+            const emailDeliveryAvailable =
+              !!emailSettings?.lastTestSuccessAt &&
+              emailSettings.lastTestSuccessAt > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+            return req.session.save(() => {
+              res.json({ pendingMfa: true, emailDeliveryAvailable });
+            });
+          }
+          res.json({
             message: 'Login realizado com sucesso',
             user: {
               id: user.id,
@@ -491,7 +502,9 @@ export async function setupAuth(app: Express) {
               firstName: user.firstName,
               lastName: user.lastName,
               role: user.role,
-              mustChangePassword: user.mustChangePassword
+              mustChangePassword: user.mustChangePassword,
+              mfaEnabled: user.mfaEnabled,
+              mfaInvitationDismissed: user.mfaInvitationDismissed,
             }
           });
         });
