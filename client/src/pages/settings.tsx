@@ -542,6 +542,68 @@ export default function Settings() {
                         Tempo para expirar sessões inativas
                       </p>
                     </div>
+
+                    <Separator />
+
+                    <div>
+                      <h3 className="text-base font-semibold">Identificação e Localização</h3>
+                      <p className="mt-2 rounded-md border border-dashed border-border bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
+                        Estes campos são enviados ao console no próximo heartbeat e usados para organizar seus appliances por localização.
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="applianceName">Nome do Appliance</Label>
+                      <Input
+                        id="applianceName"
+                        value={formData.applianceName}
+                        maxLength={100}
+                        onChange={(e) => handleInputChange('applianceName', e.target.value)}
+                        placeholder="sam-sp-dc01"
+                        data-testid="input-appliance-name"
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Um apelido amigável para identificar este appliance (ex.: sam-sp-dc01). Aparece no dashboard do cliente e na página de detalhe.
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="locationType">Tipo de Localização</Label>
+                      <Select
+                        value={formData.locationType || '__none__'}
+                        onValueChange={(value) => handleInputChange('locationType', value === '__none__' ? '' : value)}
+                      >
+                        <SelectTrigger id="locationType" data-testid="select-location-type">
+                          <SelectValue placeholder="Não definido" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Não definido</SelectItem>
+                          <SelectItem value="matriz">Matriz</SelectItem>
+                          <SelectItem value="filial">Filial</SelectItem>
+                          <SelectItem value="datacenter">Datacenter</SelectItem>
+                          <SelectItem value="nuvem">Nuvem</SelectItem>
+                          <SelectItem value="outro">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Escolha o tipo que melhor descreve onde este appliance está instalado. Appliances com o mesmo tipo e detalhe de localização serão agrupados juntos no painel do cliente.
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="locationDetail">Detalhes da Localização</Label>
+                      <Input
+                        id="locationDetail"
+                        value={formData.locationDetail}
+                        maxLength={200}
+                        onChange={(e) => handleInputChange('locationDetail', e.target.value)}
+                        placeholder="DC Equinix SP4 - Sala 3"
+                        data-testid="input-location-detail"
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Complemento que torna a localização única (ex.: São Paulo - Av. Paulista 1000, Filial Curitiba, AWS us-east-1, DC Equinix SP4). Appliances que compartilham o mesmo tipo e o mesmo detalhe são exibidos no mesmo grupo no dashboard.
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
