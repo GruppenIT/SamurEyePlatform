@@ -744,6 +744,7 @@ export default function Settings() {
                       defaultOpen={!isProviderConfigured(selectedProvider)}
                     />
 
+                    {/* NOTE: assumes SMTP is the only non-OAuth2 provider. Revisit this branch if a new provider (e.g. SES, SendGrid) is added. */}
                     {selectedProvider === "smtp" ? (
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
