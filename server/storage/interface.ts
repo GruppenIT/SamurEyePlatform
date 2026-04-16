@@ -54,6 +54,10 @@ export interface IStorage {
   updateUserPassword(id: string, passwordHash: string): Promise<User>;
   setMustChangePassword(id: string, mustChange: boolean): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  getUserMfa(id: string): Promise<Pick<User, 'id' | 'email' | 'mfaEnabled' | 'mfaSecretEncrypted' | 'mfaSecretDek' | 'mfaBackupCodes' | 'mfaInvitationDismissed' | 'mfaEnabledAt'> | undefined>;
+  setUserMfa(id: string, data: { mfaEnabled: boolean; mfaSecretEncrypted: string | null; mfaSecretDek: string | null; mfaBackupCodes: string[] | null; mfaEnabledAt: Date | null }): Promise<void>;
+  updateBackupCodes(id: string, codes: string[]): Promise<void>;
+  dismissMfaInvitation(id: string): Promise<void>;
 
   // Asset operations
   getAssets(): Promise<Asset[]>;
