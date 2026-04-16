@@ -410,8 +410,26 @@ const PROVIDER_DEFAULTS: Record<MessagingProvider, { smtpHost: string; smtpPort:
 Below the helpers just added, add:
 
 ```tsx
-const selectedProvider: MessagingProvider = AUTH_TYPE_TO_PROVIDER[emailSettings.authType];
+const selectedProvider: MessagingProvider = AUTH_TYPE_TO_PROVIDER[emailSettings.authType] ?? "smtp";
+
+const customSmtpRef = useRef<{ smtpHost: string; smtpPort: number; smtpSecure: boolean }>({
+  smtpHost: "",
+  smtpPort: 587,
+  smtpSecure: false,
+});
+
+useEffect(() => {
+  if (selectedProvider === "smtp") {
+    customSmtpRef.current = {
+      smtpHost: emailSettings.smtpHost,
+      smtpPort: emailSettings.smtpPort,
+      smtpSecure: emailSettings.smtpSecure,
+    };
+  }
+}, [selectedProvider, emailSettings.smtpHost, emailSettings.smtpPort, emailSettings.smtpSecure]);
 ```
+
+(`useRef` must be part of the named `react` import.)
 
 - [ ] **Step 4: Add a `configured` predicate driven by `emailSettingsData`**
 
@@ -437,13 +455,22 @@ const PROVIDER_ORDER: MessagingProvider[] = ["google", "microsoft", "smtp"];
 
 const handleSelectProvider = (provider: MessagingProvider) => {
   setEmailSettings((prev) => {
-    const defaults = PROVIDER_DEFAULTS[provider];
+    if (provider === "smtp") {
+      return {
+        ...prev,
+        authType: "password",
+        smtpHost: customSmtpRef.current.smtpHost,
+        smtpPort: customSmtpRef.current.smtpPort,
+        smtpSecure: customSmtpRef.current.smtpSecure,
+      };
+    }
+    const defaults = PROVIDER_DEFAULTS[provider]!;
     return {
       ...prev,
       authType: PROVIDER_TO_AUTH_TYPE[provider],
-      smtpHost: defaults ? defaults.smtpHost : prev.smtpHost,
-      smtpPort: defaults ? defaults.smtpPort : prev.smtpPort,
-      smtpSecure: defaults ? defaults.smtpSecure : prev.smtpSecure,
+      smtpHost: defaults.smtpHost,
+      smtpPort: defaults.smtpPort,
+      smtpSecure: defaults.smtpSecure,
     };
   });
 };
