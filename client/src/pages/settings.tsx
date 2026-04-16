@@ -357,10 +357,18 @@ export default function Settings() {
         return;
       }
     } else if (emailSettings.authType === 'oauth2_gmail' || emailSettings.authType === 'oauth2_microsoft') {
-      if (!emailSettings.oauth2ClientId || (!emailSettings.oauth2ClientSecretPlain && !emailSettingsData) || (!emailSettings.oauth2RefreshTokenPlain && !emailSettingsData)) {
+      if (!emailSettings.oauth2ClientId || (!emailSettings.oauth2ClientSecretPlain && !emailSettingsData)) {
         toast({
           title: "Erro",
-          description: "Client ID, Client Secret e Refresh Token são obrigatórios para OAuth2",
+          description: "Client ID e Client Secret são obrigatórios para OAuth2",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (emailSettings.authType === 'oauth2_gmail' && !emailSettings.oauth2RefreshTokenPlain && !emailSettingsData) {
+        toast({
+          title: "Erro",
+          description: "Refresh Token é obrigatório para Gmail",
           variant: "destructive",
         });
         return;
@@ -847,20 +855,22 @@ export default function Settings() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="oauth2RefreshToken">Refresh Token</Label>
-                            <Input
-                              id="oauth2RefreshToken"
-                              type="password"
-                              placeholder="••••••••"
-                              value={emailSettings.oauth2RefreshTokenPlain}
-                              onChange={(e) => handleEmailSettingChange('oauth2RefreshTokenPlain', e.target.value)}
-                              data-testid="input-oauth2-refresh-token"
-                            />
-                            <p className="text-sm text-muted-foreground mt-1">
-                              Deixe em branco para manter o token atual
-                            </p>
-                          </div>
+                          {selectedProvider === "google" && (
+                            <div>
+                              <Label htmlFor="oauth2RefreshToken">Refresh Token</Label>
+                              <Input
+                                id="oauth2RefreshToken"
+                                type="password"
+                                placeholder="••••••••"
+                                value={emailSettings.oauth2RefreshTokenPlain}
+                                onChange={(e) => handleEmailSettingChange('oauth2RefreshTokenPlain', e.target.value)}
+                                data-testid="input-oauth2-refresh-token"
+                              />
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Deixe em branco para manter o token atual
+                              </p>
+                            </div>
+                          )}
                           {selectedProvider === "microsoft" && (
                             <div>
                               <Label htmlFor="oauth2TenantId">Tenant ID</Label>

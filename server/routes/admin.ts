@@ -105,9 +105,15 @@ export function registerAdminRoutes(app: Express) {
           oauth2RefreshTokenDek = before.oauth2RefreshTokenDek;
         }
 
-        // Validate OAuth2 required fields for initial setup
-        if (!before && (!oauth2ClientId || !oauth2ClientSecret || !oauth2RefreshToken)) {
-          return res.status(400).json({ message: "Client ID, Client Secret e Refresh Token são obrigatórios para OAuth2" });
+        // Validate OAuth2 required fields for initial setup.
+        // Gmail uses Authorization Code Flow (requires refresh token).
+        // Microsoft 365 uses Client Credentials Flow (no refresh token — tenant + client id + client secret is enough).
+        if (!before && (!oauth2ClientId || !oauth2ClientSecret)) {
+          return res.status(400).json({ message: "Client ID e Client Secret são obrigatórios para OAuth2" });
+        }
+
+        if (authType === 'oauth2_gmail' && !before && !oauth2RefreshToken) {
+          return res.status(400).json({ message: "Refresh Token é obrigatório para Gmail" });
         }
 
         if (authType === 'oauth2_microsoft' && !before && !oauth2TenantId) {

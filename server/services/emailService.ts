@@ -103,22 +103,11 @@ export class EmailService {
       throw new Error('Tenant ID do Microsoft não configurado');
     }
 
-    if (!settings.oauth2RefreshToken || !settings.oauth2RefreshTokenDek) {
-      throw new Error('Refresh token do Microsoft não configurado');
-    }
-
-    // Decrypt credentials
     const clientSecret = this.encryptionService.decryptCredential(
       settings.oauth2ClientSecret,
       settings.oauth2ClientSecretDek
     );
 
-    const refreshToken = this.encryptionService.decryptCredential(
-      settings.oauth2RefreshToken,
-      settings.oauth2RefreshTokenDek
-    );
-
-    // Create MSAL app
     const msalConfig = {
       auth: {
         clientId: settings.oauth2ClientId,
@@ -130,13 +119,9 @@ export class EmailService {
     const cca = new ConfidentialClientApplication(msalConfig);
 
     try {
-      // Try to get token using refresh token
-      const tokenRequest = {
-        refreshToken: refreshToken,
+      const response = await cca.acquireTokenByClientCredential({
         scopes: ['https://outlook.office365.com/.default'],
-      };
-
-      const response = await cca.acquireTokenByRefreshToken(tokenRequest);
+      });
       if (!response || !response.accessToken) {
         throw new Error('Falha ao obter access token do Microsoft');
       }
