@@ -1,4 +1,4 @@
-import { useState, useEffect, KeyboardEvent } from "react";
+import { useEffect, useRef, useState, KeyboardEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -245,7 +245,23 @@ export default function Settings() {
     }
   }, [emailSettingsData]);
 
-  const selectedProvider: MessagingProvider = AUTH_TYPE_TO_PROVIDER[emailSettings.authType];
+  const selectedProvider: MessagingProvider = AUTH_TYPE_TO_PROVIDER[emailSettings.authType] ?? "smtp";
+
+  const customSmtpRef = useRef<{ smtpHost: string; smtpPort: number; smtpSecure: boolean }>({
+    smtpHost: "",
+    smtpPort: 587,
+    smtpSecure: false,
+  });
+
+  useEffect(() => {
+    if (selectedProvider === "smtp") {
+      customSmtpRef.current = {
+        smtpHost: emailSettings.smtpHost,
+        smtpPort: emailSettings.smtpPort,
+        smtpSecure: emailSettings.smtpSecure,
+      };
+    }
+  }, [selectedProvider, emailSettings.smtpHost, emailSettings.smtpPort, emailSettings.smtpSecure]);
 
   const isProviderConfigured = (provider: MessagingProvider): boolean => {
     if (!emailSettingsData) return false;
@@ -258,13 +274,22 @@ export default function Settings() {
 
   const handleSelectProvider = (provider: MessagingProvider) => {
     setEmailSettings((prev) => {
-      const defaults = PROVIDER_DEFAULTS[provider];
+      if (provider === "smtp") {
+        return {
+          ...prev,
+          authType: "password",
+          smtpHost: customSmtpRef.current.smtpHost,
+          smtpPort: customSmtpRef.current.smtpPort,
+          smtpSecure: customSmtpRef.current.smtpSecure,
+        };
+      }
+      const defaults = PROVIDER_DEFAULTS[provider]!;
       return {
         ...prev,
         authType: PROVIDER_TO_AUTH_TYPE[provider],
-        smtpHost: defaults ? defaults.smtpHost : prev.smtpHost,
-        smtpPort: defaults ? defaults.smtpPort : prev.smtpPort,
-        smtpSecure: defaults ? defaults.smtpSecure : prev.smtpSecure,
+        smtpHost: defaults.smtpHost,
+        smtpPort: defaults.smtpPort,
+        smtpSecure: defaults.smtpSecure,
       };
     });
   };
@@ -279,6 +304,7 @@ export default function Settings() {
       const nextIndex = (currentIndex + delta + PROVIDER_ORDER.length) % PROVIDER_ORDER.length;
       const nextProvider = PROVIDER_ORDER[nextIndex];
       handleSelectProvider(nextProvider);
+      // TODO: refactor to a ref map if MessagingProviderCard ever renders multiple times per page or the data-testid naming changes
       const nextCard = document.querySelector<HTMLButtonElement>(
         `[data-testid="card-messaging-provider-${nextProvider}"]`,
       );
