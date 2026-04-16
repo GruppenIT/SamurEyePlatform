@@ -27,6 +27,31 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
+  // Generic key-value settings routes (drives the Geral tab in /settings)
+  app.get('/api/settings', isAuthenticatedWithPasswordCheck, requireAdmin, async (req, res) => {
+    try {
+      const all = await storage.getAllSettings();
+      res.json(all);
+    } catch (error) {
+      log.error({ err: error }, 'failed to fetch settings');
+      res.status(500).json({ message: "Falha ao buscar configurações" });
+    }
+  });
+
+  app.put('/api/settings', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
+    try {
+      const { key, value } = req.body ?? {};
+      if (typeof key !== 'string' || !key.trim()) {
+        return res.status(400).json({ message: "Chave inválida" });
+      }
+      const setting = await storage.setSetting(key, value, req.user.id);
+      res.json(setting);
+    } catch (error) {
+      log.error({ err: error }, 'failed to update setting');
+      res.status(500).json({ message: "Falha ao atualizar configuração" });
+    }
+  });
+
   // Email settings routes
   app.get('/api/email-settings', isAuthenticatedWithPasswordCheck, requireAdmin, async (req, res) => {
     try {
