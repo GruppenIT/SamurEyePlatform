@@ -30,10 +30,8 @@ const GUIDES: Record<Provider, { title: string; steps: Step[] }> = {
       { text: "No Azure Portal, registre um app em Microsoft Entra ID > Registros de aplicativo." },
       { text: "Na visão geral, copie o Application (Client) ID e o Directory (Tenant) ID." },
       { text: "Em Certificados e segredos, crie um Client Secret e copie o valor imediatamente." },
-      { text: "Em Permissões de API, adicione a permissão de aplicativo SMTP.SendAsApp (Office 365 Exchange Online) e conceda consentimento do admin." },
-      { text: "Registre o Service Principal no Exchange Online via PowerShell (New-ServicePrincipal) e conceda SendAs à caixa remetente." },
-      { text: "No Microsoft 365 Admin Center, habilite SMTP Autenticado para a caixa de correio remetente." },
-      { text: "Cole Client ID, Tenant ID e Client Secret nos campos abaixo e salve. O SamurEye usa Client Credentials Flow — não é necessário Refresh Token." },
+      { text: "Em Permissões de API, adicione a permissão de aplicativo Mail.Send (Microsoft Graph) e conceda consentimento do admin." },
+      { text: "Cole Client ID, Tenant ID e Client Secret nos campos abaixo. O SamurEye usa Microsoft Graph API (Client Credentials Flow) — não é necessário Refresh Token, Service Principal no Exchange nem SMTP Autenticado." },
     ],
   },
   smtp: {
