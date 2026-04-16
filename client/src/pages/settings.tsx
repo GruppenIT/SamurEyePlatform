@@ -35,16 +35,21 @@ interface SettingsForm {
   systemName: string;
   systemDescription: string;
   systemTimezone: string;
-  
+
+  // Appliance Identity & Location
+  applianceName: string;
+  locationType: string;
+  locationDetail: string;
+
   // Security Settings
   sessionTimeout: number;
   maxConcurrentJobs: number;
   jobTimeout: number;
-  
+
   // AD Hygiene Thresholds
   adPasswordAgeThreshold: number;
   adInactiveUserThreshold: number;
-  
+
   // Notification Settings
   enableEmailAlerts: boolean;
   alertEmail: string;
@@ -86,6 +91,9 @@ export default function Settings() {
     systemName: 'SamurEye',
     systemDescription: 'Plataforma de Validação de Exposição Adversarial',
     systemTimezone: 'America/Sao_Paulo',
+    applianceName: '',
+    locationType: '',
+    locationDetail: '',
     sessionTimeout: 3600,
     maxConcurrentJobs: 3,
     jobTimeout: 1800,
