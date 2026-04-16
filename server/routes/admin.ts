@@ -237,6 +237,9 @@ export function registerAdminRoutes(app: Express) {
         `,
       });
 
+      if (settings.id) {
+        await storage.touchEmailSettingsTest(settings.id, new Date());
+      }
       res.json({ message: "E-mail de teste enviado com sucesso" });
     } catch (error: any) {
       log.error({ err: error }, 'failed to test email settings');
