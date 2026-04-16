@@ -186,7 +186,7 @@ git commit -m "feat(settings): add MessagingProviderCard component"
 Write this content to `client/src/components/settings/MessagingProviderGuide.tsx`:
 
 ```tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import {
   Collapsible,
@@ -248,6 +248,9 @@ export function MessagingProviderGuide({
   fullGuideHref,
 }: MessagingProviderGuideProps) {
   const [open, setOpen] = useState(defaultOpen);
+  useEffect(() => {
+    setOpen(defaultOpen);
+  }, [provider, defaultOpen]);
   const { title, steps } = GUIDES[provider];
 
   return (
