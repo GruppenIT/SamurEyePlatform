@@ -39,9 +39,15 @@ export default function Login() {
       const response = await apiRequest('POST', '/api/auth/login', data);
       return await response.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: async (data: any) => {
+      if (data?.pendingMfa) {
+        sessionStorage.setItem("mfa-email-available", data.emailDeliveryAvailable ? "true" : "false");
+        setLocation("/mfa-challenge");
+        return;
+      }
+
       // Invalida cache de usuário e redireciona
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
 
       // Verifica se precisa trocar senha
       if (data?.user?.mustChangePassword) {
