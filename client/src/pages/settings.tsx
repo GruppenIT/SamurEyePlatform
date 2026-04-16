@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, KeyboardEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +24,10 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Settings as SettingsIcon, Save, Shield, Clock, Globe, Inbox, Mail, Key, CheckCircle, AlertTriangle, XCircle, Wifi, WifiOff, Loader2, Copy } from "lucide-react";
+import { Settings as SettingsIcon, Save, Shield, Clock, Globe, Inbox, Mail, Key, CheckCircle, AlertTriangle, XCircle, Wifi, WifiOff, Loader2, Copy, ServerCog } from "lucide-react";
+import { MessagingProviderCard } from "@/components/settings/MessagingProviderCard";
+import { MessagingProviderGuide } from "@/components/settings/MessagingProviderGuide";
+import { GoogleWorkspaceLogo, MicrosoftLogo } from "@/components/settings/provider-logos";
 import { Setting } from "@shared/schema";
 
 interface SettingsForm {
@@ -48,6 +51,28 @@ interface SettingsForm {
   criticalThreatAlert: boolean;
   jobFailureAlert: boolean;
 }
+
+type MessagingProvider = "google" | "microsoft" | "smtp";
+
+const PROVIDER_TO_AUTH_TYPE: Record<MessagingProvider, "oauth2_gmail" | "oauth2_microsoft" | "password"> = {
+  google: "oauth2_gmail",
+  microsoft: "oauth2_microsoft",
+  smtp: "password",
+};
+
+const AUTH_TYPE_TO_PROVIDER: Record<"oauth2_gmail" | "oauth2_microsoft" | "password", MessagingProvider> = {
+  oauth2_gmail: "google",
+  oauth2_microsoft: "microsoft",
+  password: "smtp",
+};
+
+const PROVIDER_DEFAULTS: Record<MessagingProvider, { smtpHost: string; smtpPort: number; smtpSecure: boolean } | null> = {
+  google: { smtpHost: "smtp.gmail.com", smtpPort: 587, smtpSecure: true },
+  microsoft: { smtpHost: "smtp.office365.com", smtpPort: 587, smtpSecure: true },
+  smtp: null,
+};
+
+const PROVIDER_ORDER: MessagingProvider[] = ["google", "microsoft", "smtp"];
 
 export default function Settings() {
   const { toast } = useToast();
@@ -219,6 +244,46 @@ export default function Settings() {
       });
     }
   }, [emailSettingsData]);
+
+  const selectedProvider: MessagingProvider = AUTH_TYPE_TO_PROVIDER[emailSettings.authType];
+
+  const isProviderConfigured = (provider: MessagingProvider): boolean => {
+    if (!emailSettingsData) return false;
+    if (emailSettingsData.authType !== PROVIDER_TO_AUTH_TYPE[provider]) return false;
+    if (provider === "smtp") {
+      return Boolean(emailSettingsData.authUser);
+    }
+    return Boolean(emailSettingsData.oauth2ClientId);
+  };
+
+  const handleSelectProvider = (provider: MessagingProvider) => {
+    setEmailSettings((prev) => {
+      const defaults = PROVIDER_DEFAULTS[provider];
+      return {
+        ...prev,
+        authType: PROVIDER_TO_AUTH_TYPE[provider],
+        smtpHost: defaults ? defaults.smtpHost : prev.smtpHost,
+        smtpPort: defaults ? defaults.smtpPort : prev.smtpPort,
+        smtpSecure: defaults ? defaults.smtpSecure : prev.smtpSecure,
+      };
+    });
+  };
+
+  const handleProviderKeyDown = (provider: MessagingProvider) =>
+    (event: KeyboardEvent<HTMLButtonElement>) => {
+      const keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
+      if (!keys.includes(event.key)) return;
+      event.preventDefault();
+      const currentIndex = PROVIDER_ORDER.indexOf(provider);
+      const delta = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1;
+      const nextIndex = (currentIndex + delta + PROVIDER_ORDER.length) % PROVIDER_ORDER.length;
+      const nextProvider = PROVIDER_ORDER[nextIndex];
+      handleSelectProvider(nextProvider);
+      const nextCard = document.querySelector<HTMLButtonElement>(
+        `[data-testid="card-messaging-provider-${nextProvider}"]`,
+      );
+      nextCard?.focus();
+    };
 
   const handleSave = async () => {
     const updates = Object.entries(formData).map(([key, value]) => ({ key, value }));
