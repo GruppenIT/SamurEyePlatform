@@ -158,6 +158,7 @@ function Router() {
         <Route path="/sessions" component={Sessions} />
         <Route path="/account" component={AccountPage} />
         <Route path="/account/mfa" component={AccountMfaPage} />
+        <Route path="/change-password" component={ChangePassword} />
 
         {/* Admin-only routes */}
         <Route path="/users">{() => <AdminRoute component={Users} />}</Route>
