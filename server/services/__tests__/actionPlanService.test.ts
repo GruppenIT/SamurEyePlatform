@@ -62,3 +62,77 @@ describe('validateStatusTransition', () => {
     expect(from.map(t => t.to)).toEqual(['in_progress','blocked','cancelled']);
   });
 });
+
+import { applyStatusChange, removeThreatFromPlan } from '../actionPlanService';
+import { actionPlanThreats, actionPlanComments, actionPlanCommentThreats, threats, actionPlanHistory } from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
+
+describe.skipIf(!hasDb)('applyStatusChange and removeThreatFromPlan', () => {
+  let userId: string;
+  let planId: string;
+  let threatId: string;
+
+  beforeAll(async () => {
+    await db.execute(sql`TRUNCATE action_plans CASCADE`);
+    const [u] = await db.select().from(users).limit(1);
+    userId = u.id;
+    // Seed one threat (or pick existing)
+    const existing = await db.select().from(threats).limit(1);
+    if (existing.length > 0) {
+      threatId = existing[0].id;
+    } else {
+      throw new Error('No threat in DB — seed one to run integration tests, or skip');
+    }
+  });
+
+  it('applyStatusChange updates status + records history + clears blockReason when leaving blocked', async () => {
+    const [p] = await db.insert(actionPlans).values({
+      code: 'PA-TEST-0001', title: 'test plan', createdBy: userId, status: 'pending',
+    }).returning();
+    planId = p.id;
+
+    await applyStatusChange({ planId, actorId: userId, from: 'pending', to: 'blocked', reason: 'Aguardando firewall' });
+    let [row] = await db.select().from(actionPlans).where(eq(actionPlans.id, planId));
+    expect(row.status).toBe('blocked');
+    expect(row.blockReason).toBe('Aguardando firewall');
+
+    await applyStatusChange({ planId, actorId: userId, from: 'blocked', to: 'in_progress', reason: 'unblocked' });
+    [row] = await db.select().from(actionPlans).where(eq(actionPlans.id, planId));
+    expect(row.status).toBe('in_progress');
+    expect(row.blockReason).toBeNull();
+
+    const history = await db.select().from(actionPlanHistory).where(eq(actionPlanHistory.actionPlanId, planId));
+    expect(history.length).toBe(2);
+    expect(history.every(h => h.action === 'status_changed')).toBe(true);
+  });
+
+  it('removeThreatFromPlan clears comment_threats for that threat while keeping the comment', async () => {
+    const [p] = await db.insert(actionPlans).values({
+      code: 'PA-TEST-0002', title: 'rm threat', createdBy: userId,
+    }).returning();
+    const planId2 = p.id;
+
+    await db.insert(actionPlanThreats).values({ actionPlanId: planId2, threatId, addedBy: userId });
+
+    const [c] = await db.insert(actionPlanComments).values({
+      actionPlanId: planId2, authorId: userId, content: 'x',
+    }).returning();
+    await db.insert(actionPlanCommentThreats).values({ commentId: c.id, threatId });
+
+    await removeThreatFromPlan({ planId: planId2, threatId, actorId: userId });
+
+    const links = await db.select().from(actionPlanThreats).where(
+      and(eq(actionPlanThreats.actionPlanId, planId2), eq(actionPlanThreats.threatId, threatId))
+    );
+    expect(links.length).toBe(0);
+
+    const commentLinks = await db.select().from(actionPlanCommentThreats).where(
+      and(eq(actionPlanCommentThreats.commentId, c.id), eq(actionPlanCommentThreats.threatId, threatId))
+    );
+    expect(commentLinks.length).toBe(0);
+
+    // Comment itself still exists
+    const [stillComment] = await db.select().from(actionPlanComments).where(eq(actionPlanComments.id, c.id));
+    expect(stillComment).toBeTruthy();
+  });
+});
