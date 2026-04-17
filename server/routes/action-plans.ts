@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from 'express';
+import type { Express, Request, Response, NextFunction } from 'express';
 import { isAuthenticatedWithPasswordCheck } from '../localAuth';
 import { requireOperator } from './middleware';
 import { z } from 'zod';
@@ -428,7 +428,21 @@ export function registerActionPlanRoutes(app: Express): void {
   app.post('/api/v1/action-plans/upload-image',
     isAuthenticatedWithPasswordCheck,
     requireOperator,
-    uploadMemory.single('image'),
+    (req: Request, res: Response, next: NextFunction) => {
+      uploadMemory.single('image')(req, res, (err: any) => {
+        if (err) {
+          if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(413).json({ error: 'Arquivo muito grande. Tamanho máximo: 5MB.' });
+          }
+          if (err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_UNEXPECTED_FILE') {
+            return res.status(400).json({ error: 'Apenas um arquivo é permitido (campo "image").' });
+          }
+          log.error({ err }, 'multer upload error');
+          return res.status(400).json({ error: err.message ?? 'Erro no upload.' });
+        }
+        next();
+      });
+    },
     async (req: Request, res: Response) => {
       if (!req.file) return res.status(400).json({ error: 'Arquivo ausente (campo image).' });
       try {
