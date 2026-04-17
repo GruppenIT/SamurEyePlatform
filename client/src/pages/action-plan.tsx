@@ -77,11 +77,15 @@ export default function ActionPlanPage() {
       toast({ title: "Transição inválida", description: `Não é possível mover de ${STATUS_LABEL[plan.status]} para ${STATUS_LABEL[toStatus]}.`, variant: "destructive" });
       return;
     }
-    if (transitionRequiresReason(plan.status, toStatus)) {
+    // Open dialog if reason is required OR the target is a terminal state
+    // (done/cancelled) — terminal transitions must show the impact warning
+    // before applying, even when no reason field is required.
+    const needsDialog = transitionRequiresReason(plan.status, toStatus) || toStatus === "done" || toStatus === "cancelled";
+    if (needsDialog) {
       setTransitionState({ open: true, plan, preselectTo: toStatus });
       return;
     }
-    // No reason needed — apply directly.
+    // No reason needed and not a terminal state — apply directly.
     try {
       await changeStatus.mutateAsync({ id: plan.id, status: toStatus });
       toast({ title: "Status atualizado" });
