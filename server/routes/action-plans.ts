@@ -44,6 +44,13 @@ const createSchema = z.object({
   threatIds: z.array(z.string()).optional(),
 });
 
+const patchSchema = z.object({
+  title: z.string().min(1).max(255).optional(),
+  description: z.string().max(100_000).nullable().optional(),
+  priority: z.enum(['low','medium','high','critical']).optional(),
+  assigneeId: z.string().nullable().optional(),
+}).refine(v => Object.keys(v).length > 0, 'Ao menos um campo obrigatório.');
+
 export function registerActionPlanRoutes(app: Express): void {
   log.info('action plans route module registered');
 
@@ -118,6 +125,49 @@ export function registerActionPlanRoutes(app: Express): void {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
       log.error({ err }, 'get plan failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao buscar plano.' });
+    }
+  });
+
+  app.patch('/api/v1/action-plans/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req, res) => {
+    try {
+      const planId = z.string().parse(req.params.id);
+      const body = patchSchema.parse(req.body);
+      const userId = (req.user as any).id as string;
+      await assertEditable(planId, userId);
+
+      await db.transaction(async (tx) => {
+        const [before] = await tx.select().from(actionPlans).where(eq(actionPlans.id, planId));
+        if (!before) throw Object.assign(new Error('Plano não encontrado.'), { status: 404 });
+
+        const patch: Record<string, unknown> = { updatedAt: new Date() };
+        if (body.title !== undefined) patch.title = body.title;
+        if (body.description !== undefined) {
+          patch.description = body.description === null ? null : sanitizeActionPlanHtml(body.description);
+        }
+        if (body.priority !== undefined) patch.priority = body.priority;
+        if (body.assigneeId !== undefined) patch.assigneeId = body.assigneeId;
+
+        await tx.update(actionPlans).set(patch).where(eq(actionPlans.id, planId));
+
+        if (body.title !== undefined && body.title !== before.title) {
+          await recordHistory(tx, { actionPlanId: planId, actorId: userId, action: 'title_changed', detailsJson: { from: before.title, to: body.title } });
+        }
+        if (body.description !== undefined) {
+          await recordHistory(tx, { actionPlanId: planId, actorId: userId, action: 'description_changed' });
+        }
+        if (body.priority !== undefined && body.priority !== before.priority) {
+          await recordHistory(tx, { actionPlanId: planId, actorId: userId, action: 'priority_changed', detailsJson: { from: before.priority, to: body.priority } });
+        }
+        if (body.assigneeId !== undefined && body.assigneeId !== before.assigneeId) {
+          await recordHistory(tx, { actionPlanId: planId, actorId: userId, action: 'assignee_changed', detailsJson: { from: before.assigneeId, to: body.assigneeId } });
+        }
+      });
+
+      res.json({ ok: true });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      log.error({ err }, 'patch plan failed');
+      res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao atualizar plano.' });
     }
   });
 }
