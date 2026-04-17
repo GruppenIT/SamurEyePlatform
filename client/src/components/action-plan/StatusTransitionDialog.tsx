@@ -42,10 +42,10 @@ export const STATUS_TRANSITIONS: StatusTransition[] = [
 ];
 
 export const STATUS_LABEL: Record<ActionPlanStatus, string> = {
-  pending: "Pendente",
-  in_progress: "Em Progresso",
+  pending: "Aberto",
+  in_progress: "Em Andamento",
   blocked: "Bloqueado",
-  done: "Concluído",
+  done: "Fechado",
   cancelled: "Cancelado",
 };
 

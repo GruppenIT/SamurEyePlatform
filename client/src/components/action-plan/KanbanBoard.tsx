@@ -15,10 +15,10 @@ import { cn } from "@/lib/utils";
 export type KanbanColumn = { status: ActionPlanStatus; label: string };
 
 export const KANBAN_COLUMNS: KanbanColumn[] = [
-  { status: "pending", label: "Pendente" },
-  { status: "in_progress", label: "Em Progresso" },
+  { status: "pending", label: "Aberto" },
+  { status: "in_progress", label: "Em Andamento" },
   { status: "blocked", label: "Bloqueado" },
-  { status: "done", label: "Concluído" },
+  { status: "done", label: "Fechado" },
   { status: "cancelled", label: "Cancelado" },
 ];
 
