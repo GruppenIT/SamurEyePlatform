@@ -834,15 +834,13 @@ export default function Threats() {
         className={`${selectedIds.has(threat.id) ? "bg-primary/5" : ""} ${isChild ? "bg-muted/30" : ""}`}
       >
         <TableCell className={isChild ? "pl-10" : ""}>
-          {!isChild && (
-            <Checkbox
-              checked={selectedIds.has(threat.id)}
-              onCheckedChange={(checked) =>
-                toggleSelectOne(threat.id, !!checked)
-              }
-              aria-label={`Selecionar ${threat.title}`}
-            />
-          )}
+          <Checkbox
+            checked={selectedIds.has(threat.id)}
+            onCheckedChange={(checked) =>
+              toggleSelectOne(threat.id, !!checked)
+            }
+            aria-label={`Selecionar ${threat.title}`}
+          />
         </TableCell>
         <TableCell>
           <Badge className={getSeverityColor(threat.severity)}>
