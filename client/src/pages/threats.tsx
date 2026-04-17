@@ -451,7 +451,7 @@ export default function Threats() {
     return Array.from(ids);
   }, [filteredParents, filteredStandalone, groupedThreats.childMap]);
 
-  const { data: planLinks = {} } = usePlanLinks(allVisibleThreatIds);
+  const { data: planLinks = {} } = usePlanLinks(allVisibleThreatIds, { excludeTerminal: true });
 
   const updateThreatMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Threat> }) => {
