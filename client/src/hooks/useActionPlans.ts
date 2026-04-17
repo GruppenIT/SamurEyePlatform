@@ -41,32 +41,34 @@ export interface ActionPlanListResponse {
 
 export interface ActionPlanDetail extends ActionPlanListItem {
   description: string | null;
-  dueDate: string | null;
   threats?: ActionPlanThreatItem[];
   comments?: ActionPlanComment[];
+  history?: ActionPlanHistoryEntry[];
 }
 
 export interface ActionPlanThreatItem {
   id: string;
   title: string;
-  status: string;
   severity: string;
-  associatedAt: string;
+  status: string;
+  hostId: string | null;
+  addedAt: string;
+  hasComments: boolean;
 }
 
 export interface ActionPlanComment {
   id: string;
   content: string;
-  threatId: string | null;
   createdAt: string;
-  updatedAt: string;
+  updatedAt: string | null;
   author: ActionPlanRef | null;
+  threats: { id: string; title: string; severity: string }[];
 }
 
 export interface ActionPlanHistoryEntry {
   id: string;
-  event: string;
-  meta: Record<string, unknown> | null;
+  action: string;
+  detailsJson: Record<string, unknown> | null;
   createdAt: string;
   actor: ActionPlanRef | null;
 }
@@ -79,8 +81,8 @@ export interface ActionPlanAssignee {
 
 // Filter types for list query
 export interface ActionPlanFilters {
-  status?: ActionPlanStatus;
-  priority?: ActionPlanPriority;
+  status?: ActionPlanStatus[] | ActionPlanStatus;
+  priority?: ActionPlanPriority[] | ActionPlanPriority;
   assigneeId?: string;
   search?: string;
   limit?: number;
@@ -109,7 +111,10 @@ export function useActionPlans(filters?: ActionPlanFilters) {
   const params = new URLSearchParams();
   if (filters) {
     Object.entries(filters).forEach(([k, v]) => {
-      if (v !== undefined && v !== null) params.append(k, String(v));
+      if (v !== undefined && v !== null) {
+        const s = Array.isArray(v) ? v.join(',') : String(v);
+        if (s.length > 0) params.append(k, s);
+      }
     });
   }
   const qs = params.toString();
@@ -249,9 +254,9 @@ export function useActionPlanHistory(id: string) {
 export interface CreateActionPlanInput {
   title: string;
   description?: string;
-  priority: ActionPlanPriority;
-  assigneeId?: string;
-  dueDate?: string;
+  priority?: ActionPlanPriority;
+  assigneeId?: string | null;
+  threatIds?: string[];
 }
 
 /**
@@ -274,7 +279,12 @@ export function useCreateActionPlan() {
 
 export interface UpdateActionPlanInput {
   id: string;
-  data: Partial<Omit<CreateActionPlanInput, "title"> & { title: string }>;
+  data: {
+    title?: string;
+    description?: string | null;
+    priority?: ActionPlanPriority;
+    assigneeId?: string | null;
+  };
 }
 
 /**
@@ -299,8 +309,7 @@ export function useUpdateActionPlan() {
 export interface ChangeActionPlanStatusInput {
   id: string;
   status: ActionPlanStatus;
-  blockReason?: string;
-  cancelReason?: string;
+  reason?: string;
 }
 
 /**
@@ -407,7 +416,7 @@ export function useRemoveThreat() {
 export interface CreateCommentInput {
   id: string;
   content: string;
-  threatId?: string;
+  threatIds?: string[];
 }
 
 /**
@@ -418,11 +427,11 @@ export function useCreateComment() {
   const queryClient = useQueryClient();
 
   return useMutation<ActionPlanComment, Error, CreateCommentInput>({
-    mutationFn: async ({ id, content, threatId }) => {
+    mutationFn: async ({ id, content, threatIds }) => {
       const res = await apiRequest(
         "POST",
         `/api/v1/action-plans/${id}/comments`,
-        { content, ...(threatId ? { threatId } : {}) },
+        { content, ...(threatIds ? { threatIds } : {}) },
       );
       return res.json();
     },

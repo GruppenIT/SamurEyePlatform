@@ -87,15 +87,8 @@ export default function ActionPlanPage() {
   async function handleDialogConfirm(to: ActionPlanStatus, reason?: string) {
     const plan = transitionState.plan;
     if (!plan) return;
-    const transition = STATUS_TRANSITIONS.find((t) => t.from === plan.status && t.to === to);
-    const kind = transition?.requiresReason;
     try {
-      await changeStatus.mutateAsync({
-        id: plan.id,
-        status: to,
-        blockReason: kind === "block" ? reason : undefined,
-        cancelReason: kind === "cancel" ? reason : undefined,
-      });
+      await changeStatus.mutateAsync({ id: plan.id, status: to, reason });
       toast({ title: "Status atualizado" });
     } catch (err: any) {
       toast({ title: "Erro ao mudar status", description: err.message ?? "Tente novamente.", variant: "destructive" });
