@@ -122,6 +122,11 @@ export function RichTextEditor({
           editor={editor}
           className={cn(
             "prose prose-sm dark:prose-invert max-w-none focus:outline-none",
+            // Align prose colors with app theme tokens
+            "prose-p:text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-code:text-foreground prose-blockquote:text-foreground",
+            "prose-a:text-primary",
+            // Kill first/last child margins so content starts flush with the padded container
+            "[&_.ProseMirror>*:first-child]:mt-0 [&_.ProseMirror>*:last-child]:mb-0",
             "[&_.ProseMirror]:min-h-[100px] [&_.ProseMirror]:focus:outline-none",
           )}
         />

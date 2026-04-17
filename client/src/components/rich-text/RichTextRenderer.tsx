@@ -16,8 +16,12 @@ export function RichTextRenderer({ html, className }: RichTextRendererProps) {
     <div
       className={cn(
         "prose prose-sm dark:prose-invert max-w-none",
-        "prose-img:rounded prose-img:max-w-full prose-img:h-auto",
+        // Align prose colors with app theme tokens
+        "prose-p:text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-code:text-foreground prose-blockquote:text-foreground",
         "prose-a:text-primary prose-a:underline",
+        "prose-img:rounded prose-img:max-w-full prose-img:h-auto",
+        // Kill first/last child margins so content doesn't have dead space at top/bottom
+        "[&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
         className,
       )}
       dangerouslySetInnerHTML={{ __html: html }}
