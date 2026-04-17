@@ -49,6 +49,7 @@ export function CreateActionPlanDialog({ open, onOpenChange, initialThreatIds, n
         description: description || undefined,
         priority,
         assigneeId: assigneeId ?? undefined,
+        threatIds: initialThreatIds && initialThreatIds.length > 0 ? initialThreatIds : undefined,
       });
       toast({ title: "Plano criado", description: `Código ${plan.code}` });
       onCreated?.(plan.id);
