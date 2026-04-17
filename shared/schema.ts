@@ -51,6 +51,12 @@ export const jobStatusEnum = pgEnum('job_status', ['pending', 'running', 'comple
 // Threat severity enum
 export const threatSeverityEnum = pgEnum('threat_severity', ['low', 'medium', 'high', 'critical']);
 
+// Action plan status enum
+export const actionPlanStatusEnum = pgEnum('action_plan_status', ['pending', 'in_progress', 'blocked', 'done', 'cancelled']);
+
+// Action plan priority enum
+export const actionPlanPriorityEnum = pgEnum('action_plan_priority', ['low', 'medium', 'high', 'critical']);
+
 // Threat status enum
 export const threatStatusEnum = pgEnum('threat_status', ['open', 'investigating', 'mitigated', 'closed', 'hibernated', 'accepted_risk']);
 
