@@ -21,7 +21,7 @@ import {
 
 // MIRROR of server/services/actionPlanService.ts STATUS_TRANSITIONS.
 // Keep in sync manually; tested by backend validation as safety net.
-export type TransitionReasonKind = "block" | "cancel" | "unblock" | null;
+export type TransitionReasonKind = "block" | "cancel" | "unblock" | "reopen" | null;
 
 export interface StatusTransition {
   from: ActionPlanStatus;
@@ -39,6 +39,11 @@ export const STATUS_TRANSITIONS: StatusTransition[] = [
   { from: "blocked", to: "pending", requiresReason: "unblock" },
   { from: "blocked", to: "in_progress", requiresReason: "unblock" },
   { from: "blocked", to: "cancelled", requiresReason: "cancel" },
+  // Reopen from terminal states
+  { from: "done", to: "pending", requiresReason: "reopen" },
+  { from: "done", to: "in_progress", requiresReason: "reopen" },
+  { from: "cancelled", to: "pending", requiresReason: "reopen" },
+  { from: "cancelled", to: "in_progress", requiresReason: "reopen" },
 ];
 
 export const STATUS_LABEL: Record<ActionPlanStatus, string> = {
@@ -101,7 +106,10 @@ export function StatusTransitionDialog({
     block: "Motivo do bloqueio",
     cancel: "Motivo do cancelamento",
     unblock: "Justificativa de desbloqueio",
+    reopen: "Justificativa de reabertura",
   } as const;
+
+  const isReopening = currentStatus === "done" || currentStatus === "cancelled";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -173,6 +181,17 @@ export function StatusTransitionDialog({
                   <li>O plano ficará marcado como cancelado e não poderá mais ser editado.</li>
                   <li>Ameaças associadas continuam existindo normalmente e podem ser associadas a novos planos a qualquer momento.</li>
                   <li>Use este estado quando o trabalho foi descontinuado (não finalizado).</li>
+                </ul>
+              </div>
+            )}
+
+            {isReopening && transition && (
+              <div className="rounded-md border border-blue-400/40 bg-blue-50 dark:bg-blue-950/20 p-3 text-sm space-y-1">
+                <div className="font-medium">Ao reabrir o plano:</div>
+                <ul className="list-disc pl-5 text-xs space-y-0.5">
+                  <li>O plano volta a ser editável e o status {currentStatus === "done" ? "\"Fechado\"" : "\"Cancelado\""} é revertido.</li>
+                  <li>Motivo da {currentStatus === "done" ? "conclusão" : "cancelamento"} anterior é limpo; o histórico é preservado.</li>
+                  <li>A justificativa de reabertura fica registrada no histórico.</li>
                 </ul>
               </div>
             )}
