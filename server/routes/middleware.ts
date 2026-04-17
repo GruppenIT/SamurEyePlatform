@@ -39,8 +39,9 @@ export function requireActiveSubscription(req: any, res: any, next: any) {
   // Always allow GET/HEAD/OPTIONS (read operations)
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
 
-  // Always allow auth routes (login, logout, password change)
+  // Always allow auth routes (login, logout, password change, password reset)
   if (req.path.startsWith('/api/login') || req.path.startsWith('/api/logout') || req.path.startsWith('/api/change-password')) return next();
+  if (req.path.startsWith('/api/auth/password-reset/')) return next();
 
   // Always allow subscription management (so admin can fix it)
   if (req.path.startsWith('/api/subscription')) return next();
@@ -65,7 +66,6 @@ export const patchAssetSchema = z.object({
 
 export const patchJourneySchema = z.object({
   name: z.string().min(1).optional(),
-  type: z.enum(['attack_surface', 'ad_security', 'edr_av', 'web_application']).optional(),
   description: z.string().optional(),
   params: z.record(z.any()).optional(),
   targetSelectionMode: z.enum(['individual', 'by_tag']).optional(),

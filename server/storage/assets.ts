@@ -8,11 +8,30 @@ import {
 } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { createLogger } from '../lib/logger';
+import { normalizeTarget } from '../services/journeys/urls';
 
 const log = createLogger('storage');
 
 export async function getAssets(): Promise<Asset[]> {
   return await db.select().from(assets).orderBy(desc(assets.createdAt));
+}
+
+export async function getAssetsTree(): Promise<any[]> {
+  const all = await getAssets();
+  const byId = new Map<string, any>();
+  for (const a of all) {
+    byId.set(a.id, { ...a, children: [] as any[] });
+  }
+  const roots: any[] = [];
+  for (const a of all) {
+    const node = byId.get(a.id);
+    if (a.parentAssetId && byId.has(a.parentAssetId)) {
+      byId.get(a.parentAssetId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  return roots;
 }
 
 export async function getAsset(id: string): Promise<Asset | undefined> {
@@ -46,7 +65,38 @@ export async function getUniqueTags(): Promise<string[]> {
   return result.rows.map(row => row.tag);
 }
 
+/**
+ * If this is a web_application without an explicit parentAssetId, try to
+ * auto-link it to an existing host asset by matching the URL's hostname.
+ */
+async function inferParentHostForWebApp(asset: InsertAsset): Promise<string | null> {
+  if (asset.type !== 'web_application') return null;
+  if (asset.parentAssetId) return asset.parentAssetId;
+  let hostname: string;
+  try {
+    hostname = new URL(asset.value).hostname;
+  } catch {
+    return null;
+  }
+  if (!hostname) return null;
+  const [host] = await db
+    .select({ id: assets.id })
+    .from(assets)
+    .where(and(eq(assets.type, 'host' as any), eq(assets.value, hostname)))
+    .limit(1);
+  return host?.id ?? null;
+}
+
 export async function createAsset(asset: InsertAsset, userId: string): Promise<Asset> {
+  // Normalize web_application URLs so the stored value always carries an explicit port
+  if (asset.type === 'web_application') {
+    const normalized = normalizeTarget(asset.value);
+    if (normalized && normalized !== asset.value) {
+      log.info({ from: asset.value, to: normalized }, 'web_application URL normalized on create');
+      asset = { ...asset, value: normalized };
+    }
+  }
+
   // Check for existing asset with same value and type
   const existing = await db
     .select()
@@ -62,10 +112,13 @@ export async function createAsset(asset: InsertAsset, userId: string): Promise<A
     return existing[0];
   }
 
+  const inferredParent = await inferParentHostForWebApp(asset);
+
   const assetValues = {
     type: asset.type,
     value: asset.value,
     tags: asset.tags || [],
+    parentAssetId: inferredParent,
     createdBy: userId,
   } as any;
 
@@ -73,14 +126,43 @@ export async function createAsset(asset: InsertAsset, userId: string): Promise<A
     .insert(assets)
     .values(assetValues)
     .returning();
+
+  if (inferredParent && !asset.parentAssetId) {
+    log.info({ assetId: newAsset.id, value: asset.value, parentAssetId: inferredParent }, 'web_application auto-linked to host');
+  }
+
   return newAsset;
 }
 
+async function detectCycleIfSetParent(assetId: string, newParentId: string | null): Promise<boolean> {
+  if (!newParentId) return false;
+  if (newParentId === assetId) return true;
+  // Walk up the chain from newParentId; if we ever reach assetId, it's a cycle
+  let currentId: string | null = newParentId;
+  const seen = new Set<string>();
+  while (currentId) {
+    if (seen.has(currentId)) return true; // already-broken cycle upstream; reject
+    seen.add(currentId);
+    if (currentId === assetId) return true;
+    const [row] = await db.select({ parentAssetId: assets.parentAssetId }).from(assets).where(eq(assets.id, currentId)).limit(1);
+    currentId = row?.parentAssetId ?? null;
+  }
+  return false;
+}
+
 export async function updateAsset(id: string, asset: Partial<InsertAsset>): Promise<Asset> {
+  if ('parentAssetId' in asset) {
+    const hasCycle = await detectCycleIfSetParent(id, asset.parentAssetId ?? null);
+    if (hasCycle) {
+      throw new Error("cycle detected: asset cannot be an ancestor of itself");
+    }
+  }
+
   const updates: any = {};
   if (asset.type !== undefined) updates.type = asset.type;
   if (asset.value !== undefined) updates.value = asset.value;
   if (asset.tags !== undefined) updates.tags = asset.tags;
+  if ('parentAssetId' in asset) updates.parentAssetId = asset.parentAssetId ?? null;
 
   const [updatedAsset] = await db
     .update(assets)

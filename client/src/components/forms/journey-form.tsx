@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Form,
@@ -44,9 +45,10 @@ interface JourneyFormProps {
   onCancel: () => void;
   isLoading?: boolean;
   initialData?: Partial<JourneyFormData>;
+  mode?: 'create' | 'edit';
 }
 
-export default function JourneyForm({ onSubmit, onCancel, isLoading = false, initialData }: JourneyFormProps) {
+export default function JourneyForm({ onSubmit, onCancel, isLoading = false, initialData, mode = 'create' }: JourneyFormProps) {
   const { toast } = useToast();
   const [selectedAssets, setSelectedAssets] = useState<string[]>(
     initialData?.params?.assetIds || []
@@ -73,7 +75,6 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
       params: {
         ...initialData?.params,
         nmapProfile: initialData?.params?.nmapProfile || 'leve',
-        webScanEnabled: initialData?.params?.webScanEnabled || false,
         edrAvType: initialData?.params?.edrAvType || 'network_based',
         sampleRate: initialData?.params?.sampleRate || '15',
         timeout: initialData?.params?.timeout || 30,
@@ -92,9 +93,24 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
     queryKey: ["/api/assets"],
   });
 
-  const { data: webApplicationAssets = [] } = useQuery<Asset[]>({
+  const { data: webApplicationAssets = [] } = useQuery<Array<Asset & { parentAssetId?: string | null }>>({
     queryKey: ["/api/assets/by-type/web_application"],
   });
+
+  const { data: allAssets = [] } = useQuery<Asset[]>({
+    queryKey: ["/api/assets?flat=1"],
+    queryFn: async () => {
+      const r = await fetch("/api/assets?flat=1", { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to fetch assets");
+      return r.json();
+    },
+  });
+
+  const hostById = useMemo(() => {
+    const map = new Map<string, Asset>();
+    for (const a of allAssets) if (a.type === "host") map.set(a.id, a);
+    return map;
+  }, [allAssets]);
 
   const { data: credentials = [], isLoading: isLoadingCredentials } = useQuery<Credential[]>({
     queryKey: ["/api/credentials"],
@@ -146,7 +162,6 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         }
         params.nmapProfile = form.getValues('params.nmapProfile') || 'leve';
         params.vulnScriptTimeout = parseInt(form.getValues('params.vulnScriptTimeout')) || 60;
-        params.webScanEnabled = form.getValues('params.webScanEnabled') === true;
 
         // Add credentials if authentication is enabled
         if (enableAuthentication && selectedCredentials.length > 0) {
@@ -349,27 +364,10 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="params.webScanEnabled"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value === true}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-web-scan-enabled"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Avaliar Aplicações Web</FormLabel>
-                      <FormDescription>
-                        Executa Nuclei nas URLs HTTP/HTTPS descobertas (OWASP Top 10, misconfigurations)
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
+              <div className="rounded-md border border-muted bg-muted/30 p-3 text-xs text-muted-foreground" data-testid="attack-surface-webscan-note">
+                Esta jornada apenas descobre web applications nos hosts escaneados. Para avaliá-las com Nuclei,
+                crie uma jornada do tipo <strong>Web Application</strong> apontando para os ativos descobertos.
+              </div>
             </div>
 
             {/* Seção: Varredura Autenticada */}
@@ -1026,14 +1024,21 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                       <Checkbox
                         id={asset.id}
                         checked={selectedAssets.includes(asset.id)}
-                        onCheckedChange={(checked) => 
+                        onCheckedChange={(checked) =>
                           handleAssetSelection(asset.id, checked as boolean)
                         }
                         data-testid={`checkbox-webapp-${asset.id}`}
                       />
-                      <label htmlFor={asset.id} className="text-sm cursor-pointer">
-                        {asset.value}
-                      </label>
+                      <div className="flex-1">
+                        <label htmlFor={asset.id} className="text-sm font-medium cursor-pointer">
+                          {asset.value}
+                        </label>
+                        <p className="text-xs text-muted-foreground">
+                          {asset.parentAssetId && hostById.get(asset.parentAssetId)
+                            ? `Host: ${hostById.get(asset.parentAssetId)!.value}`
+                            : "Sem host associado"}
+                        </p>
+                      </div>
                     </div>
                   ))
                 )}
@@ -1078,6 +1083,21 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {mode === 'edit' && initialData && (
+          <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/30 p-3 text-sm" data-testid="journey-edit-header">
+            <Badge variant="secondary" className="text-xs uppercase">{initialData.type}</Badge>
+            {(initialData as any).createdAt && (
+              <span className="text-xs text-muted-foreground">
+                Criada em: {new Date((initialData as any).createdAt).toLocaleString('pt-BR')}
+              </span>
+            )}
+            {(initialData as any).createdBy && (
+              <span className="text-xs text-muted-foreground">
+                Por: {(initialData as any).createdBy}
+              </span>
+            )}
+          </div>
+        )}
         <FormField
           control={form.control}
           name="name"
@@ -1096,29 +1116,31 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo de Jornada</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger data-testid="select-journey-type">
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="attack_surface">Attack Surface</SelectItem>
-                  <SelectItem value="ad_security">AD Security</SelectItem>
-                  <SelectItem value="edr_av">Teste EDR/AV</SelectItem>
-                  <SelectItem value="web_application">Web Application</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {mode !== 'edit' && (
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de Jornada</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger data-testid="select-journey-type">
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="attack_surface">Attack Surface</SelectItem>
+                    <SelectItem value="ad_security">AD Security</SelectItem>
+                    <SelectItem value="edr_av">Teste EDR/AV</SelectItem>
+                    <SelectItem value="web_application">Web Application</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}

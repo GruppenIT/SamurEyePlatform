@@ -10,6 +10,8 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import ChangePassword from "@/pages/change-password";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 import Postura from "@/pages/postura";
 import Relatorios from "@/pages/relatorios";
 import Assets from "@/pages/assets";
@@ -27,6 +29,11 @@ import Audit from "@/pages/audit";
 import NotificationPolicies from "@/pages/notification-policies";
 import Subscription from "@/pages/subscription";
 import SubscriptionBanner from "@/components/subscription-banner";
+import { SetupAdminBanner } from "@/components/layout/setup-admin-banner";
+import { MfaInvitationDialog } from "@/components/account/mfa-invitation-dialog";
+import AccountPage from "@/pages/account";
+import AccountMfaPage from "@/pages/account-mfa";
+import MfaChallengePage from "@/pages/mfa-challenge";
 
 // Error Boundary to prevent full white screen on render errors
 interface ErrorBoundaryState {
@@ -86,7 +93,7 @@ function AdminRoute({ component: PageComponent }: { component: React.ComponentTy
 }
 
 function Router() {
-  const { isAuthenticated, mustChangePassword, isLoading } = useAuth();
+  const { isAuthenticated, mustChangePassword, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -106,6 +113,8 @@ function Router() {
       <Switch>
         <Route path="/" component={Landing} />
         <Route path="/login" component={Login} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
         {/* Redirect any other path to login */}
         <Route>{() => <Redirect to="/login" />}</Route>
       </Switch>
@@ -121,34 +130,53 @@ function Router() {
     );
   }
 
+  const pendingMfa = (user as any)?.pendingMfa === true;
+  if (pendingMfa) {
+    return (
+      <Switch>
+        <Route path="/mfa-challenge" component={MfaChallengePage} />
+        <Route>{() => <Redirect to="/mfa-challenge" />}</Route>
+      </Switch>
+    );
+  }
+
   return (
-    <Switch>
-      {/* Landing */}
-      <Route path="/" component={Postura} />
-      <Route path="/postura" component={Postura} />
+    <>
+      <SetupAdminBanner />
+      <Switch>
+        {/* Landing */}
+        <Route path="/" component={Postura} />
+        <Route path="/postura" component={Postura} />
 
-      {/* Operator+ routes */}
-      <Route path="/relatorios" component={Relatorios} />
-      <Route path="/assets" component={Assets} />
-      <Route path="/ativos" component={Hosts} />
-      <Route path="/hosts" component={Hosts} />
-      <Route path="/credentials" component={Credentials} />
-      <Route path="/journeys" component={Journeys} />
-      <Route path="/schedules" component={Schedules} />
-      <Route path="/jobs" component={Jobs} />
-      <Route path="/threats" component={Threats} />
-      <Route path="/action-plan" component={ActionPlan} />
-      <Route path="/sessions" component={Sessions} />
+        {/* Operator+ routes */}
+        <Route path="/relatorios" component={Relatorios} />
+        <Route path="/assets" component={Assets} />
+        <Route path="/ativos" component={Hosts} />
+        <Route path="/hosts" component={Hosts} />
+        <Route path="/credentials" component={Credentials} />
+        <Route path="/journeys" component={Journeys} />
+        <Route path="/schedules" component={Schedules} />
+        <Route path="/jobs" component={Jobs} />
+        <Route path="/threats" component={Threats} />
+        <Route path="/action-plan" component={ActionPlan} />
+        <Route path="/sessions" component={Sessions} />
+        <Route path="/account" component={AccountPage} />
+        <Route path="/account/mfa" component={AccountMfaPage} />
+        <Route path="/change-password" component={ChangePassword} />
+        {/* After successful MFA verify the user may momentarily still be on /mfa-challenge — send them home. */}
+        <Route path="/mfa-challenge">{() => <Redirect to="/" />}</Route>
 
-      {/* Admin-only routes */}
-      <Route path="/users">{() => <AdminRoute component={Users} />}</Route>
-      <Route path="/subscription">{() => <AdminRoute component={Subscription} />}</Route>
-      <Route path="/settings">{() => <AdminRoute component={Settings} />}</Route>
-      <Route path="/notification-policies">{() => <AdminRoute component={NotificationPolicies} />}</Route>
-      <Route path="/audit">{() => <AdminRoute component={Audit} />}</Route>
+        {/* Admin-only routes */}
+        <Route path="/users">{() => <AdminRoute component={Users} />}</Route>
+        <Route path="/subscription">{() => <AdminRoute component={Subscription} />}</Route>
+        <Route path="/settings">{() => <AdminRoute component={Settings} />}</Route>
+        <Route path="/notification-policies">{() => <AdminRoute component={NotificationPolicies} />}</Route>
+        <Route path="/audit">{() => <AdminRoute component={Audit} />}</Route>
 
-      <Route component={NotFound} />
-    </Switch>
+        <Route component={NotFound} />
+      </Switch>
+      <MfaInvitationDialog />
+    </>
   );
 }
 

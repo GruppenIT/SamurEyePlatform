@@ -103,22 +103,11 @@ export class EmailService {
       throw new Error('Tenant ID do Microsoft não configurado');
     }
 
-    if (!settings.oauth2RefreshToken || !settings.oauth2RefreshTokenDek) {
-      throw new Error('Refresh token do Microsoft não configurado');
-    }
-
-    // Decrypt credentials
     const clientSecret = this.encryptionService.decryptCredential(
       settings.oauth2ClientSecret,
       settings.oauth2ClientSecretDek
     );
 
-    const refreshToken = this.encryptionService.decryptCredential(
-      settings.oauth2RefreshToken,
-      settings.oauth2RefreshTokenDek
-    );
-
-    // Create MSAL app
     const msalConfig = {
       auth: {
         clientId: settings.oauth2ClientId,
@@ -130,13 +119,9 @@ export class EmailService {
     const cca = new ConfidentialClientApplication(msalConfig);
 
     try {
-      // Try to get token using refresh token
-      const tokenRequest = {
-        refreshToken: refreshToken,
-        scopes: ['https://outlook.office365.com/.default'],
-      };
-
-      const response = await cca.acquireTokenByRefreshToken(tokenRequest);
+      const response = await cca.acquireTokenByClientCredential({
+        scopes: ['https://graph.microsoft.com/.default'],
+      });
       if (!response || !response.accessToken) {
         throw new Error('Falha ao obter access token do Microsoft');
       }
@@ -148,11 +133,69 @@ export class EmailService {
     }
   }
 
+  private async sendViaMicrosoftGraph(
+    settings: EmailSettings,
+    options: EmailOptions,
+  ): Promise<void> {
+    const accessToken = await this.getMicrosoftAccessToken(settings);
+    const recipients = Array.isArray(options.to) ? options.to : [options.to];
+    const payload = {
+      message: {
+        subject: options.subject,
+        body: {
+          contentType: 'HTML',
+          content: options.html,
+        },
+        toRecipients: recipients.map((address) => ({
+          emailAddress: { address },
+        })),
+      },
+      saveToSentItems: false,
+    };
+
+    const url = `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(settings.fromEmail)}/sendMail`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.status === 202) return;
+
+    let detail = '';
+    try {
+      detail = await response.text();
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      `Microsoft Graph rejeitou o envio (HTTP ${response.status}): ${detail || response.statusText}`,
+    );
+  }
+
   async createTransporter(settings: EmailSettings): Promise<Transporter> {
+    // Google and Microsoft 365 SMTP submission always use port 587 with STARTTLS.
+    // Override whatever is stored to keep legacy configs (e.g. smtpSecure=true) working.
+    let host = settings.smtpHost;
+    let port = settings.smtpPort;
+    let secure = settings.smtpSecure;
+    if (settings.authType === 'oauth2_gmail') {
+      host = 'smtp.gmail.com';
+      port = 587;
+      secure = false;
+    } else if (settings.authType === 'oauth2_microsoft') {
+      host = 'smtp.office365.com';
+      port = 587;
+      secure = false;
+    }
+
     const config: any = {
-      host: settings.smtpHost,
-      port: settings.smtpPort,
-      secure: settings.smtpSecure,
+      host,
+      port,
+      secure,
     };
 
     // Configure authentication based on authType
@@ -198,27 +241,18 @@ export class EmailService {
       };
 
     } else if (settings.authType === 'oauth2_microsoft') {
-      // Microsoft OAuth2
-      const accessToken = await this.getMicrosoftAccessToken(settings);
-
-      config.auth = {
-        type: 'OAuth2',
-        user: settings.fromEmail,
-        accessToken: accessToken,
-      };
-
-      config.tls = {
-        ciphers: 'SSLv3',
-      };
+      // Microsoft 365 uses the Microsoft Graph API directly (see sendViaMicrosoftGraph);
+      // a nodemailer transporter is never used for this path.
+      throw new Error('Microsoft 365 usa Microsoft Graph API, não SMTP');
     }
 
-    // Configure TLS for port 587
-    if (!settings.smtpSecure && settings.smtpPort === 587) {
+    // Configure STARTTLS for port 587 (use the effective host/port/secure, not the stored settings)
+    if (!secure && port === 587) {
       config.requireTLS = true;
       if (!config.tls) {
         config.tls = {};
       }
-      config.tls.servername = settings.smtpHost;
+      config.tls.servername = host;
     }
 
     return nodemailer.createTransport(config);
@@ -226,6 +260,11 @@ export class EmailService {
 
   async sendEmail(settings: EmailSettings, options: EmailOptions): Promise<void> {
     try {
+      if (settings.authType === 'oauth2_microsoft') {
+        await this.sendViaMicrosoftGraph(settings, options);
+        return;
+      }
+
       const transporter = await this.createTransporter(settings);
 
       const mailOptions = {
@@ -245,18 +284,25 @@ export class EmailService {
 
   async testConnection(settings: EmailSettings): Promise<boolean> {
     try {
+      // Microsoft 365 uses Graph API — a successful token acquisition is the equivalent
+      // of an SMTP connection check. The actual Mail.Send permission is exercised by sendEmail.
+      if (settings.authType === 'oauth2_microsoft') {
+        await this.getMicrosoftAccessToken(settings);
+        return true;
+      }
+
       const transporter = await this.createTransporter(settings);
-      
+
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Timeout: Servidor SMTP não respondeu em 15 segundos')), 15000);
       });
-      
+
       await Promise.race([
         transporter.verify(),
         timeoutPromise
       ]);
-      
+
       return true;
     } catch (error) {
       log.error({ err: error }, 'erro ao testar conexão SMTP');

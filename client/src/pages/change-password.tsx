@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordSchema, type ChangePassword } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { PasswordChecklist } from "@/components/account/password-checklist";
 
 export default function ChangePasswordPage() {
   const [, setLocation] = useLocation();
@@ -154,9 +155,7 @@ export default function ChangePasswordPage() {
                         </Button>
                       </div>
                     </FormControl>
-                    <FormDescription className="text-xs text-muted-foreground">
-                      Mínimo 12 caracteres, incluindo: maiúscula, minúscula, número e símbolo
-                    </FormDescription>
+                    <PasswordChecklist password={field.value ?? ""} />
                     <FormMessage />
                   </FormItem>
                 )}

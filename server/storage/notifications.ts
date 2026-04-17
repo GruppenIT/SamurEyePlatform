@@ -105,3 +105,7 @@ export async function getNotificationLogs(limit = 100): Promise<NotificationLog[
     .orderBy(desc(notificationLog.sentAt))
     .limit(limit);
 }
+
+export async function touchEmailSettingsTest(id: string, at: Date): Promise<void> {
+  await db.update(emailSettings).set({ lastTestSuccessAt: at }).where(eq(emailSettings.id, id));
+}

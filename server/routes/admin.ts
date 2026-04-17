@@ -27,6 +27,31 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
+  // Generic key-value settings routes (drives the Geral tab in /settings)
+  app.get('/api/settings', isAuthenticatedWithPasswordCheck, requireAdmin, async (req, res) => {
+    try {
+      const all = await storage.getAllSettings();
+      res.json(all);
+    } catch (error) {
+      log.error({ err: error }, 'failed to fetch settings');
+      res.status(500).json({ message: "Falha ao buscar configurações" });
+    }
+  });
+
+  app.put('/api/settings', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
+    try {
+      const { key, value } = req.body ?? {};
+      if (typeof key !== 'string' || !key.trim()) {
+        return res.status(400).json({ message: "Chave inválida" });
+      }
+      const setting = await storage.setSetting(key, value, req.user.id);
+      res.json(setting);
+    } catch (error) {
+      log.error({ err: error }, 'failed to update setting');
+      res.status(500).json({ message: "Falha ao atualizar configuração" });
+    }
+  });
+
   // Email settings routes
   app.get('/api/email-settings', isAuthenticatedWithPasswordCheck, requireAdmin, async (req, res) => {
     try {
@@ -105,9 +130,15 @@ export function registerAdminRoutes(app: Express) {
           oauth2RefreshTokenDek = before.oauth2RefreshTokenDek;
         }
 
-        // Validate OAuth2 required fields for initial setup
-        if (!before && (!oauth2ClientId || !oauth2ClientSecret || !oauth2RefreshToken)) {
-          return res.status(400).json({ message: "Client ID, Client Secret e Refresh Token são obrigatórios para OAuth2" });
+        // Validate OAuth2 required fields for initial setup.
+        // Gmail uses Authorization Code Flow (requires refresh token).
+        // Microsoft 365 uses Client Credentials Flow (no refresh token — tenant + client id + client secret is enough).
+        if (!before && (!oauth2ClientId || !oauth2ClientSecret)) {
+          return res.status(400).json({ message: "Client ID e Client Secret são obrigatórios para OAuth2" });
+        }
+
+        if (authType === 'oauth2_gmail' && !before && !oauth2RefreshToken) {
+          return res.status(400).json({ message: "Refresh Token é obrigatório para Gmail" });
         }
 
         if (authType === 'oauth2_microsoft' && !before && !oauth2TenantId) {
@@ -135,6 +166,7 @@ export function registerAdminRoutes(app: Express) {
         fromEmail: settingsData.fromEmail,
         fromName: settingsData.fromName,
         updatedBy: userId,
+        lastTestSuccessAt: before?.lastTestSuccessAt ?? null,
       }, userId);
 
       // Log audit with redacted sensitive fields
@@ -205,10 +237,33 @@ export function registerAdminRoutes(app: Express) {
         `,
       });
 
+      if (settings.id) {
+        await storage.touchEmailSettingsTest(settings.id, new Date());
+      }
       res.json({ message: "E-mail de teste enviado com sucesso" });
     } catch (error: any) {
       log.error({ err: error }, 'failed to test email settings');
       res.status(400).json({ message: error.message || "Falha ao testar configurações de e-mail" });
+    }
+  });
+
+  app.post('/api/appliance/heartbeat-now', isAuthenticatedWithPasswordCheck, requireAdmin, async (req, res) => {
+    try {
+      const sub = await storage.getSubscription();
+      if (!sub || !sub.apiKey) {
+        return res.status(400).json({ message: "Subscription não configurada — heartbeat indisponível" });
+      }
+
+      // Fire-and-forget: respond 202 immediately, let sendHeartbeat finish in background.
+      // Any failure is already logged inside subscriptionService and visible in next cached status.
+      subscriptionService.sendHeartbeat().catch((err) => {
+        log.warn({ err }, 'out-of-band heartbeat failed');
+      });
+
+      res.status(202).json({ message: "Heartbeat disparado" });
+    } catch (error) {
+      log.error({ err: error }, 'failed to trigger out-of-band heartbeat');
+      res.status(500).json({ message: "Falha ao disparar heartbeat" });
     }
   });
 
