@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { LayoutGrid, List, Plus, Search } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useActionPlans, useChangeActionPlanStatus, type ActionPlanStatus, type ActionPlanPriority, type ActionPlanFilters, type ActionPlanListItem } from "@/hooks/useActionPlans";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,12 @@ const STATUS_OPTIONS: ActionPlanStatus[] = ["pending", "in_progress", "blocked",
 const PRIORITY_OPTIONS: ActionPlanPriority[] = ["low", "medium", "high", "critical"];
 const PRIORITY_LABEL: Record<ActionPlanPriority, string> = { low: "Baixa", medium: "Média", high: "Alta", critical: "Crítica" };
 
+function summarizeSelection<T extends string>(selected: Set<T>, labelMap: Record<T, string>, emptyLabel: string): string {
+  if (selected.size === 0) return emptyLabel;
+  if (selected.size === 1) return labelMap[Array.from(selected)[0] as T];
+  return `${selected.size} selecionados`;
+}
+
 export default function ActionPlanPage() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
@@ -28,8 +34,8 @@ export default function ActionPlanPage() {
 
   const [view, setView] = useState<ViewMode>("list");
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ActionPlanStatus | "all">("all");
-  const [priorityFilter, setPriorityFilter] = useState<ActionPlanPriority | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<Set<ActionPlanStatus>>(new Set());
+  const [priorityFilter, setPriorityFilter] = useState<Set<ActionPlanPriority>>(new Set());
   const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -42,8 +48,8 @@ export default function ActionPlanPage() {
     limit: 100,
     offset: 0,
     search: search.trim() || undefined,
-    status: statusFilter === "all" ? undefined : statusFilter,
-    priority: priorityFilter === "all" ? undefined : priorityFilter,
+    status: statusFilter.size > 0 ? Array.from(statusFilter) : undefined,
+    priority: priorityFilter.size > 0 ? Array.from(priorityFilter) : undefined,
     assigneeId: assigneeFilter ?? undefined,
   };
 
@@ -125,21 +131,85 @@ export default function ActionPlanPage() {
               />
             </div>
 
-            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as ActionPlanStatus | "all")}>
-              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos status</SelectItem>
-                {STATUS_OPTIONS.map(s => <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-[180px] justify-between">
+                  <span className="truncate">{summarizeSelection(statusFilter, STATUS_LABEL, "Todos status")}</span>
+                  <ChevronDown className="h-4 w-4 ml-2 opacity-50 shrink-0" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[200px]">
+                <DropdownMenuLabel>Status</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {STATUS_OPTIONS.map(s => (
+                  <DropdownMenuCheckboxItem
+                    key={s}
+                    checked={statusFilter.has(s)}
+                    onCheckedChange={(checked) => {
+                      setStatusFilter(prev => {
+                        const next = new Set(prev);
+                        if (checked) next.add(s); else next.delete(s);
+                        return next;
+                      });
+                    }}
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    {STATUS_LABEL[s]}
+                  </DropdownMenuCheckboxItem>
+                ))}
+                {statusFilter.size > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <button
+                      className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
+                      onClick={() => setStatusFilter(new Set())}
+                    >
+                      Limpar seleção
+                    </button>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-            <Select value={priorityFilter} onValueChange={(v) => setPriorityFilter(v as ActionPlanPriority | "all")}>
-              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Prioridade" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas prioridades</SelectItem>
-                {PRIORITY_OPTIONS.map(p => <SelectItem key={p} value={p}>{PRIORITY_LABEL[p]}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-[180px] justify-between">
+                  <span className="truncate">{summarizeSelection(priorityFilter, PRIORITY_LABEL, "Todas prioridades")}</span>
+                  <ChevronDown className="h-4 w-4 ml-2 opacity-50 shrink-0" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[200px]">
+                <DropdownMenuLabel>Prioridade</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {PRIORITY_OPTIONS.map(p => (
+                  <DropdownMenuCheckboxItem
+                    key={p}
+                    checked={priorityFilter.has(p)}
+                    onCheckedChange={(checked) => {
+                      setPriorityFilter(prev => {
+                        const next = new Set(prev);
+                        if (checked) next.add(p); else next.delete(p);
+                        return next;
+                      });
+                    }}
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    {PRIORITY_LABEL[p]}
+                  </DropdownMenuCheckboxItem>
+                ))}
+                {priorityFilter.size > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <button
+                      className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
+                      onClick={() => setPriorityFilter(new Set())}
+                    >
+                      Limpar seleção
+                    </button>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <div className="w-[220px]">
               <AssigneeSelector value={assigneeFilter} onChange={setAssigneeFilter} />
