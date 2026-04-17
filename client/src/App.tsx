@@ -22,6 +22,7 @@ import Schedules from "@/pages/schedules";
 import Jobs from "@/pages/jobs";
 import Threats from "@/pages/threats";
 import ActionPlan from "@/pages/action-plan";
+import ActionPlanDetail from "@/pages/action-plan-detail";
 import Users from "@/pages/users";
 import Sessions from "@/pages/sessions";
 import Settings from "@/pages/settings";
@@ -158,6 +159,7 @@ function Router() {
         <Route path="/schedules" component={Schedules} />
         <Route path="/jobs" component={Jobs} />
         <Route path="/threats" component={Threats} />
+        <Route path="/action-plan/:id" component={ActionPlanDetail} />
         <Route path="/action-plan" component={ActionPlan} />
         <Route path="/sessions" component={Sessions} />
         <Route path="/account" component={AccountPage} />
