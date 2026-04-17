@@ -6,8 +6,9 @@ import { db } from '../db';
 import { actionPlans, actionPlanThreats } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { createLogger } from '../lib/logger';
-import { listActionPlans, getActionPlanById, getPlanThreats, getPlanComments, getPlanHistory } from '../storage/actionPlans';
-import { generateNextActionPlanCode, recordHistory } from '../services/actionPlanService';
+import { listActionPlans } from '../storage/actionPlans';
+import { getActionPlanById, getPlanThreats, getPlanComments, getPlanHistory } from '../storage/actionPlans';
+import { generateNextActionPlanCode, recordHistory, applyStatusChange } from '../services/actionPlanService';
 import { sanitizeActionPlanHtml } from '../lib/htmlSanitizer';
 
 const log = createLogger('routes:action-plans');
@@ -51,9 +52,15 @@ const patchSchema = z.object({
   assigneeId: z.string().nullable().optional(),
 }).refine(v => Object.keys(v).length > 0, 'Ao menos um campo obrigatório.');
 
+const statusSchema = z.object({
+  status: z.enum(['pending','in_progress','blocked','done','cancelled']),
+  reason: z.string().min(3).max(2000).optional(),
+});
+
 export function registerActionPlanRoutes(app: Express): void {
   log.info('action plans route module registered');
 
+  // C3: GET /api/v1/action-plans
   app.get('/api/v1/action-plans', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const q = listQuerySchema.parse(req.query);
@@ -66,6 +73,7 @@ export function registerActionPlanRoutes(app: Express): void {
     }
   });
 
+  // C4: POST /api/v1/action-plans
   app.post('/api/v1/action-plans', isAuthenticatedWithPasswordCheck, requireOperator, async (req, res) => {
     try {
       const body = createSchema.parse(req.body);
@@ -106,6 +114,7 @@ export function registerActionPlanRoutes(app: Express): void {
     }
   });
 
+  // C5: GET /api/v1/action-plans/:id
   app.get('/api/v1/action-plans/:id', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const planId = z.string().parse(req.params.id);
@@ -128,6 +137,7 @@ export function registerActionPlanRoutes(app: Express): void {
     }
   });
 
+  // C6: PATCH /api/v1/action-plans/:id
   app.patch('/api/v1/action-plans/:id', isAuthenticatedWithPasswordCheck, requireOperator, async (req, res) => {
     try {
       const planId = z.string().parse(req.params.id);
@@ -168,6 +178,33 @@ export function registerActionPlanRoutes(app: Express): void {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
       log.error({ err }, 'patch plan failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao atualizar plano.' });
+    }
+  });
+
+  // C7: PATCH /api/v1/action-plans/:id/status
+  app.patch('/api/v1/action-plans/:id/status', isAuthenticatedWithPasswordCheck, requireOperator, async (req, res) => {
+    try {
+      const planId = z.string().parse(req.params.id);
+      const body = statusSchema.parse(req.body);
+      const userId = (req.user as any).id as string;
+      await assertEditable(planId, userId);
+
+      const [before] = await db.select({ status: actionPlans.status }).from(actionPlans).where(eq(actionPlans.id, planId));
+      if (!before) return res.status(404).json({ error: 'Plano não encontrado.' });
+
+      await applyStatusChange({
+        planId,
+        actorId: userId,
+        from: before.status as any,
+        to: body.status,
+        reason: body.reason,
+      });
+
+      res.json({ ok: true });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      log.error({ err, planId: req.params.id, to: req.body?.status }, 'status change failed');
+      res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao mudar status.', code: err.code });
     }
   });
 }
