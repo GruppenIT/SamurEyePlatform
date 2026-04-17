@@ -42,13 +42,13 @@ export function CreateActionPlanDialog({ open, onOpenChange, initialThreatIds, n
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || !assigneeId) return;
     try {
       const plan = await createMutation.mutateAsync({
         title: title.trim(),
         description: description || undefined,
         priority,
-        assigneeId: assigneeId ?? undefined,
+        assigneeId,
         threatIds: initialThreatIds && initialThreatIds.length > 0 ? initialThreatIds : undefined,
       });
       toast({ title: "Plano criado", description: `Código ${plan.code}` });
@@ -95,14 +95,14 @@ export function CreateActionPlanDialog({ open, onOpenChange, initialThreatIds, n
               </Select>
             </div>
             <div>
-              <Label>Responsável</Label>
-              <AssigneeSelector value={assigneeId} onChange={setAssigneeId} />
+              <Label>Responsável *</Label>
+              <AssigneeSelector value={assigneeId} onChange={setAssigneeId} allowUnassigned={false} />
             </div>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancelar</Button>
-            <Button type="submit" disabled={!title.trim() || submitting}>
+            <Button type="submit" disabled={!title.trim() || !assigneeId || submitting}>
               {submitting ? "Criando..." : "Criar plano"}
             </Button>
           </DialogFooter>

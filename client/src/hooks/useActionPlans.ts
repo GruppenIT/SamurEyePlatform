@@ -255,7 +255,7 @@ export interface CreateActionPlanInput {
   title: string;
   description?: string;
   priority?: ActionPlanPriority;
-  assigneeId?: string | null;
+  assigneeId: string;
   threatIds?: string[];
 }
 
@@ -283,7 +283,7 @@ export interface UpdateActionPlanInput {
     title?: string;
     description?: string | null;
     priority?: ActionPlanPriority;
-    assigneeId?: string | null;
+    assigneeId?: string;
   };
 }
 

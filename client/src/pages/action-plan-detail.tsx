@@ -353,6 +353,7 @@ function EditPlanDialog({
   }, [open, plan.id]);
 
   async function handleSubmit() {
+    if (!title.trim() || !assigneeId) return;
     try {
       await update.mutateAsync({
         id: plan.id,
@@ -408,8 +409,8 @@ function EditPlanDialog({
               </Select>
             </div>
             <div>
-              <Label>Responsável</Label>
-              <AssigneeSelector value={assigneeId} onChange={setAssigneeId} />
+              <Label>Responsável *</Label>
+              <AssigneeSelector value={assigneeId} onChange={setAssigneeId} allowUnassigned={false} />
             </div>
           </div>
         </div>
@@ -417,7 +418,7 @@ function EditPlanDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={update.isPending}>
+          <Button onClick={handleSubmit} disabled={update.isPending || !title.trim() || !assigneeId}>
             {update.isPending ? "Salvando..." : "Salvar"}
           </Button>
         </DialogFooter>
