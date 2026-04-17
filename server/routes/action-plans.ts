@@ -6,7 +6,7 @@ import { db } from '../db';
 import { actionPlans, actionPlanThreats } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { createLogger } from '../lib/logger';
-import { listActionPlans } from '../storage/actionPlans';
+import { listActionPlans, getActionPlanById, getPlanThreats, getPlanComments, getPlanHistory } from '../storage/actionPlans';
 import { generateNextActionPlanCode, recordHistory } from '../services/actionPlanService';
 import { sanitizeActionPlanHtml } from '../lib/htmlSanitizer';
 
@@ -96,6 +96,28 @@ export function registerActionPlanRoutes(app: Express): void {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
       log.error({ err }, 'create plan failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao criar plano.' });
+    }
+  });
+
+  app.get('/api/v1/action-plans/:id', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const planId = z.string().parse(req.params.id);
+      const includeParam = typeof req.query.include === 'string' ? req.query.include : '';
+      const include = new Set(includeParam.split(',').filter(Boolean));
+
+      const plan = await getActionPlanById(planId);
+      if (!plan) return res.status(404).json({ error: 'Plano não encontrado.' });
+
+      const out: any = { ...plan };
+      if (include.has('threats')) out.threats = await getPlanThreats(planId);
+      if (include.has('comments')) out.comments = await getPlanComments(planId);
+      if (include.has('history')) out.history = await getPlanHistory(planId);
+
+      res.json(out);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      log.error({ err }, 'get plan failed');
+      res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao buscar plano.' });
     }
   });
 }
