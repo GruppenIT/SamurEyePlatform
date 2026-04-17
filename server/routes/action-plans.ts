@@ -10,6 +10,7 @@ import { listActionPlans } from '../storage/actionPlans';
 import { getActionPlanById, getPlanThreats, getPlanComments, getPlanHistory } from '../storage/actionPlans';
 import { generateNextActionPlanCode, recordHistory, applyStatusChange, removeThreatFromPlan } from '../services/actionPlanService';
 import { sanitizeActionPlanHtml } from '../lib/htmlSanitizer';
+import { uploadMemory, persistImage, resolveImagePath } from '../lib/imageUpload';
 
 const log = createLogger('routes:action-plans');
 
@@ -400,6 +401,34 @@ export function registerActionPlanRoutes(app: Express): void {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
       log.error({ err }, 'list history failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao listar histórico.' });
+    }
+  });
+
+  // C11: POST /api/v1/action-plans/upload-image
+  app.post('/api/v1/action-plans/upload-image',
+    isAuthenticatedWithPasswordCheck,
+    requireOperator,
+    uploadMemory.single('image'),
+    async (req: Request, res: Response) => {
+      if (!req.file) return res.status(400).json({ error: 'Arquivo ausente (campo image).' });
+      try {
+        const { url } = await persistImage(req.file.buffer);
+        res.status(201).json({ url });
+      } catch (err: any) {
+        log.error({ err }, 'upload image failed');
+        res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao salvar imagem.' });
+      }
+    }
+  );
+
+  // C11: GET /api/v1/action-plans/images/:filename
+  app.get('/api/v1/action-plans/images/:filename', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const filePath = resolveImagePath(req.params.filename);
+      res.setHeader('Cache-Control', 'private, max-age=3600');
+      res.sendFile(filePath);
+    } catch (err: any) {
+      res.status(err.status ?? 404).end();
     }
   });
 }
