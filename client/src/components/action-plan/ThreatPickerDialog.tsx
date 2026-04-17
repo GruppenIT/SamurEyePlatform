@@ -18,6 +18,8 @@ interface ThreatRow {
   title: string;
   severity: string;
   status: string;
+  parentThreatId: string | null;
+  groupingKey: string | null;
 }
 
 interface ThreatPickerDialogProps {
@@ -57,7 +59,13 @@ export function ThreatPickerDialog({
   const filtered = useMemo(() => {
     if (!data) return [];
     const s = search.toLowerCase();
-    return data.filter((t) => !s || t.title.toLowerCase().includes(s));
+    return data.filter((t) => {
+      // Exclude group parents — only actual threats (children + standalone) can be associated.
+      // Parents have groupingKey !== null AND parentThreatId === null.
+      const isGroupParent = t.parentThreatId === null && t.groupingKey !== null;
+      if (isGroupParent) return false;
+      return !s || t.title.toLowerCase().includes(s);
+    });
   }, [data, search]);
 
   function toggle(id: string) {
