@@ -50,8 +50,10 @@ import {
   Wrench,
   AlertCircle,
   ListChecks,
+  ClipboardList,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AssociateToPlanDialog } from "@/components/action-plan/AssociateToPlanDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Threat, Host } from "@shared/schema";
 import { ThreatStats } from "@/types";
@@ -266,6 +268,7 @@ export default function Threats() {
   const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [associateDialogOpen, setAssociateDialogOpen] = useState(false);
   const [bulkStatusModal, setBulkStatusModal] = useState<{
     isOpen: boolean;
     newStatus: string;
@@ -1409,6 +1412,14 @@ export default function Threats() {
                           </SelectContent>
                         </Select>
                         <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setAssociateDialogOpen(true)}
+                          disabled={selectedIds.size === 0}
+                        >
+                          <ClipboardList className="h-4 w-4 mr-1" /> Associar a Plano de Ação
+                        </Button>
+                        <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setSelectedIds(new Set())}
@@ -2073,6 +2084,15 @@ export default function Threats() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AssociateToPlanDialog
+        open={associateDialogOpen}
+        onOpenChange={setAssociateDialogOpen}
+        threatIds={Array.from(selectedIds)}
+        onSuccess={() => {
+          setSelectedIds(new Set());
+        }}
+      />
     </div>
   );
 }
