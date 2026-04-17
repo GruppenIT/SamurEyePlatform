@@ -154,6 +154,28 @@ export function StatusTransitionDialog({
                 />
               </div>
             )}
+
+            {to === "done" && (
+              <div className="rounded-md border border-amber-400/40 bg-amber-50 dark:bg-amber-950/20 p-3 text-sm space-y-1">
+                <div className="font-medium">Ao fechar o plano:</div>
+                <ul className="list-disc pl-5 text-xs space-y-0.5">
+                  <li>O plano ficará marcado como finalizado e não poderá mais ser editado.</li>
+                  <li>Ameaças associadas <strong>não serão alteradas</strong>. Ameaças com status "open" continuarão aparecendo na listagem geral até serem tratadas individualmente.</li>
+                  <li>Este plano ainda aparecerá em relatórios e no histórico de cada ameaça.</li>
+                </ul>
+              </div>
+            )}
+
+            {to === "cancelled" && (
+              <div className="rounded-md border border-red-400/40 bg-red-50 dark:bg-red-950/20 p-3 text-sm space-y-1">
+                <div className="font-medium">Ao cancelar o plano:</div>
+                <ul className="list-disc pl-5 text-xs space-y-0.5">
+                  <li>O plano ficará marcado como cancelado e não poderá mais ser editado.</li>
+                  <li>Ameaças associadas continuam existindo normalmente e podem ser associadas a novos planos a qualquer momento.</li>
+                  <li>Use este estado quando o trabalho foi descontinuado (não finalizado).</li>
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
