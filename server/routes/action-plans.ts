@@ -15,6 +15,38 @@ import { uploadMemory, persistImage, resolveImagePath } from '../lib/imageUpload
 
 const log = createLogger('routes:action-plans');
 
+/**
+ * Translates a Postgres error to a user-friendly HTTP response.
+ * Returns true if the error was handled (response sent); false otherwise.
+ */
+function handlePgError(err: any, res: Response): boolean {
+  if (!err || typeof err.code !== 'string') return false;
+  switch (err.code) {
+    case '23503': { // foreign_key_violation
+      // err.constraint looks like "action_plans_assignee_id_users_id_fk" or similar
+      const c = err.constraint ?? '';
+      let msg = 'Referência inválida.';
+      if (c.includes('assignee')) msg = 'Responsável informado não existe.';
+      else if (c.includes('created_by')) msg = 'Criador informado não existe.';
+      else if (c.includes('threat_id')) msg = 'Uma ou mais ameaças informadas não existem.';
+      else if (c.includes('action_plan_id')) msg = 'Plano de ação informado não existe.';
+      else if (c.includes('comment_id')) msg = 'Comentário informado não existe.';
+      else if (c.includes('author_id') || c.includes('actor_id') || c.includes('added_by')) msg = 'Usuário informado não existe.';
+      res.status(400).json({ error: msg, code: 'FK_VIOLATION' });
+      return true;
+    }
+    case '23505': { // unique_violation
+      res.status(409).json({ error: 'Registro duplicado.', code: 'UNIQUE_VIOLATION' });
+      return true;
+    }
+    case '23502': { // not_null_violation
+      res.status(400).json({ error: `Campo obrigatório ausente: ${err.column ?? 'desconhecido'}.`, code: 'NOT_NULL_VIOLATION' });
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Throws 403 if the current user isn't the plan's creator or assignee. */
 async function assertEditable(planId: string, userId: string): Promise<void> {
   const [row] = await db
@@ -111,6 +143,7 @@ export function registerActionPlanRoutes(app: Express): void {
       res.status(201).json(result);
     } catch (err: any) {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      if (handlePgError(err, res)) return;
       log.error({ err }, 'create plan failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao criar plano.' });
     }
@@ -197,6 +230,7 @@ export function registerActionPlanRoutes(app: Express): void {
       res.json({ ok: true });
     } catch (err: any) {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      if (handlePgError(err, res)) return;
       log.error({ err }, 'patch plan failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao atualizar plano.' });
     }
@@ -224,6 +258,7 @@ export function registerActionPlanRoutes(app: Express): void {
       res.json({ ok: true });
     } catch (err: any) {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      if (handlePgError(err, res)) return;
       log.error({ err, planId: req.params.id, to: req.body?.status }, 'status change failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao mudar status.', code: err.code });
     }
@@ -261,6 +296,7 @@ export function registerActionPlanRoutes(app: Express): void {
       res.status(201).json({ ok: true });
     } catch (err: any) {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      if (handlePgError(err, res)) return;
       log.error({ err }, 'associate threats failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao associar ameaças.' });
     }
@@ -278,6 +314,7 @@ export function registerActionPlanRoutes(app: Express): void {
       res.json({ ok: true });
     } catch (err: any) {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      if (handlePgError(err, res)) return;
       log.error({ err }, 'remove threat failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao remover ameaça do plano.' });
     }
@@ -354,6 +391,7 @@ export function registerActionPlanRoutes(app: Express): void {
       res.status(201).json(comment);
     } catch (err: any) {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      if (handlePgError(err, res)) return;
       log.error({ err }, 'create comment failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao criar comentário.' });
     }
@@ -404,6 +442,7 @@ export function registerActionPlanRoutes(app: Express): void {
       res.json({ ok: true });
     } catch (err: any) {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      if (handlePgError(err, res)) return;
       log.error({ err }, 'edit comment failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao editar comentário.' });
     }
