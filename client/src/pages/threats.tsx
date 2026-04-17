@@ -1096,16 +1096,13 @@ export default function Threats() {
               {(() => {
                 const childIds = children.map(c => c.id);
                 const plannedCount = childIds.filter(id => (planLinks[id] ?? []).length > 0).length;
-                if (plannedCount === 0 && (planLinks[parent.id] ?? []).length === 0) {
+                if (plannedCount === 0) {
                   return <ClipboardList className="h-4 w-4 text-muted-foreground/40" />;
                 }
-                const selfPlanned = (planLinks[parent.id] ?? []).length > 0;
-                const totalPlanned = plannedCount + (selfPlanned ? 1 : 0);
-                const total = childIds.length + 1;
                 return (
                   <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                     <ClipboardList className="h-4 w-4 text-primary" />
-                    {totalPlanned}/{total}
+                    {plannedCount}/{childIds.length}
                   </span>
                 );
               })()}
