@@ -369,6 +369,7 @@ export function useAssociateThreats() {
         queryKey: ["action-plans", id, "history"],
       });
       queryClient.invalidateQueries({ queryKey: ["action-plans", id] });
+      queryClient.invalidateQueries({ queryKey: ["action-plans", "plan-links"] });
     },
   });
 }
@@ -407,6 +408,7 @@ export function useRemoveThreat() {
       queryClient.invalidateQueries({
         queryKey: ["action-plans", id, "comments"],
       });
+      queryClient.invalidateQueries({ queryKey: ["action-plans", "plan-links"] });
     },
   });
 }
@@ -476,6 +478,37 @@ export function useUpdateComment() {
       queryClient.invalidateQueries({
         queryKey: ["action-plans", id, "history"],
       });
+    },
+  });
+}
+
+// ─── Plan Links (threat→plan bulk lookup) ────────────────────────────────────
+
+export interface PlanLink {
+  id: string;
+  code: string;
+  title: string;
+  status: ActionPlanStatus;
+}
+
+/**
+ * Bulk lookup: for a list of threat IDs, returns the plans each threat belongs to.
+ * Uses POST /api/v1/action-plans/plan-links (body instead of query string for large lists).
+ */
+export function usePlanLinks(threatIds: string[]) {
+  const stableIds = [...threatIds].sort().join(',');
+  return useQuery<Record<string, PlanLink[]>>({
+    queryKey: ['action-plans', 'plan-links', stableIds],
+    enabled: threatIds.length > 0,
+    queryFn: async () => {
+      const res = await fetch('/api/v1/action-plans/plan-links', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ threatIds }),
+      });
+      if (!res.ok) throw new Error('Erro ao buscar ligações com planos.');
+      return res.json();
     },
   });
 }
