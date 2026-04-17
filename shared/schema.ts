@@ -591,6 +591,19 @@ export type ActionPlan = typeof actionPlans.$inferSelect;
 export type NewActionPlan = typeof actionPlans.$inferInsert;
 export const insertActionPlanSchema = createInsertSchema(actionPlans);
 
+export const actionPlanThreats = pgTable('action_plan_threats', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  actionPlanId: uuid('action_plan_id').notNull().references(() => actionPlans.id, { onDelete: 'cascade' }),
+  threatId: uuid('threat_id').notNull().references(() => threats.id, { onDelete: 'cascade' }),
+  addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
+  addedBy: uuid('added_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+}, (t) => ({
+  uniqPlanThreat: uniqueIndex('action_plan_threats_plan_threat_idx').on(t.actionPlanId, t.threatId),
+  threatIdx: index('action_plan_threats_threat_idx').on(t.threatId),
+}));
+
+export type ActionPlanThreat = typeof actionPlanThreats.$inferSelect;
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   assets: many(assets),
