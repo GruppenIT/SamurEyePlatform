@@ -13,8 +13,12 @@ import { cveService } from './cveService';
 import { hostEnricher } from './hostEnricher';
 import { WMICollector } from './collectors/wmiCollector';
 import { SSHCollector } from './collectors/sshCollector';
-import { type Journey, type Job } from '@shared/schema';
+import { type Journey, type Job, assets as assetsTable } from '@shared/schema';
 import { createLogger } from '../lib/logger';
+import { buildWebAppUrl, detectWebScheme, normalizeTarget } from './journeys/urls';
+import { preflightNuclei } from './journeys/nucleiPreflight';
+import { and, eq } from 'drizzle-orm';
+import { db } from '../db';
 
 const log = createLogger('journey');
 const adScanner = new ADScanner();
@@ -382,48 +386,12 @@ class JourneyExecutorService {
           log.info(`⏭️  FASE 3: Detecção de CVEs desabilitada - pulando Fases 3A e 3B`);
         }
 
-        // ==================== PHASE 3C: WEB VULNERABILITY SCAN (OPTIONAL) ====================
-        const webScanEnabled = params.webScanEnabled === true;
-        if (webScanEnabled) {
-          const webUrls: string[] = [];
-          const webPorts = new Set(['80', '443', '8080', '8443', '8000', '8888', '8008', '9443', '3000', '4443']);
-          const httpServices = new Set(['http', 'https', 'http-proxy', 'http-alt', 'https-alt', 'nginx', 'apache']);
-
-          for (const result of portResults) {
-            if (result.state !== 'open') continue;
-            const cleanPort = String(result.port).replace(/\/(tcp|udp)$/i, '');
-            const svcLower = (result.service || '').toLowerCase();
-            const isWeb = webPorts.has(cleanPort) || httpServices.has(svcLower);
-            if (!isWeb) continue;
-
-            const host = result.ip || result.target || asset.value;
-            const isHttps = cleanPort === '443' || cleanPort === '8443' || cleanPort === '9443' || cleanPort === '4443' || svcLower === 'https';
-            const scheme = isHttps ? 'https' : 'http';
-            const portSuffix = (scheme === 'http' && cleanPort === '80') || (scheme === 'https' && cleanPort === '443') ? '' : `:${cleanPort}`;
-            webUrls.push(`${scheme}://${host}${portSuffix}`);
-          }
-
-          if (webUrls.length > 0) {
-            onProgress({
-              status: 'running',
-              progress: Math.round(assetBase + assetSlice * 0.75),
-              currentTask: `Fase 3C: Nuclei - Analisando ${webUrls.length} URLs web em ${asset.value}`
-            });
-
-            log.info(`🌐 FASE 3C: Executando Nuclei em ${webUrls.length} URLs web`);
-            try {
-              const nucleiTimeoutMs = vulnScriptTimeoutMs;
-              const nucleiFindings = await this.runNucleiWebScan(webUrls, jobId, nucleiTimeoutMs);
-              findings.push(...nucleiFindings);
-              log.info(`✅ FASE 3C: ${nucleiFindings.length} vulnerabilidades web encontradas via Nuclei`);
-            } catch (error) {
-              log.error(`❌ FASE 3C: Erro durante scan Nuclei:`, error);
-            }
-          } else {
-            log.info(`⏭️  FASE 3C: Nenhum serviço web encontrado para análise Nuclei`);
-          }
-        } else {
-          log.info(`⏭️  FASE 3C: Varredura web desabilitada`);
+        // Phase 3C (Nuclei web scan) was removed — attack_surface is now discovery-only.
+        // Web application assets are auto-created in Phase 4 and must be scanned via a
+        // dedicated web_application journey. `params.webScanEnabled` from legacy journeys
+        // is silently ignored.
+        if (params.webScanEnabled === true) {
+          log.info(`ℹ️  webScanEnabled ignorado: use jornada web_application para avaliar os web apps descobertos`);
         }
 
       } catch (error) {
@@ -1305,52 +1273,86 @@ class JourneyExecutorService {
    */
   private async createWebApplicationAssets(findings: any[], createdBy: string, jobId: string): Promise<any[]> {
     const webApps: any[] = [];
-    const webPorts = new Set(['80', '443', '8080', '8443', '3000', '5000', '8000', '8888']);
-    const webServiceNames = ['http', 'https', 'http-alt', 'https-alt', 'http-proxy', 'ssl/http'];
-    const createdUrls = new Set<string>(); // Track to avoid duplicates
-    
+    const createdUrls = new Set<string>(); // Within-job dedup short-circuit
+
+    // Load host assets once to resolve parent links efficiently
+    const allAssets = await storage.getAssets();
+    const hostAssets = allAssets.filter((a: any) => a.type === 'host');
+    const hostByValue = new Map<string, any>();
+    for (const h of hostAssets) {
+      hostByValue.set(h.value, h);
+    }
+
     for (const finding of findings) {
-      // Only process open ports
       if (finding.type !== 'port' || finding.state !== 'open') continue;
-      
+
       const host = finding.target || finding.ip;
       if (!host) continue;
-      
-      const port = finding.port?.toString().replace(/\/(tcp|udp)$/i, ''); // Clean port
-      const service = finding.service?.toLowerCase() || '';
-      
-      // Determine if this is a web service
-      let protocol = '';
-      
-      if (port === '443' || port === '8443' || service.includes('https') || service.includes('ssl')) {
-        protocol = 'https';
-      } else if (webPorts.has(port) || webServiceNames.some(name => service.includes(name))) {
-        protocol = 'http';
-      }
-      
-      // Create web_application asset if web service detected
-      if (protocol) {
-        const url = `${protocol}://${host}:${port}`;
-        
-        // Avoid duplicates
-        if (createdUrls.has(url)) continue;
-        createdUrls.add(url);
-        
-        try {
-          const asset = await storage.createAsset({
+
+      const port = finding.port?.toString().replace(/\/(tcp|udp)$/i, '') ?? '';
+      const service = finding.service?.toLowerCase() ?? '';
+
+      const scheme = detectWebScheme(port, service);
+      if (!scheme) continue;
+
+      const url = buildWebAppUrl(host, port, scheme);
+
+      if (createdUrls.has(url)) continue;
+      createdUrls.add(url);
+
+      // Resolve parent host asset (by exact value match on IP or hostname)
+      const parentHost = hostByValue.get(host) ?? hostByValue.get(finding.ip) ?? null;
+      const parentAssetId = parentHost?.id ?? null;
+
+      const signals = {
+        source: 'attack_surface_job',
+        jobId,
+        port,
+        service,
+        detectionSignals: ['nmap_port_service'],
+      };
+
+      try {
+        // Cross-job idempotency: does a web_application with this value + parent already exist?
+        const whereClause = parentAssetId
+          ? and(
+              eq(assetsTable.type, 'web_application' as any),
+              eq(assetsTable.value, url),
+              eq(assetsTable.parentAssetId, parentAssetId),
+            )
+          : and(
+              eq(assetsTable.type, 'web_application' as any),
+              eq(assetsTable.value, url),
+            );
+
+        const [existing] = await db.select().from(assetsTable).where(whereClause).limit(1);
+
+        if (existing) {
+          webApps.push(existing);
+          log.info(`🌐 Aplicação web já catalogada: ${url} (parent=${parentHost?.value ?? 'none'})`);
+          continue;
+        }
+
+        const asset = await storage.createAsset(
+          {
             type: 'web_application',
             value: url,
             tags: ['auto-discovered', `job:${jobId.substring(0, 8)}`],
-          }, createdBy);
-          
-          webApps.push(asset);
-          log.info(`🌐 Aplicação web criada como ativo: ${url} (service: ${service || 'unknown'})`);
-        } catch (error) {
-          log.error(`❌ Erro ao criar ativo web_application para ${url}:`, error);
-        }
+            parentAssetId,
+          } as any,
+          createdBy,
+        );
+        webApps.push(asset);
+        log.info(`🌐 Aplicação web criada como ativo: ${url} (parent=${parentHost?.value ?? 'none'}, service=${service || 'unknown'})`);
+      } catch (error) {
+        log.error(`❌ Erro ao criar/linkar ativo web_application para ${url}:`, error);
       }
+
+      // Note: promotionMetadata will be wired in a later task when that column is added
+      // (Problem 3 plan noted it as optional — omitting here to keep the change minimal).
+      void signals;
     }
-    
+
     return webApps;
   }
 
@@ -1397,12 +1399,27 @@ class JourneyExecutorService {
     const findings: any[] = [];
     const { spawn } = await import('child_process');
 
+    // Pre-flight: verify nuclei binary and templates are available
+    const preflight = await preflightNuclei(log);
+    if (!preflight.ok) {
+      log.warn(`⚠️ Nuclei preflight failed (${preflight.reason}) — skipping scan of ${urls.length} URLs, returning 0 findings`);
+      return [];
+    }
+
     for (const url of urls) {
       try {
-        log.info(`🔍 Executando Nuclei em ${url} (timeout: ${timeoutMs/60000}min)`);
-        
+        // Normalize and validate URL before spawning
+        const normalized = normalizeTarget(url);
+        if (!normalized) {
+          log.warn(`⚠️ URL inválida para Nuclei: ${JSON.stringify(url)} — pulando`);
+          continue;
+        }
+
+        const startedAt = Date.now();
+        log.info(`🔍 Executando Nuclei em ${normalized} (timeout: ${timeoutMs/60000}min)`);
+
         const args = [
-          '-u', url,
+          '-u', normalized,
           '-jsonl',
           '-silent',
           '-duc',
@@ -1415,8 +1432,8 @@ class JourneyExecutorService {
           '-c', '5',
           '-t', '/tmp/nuclei/nuclei-templates',
         ];
-        
-        const result = await new Promise<string>((resolve, reject) => {
+
+        const result = await new Promise<{ stdout: string; stderr: string; exitCode: number | null }>((resolve) => {
           const child = spawn('nuclei', args, {
             stdio: ['ignore', 'pipe', 'pipe'],
             env: {
@@ -1428,10 +1445,10 @@ class JourneyExecutorService {
               NUCLEI_TEMPLATES_DIR: '/tmp/nuclei/nuclei-templates',
             },
           });
-          
+
           let stdout = '';
           let stderr = '';
-          
+
           const timeout = setTimeout(() => {
             child.kill('SIGTERM');
             // Force kill after 5s if SIGTERM doesn't work
@@ -1440,40 +1457,50 @@ class JourneyExecutorService {
                 child.kill('SIGKILL');
               }
             }, 5000);
-            log.info(`⏱️ Nuclei timeout após ${timeoutMs/60000}min para ${url}`);
-            resolve(''); // Retorna vazio em caso de timeout
+            log.info(`⏱️ Nuclei timeout após ${timeoutMs/60000}min para ${normalized}`);
+            resolve({ stdout: '', stderr: '<timeout>', exitCode: null });
           }, timeoutMs);
-          
+
           child.stdout?.on('data', (data) => {
             stdout += data.toString();
           });
-          
+
           child.stderr?.on('data', (data) => {
             stderr += data.toString();
           });
-          
+
           child.on('close', (code) => {
             clearTimeout(timeout);
-            resolve(stdout);
+            resolve({ stdout, stderr, exitCode: code });
           });
-          
+
           child.on('error', (error) => {
             clearTimeout(timeout);
             log.error(`❌ Erro ao executar Nuclei:`, error);
-            resolve('');
+            resolve({ stdout: '', stderr: String(error), exitCode: null });
           });
         });
-        
+
         // Parse do output JSON lines — delegate to vulnScanner.parseNuclei (PARS-05, PARS-06)
-        const urlFindings = vulnScanner.parseNuclei(result);
+        const urlFindings = vulnScanner.parseNuclei(result.stdout);
         findings.push(...urlFindings);
-        log.info(`✅ Nuclei concluído para ${url}: ${urlFindings.length} vulnerabilidades`);
-        
+
+        log.info({
+          jobId,
+          tool: 'nuclei',
+          target: normalized,
+          exitCode: result.exitCode,
+          durationMs: Date.now() - startedAt,
+          stdoutBytes: result.stdout.length,
+          stderrTail: result.stderr.slice(-500),
+          findingsCount: urlFindings.length,
+        }, `nuclei scan complete`);
+
       } catch (error) {
         log.error(`❌ Erro ao escanear ${url} com Nuclei:`, error);
       }
     }
-    
+
     return findings;
   }
   

@@ -10,6 +10,8 @@ import * as sessionOps from "./sessions";
 import * as subscriptionOps from "./subscription";
 import * as databaseInitOps from "./database-init";
 import * as edrDeploymentOps from "./edrDeployments";
+import * as mfaOps from "./mfa";
+import * as passwordResetOps from "./password-reset";
 
 export type { IStorage } from "./interface";
 
@@ -24,9 +26,14 @@ export class DatabaseStorage implements IStorage {
   updateUserPassword = userOps.updateUserPassword;
   setMustChangePassword = userOps.setMustChangePassword;
   getAllUsers = userOps.getAllUsers;
+  getUserMfa = userOps.getUserMfa;
+  setUserMfa = userOps.setUserMfa;
+  updateBackupCodes = userOps.updateBackupCodes;
+  dismissMfaInvitation = userOps.dismissMfaInvitation;
 
   // Asset operations
   getAssets = assetOps.getAssets;
+  getAssetsTree = assetOps.getAssetsTree;
   getAsset = assetOps.getAsset;
   getAssetsByTags = assetOps.getAssetsByTags;
   getAssetsByType = assetOps.getAssetsByType;
@@ -119,6 +126,7 @@ export class DatabaseStorage implements IStorage {
   // Email settings operations
   getEmailSettings = notificationOps.getEmailSettings;
   setEmailSettings = notificationOps.setEmailSettings;
+  touchEmailSettingsTest = notificationOps.touchEmailSettingsTest;
 
   // Notification policy operations
   getNotificationPolicies = notificationOps.getNotificationPolicies;
@@ -183,6 +191,20 @@ export class DatabaseStorage implements IStorage {
   insertEdrDeployment = edrDeploymentOps.insertEdrDeployment;
   getEdrDeploymentsByJourney = edrDeploymentOps.getEdrDeploymentsByJourney;
   getEdrDeploymentsByJourneyWithHost = edrDeploymentOps.getEdrDeploymentsByJourneyWithHost;
+
+  // MFA email challenges
+  createMfaEmailChallenge = mfaOps.createMfaEmailChallenge;
+  getActiveChallenges = mfaOps.getActiveChallenges;
+  consumeChallenge = mfaOps.consumeChallenge;
+  countRecentChallenges = mfaOps.countRecentChallenges;
+  cleanupOldChallenges = mfaOps.cleanupOldChallenges;
+
+  // Password reset token operations
+  createPasswordResetToken = passwordResetOps.createPasswordResetToken;
+  getActivePasswordResetTokens = passwordResetOps.getActivePasswordResetTokens;
+  consumePasswordResetToken = passwordResetOps.consumePasswordResetToken;
+  consumeAllPasswordResetTokensForUser = passwordResetOps.consumeAllPasswordResetTokensForUser;
+  cleanupOldPasswordResetTokens = passwordResetOps.cleanupOldPasswordResetTokens;
 
   // Database initialization
   async initializeDatabaseStructure() { return databaseInitOps.initializeDatabaseStructure(); }

@@ -40,6 +40,10 @@ import {
   type ConsoleCommand,
   type EdrDeployment,
   type InsertEdrDeployment,
+  type MfaEmailChallenge,
+  type InsertMfaEmailChallenge,
+  type PasswordResetToken,
+  type InsertPasswordResetToken,
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -54,6 +58,10 @@ export interface IStorage {
   updateUserPassword(id: string, passwordHash: string): Promise<User>;
   setMustChangePassword(id: string, mustChange: boolean): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  getUserMfa(id: string): Promise<Pick<User, 'id' | 'email' | 'mfaEnabled' | 'mfaSecretEncrypted' | 'mfaSecretDek' | 'mfaBackupCodes' | 'mfaInvitationDismissed' | 'mfaEnabledAt'> | undefined>;
+  setUserMfa(id: string, data: { mfaEnabled: boolean; mfaSecretEncrypted: string | null; mfaSecretDek: string | null; mfaBackupCodes: string[] | null; mfaEnabledAt: Date | null }): Promise<void>;
+  updateBackupCodes(id: string, codes: string[]): Promise<void>;
+  dismissMfaInvitation(id: string): Promise<void>;
 
   // Asset operations
   getAssets(): Promise<Asset[]>;
@@ -170,6 +178,7 @@ export interface IStorage {
   // Email settings operations
   getEmailSettings(): Promise<EmailSettings | undefined>;
   setEmailSettings(settings: Omit<EmailSettings, 'id' | 'updatedAt'>, userId: string): Promise<EmailSettings>;
+  touchEmailSettingsTest(id: string, at: Date): Promise<void>;
 
   // Notification policy operations
   getNotificationPolicies(): Promise<NotificationPolicy[]>;
@@ -252,6 +261,20 @@ export interface IStorage {
   insertEdrDeployment(data: InsertEdrDeployment): Promise<EdrDeployment>;
   getEdrDeploymentsByJourney(journeyId: string): Promise<EdrDeployment[]>;
   getEdrDeploymentsByJourneyWithHost(journeyId: string): Promise<Array<EdrDeployment & { hostName: string | null; hostIps: string[]; hostOperatingSystem: string | null }>>;
+
+  // MFA email challenges
+  createMfaEmailChallenge(data: InsertMfaEmailChallenge): Promise<MfaEmailChallenge>;
+  getActiveChallenges(userId: string): Promise<MfaEmailChallenge[]>;
+  consumeChallenge(id: string): Promise<void>;
+  countRecentChallenges(userId: string, sinceMs: number): Promise<number>;
+  cleanupOldChallenges(userId: string): Promise<void>;
+
+  // Password reset tokens
+  createPasswordResetToken(data: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  getActivePasswordResetTokens(): Promise<PasswordResetToken[]>;
+  consumePasswordResetToken(id: string): Promise<void>;
+  consumeAllPasswordResetTokensForUser(userId: string): Promise<void>;
+  cleanupOldPasswordResetTokens(userId: string): Promise<void>;
 
   // Database initialization
   initializeDatabaseStructure(): Promise<void>;

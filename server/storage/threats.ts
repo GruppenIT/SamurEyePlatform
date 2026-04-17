@@ -594,7 +594,7 @@ export async function createThreatStatusHistory(history: InsertThreatStatusHisto
   return newHistory;
 }
 
-export async function getThreatStatusHistory(threatId: string): Promise<(Omit<ThreatStatusHistory, 'changedBy'> & { changedBy: User })[]> {
+export async function getThreatStatusHistory(threatId: string): Promise<(Omit<ThreatStatusHistory, 'changedBy'> & { changedBy: Pick<User, 'id' | 'email' | 'passwordHash' | 'firstName' | 'lastName' | 'role' | 'profileImageUrl' | 'mustChangePassword' | 'createdAt' | 'updatedAt' | 'lastLogin'> })[]> {
   const results = await db
     .select({
       id: threatStatusHistory.id,

@@ -198,123 +198,26 @@ Após o registro, na página **Visão Geral**:
    - Você NÃO poderá visualizá-lo novamente (apenas o ID do Segredo)
    - Guarde-o com segurança
 
-### 4. Adicionar Permissões de API SMTP
+### 4. Adicionar Permissão Mail.Send (Microsoft Graph)
 
 1. Vá para **Permissões de API** → **Adicionar uma permissão**
-2. Selecione **APIs que a minha organização usa**
-3. Busque por **"Office 365 Exchange Online"**
-4. Clique em **Permissões de aplicativo** (não Delegadas)
-5. Selecione a permissão: **SMTP.Send** ou **SMTP.SendAsApp**
-6. Clique em **Adicionar permissões**
-7. Clique em **Conceder consentimento de administrador para [Nome do Locatário]** → **Sim**
+2. Selecione **Microsoft Graph**
+3. Clique em **Permissões de aplicativo** (não Delegadas)
+4. Busque e selecione **Mail.Send**
+5. Clique em **Adicionar permissões**
+6. Clique em **Conceder consentimento de administrador para [Nome do Locatário]** → **Sim**
 
-### 5. Registrar Service Principal no Exchange Online
+> **Nota:** O SamurEye envia e-mails via **Microsoft Graph API** (endpoint `sendMail`), não via SMTP. Por isso não é necessário registrar Service Principal no Exchange Online, nem habilitar SMTP Autenticado, nem conceder `SendAs` via PowerShell — `Mail.Send` no Graph já cobre tudo para envios em nome de qualquer caixa do tenant.
 
-Este é um passo crítico frequentemente esquecido. Execute estes comandos PowerShell:
+### 5. Credenciais Necessárias para o SamurEye (Microsoft 365)
 
-```powershell
-# Instalar módulo Exchange Online Management
-Install-Module -Name ExchangeOnlineManagement -Force
+O SamurEye usa **Client Credentials Flow** + **Microsoft Graph API**. Basta o app ter `Mail.Send` (permissão de aplicativo) concedida pelo admin do tenant. Não há Refresh Token nem etapas no Exchange PowerShell.
 
-# Conectar ao Exchange Online
-Connect-ExchangeOnline -UserPrincipalName admin@seudominio.com
-
-# Registrar o service principal (use seu Client ID)
-New-ServicePrincipal -AppId SEU_CLIENT_ID -ObjectId SEU_OBJECT_ID
-
-# Conceder permissões de caixa de correio (para a caixa que enviará emails)
-Add-MailboxPermission -Identity "remetente@seudominio.com" -User SEU_CLIENT_ID -AccessRights FullAccess
-
-Add-RecipientPermission -Identity "remetente@seudominio.com" -Trustee SEU_CLIENT_ID -AccessRights SendAs -Confirm:$false
-```
-
-**Nota**: Obtenha seu **Object ID** em:
-Azure Portal → **Aplicativos Empresariais** → Busque seu app → Copie **ID do Objeto**
-
-### 6. Habilitar SMTP Autenticado
-
-1. Acesse [Centro de Administração do Microsoft 365](https://admin.microsoft.com)
-2. Vá para **Usuários** → **Usuários ativos**
-3. Selecione o usuário da caixa de correio que enviará emails
-4. Clique em **Email** → **Gerenciar aplicativos de email**
-5. Certifique-se de que **SMTP Autenticado** está habilitado
-
-### 7. Obter Refresh Token (Microsoft 365)
-
-⚠️ **Importante**: Para SMTP OAuth2 com Microsoft, você usará **Client Credentials Flow**, que NÃO usa refresh tokens. Em vez disso, você obtém access tokens diretamente usando Client ID + Client Secret.
-
-No entanto, se precisar do **Authorization Code Flow** (com refresh token para acesso delegado):
-
-#### Passo A: Obter Código de Autorização
-
-⚠️ **IMPORTANTE**: Use o redirect URI que você registrou no Azure Portal (passo 1).
-
-Crie esta URL (substitua os valores):
-
-```
-https://login.microsoftonline.com/SEU_TENANT_ID/oauth2/v2.0/authorize?client_id=SEU_CLIENT_ID&response_type=code&redirect_uri=https://login.microsoftonline.com/common/oauth2/nativeclient&response_mode=query&scope=offline_access%20https://outlook.office365.com/.default&state=12345
-```
-
-**Versão formatada** (remova as quebras de linha ao usar):
-```
-https://login.microsoftonline.com/SEU_TENANT_ID/oauth2/v2.0/authorize?
-  client_id=SEU_CLIENT_ID
-  &response_type=code
-  &redirect_uri=https://login.microsoftonline.com/common/oauth2/nativeclient
-  &response_mode=query
-  &scope=offline_access https://outlook.office365.com/.default
-  &state=12345
-```
-
-**⚠️ ATENÇÃO**: 
-- O scope correto é `https://outlook.office365.com/.default` (não `SMTP.Send`)
-- Use o mesmo `redirect_uri` que você registrou no Azure Portal
-
-1. Abra a URL no navegador (copie e cole em uma linha única)
-2. Faça login com a conta Microsoft 365 que enviará emails
-3. Conceda as permissões solicitadas
-4. Você será redirecionado para uma página com o código na URL:
-   - Se usou `nativeclient`: A página mostrará o código diretamente
-   - Se usou `jwt.ms`: O código aparecerá decodificado
-   - Se usou `localhost:8080`: Copie o código da URL
-5. Copie o valor do parâmetro `code` da URL
-
-#### Passo B: Trocar Código por Tokens
-
-⚠️ **Use o MESMO redirect_uri** que você usou no Passo A.
-
-```bash
-curl -X POST https://login.microsoftonline.com/SEU_TENANT_ID/oauth2/v2.0/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "client_id=SEU_CLIENT_ID" \
-  -d "client_secret=SEU_CLIENT_SECRET" \
-  -d "code=CODIGO_DO_PASSO_A" \
-  -d "redirect_uri=https://login.microsoftonline.com/common/oauth2/nativeclient" \
-  -d "grant_type=authorization_code" \
-  -d "scope=https://outlook.office365.com/.default"
-```
-
-**Nota**: Substitua `SEU_TENANT_ID`, `SEU_CLIENT_ID`, `SEU_CLIENT_SECRET` e `CODIGO_DO_PASSO_A` pelos seus valores reais.
-
-A resposta conterá:
-```json
-{
-  "access_token": "eyJ0eXAi...",
-  "refresh_token": "0.AXoA...",
-  "expires_in": 3599,
-  "token_type": "Bearer",
-  "scope": "https://outlook.office365.com/.default"
-}
-```
-
-**Copie e salve o `refresh_token`** - você vai precisar dele para configurar o SamurEye.
-
-### Credenciais Necessárias para o SamurEye (Microsoft 365):
+Após concluir os passos 1–6, você terá tudo o que o SamurEye precisa:
 
 - **Client ID**: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
 - **Client Secret**: `abc123...`
 - **Tenant ID**: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
-- **Refresh Token**: `OAAABAAAAiL9Kn2Z...` (obtido no passo 7)
 
 ---
 
@@ -357,9 +260,10 @@ A resposta conterá:
 
 3. Preencha as credenciais OAuth2:
    - **Client ID**: Cole o Application (Client) ID do Azure
+   - **Tenant ID**: Cole o Directory (Tenant) ID do Azure
    - **Client Secret**: Cole o Client Secret criado
-   - **Refresh Token**: Cole o Refresh Token obtido
-   - **Tenant ID (Microsoft)**: Cole o Directory (Tenant) ID do Azure
+
+   > Microsoft 365 usa Client Credentials Flow — Refresh Token não é necessário.
 
 4. Preencha os dados do remetente:
    - **E-mail Remetente**: O email que enviará as notificações (ex: `alertas@suaempresa.com`)
@@ -447,13 +351,12 @@ Todas as credenciais OAuth2 são armazenadas de forma segura:
 - Client Secret e Refresh Token são criptografados antes de salvar no banco de dados
 - Campos sensíveis são redactados em logs de auditoria e respostas da API
 
-### Refresh Automático de Tokens
+### Obtenção Automática de Access Tokens
 
-O SamurEye renova automaticamente os access tokens usando os refresh tokens:
-- **Gmail**: Usa `googleapis` para renovação automática
-- **Microsoft 365**: Usa `@azure/msal-node` para renovação automática
-- Access tokens são obtidos dinamicamente antes de cada envio de email
-- Não é necessário intervir manualmente
+O SamurEye obtém access tokens frescos antes de cada envio de e-mail:
+- **Gmail**: Usa `googleapis` com o Refresh Token salvo (Authorization Code Flow).
+- **Microsoft 365**: Usa `@azure/msal-node` com Client Credentials Flow — só Client ID + Client Secret + Tenant ID.
+- Não é necessário intervir manualmente.
 
 ### Configurações SMTP
 

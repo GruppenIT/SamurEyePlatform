@@ -28,7 +28,7 @@ export interface ThreatStats {
 }
 
 export interface AssetFormData {
-  type: 'host' | 'range';
+  type: 'host' | 'range' | 'web_application';
   value: string;
   tags: string[];
 }

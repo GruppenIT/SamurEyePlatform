@@ -85,6 +85,13 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   role: userRoleEnum("role").default('read_only').notNull(),
   mustChangePassword: boolean("must_change_password").default(false).notNull(),
+  // MFA (TOTP) fields
+  mfaEnabled: boolean("mfa_enabled").default(false).notNull(),
+  mfaSecretEncrypted: text("mfa_secret_encrypted"),
+  mfaSecretDek: text("mfa_secret_dek"),
+  mfaBackupCodes: text("mfa_backup_codes").array(),
+  mfaEnabledAt: timestamp("mfa_enabled_at"),
+  mfaInvitationDismissed: boolean("mfa_invitation_dismissed").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastLogin: timestamp("last_login"),
@@ -96,9 +103,12 @@ export const assets = pgTable("assets", {
   type: assetTypeEnum("type").notNull(),
   value: text("value").notNull(), // FQDN, IP, or CIDR range
   tags: jsonb("tags").$type<string[]>().default([]).notNull(),
+  parentAssetId: varchar("parent_asset_id").references((): any => assets.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: varchar("created_by").references(() => users.id).notNull(),
-});
+}, (table) => [
+  index("IDX_assets_parent").on(table.parentAssetId),
+]);
 
 // Credentials table
 export const credentials = pgTable("credentials", {
@@ -487,6 +497,7 @@ export const emailSettings = pgTable("email_settings", {
   fromName: text("from_name").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   updatedBy: varchar("updated_by").references(() => users.id).notNull(),
+  lastTestSuccessAt: timestamp("last_test_success_at"),
 });
 
 // Notification policies table
@@ -560,10 +571,9 @@ export const usersRelations = relations(users, ({ many }) => ({
 }));
 
 export const assetsRelations = relations(assets, ({ one, many }) => ({
-  createdBy: one(users, {
-    fields: [assets.createdBy],
-    references: [users.id],
-  }),
+  createdBy: one(users, { fields: [assets.createdBy], references: [users.id] }),
+  parent: one(assets, { fields: [assets.parentAssetId], references: [assets.id], relationName: "assetParent" }),
+  children: many(assets, { relationName: "assetParent" }),
   threats: many(threats),
 }));
 
@@ -692,6 +702,9 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   passwordHash: true,
   mustChangePassword: true, // Security: não expor via API pública
+  mfaSecretEncrypted: true,
+  mfaSecretDek: true,
+  mfaBackupCodes: true,
   createdAt: true,
   updatedAt: true,
   lastLogin: true,
@@ -712,17 +725,28 @@ export const loginUserSchema = z.object({
   password: z.string().min(1, "Senha é obrigatória"),
 });
 
+// Shared password policy (min 12 chars + upper + lower + digit + special)
+export const passwordComplexitySchema = z.string()
+  .min(12, "Senha deve ter pelo menos 12 caracteres")
+  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/,
+    "Senha deve conter ao menos: 1 minúscula, 1 maiúscula, 1 número e 1 símbolo especial");
+
 // Schema para troca de senha
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Senha atual é obrigatória"),
-  newPassword: z.string().min(12, "Nova senha deve ter pelo menos 12 caracteres")
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/, 
-      "Nova senha deve conter ao menos: 1 minúscula, 1 maiúscula, 1 número e 1 símbolo especial"),
+  newPassword: passwordComplexitySchema,
   confirmPassword: z.string().min(1, "Confirmação de senha é obrigatória"),
 }).refine(data => data.newPassword === data.confirmPassword, {
   message: "As senhas não conferem",
   path: ["confirmPassword"], // Campo onde o erro será exibido
 });
+
+export const confirmPasswordResetSchema = z.object({
+  token: z.string().min(1, "Token obrigatório"),
+  newPassword: passwordComplexitySchema,
+});
+
+export type ConfirmPasswordReset = z.infer<typeof confirmPasswordResetSchema>;
 
 export const insertAssetSchema = createInsertSchema(assets).omit({
   id: true,
@@ -1030,6 +1054,34 @@ export const applianceCommands = pgTable("appliance_commands", {
 
 export type ApplianceCommand = typeof applianceCommands.$inferSelect;
 
+export const mfaEmailChallenges = pgTable("mfa_email_challenges", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  codeHash: text("code_hash").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  consumedAt: timestamp("consumed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_mfa_email_challenges_user_active").on(table.userId, table.expiresAt),
+]);
+
+export type MfaEmailChallenge = typeof mfaEmailChallenges.$inferSelect;
+export type InsertMfaEmailChallenge = typeof mfaEmailChallenges.$inferInsert;
+
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  tokenHash: text("token_hash").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  consumedAt: timestamp("consumed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_password_reset_tokens_user_active").on(table.userId, table.expiresAt),
+]);
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+
 // API contract types for appliance ↔ console communication
 export const activateApplianceSchema = z.object({
   apiKey: z.string().min(1, "Chave de API é obrigatória"),
@@ -1095,6 +1147,11 @@ export const heartbeatRequestSchema = z.object({
     jobsExecuted24h: z.number(),
     loginsToday: z.number(),
   }),
+  identity: z.object({
+    applianceName: z.string().max(100),
+    locationType: z.string().max(50),
+    locationDetail: z.string().max(200),
+  }).optional(),
   commandResults: z.array(commandResultSchema).optional(),
 });
 
