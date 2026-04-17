@@ -40,6 +40,7 @@ import { AssigneeSelector } from "@/components/action-plan/AssigneeSelector";
 import { RichTextEditor } from "@/components/rich-text/RichTextEditor";
 import { RichTextRenderer } from "@/components/rich-text/RichTextRenderer";
 import { useToast } from "@/hooks/use-toast";
+import { CommentsTab } from "@/components/action-plan/CommentsTab";
 
 const PRIORITY_LABEL: Record<ActionPlanPriority, string> = {
   low: "Baixa",
@@ -153,9 +154,7 @@ export default function ActionPlanDetailPage() {
             <SummaryTab plan={plan} />
           </TabsContent>
           <TabsContent value="comments">
-            <div className="py-4 text-sm text-muted-foreground">
-              (Comentários — em breve)
-            </div>
+            <CommentsTab planId={plan.id} planThreats={plan.threats ?? []} />
           </TabsContent>
           <TabsContent value="threats">
             <div className="py-4 text-sm text-muted-foreground">
