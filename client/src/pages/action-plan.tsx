@@ -4,6 +4,7 @@ import { LayoutGrid, List, Plus, Search, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useActionPlans, useChangeActionPlanStatus, type ActionPlanStatus, type ActionPlanPriority, type ActionPlanFilters, type ActionPlanListItem } from "@/hooks/useActionPlans";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +18,9 @@ import TopBar from "@/components/layout/topbar";
 
 type ViewMode = "list" | "kanban";
 
-const STATUS_OPTIONS: ActionPlanStatus[] = ["pending", "in_progress", "blocked", "done", "cancelled"];
+// Active statuses offered in the status dropdown filter.
+// Terminal statuses (done, cancelled) are opt-in via dedicated checkboxes.
+const STATUS_OPTIONS: ActionPlanStatus[] = ["pending", "in_progress", "blocked"];
 const PRIORITY_OPTIONS: ActionPlanPriority[] = ["low", "medium", "high", "critical"];
 const PRIORITY_LABEL: Record<ActionPlanPriority, string> = { low: "Baixa", medium: "Média", high: "Alta", critical: "Crítica" };
 
@@ -37,6 +40,8 @@ export default function ActionPlanPage() {
   const [statusFilter, setStatusFilter] = useState<Set<ActionPlanStatus>>(new Set());
   const [priorityFilter, setPriorityFilter] = useState<Set<ActionPlanPriority>>(new Set());
   const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null);
+  const [showDone, setShowDone] = useState(false);
+  const [showCancelled, setShowCancelled] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
 
   // Status transition dialog (used by kanban drops that need reason)
@@ -44,11 +49,21 @@ export default function ActionPlanPage() {
     open: boolean; plan: ActionPlanListItem | null; preselectTo?: ActionPlanStatus;
   }>({ open: false, plan: null });
 
+  // Effective list of statuses sent to the backend:
+  //  - If dropdown has selections: use those (only active statuses).
+  //  - Else: all 3 active statuses.
+  //  - Plus terminal statuses per checkbox toggles.
+  const effectiveStatuses: ActionPlanStatus[] = [
+    ...(statusFilter.size > 0 ? Array.from(statusFilter) : STATUS_OPTIONS),
+    ...(showDone ? (["done"] as ActionPlanStatus[]) : []),
+    ...(showCancelled ? (["cancelled"] as ActionPlanStatus[]) : []),
+  ];
+
   const filters: ActionPlanFilters = {
     limit: 100,
     offset: 0,
     search: search.trim() || undefined,
-    status: statusFilter.size > 0 ? Array.from(statusFilter) : undefined,
+    status: effectiveStatuses,
     priority: priorityFilter.size > 0 ? Array.from(priorityFilter) : undefined,
     assigneeId: assigneeFilter ?? undefined,
   };
@@ -100,6 +115,9 @@ export default function ActionPlanPage() {
     try {
       await changeStatus.mutateAsync({ id: plan.id, status: to, reason });
       toast({ title: "Status atualizado" });
+      // Auto-reveal the terminal column so the user doesn't think the card vanished
+      if (to === "done") setShowDone(true);
+      if (to === "cancelled") setShowCancelled(true);
     } catch (err: any) {
       toast({ title: "Erro ao mudar status", description: err.message ?? "Tente novamente.", variant: "destructive" });
       throw err; // keep dialog open so the user can retry
@@ -218,6 +236,23 @@ export default function ActionPlanPage() {
             <div className="w-[220px]">
               <AssigneeSelector value={assigneeFilter} onChange={setAssigneeFilter} />
             </div>
+
+            <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+              <Checkbox
+                checked={showDone}
+                onCheckedChange={(v) => setShowDone(v === true)}
+                aria-label="Exibir planos fechados"
+              />
+              Fechados
+            </label>
+            <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+              <Checkbox
+                checked={showCancelled}
+                onCheckedChange={(v) => setShowCancelled(v === true)}
+                aria-label="Exibir planos cancelados"
+              />
+              Cancelados
+            </label>
 
             <div className="ml-auto inline-flex rounded-md border">
               <Button
