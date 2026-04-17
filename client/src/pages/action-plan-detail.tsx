@@ -42,6 +42,7 @@ import { RichTextRenderer } from "@/components/rich-text/RichTextRenderer";
 import { useToast } from "@/hooks/use-toast";
 import { CommentsTab } from "@/components/action-plan/CommentsTab";
 import { ThreatsTab } from "@/components/action-plan/ThreatsTab";
+import { HistoryTab } from "@/components/action-plan/HistoryTab";
 
 const PRIORITY_LABEL: Record<ActionPlanPriority, string> = {
   low: "Baixa",
@@ -161,9 +162,7 @@ export default function ActionPlanDetailPage() {
             <ThreatsTab planId={plan.id} canEdit={canEdit} />
           </TabsContent>
           <TabsContent value="history">
-            <div className="py-4 text-sm text-muted-foreground">
-              (Histórico — em breve)
-            </div>
+            <HistoryTab planId={plan.id} />
           </TabsContent>
         </Tabs>
       </div>
