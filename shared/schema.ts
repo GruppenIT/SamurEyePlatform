@@ -12,6 +12,7 @@ import {
   boolean,
   pgEnum,
   real,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -565,6 +566,30 @@ export const applianceSubscription = pgTable("appliance_subscription", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   updatedBy: varchar("updated_by").references(() => users.id),
 });
+
+// Action Plans tables
+export const actionPlans = pgTable('action_plans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  code: varchar('code', { length: 20 }).notNull().unique(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  status: actionPlanStatusEnum('status').notNull().default('pending'),
+  priority: actionPlanPriorityEnum('priority').notNull().default('medium'),
+  createdBy: uuid('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  assigneeId: uuid('assignee_id').references(() => users.id, { onDelete: 'set null' }),
+  blockReason: text('block_reason'),
+  cancelReason: text('cancel_reason'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => ({
+  codeIdx: uniqueIndex('action_plans_code_idx').on(t.code),
+  statusIdx: index('action_plans_status_idx').on(t.status),
+  assigneeIdx: index('action_plans_assignee_idx').on(t.assigneeId),
+}));
+
+export type ActionPlan = typeof actionPlans.$inferSelect;
+export type NewActionPlan = typeof actionPlans.$inferInsert;
+export const insertActionPlanSchema = createInsertSchema(actionPlans);
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
