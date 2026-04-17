@@ -6,6 +6,7 @@ import { db } from '../db';
 import { actionPlans } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { createLogger } from '../lib/logger';
+import { listActionPlans } from '../storage/actionPlans';
 
 const log = createLogger('routes:action-plans');
 
@@ -24,7 +25,27 @@ async function assertEditable(planId: string, userId: string): Promise<void> {
   }
 }
 
+const listQuerySchema = z.object({
+  status: z.string().optional().transform(s => s?.split(',').filter(Boolean)),
+  priority: z.string().optional().transform(s => s?.split(',').filter(Boolean)),
+  assigneeId: z.string().optional(),
+  search: z.string().max(200).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(25),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
 export function registerActionPlanRoutes(app: Express): void {
-  // Endpoints will be added in subsequent tasks (C3-C12).
-  log.info('action plans route module registered (scaffold — no endpoints yet)');
+  log.info('action plans route module registered');
+
+  app.get('/api/v1/action-plans', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const q = listQuerySchema.parse(req.query);
+      const { rows, total } = await listActionPlans(q);
+      res.json({ rows, total, limit: q.limit, offset: q.offset });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      log.error({ err }, 'list action plans failed');
+      res.status(500).json({ error: 'Erro ao listar planos.' });
+    }
+  });
 }
