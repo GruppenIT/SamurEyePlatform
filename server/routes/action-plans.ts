@@ -4,7 +4,8 @@ import { requireOperator } from './middleware';
 import { z } from 'zod';
 import { db } from '../db';
 import { actionPlans, actionPlanThreats, actionPlanComments, actionPlanCommentThreats } from '@shared/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, ne, sql } from 'drizzle-orm';
+import { users } from '@shared/schema';
 import { createLogger } from '../lib/logger';
 import { listActionPlans } from '../storage/actionPlans';
 import { getActionPlanById, getPlanThreats, getPlanComments, getPlanHistory } from '../storage/actionPlans';
@@ -112,6 +113,25 @@ export function registerActionPlanRoutes(app: Express): void {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
       log.error({ err }, 'create plan failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao criar plano.' });
+    }
+  });
+
+  // C12: GET /api/v1/action-plans/assignees
+  app.get('/api/v1/action-plans/assignees', isAuthenticatedWithPasswordCheck, async (_req, res) => {
+    try {
+      const rows = await db
+        .select({
+          id: users.id,
+          name: sql<string>`coalesce(nullif(trim(concat_ws(' ', ${users.firstName}, ${users.lastName})), ''), ${users.email})`,
+          email: users.email,
+        })
+        .from(users)
+        .where(ne(users.role, 'global_administrator'))
+        .orderBy(users.email);
+      res.json(rows);
+    } catch (err: any) {
+      log.error({ err }, 'list assignees failed');
+      res.status(500).json({ error: 'Erro ao listar responsáveis.' });
     }
   });
 
