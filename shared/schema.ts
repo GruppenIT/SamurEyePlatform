@@ -12,7 +12,6 @@ import {
   boolean,
   pgEnum,
   real,
-  uuid,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -569,14 +568,14 @@ export const applianceSubscription = pgTable("appliance_subscription", {
 
 // Action Plans tables
 export const actionPlans = pgTable('action_plans', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
   code: varchar('code', { length: 20 }).notNull().unique(),
   title: varchar('title', { length: 255 }).notNull(),
   description: text('description'),
   status: actionPlanStatusEnum('status').notNull().default('pending'),
   priority: actionPlanPriorityEnum('priority').notNull().default('medium'),
-  createdBy: uuid('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
-  assigneeId: uuid('assignee_id').references(() => users.id, { onDelete: 'set null' }),
+  createdBy: varchar('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  assigneeId: varchar('assignee_id').references(() => users.id, { onDelete: 'set null' }),
   blockReason: text('block_reason'),
   cancelReason: text('cancel_reason'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -592,11 +591,11 @@ export type NewActionPlan = typeof actionPlans.$inferInsert;
 export const insertActionPlanSchema = createInsertSchema(actionPlans);
 
 export const actionPlanThreats = pgTable('action_plan_threats', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  actionPlanId: uuid('action_plan_id').notNull().references(() => actionPlans.id, { onDelete: 'cascade' }),
-  threatId: uuid('threat_id').notNull().references(() => threats.id, { onDelete: 'cascade' }),
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  actionPlanId: varchar('action_plan_id').notNull().references(() => actionPlans.id, { onDelete: 'cascade' }),
+  threatId: varchar('threat_id').notNull().references(() => threats.id, { onDelete: 'cascade' }),
   addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
-  addedBy: uuid('added_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  addedBy: varchar('added_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
 }, (t) => ({
   uniqPlanThreat: uniqueIndex('action_plan_threats_plan_threat_idx').on(t.actionPlanId, t.threatId),
   threatIdx: index('action_plan_threats_threat_idx').on(t.threatId),
@@ -605,9 +604,9 @@ export const actionPlanThreats = pgTable('action_plan_threats', {
 export type ActionPlanThreat = typeof actionPlanThreats.$inferSelect;
 
 export const actionPlanComments = pgTable('action_plan_comments', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  actionPlanId: uuid('action_plan_id').notNull().references(() => actionPlans.id, { onDelete: 'cascade' }),
-  authorId: uuid('author_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  actionPlanId: varchar('action_plan_id').notNull().references(() => actionPlans.id, { onDelete: 'cascade' }),
+  authorId: varchar('author_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
   content: text('content').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }),
@@ -618,18 +617,18 @@ export const actionPlanComments = pgTable('action_plan_comments', {
 export type ActionPlanComment = typeof actionPlanComments.$inferSelect;
 
 export const actionPlanCommentThreats = pgTable('action_plan_comment_threats', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  commentId: uuid('comment_id').notNull().references(() => actionPlanComments.id, { onDelete: 'cascade' }),
-  threatId: uuid('threat_id').notNull().references(() => threats.id, { onDelete: 'cascade' }),
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  commentId: varchar('comment_id').notNull().references(() => actionPlanComments.id, { onDelete: 'cascade' }),
+  threatId: varchar('threat_id').notNull().references(() => threats.id, { onDelete: 'cascade' }),
 }, (t) => ({
   uniqCommentThreat: uniqueIndex('ap_comment_threats_unique_idx').on(t.commentId, t.threatId),
   threatIdx: index('ap_comment_threats_threat_idx').on(t.threatId),
 }));
 
 export const actionPlanHistory = pgTable('action_plan_history', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  actionPlanId: uuid('action_plan_id').notNull().references(() => actionPlans.id, { onDelete: 'cascade' }),
-  actorId: uuid('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  actionPlanId: varchar('action_plan_id').notNull().references(() => actionPlans.id, { onDelete: 'cascade' }),
+  actorId: varchar('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
   action: varchar('action', { length: 64 }).notNull(),
   detailsJson: jsonb('details_json'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
