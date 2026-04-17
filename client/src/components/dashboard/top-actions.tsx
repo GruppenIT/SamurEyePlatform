@@ -23,7 +23,7 @@ function truncate(text: string | null | undefined, maxLen: number): string {
 
 export default function TopActions() {
   const { data: actionPlan = [], isLoading } = useQuery<ActionPlanItem[]>({
-    queryKey: ["/api/action-plan"],
+    queryKey: ["/api/recommendations/top"],
     staleTime: 60_000,
   });
 
