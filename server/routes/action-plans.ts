@@ -3,12 +3,12 @@ import { isAuthenticatedWithPasswordCheck } from '../localAuth';
 import { requireOperator } from './middleware';
 import { z } from 'zod';
 import { db } from '../db';
-import { actionPlans, actionPlanThreats } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { actionPlans, actionPlanThreats, actionPlanComments, actionPlanCommentThreats } from '@shared/schema';
+import { eq, and, inArray } from 'drizzle-orm';
 import { createLogger } from '../lib/logger';
 import { listActionPlans } from '../storage/actionPlans';
 import { getActionPlanById, getPlanThreats, getPlanComments, getPlanHistory } from '../storage/actionPlans';
-import { generateNextActionPlanCode, recordHistory, applyStatusChange } from '../services/actionPlanService';
+import { generateNextActionPlanCode, recordHistory, applyStatusChange, removeThreatFromPlan } from '../services/actionPlanService';
 import { sanitizeActionPlanHtml } from '../lib/htmlSanitizer';
 
 const log = createLogger('routes:action-plans');
@@ -205,6 +205,73 @@ export function registerActionPlanRoutes(app: Express): void {
       if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
       log.error({ err, planId: req.params.id, to: req.body?.status }, 'status change failed');
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao mudar status.', code: err.code });
+    }
+  });
+
+  // ── C8: Threats CRUD ────────────────────────────────────────────────────────
+
+  const associateThreatsSchema = z.object({
+    threatIds: z.array(z.string()).min(1).max(500),
+  });
+
+  // C8.1: POST /api/v1/action-plans/:id/threats
+  app.post('/api/v1/action-plans/:id/threats', isAuthenticatedWithPasswordCheck, requireOperator, async (req, res) => {
+    try {
+      const planId = z.string().parse(req.params.id);
+      const body = associateThreatsSchema.parse(req.body);
+      const userId = (req.user as any).id as string;
+      await assertEditable(planId, userId);
+
+      await db.transaction(async (tx) => {
+        await tx.insert(actionPlanThreats)
+          .values(body.threatIds.map(tid => ({ actionPlanId: planId, threatId: tid, addedBy: userId })))
+          .onConflictDoNothing();
+
+        for (const tid of body.threatIds) {
+          await recordHistory(tx as any, {
+            actionPlanId: planId,
+            actorId: userId,
+            action: 'threat_added',
+            detailsJson: { threatId: tid },
+          });
+        }
+      });
+
+      res.status(201).json({ ok: true });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      log.error({ err }, 'associate threats failed');
+      res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao associar ameaças.' });
+    }
+  });
+
+  // C8.2: DELETE /api/v1/action-plans/:id/threats/:threatId
+  app.delete('/api/v1/action-plans/:id/threats/:threatId', isAuthenticatedWithPasswordCheck, requireOperator, async (req, res) => {
+    try {
+      const planId = z.string().parse(req.params.id);
+      const threatId = z.string().parse(req.params.threatId);
+      const userId = (req.user as any).id as string;
+      await assertEditable(planId, userId);
+
+      await removeThreatFromPlan({ planId, threatId, actorId: userId });
+      res.json({ ok: true });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      log.error({ err }, 'remove threat failed');
+      res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao remover ameaça do plano.' });
+    }
+  });
+
+  // C8.3: GET /api/v1/action-plans/:id/threats
+  app.get('/api/v1/action-plans/:id/threats', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const planId = z.string().parse(req.params.id);
+      const rows = await getPlanThreats(planId);
+      res.json(rows);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      log.error({ err }, 'list plan threats failed');
+      res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao listar ameaças.' });
     }
   });
 }
