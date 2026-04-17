@@ -274,4 +274,117 @@ export function registerActionPlanRoutes(app: Express): void {
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao listar ameaças.' });
     }
   });
+
+  // ── C9: Comments ────────────────────────────────────────────────────────────
+
+  const createCommentSchema = z.object({
+    content: z.string().min(1).max(100_000),
+    threatIds: z.array(z.string()).optional(),
+  });
+
+  const editCommentSchema = z.object({
+    content: z.string().min(1).max(100_000),
+  });
+
+  // C9.1: POST /api/v1/action-plans/:id/comments
+  app.post('/api/v1/action-plans/:id/comments', isAuthenticatedWithPasswordCheck, requireOperator, async (req, res) => {
+    try {
+      const planId = z.string().parse(req.params.id);
+      const body = createCommentSchema.parse(req.body);
+      const userId = (req.user as any).id as string;
+
+      if (body.threatIds && body.threatIds.length > 0) {
+        const planThreats = await db.select({ threatId: actionPlanThreats.threatId })
+          .from(actionPlanThreats)
+          .where(and(
+            eq(actionPlanThreats.actionPlanId, planId),
+            inArray(actionPlanThreats.threatId, body.threatIds),
+          ));
+        const validIds = new Set(planThreats.map(r => r.threatId));
+        const invalid = body.threatIds.filter(t => !validIds.has(t));
+        if (invalid.length > 0) {
+          return res.status(400).json({ error: 'Uma ou mais ameaças não pertencem a este plano.', invalidThreatIds: invalid });
+        }
+      }
+
+      const comment = await db.transaction(async (tx) => {
+        const [c] = await tx.insert(actionPlanComments).values({
+          actionPlanId: planId,
+          authorId: userId,
+          content: sanitizeActionPlanHtml(body.content),
+        }).returning();
+
+        if (body.threatIds && body.threatIds.length > 0) {
+          await tx.insert(actionPlanCommentThreats).values(
+            body.threatIds.map(tid => ({ commentId: c.id, threatId: tid }))
+          );
+        }
+
+        await recordHistory(tx as any, {
+          actionPlanId: planId,
+          actorId: userId,
+          action: 'comment_added',
+          detailsJson: { commentId: c.id, threatIds: body.threatIds ?? [] },
+        });
+
+        return c;
+      });
+
+      res.status(201).json(comment);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      log.error({ err }, 'create comment failed');
+      res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao criar comentário.' });
+    }
+  });
+
+  // C9.2: GET /api/v1/action-plans/:id/comments
+  app.get('/api/v1/action-plans/:id/comments', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const planId = z.string().parse(req.params.id);
+      const threatId = typeof req.query.threatId === 'string' ? req.query.threatId : undefined;
+      const rows = await getPlanComments(planId, threatId);
+      res.json(rows);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      log.error({ err }, 'list comments failed');
+      res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao listar comentários.' });
+    }
+  });
+
+  // C9.3: PATCH /api/v1/action-plans/:id/comments/:commentId
+  app.patch('/api/v1/action-plans/:id/comments/:commentId', isAuthenticatedWithPasswordCheck, requireOperator, async (req, res) => {
+    try {
+      const planId = z.string().parse(req.params.id);
+      const commentId = z.string().parse(req.params.commentId);
+      const body = editCommentSchema.parse(req.body);
+      const userId = (req.user as any).id as string;
+
+      const [existing] = await db.select({ authorId: actionPlanComments.authorId, actionPlanId: actionPlanComments.actionPlanId })
+        .from(actionPlanComments).where(eq(actionPlanComments.id, commentId));
+      if (!existing) return res.status(404).json({ error: 'Comentário não encontrado.' });
+      if (existing.actionPlanId !== planId) return res.status(404).json({ error: 'Comentário não pertence a este plano.' });
+      if (existing.authorId !== userId) return res.status(403).json({ error: 'Apenas o autor pode editar este comentário.' });
+
+      await db.transaction(async (tx) => {
+        await tx.update(actionPlanComments).set({
+          content: sanitizeActionPlanHtml(body.content),
+          updatedAt: new Date(),
+        }).where(eq(actionPlanComments.id, commentId));
+
+        await recordHistory(tx as any, {
+          actionPlanId: planId,
+          actorId: userId,
+          action: 'comment_edited',
+          detailsJson: { commentId },
+        });
+      });
+
+      res.json({ ok: true });
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      log.error({ err }, 'edit comment failed');
+      res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao editar comentário.' });
+    }
+  });
 }
