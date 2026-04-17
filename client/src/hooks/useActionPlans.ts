@@ -494,18 +494,22 @@ export interface PlanLink {
 /**
  * Bulk lookup: for a list of threat IDs, returns the plans each threat belongs to.
  * Uses POST /api/v1/action-plans/plan-links (body instead of query string for large lists).
+ *
+ * Pass `excludeTerminal: true` to only count active plans (pending/in_progress/blocked).
+ * Useful for "is this threat being worked on right now?" indicators.
  */
-export function usePlanLinks(threatIds: string[]) {
+export function usePlanLinks(threatIds: string[], opts?: { excludeTerminal?: boolean }) {
   const stableIds = [...threatIds].sort().join(',');
+  const excludeTerminal = !!opts?.excludeTerminal;
   return useQuery<Record<string, PlanLink[]>>({
-    queryKey: ['action-plans', 'plan-links', stableIds],
+    queryKey: ['action-plans', 'plan-links', stableIds, excludeTerminal],
     enabled: threatIds.length > 0,
     queryFn: async () => {
       const res = await fetch('/api/v1/action-plans/plan-links', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ threatIds }),
+        body: JSON.stringify({ threatIds, excludeTerminal }),
       });
       if (!res.ok) throw new Error('Erro ao buscar ligações com planos.');
       return res.json();
