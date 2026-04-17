@@ -918,13 +918,35 @@ export default function Threats() {
           >
             <TableCell>
               <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={selectedIds.has(parent.id)}
-                  onCheckedChange={(checked) =>
-                    toggleSelectOne(parent.id, !!checked)
-                  }
-                  aria-label={`Selecionar ${parent.title}`}
-                />
+                {(() => {
+                  const childIds = children.map(c => c.id);
+                  const selectedChildCount = childIds.filter(id => selectedIds.has(id)).length;
+                  const allChildrenSelected = childIds.length > 0 && selectedChildCount === childIds.length;
+                  const someChildrenSelected = selectedChildCount > 0 && !allChildrenSelected;
+                  const checkState: boolean | "indeterminate" = allChildrenSelected
+                    ? true
+                    : someChildrenSelected
+                      ? "indeterminate"
+                      : false;
+
+                  return (
+                    <Checkbox
+                      checked={checkState}
+                      onCheckedChange={(val) => {
+                        setSelectedIds(prev => {
+                          const next = new Set(prev);
+                          if (val === true) {
+                            childIds.forEach(id => next.add(id));
+                          } else {
+                            childIds.forEach(id => next.delete(id));
+                          }
+                          return next;
+                        });
+                      }}
+                      aria-label={`Selecionar todas as ameaças do grupo ${parent.title}`}
+                    />
+                  );
+                })()}
                 {children.length > 0 && (
                   <CollapsibleTrigger asChild>
                     <button
