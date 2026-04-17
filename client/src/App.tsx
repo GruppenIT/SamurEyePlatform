@@ -10,6 +10,8 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import ChangePassword from "@/pages/change-password";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 import Postura from "@/pages/postura";
 import Relatorios from "@/pages/relatorios";
 import Assets from "@/pages/assets";
@@ -111,6 +113,8 @@ function Router() {
       <Switch>
         <Route path="/" component={Landing} />
         <Route path="/login" component={Login} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
         {/* Redirect any other path to login */}
         <Route>{() => <Redirect to="/login" />}</Route>
       </Switch>

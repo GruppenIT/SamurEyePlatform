@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Eye, EyeOff, Loader2 } from "lucide-react";
-import { useLocation } from "wouter";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link, useLocation } from "wouter";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,11 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  const featuresQuery = useQuery<{ passwordRecoveryAvailable: boolean }>({
+    queryKey: ["/api/auth/features"],
+    retry: false,
+  });
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -159,6 +164,14 @@ export default function Login() {
                 )}
                 Fazer Login
               </Button>
+
+              {featuresQuery.data?.passwordRecoveryAvailable && (
+                <div className="text-center text-sm">
+                  <Link href="/forgot-password" className="text-primary hover:underline" data-testid="link-forgot-password">
+                    Esqueci minha senha
+                  </Link>
+                </div>
+              )}
             </form>
           </Form>
 
