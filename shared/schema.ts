@@ -617,6 +617,15 @@ export const actionPlanComments = pgTable('action_plan_comments', {
 
 export type ActionPlanComment = typeof actionPlanComments.$inferSelect;
 
+export const actionPlanCommentThreats = pgTable('action_plan_comment_threats', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  commentId: uuid('comment_id').notNull().references(() => actionPlanComments.id, { onDelete: 'cascade' }),
+  threatId: uuid('threat_id').notNull().references(() => threats.id, { onDelete: 'cascade' }),
+}, (t) => ({
+  uniqCommentThreat: uniqueIndex('ap_comment_threats_unique_idx').on(t.commentId, t.threatId),
+  threatIdx: index('ap_comment_threats_threat_idx').on(t.threatId),
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   assets: many(assets),
