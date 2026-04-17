@@ -164,7 +164,7 @@ export function StatusTransitionDialog({
             )}
 
             {to === "done" && (
-              <div className="rounded-md border border-amber-400/40 bg-amber-50 dark:bg-amber-950/20 p-3 text-sm space-y-1">
+              <div className="rounded-md border border-amber-400/40 bg-amber-50 dark:bg-amber-950/20 p-3 text-sm space-y-1 text-amber-900 dark:text-amber-100">
                 <div className="font-medium">Ao fechar o plano:</div>
                 <ul className="list-disc pl-5 text-xs space-y-0.5">
                   <li>O plano ficará marcado como finalizado e não poderá mais ser editado.</li>
@@ -175,7 +175,7 @@ export function StatusTransitionDialog({
             )}
 
             {to === "cancelled" && (
-              <div className="rounded-md border border-red-400/40 bg-red-50 dark:bg-red-950/20 p-3 text-sm space-y-1">
+              <div className="rounded-md border border-red-400/40 bg-red-50 dark:bg-red-950/20 p-3 text-sm space-y-1 text-red-900 dark:text-red-100">
                 <div className="font-medium">Ao cancelar o plano:</div>
                 <ul className="list-disc pl-5 text-xs space-y-0.5">
                   <li>O plano ficará marcado como cancelado e não poderá mais ser editado.</li>
@@ -186,7 +186,7 @@ export function StatusTransitionDialog({
             )}
 
             {isReopening && transition && (
-              <div className="rounded-md border border-blue-400/40 bg-blue-50 dark:bg-blue-950/20 p-3 text-sm space-y-1">
+              <div className="rounded-md border border-blue-400/40 bg-blue-50 dark:bg-blue-950/20 p-3 text-sm space-y-1 text-blue-900 dark:text-blue-100">
                 <div className="font-medium">Ao reabrir o plano:</div>
                 <ul className="list-disc pl-5 text-xs space-y-0.5">
                   <li>O plano volta a ser editável e o status {currentStatus === "done" ? "\"Fechado\"" : "\"Cancelado\""} é revertido.</li>
