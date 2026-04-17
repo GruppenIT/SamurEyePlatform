@@ -510,7 +510,7 @@ install_application() {
     fi
     
     # Cria diretórios necessários
-    mkdir -p logs backups temp
+    mkdir -p logs backups temp uploads/action-plans
     
     # Define permissões
     chown -R $SERVICE_USER:$SERVICE_GROUP $INSTALL_DIR
