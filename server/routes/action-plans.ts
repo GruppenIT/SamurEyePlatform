@@ -441,6 +441,51 @@ export function registerActionPlanRoutes(app: Express): void {
     }
   );
 
+  // C12: POST /api/v1/action-plans/plan-links — bulk threat→plan lookup
+  const planLinksSchema = z.object({
+    threatIds: z.array(z.string()).min(1).max(500),
+    excludeTerminal: z.boolean().optional(),
+  });
+
+  app.post('/api/v1/action-plans/plan-links', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const body = planLinksSchema.parse(req.body);
+
+      const rows = await db.select({
+        threatId: actionPlanThreats.threatId,
+        planId: actionPlans.id,
+        code: actionPlans.code,
+        title: actionPlans.title,
+        status: actionPlans.status,
+      })
+        .from(actionPlanThreats)
+        .innerJoin(actionPlans, eq(actionPlans.id, actionPlanThreats.actionPlanId))
+        .where(
+          body.excludeTerminal
+            ? and(
+                inArray(actionPlanThreats.threatId, body.threatIds),
+                sql`${actionPlans.status} NOT IN ('done','cancelled')`,
+              )
+            : inArray(actionPlanThreats.threatId, body.threatIds),
+        );
+
+      const result: Record<string, Array<{ id: string; code: string; title: string; status: string }>> = {};
+      for (const r of rows) {
+        if (!result[r.threatId]) result[r.threatId] = [];
+        result[r.threatId].push({ id: r.planId, code: r.code, title: r.title, status: r.status });
+      }
+      for (const tid of body.threatIds) {
+        if (!result[tid]) result[tid] = [];
+      }
+
+      res.json(result);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      log.error({ err }, 'plan-links lookup failed');
+      res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao consultar ligações.' });
+    }
+  });
+
   // C11: GET /api/v1/action-plans/images/:filename
   app.get('/api/v1/action-plans/images/:filename', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
