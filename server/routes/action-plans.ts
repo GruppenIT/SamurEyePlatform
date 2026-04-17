@@ -387,4 +387,19 @@ export function registerActionPlanRoutes(app: Express): void {
       res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao editar comentário.' });
     }
   });
+
+  // ── C10: History timeline ───────────────────────────────────────────────────
+
+  // C10: GET /api/v1/action-plans/:id/history
+  app.get('/api/v1/action-plans/:id/history', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const planId = z.string().parse(req.params.id);
+      const rows = await getPlanHistory(planId);
+      res.json(rows);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ error: err.issues });
+      log.error({ err }, 'list history failed');
+      res.status(err.status ?? 500).json({ error: err.message ?? 'Erro ao listar histórico.' });
+    }
+  });
 }
