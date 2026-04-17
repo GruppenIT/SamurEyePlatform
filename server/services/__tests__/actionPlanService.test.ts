@@ -39,12 +39,22 @@ describe.skipIf(!hasDb)('generateNextActionPlanCode', () => {
 });
 
 describe('validateStatusTransition', () => {
-  it('blocks done → anything', () => {
-    const r = validateStatusTransition('done','pending');
-    expect(r).toMatchObject({ ok:false, code:'INVALID_TRANSITION' });
+  it('blocks invalid transitions from terminal states', () => {
+    // done/cancelled can only reopen to pending or in_progress — not to blocked or back to done/cancelled
+    expect(validateStatusTransition('done','blocked')).toMatchObject({ ok:false, code:'INVALID_TRANSITION' });
+    expect(validateStatusTransition('done','cancelled')).toMatchObject({ ok:false, code:'INVALID_TRANSITION' });
+    expect(validateStatusTransition('cancelled','blocked')).toMatchObject({ ok:false, code:'INVALID_TRANSITION' });
+    expect(validateStatusTransition('cancelled','done')).toMatchObject({ ok:false, code:'INVALID_TRANSITION' });
   });
-  it('blocks cancelled → anything', () => {
-    expect(validateStatusTransition('cancelled','in_progress')).toMatchObject({ ok:false });
+  it('requires reopen reason for done → pending/in_progress', () => {
+    expect(validateStatusTransition('done','pending')).toMatchObject({ ok:false, code:'REASON_REQUIRED' });
+    expect(validateStatusTransition('done','pending','reabrindo para complemento')).toEqual({ ok:true });
+    expect(validateStatusTransition('done','in_progress','voltar a tratar')).toEqual({ ok:true });
+  });
+  it('requires reopen reason for cancelled → pending/in_progress', () => {
+    expect(validateStatusTransition('cancelled','in_progress')).toMatchObject({ ok:false, code:'REASON_REQUIRED' });
+    expect(validateStatusTransition('cancelled','in_progress','decidimos retomar')).toEqual({ ok:true });
+    expect(validateStatusTransition('cancelled','pending','voltar para backlog')).toEqual({ ok:true });
   });
   it('requires reason for pending → blocked', () => {
     expect(validateStatusTransition('pending','blocked')).toMatchObject({ ok:false, code:'REASON_REQUIRED' });
@@ -58,8 +68,9 @@ describe('validateStatusTransition', () => {
     expect(validateStatusTransition('blocked','pending','desbloqueado manualmente')).toEqual({ ok:true });
   });
   it('getAllowedTransitions returns only transitions from the given state', () => {
-    const from = getAllowedTransitions('pending');
-    expect(from.map(t => t.to)).toEqual(['in_progress','blocked','cancelled']);
+    expect(getAllowedTransitions('pending').map(t => t.to)).toEqual(['in_progress','blocked','cancelled']);
+    expect(getAllowedTransitions('done').map(t => t.to)).toEqual(['pending','in_progress']);
+    expect(getAllowedTransitions('cancelled').map(t => t.to)).toEqual(['pending','in_progress']);
   });
 });
 

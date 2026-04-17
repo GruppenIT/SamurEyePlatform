@@ -8,7 +8,7 @@ export type ActionPlanStatus = 'pending'|'in_progress'|'blocked'|'done'|'cancell
 export interface StatusTransition {
   from: ActionPlanStatus;
   to: ActionPlanStatus;
-  requiresReason: 'block'|'cancel'|'unblock'|null;
+  requiresReason: 'block'|'cancel'|'unblock'|'reopen'|null;
 }
 
 export const STATUS_TRANSITIONS: StatusTransition[] = [
@@ -21,6 +21,11 @@ export const STATUS_TRANSITIONS: StatusTransition[] = [
   { from:'blocked',     to:'pending',     requiresReason:'unblock' },
   { from:'blocked',     to:'in_progress', requiresReason:'unblock' },
   { from:'blocked',     to:'cancelled',   requiresReason:'cancel' },
+  // Reopen transitions from terminal states
+  { from:'done',        to:'pending',     requiresReason:'reopen' },
+  { from:'done',        to:'in_progress', requiresReason:'reopen' },
+  { from:'cancelled',   to:'pending',     requiresReason:'reopen' },
+  { from:'cancelled',   to:'in_progress', requiresReason:'reopen' },
 ];
 
 export function getAllowedTransitions(from: ActionPlanStatus) {
@@ -98,6 +103,7 @@ export async function applyStatusChange(params: {
     if (params.to === 'blocked') patch.blockReason = params.reason ?? null;
     else patch.blockReason = null;
     if (params.to === 'cancelled') patch.cancelReason = params.reason ?? null;
+    else patch.cancelReason = null;
 
     await tx.update(actionPlans).set(patch).where(eq(actionPlans.id, params.planId));
     await recordHistory(tx, {
