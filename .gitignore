@@ -5,3 +5,16 @@ server/public
 vite.config.ts.*
 *.tar.gz
 .version
+
+# Secrets and local-only state
+.env
+.env.*
+!.env.example
+cookie.txt
+
+# Local runtime dirs
+.npm/
+logs/
+temp/
+backups/
+uploads/
