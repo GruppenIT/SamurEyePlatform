@@ -75,7 +75,7 @@ const createSchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().max(100_000).optional(),
   priority: z.enum(['low','medium','high','critical']).default('medium'),
-  assigneeId: z.string().nullable().optional(),
+  assigneeId: z.string().min(1, 'Responsável é obrigatório.'),
   threatIds: z.array(z.string()).optional(),
 });
 
@@ -83,7 +83,7 @@ const patchSchema = z.object({
   title: z.string().min(1).max(255).optional(),
   description: z.string().max(100_000).nullable().optional(),
   priority: z.enum(['low','medium','high','critical']).optional(),
-  assigneeId: z.string().nullable().optional(),
+  assigneeId: z.string().min(1, 'Responsável não pode ser removido.').optional(),
 }).refine(v => Object.keys(v).length > 0, 'Ao menos um campo obrigatório.');
 
 const statusSchema = z.object({
@@ -120,7 +120,7 @@ export function registerActionPlanRoutes(app: Express): void {
           title: body.title,
           description: body.description ? sanitizeActionPlanHtml(body.description) : null,
           priority: body.priority,
-          assigneeId: body.assigneeId ?? null,
+          assigneeId: body.assigneeId,
           createdBy: userId,
         }).returning();
 
@@ -159,7 +159,7 @@ export function registerActionPlanRoutes(app: Express): void {
           email: users.email,
         })
         .from(users)
-        .where(ne(users.role, 'global_administrator'))
+        .where(sql`${users.email} NOT LIKE 'admin@%' AND ${users.email} NOT LIKE 'system@%'`)
         .orderBy(users.email);
       res.json(rows);
     } catch (err: any) {
