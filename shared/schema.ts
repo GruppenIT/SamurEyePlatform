@@ -626,6 +626,33 @@ export const actionPlanCommentThreats = pgTable('action_plan_comment_threats', {
   threatIdx: index('ap_comment_threats_threat_idx').on(t.threatId),
 }));
 
+export const actionPlanHistory = pgTable('action_plan_history', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  actionPlanId: uuid('action_plan_id').notNull().references(() => actionPlans.id, { onDelete: 'cascade' }),
+  actorId: uuid('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  action: varchar('action', { length: 64 }).notNull(),
+  detailsJson: jsonb('details_json'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => ({
+  planIdx: index('action_plan_history_plan_idx').on(t.actionPlanId, t.createdAt),
+}));
+
+export type ActionPlanHistory = typeof actionPlanHistory.$inferSelect;
+
+export const ACTION_PLAN_HISTORY_ACTIONS = [
+  'created',
+  'status_changed',
+  'assignee_changed',
+  'title_changed',
+  'description_changed',
+  'priority_changed',
+  'threat_added',
+  'threat_removed',
+  'comment_added',
+  'comment_edited',
+] as const;
+export type ActionPlanHistoryAction = typeof ACTION_PLAN_HISTORY_ACTIONS[number];
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   assets: many(assets),
