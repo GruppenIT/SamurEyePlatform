@@ -82,11 +82,11 @@ Requirements for the API Discovery & Security Assessment milestone. Each maps to
 
 ### Infrastructure (INFRA)
 
-- [ ] **INFRA-01**: `install.sh` is revised into a safe hard-reset updater — aborts cleanly if the local `main` branch has unpushed commits ahead of origin
-- [ ] **INFRA-02**: `install.sh` preserves user-owned artifacts between runs: `.planning/`, `docs/`, backups, uploads, `.env`, and any cloud-synced skills directories
-- [ ] **INFRA-03**: `install.sh` installs pinned versions of Katana, Kiterunner, httpx, and Arjun with SHA-256 verification
-- [ ] **INFRA-04**: `routes-large.kite` and custom Arjun wordlist (`arjun-extended-pt-en.txt`) are distributed with the release and verified by checksum (no runtime downloads)
-- [ ] **INFRA-05**: Release tarball flow is bootstrapped so future releases ship a single archive containing the app + binaries + wordlists; `update.sh` is marked legacy/deprecated pending a proper auto-update service (out of scope for v2.0)
+- [x] **INFRA-01**: `install.sh` is revised into a safe hard-reset updater — aborts cleanly if the local `main` branch has unpushed commits ahead of origin
+- [x] **INFRA-02**: `install.sh` preserves user-owned artifacts between runs: `.planning/`, `docs/`, backups, uploads, `.env`, and any cloud-synced skills directories
+- [x] **INFRA-03**: `install.sh` installs pinned versions of Katana, Kiterunner, httpx, and Arjun with SHA-256 verification
+- [x] **INFRA-04**: `routes-large.kite` and custom Arjun wordlist (`arjun-extended-pt-en.txt`) are distributed with the release and verified by checksum (no runtime downloads)
+- [x] **INFRA-05**: Release tarball flow is bootstrapped so future releases ship a single archive containing the app + binaries + wordlists; `update.sh` is marked legacy/deprecated pending a proper auto-update service (out of scope for v2.0)
 
 ## Future (post-v2.0)
 
@@ -125,11 +125,11 @@ Which phases cover which requirements. Populated during roadmap creation 2026-04
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 8: Infrastructure & Install | Pending |
-| INFRA-02 | Phase 8: Infrastructure & Install | Pending |
-| INFRA-03 | Phase 8: Infrastructure & Install | Pending |
-| INFRA-04 | Phase 8: Infrastructure & Install | Pending |
-| INFRA-05 | Phase 8: Infrastructure & Install | Pending |
+| INFRA-01 | Phase 8: Infrastructure & Install | Complete |
+| INFRA-02 | Phase 8: Infrastructure & Install | Complete |
+| INFRA-03 | Phase 8: Infrastructure & Install | Complete |
+| INFRA-04 | Phase 8: Infrastructure & Install | Complete |
+| INFRA-05 | Phase 8: Infrastructure & Install | Complete |
 | HIER-01 | Phase 9: Schema & Asset Hierarchy | Pending |
 | HIER-02 | Phase 9: Schema & Asset Hierarchy | Pending |
 | HIER-03 | Phase 9: Schema & Asset Hierarchy | Pending |
