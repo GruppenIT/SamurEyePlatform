@@ -5,11 +5,26 @@ import { generateNextActionPlanCode } from '../actionPlanService';
 import { sql } from 'drizzle-orm';
 import { validateStatusTransition, getAllowedTransitions } from '../actionPlanService';
 
-const hasDb = !!process.env.DATABASE_URL;
+// DESTRUCTIVE-TEST GUARD
+// These tests TRUNCATE real tables. They only run when:
+//   1. DATABASE_URL is set AND
+//   2. ALLOW_DESTRUCTIVE_DB_TESTS=1 is explicitly set AND
+//   3. NODE_ENV is not 'production'
+// Running them against a shared DB will delete all action_plans data.
+// Use a dedicated test DB via TEST_DATABASE_URL override in a future iteration.
+const ALLOW_DESTRUCTIVE = process.env.ALLOW_DESTRUCTIVE_DB_TESTS === '1';
+const hasDb = !!process.env.DATABASE_URL && ALLOW_DESTRUCTIVE;
+
+function assertSafeForDestructiveTests() {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Refusing to run destructive tests against NODE_ENV=production.');
+  }
+}
 
 describe.skipIf(!hasDb)('generateNextActionPlanCode', () => {
   let userId: string;
   beforeAll(async () => {
+    assertSafeForDestructiveTests();
     await db.execute(sql`TRUNCATE action_plans CASCADE`);
     const [u] = await db.select().from(users).limit(1);
     if (!u) throw new Error('No user in DB for test');
@@ -84,6 +99,7 @@ describe.skipIf(!hasDb)('applyStatusChange and removeThreatFromPlan', () => {
   let threatId: string;
 
   beforeAll(async () => {
+    assertSafeForDestructiveTests();
     await db.execute(sql`TRUNCATE action_plans CASCADE`);
     const [u] = await db.select().from(users).limit(1);
     userId = u.id;
