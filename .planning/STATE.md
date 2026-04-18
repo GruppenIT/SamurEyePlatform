@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: planning
-stopped_at: "Completed 08-01-PLAN.md — checkpoint:human-verify awaiting wordlist approval"
-last_updated: "2026-04-18T12:38:26.588Z"
+stopped_at: Completed 08-03-PLAN.md — safe_reset_gate implemented, 8 bats tests passing
+last_updated: "2026-04-18T12:39:40.887Z"
 last_activity: 2026-04-17 — v2.0 roadmap created, 9 phases, 41 requirements mapped
 progress:
   total_phases: 9
   completed_phases: 0
   total_plans: 6
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07 P01 | 1 | 2 tasks | 5 files |
 | Phase 07 P02 | 1 | 1 task | 1 file |
 | Phase 08 P01 | 15m | 2 tasks | 7 files |
+| Phase 08 P03 | 15 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,8 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - Auxiliary binaries via release tarball; `update.sh` deprecated
 - [Phase 08]: bats 1.10.0 already installed on system — source build of 1.11 skipped (>= 1.10 requirement met)
 - [Phase 08]: arjun-extended-pt-en.txt SHA-256 computed locally: dc5ca8c739d2205d771a9409836107515291fc418495c9d9c54c1f1fdcbc47a9 (115 lines, exceeds 100-line minimum)
+- [Phase 08]: safe_reset_gate snapshot excludes .git/ metadata — FETCH_HEAD is git plumbing, not working tree mutation
+- [Phase 08]: safe_reset_gate uses return 1 (not exit 1) to preserve sourcing semantics in parent shell
 
 ### Pending Todos
 
@@ -73,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-18T12:38:26.585Z
-Stopped at: Completed 08-01-PLAN.md — checkpoint:human-verify awaiting wordlist approval
+Last session: 2026-04-18T12:39:40.883Z
+Stopped at: Completed 08-03-PLAN.md — safe_reset_gate implemented, 8 bats tests passing
 Resume file: None
