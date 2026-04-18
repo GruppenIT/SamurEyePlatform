@@ -5,8 +5,10 @@
       "source": "remote",
       "url": "https://wordlists-cdn.assetnote.io/data/kiterunner/routes-large.kite.tar.gz",
       "sha256": "e6f4d78f6e607d0352527dee0123ce1ff7ab18fe845ea898b7ca38e0c6a321f2",
+      "extracted_sha256": "5cc2e88ac8f700c740ed934ba228edc66b268fef82a48466c5344e1fe8416ca3",
       "format": "tar.gz",
       "extract_member": "routes-large.kite",
+      "vendor_path": "vendor/wordlists/routes-large.kite",
       "install_to": "wordlists/routes-large.kite",
       "mutable": false
     },
