@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: planning
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-04-18T21:59:41.360Z"
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-04-18T22:02:26.057Z"
 last_activity: 2026-04-17 — v2.0 roadmap created, 9 phases, 41 requirements mapped
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 08 P05 | 20 | 1 tasks | 5 files |
 | Phase 08 P06 | 28 | 4 tasks | 7 files |
 | Phase 09 P01 | 157 | 3 tasks | 8 files |
+| Phase 09 P02 | 5 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 08]: update.sh wrapper: exec to install.sh --update preserves exit code and all env vars for systemUpdateService.ts chain (AUTO_CONFIRM, SKIP_BACKUP, GIT_TOKEN, BRANCH, INSTALL_DIR)
 - [Phase 09]: DISCOVERY_SOURCES kept as TS const (not pgEnum) — adding new sources requires no migration
 - [Phase 09]: [Phase 09-01]: 80 it.todo stubs created across 5 files for Nyquist sampling coverage of Plans 02-04
+- [Phase 09]: threatSeverityEnum reused in apiFindings.severity — zero new severity enum
+- [Phase 09]: vitest.config.ts extended to include shared/**/*.test.ts (Rule 3 — blocked shared test discovery)
+- [Phase 09]: ApiFindingEvidence as TypeScript interface + Zod schema — interface for DB type inference, schema for runtime validation
 
 ### Pending Todos
 
@@ -94,6 +98,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-18T21:59:41.355Z
-Stopped at: Completed 09-01-PLAN.md
+Last session: 2026-04-18T22:02:26.053Z
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None

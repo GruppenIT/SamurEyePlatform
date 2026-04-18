@@ -40,7 +40,8 @@ created: 2026-04-18
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | TBD | TBD | TBD | TBD | TBD | ⬜ pending |
+| 09-02 T1 | 09-02 | 1 | HIER-01, FIND-01 | Unit (enum values) | `grep -c "apiTypeEnum\|owaspApiCategoryEnum\|apiFindingStatusEnum" shared/schema.ts` | shared/schema.ts | ✅ green |
+| 09-02 T2 | 09-02 | 1 | HIER-01, HIER-02, FIND-01 | Unit (Zod schema) | `npx vitest run shared/__tests__/evidenceSchema.test.ts` | shared/__tests__/evidenceSchema.test.ts | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -56,7 +57,7 @@ Test stub files the planner must ensure exist (or are created in Wave 0) so down
 - [ ] `server/__tests__/apiStorage.test.ts` — Storage facade (HIER-01, HIER-02, HIER-03, FIND-01): createApi, getApiById, listApisByParent, createApiEndpoint, upsert semantics for `(api_id, method, path)`, createApiFinding, evidence JSONB shape
 - [ ] `server/__tests__/backfillApiDiscovery.test.ts` — backfill CLI (HIER-04): dry-run prints without mutating, idempotent on re-run (skips apis that already exist), probe timeout enforced, concurrency cap, promotes on `/openapi.json` / `/graphql` / `Content-Type: application/json` hits
 - [ ] `server/__tests__/owaspApiCategories.test.ts` — constants shape (FIND-01): every enum value in `owasp_api_category` has a matching pt-BR label + OWASP reference URL
-- [ ] `shared/__tests__/evidenceSchema.test.ts` (or colocated) — Zod schema for `api_findings.evidence` (FIND-01) — parses valid shape, rejects missing request/response, accepts optional extractedValues/context
+- [x] `shared/__tests__/evidenceSchema.test.ts` (or colocated) — Zod schema for `api_findings.evidence` (FIND-01) — parses valid shape, rejects missing request/response, accepts optional extractedValues/context ✅ 6/6 GREEN (Plan 02)
 
 *Existing infrastructure: vitest + drizzle test helpers already present; no framework install needed.*
 
