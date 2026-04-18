@@ -3,6 +3,9 @@ import { z } from "zod";
 import { isAuthenticatedWithPasswordCheck } from "../localAuth";
 import { getRecommendationByThreatId, getRecommendations } from "../storage/recommendations";
 import { createLogger } from "../lib/logger";
+import { db } from "../db";
+import { recommendations, threats } from "@shared/schema";
+import { eq, and, desc, isNull } from "drizzle-orm";
 
 const log = createLogger('routes:recommendations');
 
@@ -69,6 +72,71 @@ export function registerRecommendationRoutes(app: Express) {
     } catch (error) {
       log.error({ err: error }, 'failed to fetch recommendations');
       res.status(500).json({ message: "Falha ao buscar recomendacoes" });
+    }
+  });
+
+  /**
+   * GET /api/recommendations/top
+   * Returns prioritized remediation actions joined with threat data.
+   * Replaces legacy GET /api/action-plan endpoint.
+   * Query params: effortTag, roleRequired, category, limit (default 10, max 50)
+   * Auth: isAuthenticatedWithPasswordCheck
+   */
+  app.get('/api/recommendations/top', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const { effortTag, roleRequired, category } = req.query as Record<string, string | undefined>;
+      const rawLimit = parseInt((req.query.limit as string) ?? '10', 10);
+      const limit = isNaN(rawLimit) ? 10 : Math.min(Math.max(rawLimit, 1), 50);
+
+      const conditions = [
+        eq(threats.status, 'open'),
+        isNull(threats.parentThreatId),
+      ];
+
+      if (effortTag) conditions.push(eq(recommendations.effortTag, effortTag));
+      if (roleRequired) conditions.push(eq(recommendations.roleRequired, roleRequired));
+      if (category) conditions.push(eq(threats.category, category));
+
+      const rows = await db
+        .select({
+          recommendationId: recommendations.id,
+          threatId: threats.id,
+          threatTitle: threats.title,
+          threatSeverity: threats.severity,
+          threatCategory: threats.category,
+          contextualScore: threats.contextualScore,
+          projectedScoreAfterFix: threats.projectedScoreAfterFix,
+          whatIsWrong: recommendations.whatIsWrong,
+          fixSteps: recommendations.fixSteps,
+          effortTag: recommendations.effortTag,
+          roleRequired: recommendations.roleRequired,
+          status: recommendations.status,
+        })
+        .from(recommendations)
+        .innerJoin(threats, eq(recommendations.threatId, threats.id))
+        .where(and(...conditions))
+        .orderBy(desc(threats.contextualScore))
+        .limit(limit);
+
+      const result = rows.map(r => ({
+        recommendationId: r.recommendationId,
+        threatId: r.threatId,
+        threatTitle: r.threatTitle,
+        threatSeverity: r.threatSeverity,
+        threatCategory: r.threatCategory,
+        contextualScore: r.contextualScore,
+        projectedScoreAfterFix: r.projectedScoreAfterFix,
+        whatIsWrong: r.whatIsWrong,
+        fixPreview: Array.isArray(r.fixSteps) && r.fixSteps.length > 0 ? r.fixSteps[0] : '',
+        effortTag: r.effortTag,
+        roleRequired: r.roleRequired,
+        status: r.status,
+      }));
+
+      res.json(result);
+    } catch (error) {
+      log.error({ err: error }, 'failed to fetch top recommendations');
+      res.status(500).json({ message: "Falha ao buscar recomendações prioritárias" });
     }
   });
 }

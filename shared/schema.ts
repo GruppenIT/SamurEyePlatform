@@ -51,6 +51,12 @@ export const jobStatusEnum = pgEnum('job_status', ['pending', 'running', 'comple
 // Threat severity enum
 export const threatSeverityEnum = pgEnum('threat_severity', ['low', 'medium', 'high', 'critical']);
 
+// Action plan status enum
+export const actionPlanStatusEnum = pgEnum('action_plan_status', ['pending', 'in_progress', 'blocked', 'done', 'cancelled']);
+
+// Action plan priority enum
+export const actionPlanPriorityEnum = pgEnum('action_plan_priority', ['low', 'medium', 'high', 'critical']);
+
 // Threat status enum
 export const threatStatusEnum = pgEnum('threat_status', ['open', 'investigating', 'mitigated', 'closed', 'hibernated', 'accepted_risk']);
 
@@ -559,6 +565,92 @@ export const applianceSubscription = pgTable("appliance_subscription", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   updatedBy: varchar("updated_by").references(() => users.id),
 });
+
+// Action Plans tables
+export const actionPlans = pgTable('action_plans', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  code: varchar('code', { length: 20 }).notNull().unique(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  status: actionPlanStatusEnum('status').notNull().default('pending'),
+  priority: actionPlanPriorityEnum('priority').notNull().default('medium'),
+  createdBy: varchar('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  assigneeId: varchar('assignee_id').references(() => users.id, { onDelete: 'set null' }),
+  blockReason: text('block_reason'),
+  cancelReason: text('cancel_reason'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => ({
+  codeIdx: uniqueIndex('action_plans_code_idx').on(t.code),
+  statusIdx: index('action_plans_status_idx').on(t.status),
+  assigneeIdx: index('action_plans_assignee_idx').on(t.assigneeId),
+}));
+
+export type ActionPlan = typeof actionPlans.$inferSelect;
+export type NewActionPlan = typeof actionPlans.$inferInsert;
+export const insertActionPlanSchema = createInsertSchema(actionPlans);
+
+export const actionPlanThreats = pgTable('action_plan_threats', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  actionPlanId: varchar('action_plan_id').notNull().references(() => actionPlans.id, { onDelete: 'cascade' }),
+  threatId: varchar('threat_id').notNull().references(() => threats.id, { onDelete: 'cascade' }),
+  addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
+  addedBy: varchar('added_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+}, (t) => ({
+  uniqPlanThreat: uniqueIndex('action_plan_threats_plan_threat_idx').on(t.actionPlanId, t.threatId),
+  threatIdx: index('action_plan_threats_threat_idx').on(t.threatId),
+}));
+
+export type ActionPlanThreat = typeof actionPlanThreats.$inferSelect;
+
+export const actionPlanComments = pgTable('action_plan_comments', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  actionPlanId: varchar('action_plan_id').notNull().references(() => actionPlans.id, { onDelete: 'cascade' }),
+  authorId: varchar('author_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }),
+}, (t) => ({
+  planIdx: index('action_plan_comments_plan_idx').on(t.actionPlanId, t.createdAt),
+}));
+
+export type ActionPlanComment = typeof actionPlanComments.$inferSelect;
+
+export const actionPlanCommentThreats = pgTable('action_plan_comment_threats', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  commentId: varchar('comment_id').notNull().references(() => actionPlanComments.id, { onDelete: 'cascade' }),
+  threatId: varchar('threat_id').notNull().references(() => threats.id, { onDelete: 'cascade' }),
+}, (t) => ({
+  uniqCommentThreat: uniqueIndex('ap_comment_threats_unique_idx').on(t.commentId, t.threatId),
+  threatIdx: index('ap_comment_threats_threat_idx').on(t.threatId),
+}));
+
+export const actionPlanHistory = pgTable('action_plan_history', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  actionPlanId: varchar('action_plan_id').notNull().references(() => actionPlans.id, { onDelete: 'cascade' }),
+  actorId: varchar('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  action: varchar('action', { length: 64 }).notNull(),
+  detailsJson: jsonb('details_json'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => ({
+  planIdx: index('action_plan_history_plan_idx').on(t.actionPlanId, t.createdAt),
+}));
+
+export type ActionPlanHistory = typeof actionPlanHistory.$inferSelect;
+
+export const ACTION_PLAN_HISTORY_ACTIONS = [
+  'created',
+  'status_changed',
+  'assignee_changed',
+  'title_changed',
+  'description_changed',
+  'priority_changed',
+  'threat_added',
+  'threat_removed',
+  'comment_added',
+  'comment_edited',
+] as const;
+export type ActionPlanHistoryAction = typeof ACTION_PLAN_HISTORY_ACTIONS[number];
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

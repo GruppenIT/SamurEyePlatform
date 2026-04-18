@@ -1,247 +1,307 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { LayoutGrid, List, Plus, Search, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useActionPlans, useChangeActionPlanStatus, type ActionPlanStatus, type ActionPlanPriority, type ActionPlanFilters, type ActionPlanListItem } from "@/hooks/useActionPlans";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { KanbanBoard } from "@/components/action-plan/KanbanBoard";
+import { ActionPlanListTable } from "@/components/action-plan/ActionPlanListTable";
+import { CreateActionPlanDialog } from "@/components/action-plan/CreateActionPlanDialog";
+import { StatusTransitionDialog, STATUS_LABEL, STATUS_TRANSITIONS } from "@/components/action-plan/StatusTransitionDialog";
+import { AssigneeSelector } from "@/components/action-plan/AssigneeSelector";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CheckCircle, ArrowUpRight, ClipboardList } from "lucide-react";
 
-interface ActionPlanItem {
-  recommendationId: string;
-  threatId: string;
-  threatTitle: string;
-  threatSeverity: string;
-  threatCategory: string | null;
-  contextualScore: number | null;
-  projectedScoreAfterFix: number | null;
-  whatIsWrong: string;
-  fixPreview: string;
-  effortTag: string | null;
-  roleRequired: string | null;
-  status: string;
+type ViewMode = "list" | "kanban";
+
+// Active statuses offered in the status dropdown filter.
+// Terminal statuses (done, cancelled) are opt-in via dedicated checkboxes.
+const STATUS_OPTIONS: ActionPlanStatus[] = ["pending", "in_progress", "blocked"];
+const PRIORITY_OPTIONS: ActionPlanPriority[] = ["low", "medium", "high", "critical"];
+const PRIORITY_LABEL: Record<ActionPlanPriority, string> = { low: "Baixa", medium: "Média", high: "Alta", critical: "Crítica" };
+
+function summarizeSelection<T extends string>(selected: Set<T>, labelMap: Record<T, string>, emptyLabel: string): string {
+  if (selected.size === 0) return emptyLabel;
+  if (selected.size === 1) return labelMap[Array.from(selected)[0] as T];
+  return `${selected.size} selecionados`;
 }
 
-function buildQueryString(filters: {
-  effortTag: string;
-  roleRequired: string;
-  category: string;
-}): string {
-  const params = new URLSearchParams();
-  if (filters.effortTag && filters.effortTag !== "all") params.set("effortTag", filters.effortTag);
-  if (filters.roleRequired && filters.roleRequired !== "all") params.set("roleRequired", filters.roleRequired);
-  if (filters.category && filters.category !== "all") params.set("category", filters.category);
-  const qs = params.toString();
-  return qs ? `?${qs}` : "";
-}
-
-function severityColor(severity: string): "destructive" | "secondary" | "outline" | "default" {
-  switch (severity) {
-    case "critical": return "destructive";
-    case "high": return "destructive";
-    case "medium": return "secondary";
-    default: return "outline";
-  }
-}
-
-function effortBadgeClass(effortTag: string | null): string {
-  switch (effortTag) {
-    case "minutes": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100";
-    case "hours": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100";
-    case "days": return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100";
-    case "weeks": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100";
-    default: return "bg-muted text-muted-foreground";
-  }
-}
-
-export default function ActionPlan() {
+export default function ActionPlanPage() {
   const [, setLocation] = useLocation();
-  const [effortTag, setEffortTag] = useState<string>("all");
-  const [roleRequired, setRoleRequired] = useState<string>("all");
-  const [category, setCategory] = useState<string>("all");
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const filters = { effortTag, roleRequired, category };
-  const qs = buildQueryString(filters);
+  const [view, setView] = useState<ViewMode>("list");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<Set<ActionPlanStatus>>(new Set());
+  const [priorityFilter, setPriorityFilter] = useState<Set<ActionPlanPriority>>(new Set());
+  const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null);
+  const [showDone, setShowDone] = useState(false);
+  const [showCancelled, setShowCancelled] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
-  const { data: items = [], isLoading } = useQuery<ActionPlanItem[]>({
-    queryKey: ["/api/action-plan", filters],
-    queryFn: async () => {
-      const res = await fetch(`/api/action-plan${qs}`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch action plan");
-      return res.json();
-    },
-  });
+  // Status transition dialog (used by kanban drops that need reason)
+  const [transitionState, setTransitionState] = useState<{
+    open: boolean; plan: ActionPlanListItem | null; preselectTo?: ActionPlanStatus;
+  }>({ open: false, plan: null });
 
-  function handleCardClick(threatId: string) {
-    setLocation(`/threats?highlight=${threatId}`);
+  // Effective list of statuses sent to the backend:
+  //  - If dropdown has selections: use those (only active statuses).
+  //  - Else: all 3 active statuses.
+  //  - Plus terminal statuses per checkbox toggles.
+  const effectiveStatuses: ActionPlanStatus[] = [
+    ...(statusFilter.size > 0 ? Array.from(statusFilter) : STATUS_OPTIONS),
+    ...(showDone ? (["done"] as ActionPlanStatus[]) : []),
+    ...(showCancelled ? (["cancelled"] as ActionPlanStatus[]) : []),
+  ];
+
+  const filters: ActionPlanFilters = {
+    limit: 100,
+    offset: 0,
+    search: search.trim() || undefined,
+    status: effectiveStatuses,
+    priority: priorityFilter.size > 0 ? Array.from(priorityFilter) : undefined,
+    assigneeId: assigneeFilter ?? undefined,
+  };
+
+  const { data, isLoading } = useActionPlans(filters);
+  const changeStatus = useChangeActionPlanStatus();
+
+  const currentUserId = (user as any)?.id as string | undefined;
+  function canDragPlan(plan: ActionPlanListItem): boolean {
+    if (!currentUserId) return false;
+    return plan.createdBy?.id === currentUserId || plan.assignee?.id === currentUserId;
   }
+
+  function transitionIsAllowed(from: ActionPlanStatus, to: ActionPlanStatus): boolean {
+    return STATUS_TRANSITIONS.some((t) => t.from === from && t.to === to);
+  }
+
+  function transitionRequiresReason(from: ActionPlanStatus, to: ActionPlanStatus): boolean {
+    const t = STATUS_TRANSITIONS.find((t) => t.from === from && t.to === to);
+    return t?.requiresReason != null;
+  }
+
+  async function handleKanbanDrop(plan: ActionPlanListItem, toStatus: ActionPlanStatus) {
+    if (plan.status === toStatus) return;
+    if (!transitionIsAllowed(plan.status, toStatus)) {
+      toast({ title: "Transição inválida", description: `Não é possível mover de ${STATUS_LABEL[plan.status]} para ${STATUS_LABEL[toStatus]}.`, variant: "destructive" });
+      return;
+    }
+    // Open dialog if reason is required OR the target is a terminal state
+    // (done/cancelled) — terminal transitions must show the impact warning
+    // before applying, even when no reason field is required.
+    const needsDialog = transitionRequiresReason(plan.status, toStatus) || toStatus === "done" || toStatus === "cancelled";
+    if (needsDialog) {
+      setTransitionState({ open: true, plan, preselectTo: toStatus });
+      return;
+    }
+    // No reason needed and not a terminal state — apply directly.
+    try {
+      await changeStatus.mutateAsync({ id: plan.id, status: toStatus });
+      toast({ title: "Status atualizado" });
+    } catch (err: any) {
+      toast({ title: "Erro ao mudar status", description: err.message ?? "Tente novamente.", variant: "destructive" });
+    }
+  }
+
+  async function handleDialogConfirm(to: ActionPlanStatus, reason?: string) {
+    const plan = transitionState.plan;
+    if (!plan) return;
+    try {
+      await changeStatus.mutateAsync({ id: plan.id, status: to, reason });
+      toast({ title: "Status atualizado" });
+      // Auto-reveal the terminal column so the user doesn't think the card vanished
+      if (to === "done") setShowDone(true);
+      if (to === "cancelled") setShowCancelled(true);
+    } catch (err: any) {
+      toast({ title: "Erro ao mudar status", description: err.message ?? "Tente novamente.", variant: "destructive" });
+      throw err; // keep dialog open so the user can retry
+    }
+  }
+
+  const items = data?.rows ?? [];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <TopBar title="Plano de Acao" subtitle="Acoes de remediacao priorizadas por impacto na postura de seguranca" />
-        <main className="flex-1 overflow-y-auto p-6">
-          {/* Page header */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-1">
-              <ClipboardList className="h-6 w-6 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground">Plano de Acao</h1>
-            </div>
-            <p className="text-muted-foreground text-sm">
-              Acoes de remediacao priorizadas por impacto na postura de seguranca.
-            </p>
-          </div>
+        <TopBar
+          title="Planos de Ação"
+          subtitle="Organize o trabalho de remediação em planos com responsáveis, status e comentários."
+          actions={
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Novo plano
+            </Button>
+          }
+        />
+        <main className="flex-1 overflow-y-auto p-6 space-y-4">
 
           {/* Filter bar */}
-          <div className="flex flex-wrap gap-3 mb-6">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Esforco:</span>
-              <Select value={effortTag} onValueChange={setEffortTag}>
-                <SelectTrigger className="w-[130px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="minutes">Minutos</SelectItem>
-                  <SelectItem value="hours">Horas</SelectItem>
-                  <SelectItem value="days">Dias</SelectItem>
-                  <SelectItem value="weeks">Semanas</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[200px] max-w-[400px]">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                placeholder="Buscar por código ou título..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Funcao:</span>
-              <Select value={roleRequired} onValueChange={setRoleRequired}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="sysadmin">Sysadmin</SelectItem>
-                  <SelectItem value="developer">Developer</SelectItem>
-                  <SelectItem value="security">Security</SelectItem>
-                  <SelectItem value="vendor">Vendor</SelectItem>
-                </SelectContent>
-              </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-[180px] justify-between">
+                  <span className="truncate">{summarizeSelection(statusFilter, STATUS_LABEL, "Todos status")}</span>
+                  <ChevronDown className="h-4 w-4 ml-2 opacity-50 shrink-0" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[200px]">
+                <DropdownMenuLabel>Status</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {STATUS_OPTIONS.map(s => (
+                  <DropdownMenuCheckboxItem
+                    key={s}
+                    checked={statusFilter.has(s)}
+                    onCheckedChange={(checked) => {
+                      setStatusFilter(prev => {
+                        const next = new Set(prev);
+                        if (checked) next.add(s); else next.delete(s);
+                        return next;
+                      });
+                    }}
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    {STATUS_LABEL[s]}
+                  </DropdownMenuCheckboxItem>
+                ))}
+                {statusFilter.size > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <button
+                      className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
+                      onClick={() => setStatusFilter(new Set())}
+                    >
+                      Limpar seleção
+                    </button>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-[180px] justify-between">
+                  <span className="truncate">{summarizeSelection(priorityFilter, PRIORITY_LABEL, "Todas prioridades")}</span>
+                  <ChevronDown className="h-4 w-4 ml-2 opacity-50 shrink-0" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[200px]">
+                <DropdownMenuLabel>Prioridade</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {PRIORITY_OPTIONS.map(p => (
+                  <DropdownMenuCheckboxItem
+                    key={p}
+                    checked={priorityFilter.has(p)}
+                    onCheckedChange={(checked) => {
+                      setPriorityFilter(prev => {
+                        const next = new Set(prev);
+                        if (checked) next.add(p); else next.delete(p);
+                        return next;
+                      });
+                    }}
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    {PRIORITY_LABEL[p]}
+                  </DropdownMenuCheckboxItem>
+                ))}
+                {priorityFilter.size > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <button
+                      className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
+                      onClick={() => setPriorityFilter(new Set())}
+                    >
+                      Limpar seleção
+                    </button>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="w-[220px]">
+              <AssigneeSelector value={assigneeFilter} onChange={setAssigneeFilter} />
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Jornada:</span>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="attack_surface">Attack Surface</SelectItem>
-                  <SelectItem value="ad_security">AD Security</SelectItem>
-                  <SelectItem value="edr_av">EDR / AV</SelectItem>
-                  <SelectItem value="web_application">Web Application</SelectItem>
-                </SelectContent>
-              </Select>
+            <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+              <Checkbox
+                checked={showDone}
+                onCheckedChange={(v) => setShowDone(v === true)}
+                aria-label="Exibir planos fechados"
+              />
+              Fechados
+            </label>
+            <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+              <Checkbox
+                checked={showCancelled}
+                onCheckedChange={(v) => setShowCancelled(v === true)}
+                aria-label="Exibir planos cancelados"
+              />
+              Cancelados
+            </label>
+
+            <div className="ml-auto inline-flex rounded-md border">
+              <Button
+                variant={view === "list" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setView("list")}
+                aria-pressed={view === "list"}
+                aria-label="Visualização em lista"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={view === "kanban" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setView("kanban")}
+                aria-pressed={view === "kanban"}
+                aria-label="Visualização kanban"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
-          {/* Loading state */}
-          {isLoading && (
-            <div className="flex items-center justify-center py-16 text-muted-foreground">
-              <span>Carregando...</span>
-            </div>
+          {isLoading ? (
+            <div className="text-sm text-muted-foreground">Carregando...</div>
+          ) : view === "list" ? (
+            <ActionPlanListTable items={items} onRowClick={(p) => setLocation(`/action-plan/${p.id}`)} />
+          ) : (
+            <KanbanBoard items={items} canDrag={canDragPlan} onDropPlan={handleKanbanDrop} onClickCard={(p) => setLocation(`/action-plan/${p.id}`)} />
           )}
 
-          {/* Empty state */}
-          {!isLoading && items.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
-              <CheckCircle className="h-12 w-12 text-green-500" />
-              <p className="text-lg font-medium text-foreground">Nenhuma acao pendente</p>
-              <p className="text-sm">Nenhuma remediacao encontrada com os filtros selecionados.</p>
-            </div>
-          )}
-
-          {/* Action cards */}
-          {!isLoading && items.length > 0 && (
-            <div className="space-y-4">
-              {items.map((item) => {
-                const scoreDelta =
-                  item.projectedScoreAfterFix != null && item.contextualScore != null
-                    ? item.projectedScoreAfterFix - item.contextualScore
-                    : null;
-
-                return (
-                  <Card
-                    key={item.recommendationId}
-                    className="cursor-pointer hover:border-primary/50 transition-colors"
-                    onClick={() => handleCardClick(item.threatId)}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <CardTitle className="text-base font-semibold leading-snug">
-                          {item.threatTitle}
-                        </CardTitle>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Badge variant={severityColor(item.threatSeverity)}>
-                            {item.threatSeverity}
-                          </Badge>
-                          {item.contextualScore != null && (
-                            <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">
-                              Score: {Math.round(item.contextualScore)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="space-y-3">
-                      {/* What is wrong */}
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {item.whatIsWrong}
-                      </p>
-
-                      {/* Fix preview */}
-                      {item.fixPreview && (
-                        <div className="font-mono text-xs bg-muted p-2 rounded leading-relaxed text-foreground">
-                          {item.fixPreview}
-                        </div>
-                      )}
-
-                      {/* Footer row */}
-                      <div className="flex flex-wrap items-center gap-2 pt-1">
-                        {item.effortTag && (
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${effortBadgeClass(item.effortTag)}`}
-                          >
-                            {item.effortTag}
-                          </span>
-                        )}
-                        {item.roleRequired && (
-                          <Badge variant="outline" className="text-xs">
-                            {item.roleRequired}
-                          </Badge>
-                        )}
-                        {scoreDelta != null && scoreDelta > 0 && (
-                          <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium ml-auto">
-                            <ArrowUpRight className="h-3 w-3" />
-                            +{scoreDelta.toFixed(1)} pts
-                          </span>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+          {data && (
+            <div className="text-xs text-muted-foreground">
+              {data.total} plano(s). {items.length !== data.total && `Exibindo ${items.length}.`}
             </div>
           )}
         </main>
       </div>
+
+      <CreateActionPlanDialog open={createOpen} onOpenChange={setCreateOpen} />
+      {transitionState.plan && (
+        <StatusTransitionDialog
+          open={transitionState.open}
+          onOpenChange={(o) => setTransitionState(s => ({ ...s, open: o }))}
+          currentStatus={transitionState.plan.status}
+          preselectTo={transitionState.preselectTo}
+          onConfirm={handleDialogConfirm}
+        />
+      )}
     </div>
   );
 }

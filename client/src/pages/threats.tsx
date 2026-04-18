@@ -50,9 +50,13 @@ import {
   Wrench,
   AlertCircle,
   ListChecks,
+  ClipboardList,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AssociateToPlanDialog } from "@/components/action-plan/AssociateToPlanDialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { usePlanLinks, type PlanLink } from "@/hooks/useActionPlans";
 import { Threat, Host } from "@shared/schema";
 import { ThreatStats } from "@/types";
 
@@ -258,7 +262,7 @@ function RemediationPreview({ threatId }: { threatId: string }) {
 }
 
 export default function Threats() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [severityFilter, setSeverityFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -266,6 +270,7 @@ export default function Threats() {
   const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [associateDialogOpen, setAssociateDialogOpen] = useState(false);
   const [bulkStatusModal, setBulkStatusModal] = useState<{
     isOpen: boolean;
     newStatus: string;
@@ -434,6 +439,19 @@ export default function Threats() {
 
   // For bulk select compatibility — flat list of all visible top-level items
   const filteredThreats = [...filteredParents, ...filteredStandalone];
+
+  // Collect all visible threat IDs for plan-links lookup
+  const allVisibleThreatIds = useMemo(() => {
+    const ids = new Set<string>();
+    filteredParents.forEach(p => {
+      ids.add(p.id);
+      (groupedThreats.childMap.get(p.id) ?? []).forEach(c => ids.add(c.id));
+    });
+    filteredStandalone.forEach(t => ids.add(t.id));
+    return Array.from(ids);
+  }, [filteredParents, filteredStandalone, groupedThreats.childMap]);
+
+  const { data: planLinks = {} } = usePlanLinks(allVisibleThreatIds, { excludeTerminal: true });
 
   const updateThreatMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Threat> }) => {
@@ -816,15 +834,13 @@ export default function Threats() {
         className={`${selectedIds.has(threat.id) ? "bg-primary/5" : ""} ${isChild ? "bg-muted/30" : ""}`}
       >
         <TableCell className={isChild ? "pl-10" : ""}>
-          {!isChild && (
-            <Checkbox
-              checked={selectedIds.has(threat.id)}
-              onCheckedChange={(checked) =>
-                toggleSelectOne(threat.id, !!checked)
-              }
-              aria-label={`Selecionar ${threat.title}`}
-            />
-          )}
+          <Checkbox
+            checked={selectedIds.has(threat.id)}
+            onCheckedChange={(checked) =>
+              toggleSelectOne(threat.id, !!checked)
+            }
+            aria-label={`Selecionar ${threat.title}`}
+          />
         </TableCell>
         <TableCell>
           <Badge className={getSeverityColor(threat.severity)}>
@@ -884,6 +900,51 @@ export default function Threats() {
         <TableCell className="text-muted-foreground">
           {formatTimeAgo(threat.createdAt.toString())}
         </TableCell>
+        <TableCell>
+          {(() => {
+            const links: PlanLink[] = planLinks[threat.id] ?? [];
+            if (links.length === 0) {
+              return <ClipboardList className="h-4 w-4 text-muted-foreground/40" />;
+            }
+            if (links.length === 1) {
+              const p = links[0];
+              return (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setLocation(`/action-plan/${p.id}`); }}
+                  className="inline-flex items-center gap-1 hover:underline"
+                  title={`${p.code} — ${p.title}`}
+                >
+                  <ClipboardList className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-mono">{p.code}</span>
+                </button>
+              );
+            }
+            return (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="inline-flex items-center gap-1 hover:underline" onClick={(e) => e.stopPropagation()}>
+                    <ClipboardList className="h-4 w-4 text-primary" />
+                    <span className="text-xs">{links.length} planos</span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2">
+                  <div className="space-y-1">
+                    {links.map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => setLocation(`/action-plan/${p.id}`)}
+                        className="w-full text-left p-1.5 hover:bg-accent rounded text-sm"
+                      >
+                        <div className="font-mono text-xs text-muted-foreground">{p.code}</div>
+                        <div className="font-medium truncate">{p.title}</div>
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            );
+          })()}
+        </TableCell>
         <TableCell className="text-right">
           <Button
             variant="ghost"
@@ -918,13 +979,35 @@ export default function Threats() {
           >
             <TableCell>
               <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={selectedIds.has(parent.id)}
-                  onCheckedChange={(checked) =>
-                    toggleSelectOne(parent.id, !!checked)
-                  }
-                  aria-label={`Selecionar ${parent.title}`}
-                />
+                {(() => {
+                  const childIds = children.map(c => c.id);
+                  const selectedChildCount = childIds.filter(id => selectedIds.has(id)).length;
+                  const allChildrenSelected = childIds.length > 0 && selectedChildCount === childIds.length;
+                  const someChildrenSelected = selectedChildCount > 0 && !allChildrenSelected;
+                  const checkState: boolean | "indeterminate" = allChildrenSelected
+                    ? true
+                    : someChildrenSelected
+                      ? "indeterminate"
+                      : false;
+
+                  return (
+                    <Checkbox
+                      checked={checkState}
+                      onCheckedChange={(val) => {
+                        setSelectedIds(prev => {
+                          const next = new Set(prev);
+                          if (val === true) {
+                            childIds.forEach(id => next.add(id));
+                          } else {
+                            childIds.forEach(id => next.delete(id));
+                          }
+                          return next;
+                        });
+                      }}
+                      aria-label={`Selecionar todas as ameaças do grupo ${parent.title}`}
+                    />
+                  );
+                })()}
                 {children.length > 0 && (
                   <CollapsibleTrigger asChild>
                     <button
@@ -1008,6 +1091,21 @@ export default function Threats() {
             </TableCell>
             <TableCell className="text-muted-foreground">
               {formatTimeAgo(parent.createdAt.toString())}
+            </TableCell>
+            <TableCell>
+              {(() => {
+                const childIds = children.map(c => c.id);
+                const plannedCount = childIds.filter(id => (planLinks[id] ?? []).length > 0).length;
+                if (plannedCount === 0) {
+                  return <ClipboardList className="h-4 w-4 text-muted-foreground/40" />;
+                }
+                return (
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <ClipboardList className="h-4 w-4 text-primary" />
+                    {plannedCount}/{childIds.length}
+                  </span>
+                );
+              })()}
             </TableCell>
             <TableCell className="text-right">
               <Button
@@ -1387,6 +1485,14 @@ export default function Threats() {
                           </SelectContent>
                         </Select>
                         <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setAssociateDialogOpen(true)}
+                          disabled={selectedIds.size === 0}
+                        >
+                          <ClipboardList className="h-4 w-4 mr-1" /> Associar a Plano de Ação
+                        </Button>
+                        <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setSelectedIds(new Set())}
@@ -1417,6 +1523,7 @@ export default function Threats() {
                           <TableHead>Host</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Detectado em</TableHead>
+                          <TableHead>Plano de Ação</TableHead>
                           <TableHead className="text-right">Acoes</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -2051,6 +2158,15 @@ export default function Threats() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AssociateToPlanDialog
+        open={associateDialogOpen}
+        onOpenChange={setAssociateDialogOpen}
+        threatIds={Array.from(selectedIds)}
+        onSuccess={() => {
+          setSelectedIds(new Set());
+        }}
+      />
     </div>
   );
 }
