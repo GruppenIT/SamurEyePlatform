@@ -2,12 +2,12 @@
 
 # SamurEye - Adversarial Exposure Validation Platform
 # Script de Instalação Automática para Ubuntu 20.04+
-# Versão: 1.0.0
+# Versão: 2.0.0
 #
 # USAGE:
-#   sudo ./install.sh                    # Instalação padrão não-interativa
-#   sudo NONINTERACTIVE=false ./install.sh   # Instalação interativa (deprecated)
-#   sudo INSTALL_DIR=/custom/path ./install.sh # Diretório customizado
+#   sudo ./install.sh --install                      # Primeira instalação (clone limpo)
+#   sudo ./install.sh --update                       # Safe hard-reset contra origin/main (preserve user artifacts)
+#   sudo ./install.sh --from-tarball <path>          # Offline install a partir de release tarball
 #
 # VARIABLES:
 #   INSTALL_DIR     - Diretório de instalação (padrão: /opt/samureye)
@@ -40,6 +40,18 @@ BRANCH="${BRANCH:-main}"
 NODE_VERSION="${NODE_VERSION:-20}"
 NONINTERACTIVE="${NONINTERACTIVE:-true}"
 
+# PRESERVE_PATHS — user-owned artifacts preserved across `--update` (INFRA-02).
+# Alterar requer PR; auditavel via git blame.
+readonly PRESERVE_PATHS=(
+  ".planning"
+  "docs"
+  "backups"
+  "uploads"
+  ".env"
+  ".claude/skills"
+  ".gsd/skills"
+)
+
 # Função para logging
 log() {
     echo -e "${GREEN}[INFO]${NC} $1"
@@ -53,8 +65,23 @@ error() {
     echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
+# Source helper libraries (after log/warn/error are defined so guards trigger correctly)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/install/safe-reset.sh
+source "$SCRIPT_DIR/scripts/install/safe-reset.sh"
+# shellcheck source=scripts/install/preserve-paths.sh
+source "$SCRIPT_DIR/scripts/install/preserve-paths.sh"
+# shellcheck source=scripts/install/fetch-binary.sh
+MANIFEST="${MANIFEST:-$SCRIPT_DIR/scripts/install/binaries.json}"
+export MANIFEST
+source "$SCRIPT_DIR/scripts/install/fetch-binary.sh"
+
 # Função para verificar se o usuário é root
+# Test-only hatch: EUID_OVERRIDE=root bypasses the root check in bats tests.
 check_root() {
+    if [[ "${EUID_OVERRIDE:-}" == "root" ]]; then
+        return 0
+    fi
     if [[ $EUID -ne 0 ]]; then
         error "Este script deve ser executado como root (use sudo)"
         exit 1
@@ -1279,20 +1306,22 @@ EOF
     fi
 }
 
-# Função principal
-main() {
+# ── run_install ──────────────────────────────────────────────────────────
+# Primeira instalação completa (clone limpo + setup de infra).
+run_install() {
     echo
     log "=========================================="
-    log "  SamurEye - Instalação Automática v1.0"
+    log "  SamurEye - Instalacao Automatica v2.0"
+    log "  Modo: --install (primeira instalacao)"
     log "=========================================="
     echo
-    
+
     check_root
     detect_distro
-    
-    log "Iniciando instalação em $(date)"
-    
-    # Executa etapas da instalação
+
+    log "Iniciando instalacao em $(date)"
+
+    # Executa etapas da instalacao
     install_system_deps
     install_nodejs
     install_postgresql
@@ -1309,20 +1338,141 @@ main() {
     setup_systemd_services
     setup_nginx_proxy
     setup_backup_scripts
-    
-    # ⚠️ CRÍTICO: Valida e corrige credenciais antes de iniciar serviços
+
+    # CRITICO: Valida e corrige credenciais antes de iniciar servicos
     validate_and_fix_credentials
-    
+
     start_services
     verify_websocket_fix
-    
+
     show_final_info
-    
-    log "Instalação concluída em $(date)"
+
+    log "Instalacao concluida em $(date)"
 }
 
-# Captura erros e limpa arquivos temporários (sem mensagem duplicada)
+# ── rebuild_app ───────────────────────────────────────────────────────────
+# npm install + build + db:push. Called by both run_install (via install_application)
+# and run_safe_update (after git reset).
+rebuild_app() {
+    cd "$INSTALL_DIR"
+
+    log "Instalando dependencias da aplicacao..."
+    npm install --production=false
+
+    log "Aplicando correcoes do driver de banco de dados..."
+    npm uninstall @neondatabase/serverless || true
+    npm install pg @types/pg
+    npm dedupe && npm prune
+
+    if npm list pg > /dev/null 2>&1; then
+        log "Driver PostgreSQL (pg) instalado com sucesso"
+    else
+        error "Falha ao instalar driver PostgreSQL correto"
+        exit 1
+    fi
+
+    log "Compilando aplicacao..."
+    npm run build
+
+    if [[ -f "dist/index.js" ]]; then
+        log "Build da aplicacao finalizado com sucesso"
+    else
+        error "Falha no build da aplicacao - arquivo dist/index.js nao foi criado"
+        exit 1
+    fi
+
+    log "rebuild_app concluido"
+}
+
+# ── run_safe_update ───────────────────────────────────────────────────────
+# Safe hard-reset update: gate -> preserve -> reset -> clean -> restore -> binaries.
+run_safe_update() {
+    log "═══ Modo: --update (safe hard-reset) ═══"
+
+    check_root
+    detect_distro
+
+    if [[ ! -d "$INSTALL_DIR/.git" ]]; then
+        error "INSTALL_DIR=$INSTALL_DIR nao e um repo git — use --install para primeira instalacao"
+        exit 1
+    fi
+
+    # 1. Safe-reset gate (Plan 03) — aborts before any mutation
+    safe_reset_gate
+
+    # 2. Stop running service (if any) before touching the tree
+    log "Parando servico ${SERVICE_NAME} (se rodando)..."
+    systemctl stop "${SERVICE_NAME}" 2>/dev/null || true
+
+    # 3. Preserve user artifacts (Plan 04 — this file)
+    preserve_paths_to_staging
+
+    # 4. Hard reset + clean (git clean -fdx after preserve, Pitfall 9)
+    cd "$INSTALL_DIR"
+    git reset --hard "origin/$BRANCH"
+    git clean -fdx
+
+    # 5. Restore preserved artifacts with ownership intact
+    restore_paths_from_staging
+
+    # 6. Install pinned auxiliary binaries (Plan 02)
+    log "Instalando binarios auxiliares pinados..."
+    for name in $(jq -r '.binaries | keys[]' "$MANIFEST"); do
+        install_binary "$name"
+    done
+
+    # 7. Install wordlists (Plan 05 wires this in — guarded call so Plan 04 merges cleanly)
+    if declare -F install_wordlists >/dev/null 2>&1; then
+        install_wordlists
+    else
+        warn "install_wordlists nao disponivel ainda — sera fornecido pelo Plan 05"
+    fi
+
+    # 8. Rebuild app (npm install + build — reuses shared rebuild_app function)
+    rebuild_app
+
+    # 9. Start service
+    systemctl start "${SERVICE_NAME}" || warn "Falha ao iniciar ${SERVICE_NAME}"
+
+    log "═══ --update concluido com sucesso ═══"
+}
+
+# ── run_from_tarball ──────────────────────────────────────────────────────
+# STUB — full implementation in Plan 06.
+run_from_tarball() {
+    local tarball="$1"
+    error "--from-tarball nao implementado — aguardando Plan 06"
+    error "Tarball path solicitado: $tarball"
+    exit 2
+}
+
+# ═════════════════ Main entry point ═════════════════
+# Captura erros e limpa arquivos temporarios
 trap 'rm -f /tmp/db_credentials; exit 1' ERR
 
-# Executa instalação
-main "$@"
+MODE=""
+TARBALL_PATH=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --install)       MODE="install"; shift ;;
+        --update)        MODE="update"; shift ;;
+        --from-tarball)  MODE="tarball"; TARBALL_PATH="${2:-}"; shift 2 ;;
+        -h|--help)
+            sed -n '7,9p' "${BASH_SOURCE[0]}" | sed 's/^# //'; exit 0 ;;
+        *)
+            error "Flag desconhecida: $1"
+            error "Uso: $0 [--install | --update | --from-tarball <path>]"
+            exit 1 ;;
+    esac
+done
+
+if [[ -z "$MODE" ]]; then
+    error "Escolha um modo: --install | --update | --from-tarball"
+    exit 1
+fi
+
+case "$MODE" in
+    install) run_install ;;
+    update)  run_safe_update ;;
+    tarball) run_from_tarball "$TARBALL_PATH" ;;
+esac
