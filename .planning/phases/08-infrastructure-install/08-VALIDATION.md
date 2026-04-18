@@ -42,7 +42,7 @@ created: 2026-04-18
 | 08-01-02 | 01 | 0 | INFRA-01..05 | fixture | `test -f tests/install/bats.bats` | ❌ W0 | ⬜ pending |
 | 08-02-01 | 02 | 1 | INFRA-01 | unit | `bats tests/install/binaries.bats` | ❌ W0 | ⬜ pending |
 | 08-02-02 | 02 | 1 | INFRA-01 | unit | `sha256sum -c scripts/install/binaries.sha256` | ❌ W0 | ⬜ pending |
-| 08-03-01 | 03 | 1 | INFRA-02 | unit | `bats tests/install/safe-reset.bats` | ❌ W0 | ⬜ pending |
+| 08-03-01 | 03 | 1 | INFRA-01 | unit | `bats tests/install/test_safe_reset.bats` | ❌ W0 | ⬜ pending |
 | 08-04-01 | 04 | 2 | INFRA-03 | unit | `bats tests/install/preserve-paths.bats` | ❌ W0 | ⬜ pending |
 | 08-05-01 | 05 | 2 | INFRA-04 | fixture | `test -f vendor/wordlists/routes-large.kite` | ❌ W0 | ⬜ pending |
 | 08-05-02 | 05 | 2 | INFRA-04 | fixture | `test -f vendor/wordlists/arjun-extended-pt-en.txt` | ❌ W0 | ⬜ pending |
