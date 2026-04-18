@@ -9,10 +9,10 @@ Requirements for the API Discovery & Security Assessment milestone. Each maps to
 
 ### Asset Hierarchy (HIER)
 
-- [ ] **HIER-01**: System persists `apis` as a first-class table with `parentAssetId → assets.id` under an existing `web_application` asset
-- [ ] **HIER-02**: System persists `api_endpoints` with `apiId → apis.id`, capturing method, path, params (path/query/header), request/response schemas, auth requirement, and discovery sources
-- [ ] **HIER-03**: User can manually register an API under an existing web_application asset (with baseUrl, apiType, and optional spec URL)
-- [ ] **HIER-04**: System backfills existing web_application assets by probing for API indicators (JSON content-type, /api paths, known spec paths) and auto-promoting when detected
+- [x] **HIER-01**: System persists `apis` as a first-class table with `parentAssetId → assets.id` under an existing `web_application` asset
+- [x] **HIER-02**: System persists `api_endpoints` with `apiId → apis.id`, capturing method, path, params (path/query/header), request/response schemas, auth requirement, and discovery sources
+- [x] **HIER-03**: User can manually register an API under an existing web_application asset (with baseUrl, apiType, and optional spec URL)
+- [x] **HIER-04**: System backfills existing web_application assets by probing for API indicators (JSON content-type, /api paths, known spec paths) and auto-promoting when detected
 
 ### API Credentials (CRED)
 
@@ -49,7 +49,7 @@ Requirements for the API Discovery & Security Assessment milestone. Each maps to
 
 ### Findings & Threat Integration (FIND)
 
-- [ ] **FIND-01**: System persists findings in a dedicated `api_findings` table with OWASP API Top 10 2023 category, severity, evidence, remediation, and risk score
+- [x] **FIND-01**: System persists findings in a dedicated `api_findings` table with OWASP API Top 10 2023 category, severity, evidence, remediation, and risk score
 - [ ] **FIND-02**: System sanitizes evidence before persistence — auth headers redacted, response body truncated to 8KB, PII masked (CPF/CNPJ/email/credit-card)
 - [ ] **FIND-03**: System promotes high/critical `api_findings` to the existing `threats` table (with dedupe against the same endpoint) so they appear in the executive dashboard
 - [ ] **FIND-04**: System emits findings and progress events over WebSocket in real time during journey execution
@@ -130,11 +130,11 @@ Which phases cover which requirements. Populated during roadmap creation 2026-04
 | INFRA-03 | Phase 8: Infrastructure & Install | Complete |
 | INFRA-04 | Phase 8: Infrastructure & Install | Complete |
 | INFRA-05 | Phase 8: Infrastructure & Install | Complete |
-| HIER-01 | Phase 9: Schema & Asset Hierarchy | Pending |
-| HIER-02 | Phase 9: Schema & Asset Hierarchy | Pending |
-| HIER-03 | Phase 9: Schema & Asset Hierarchy | Pending |
-| HIER-04 | Phase 9: Schema & Asset Hierarchy | Pending |
-| FIND-01 | Phase 9: Schema & Asset Hierarchy | Pending |
+| HIER-01 | Phase 9: Schema & Asset Hierarchy | Complete |
+| HIER-02 | Phase 9: Schema & Asset Hierarchy | Complete |
+| HIER-03 | Phase 9: Schema & Asset Hierarchy | Complete |
+| HIER-04 | Phase 9: Schema & Asset Hierarchy | Complete |
+| FIND-01 | Phase 9: Schema & Asset Hierarchy | Complete |
 | CRED-01 | Phase 10: API Credentials | Pending |
 | CRED-02 | Phase 10: API Credentials | Pending |
 | CRED-03 | Phase 10: API Credentials | Pending |
