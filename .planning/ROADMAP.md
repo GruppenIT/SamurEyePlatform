@@ -76,7 +76,12 @@ Plans:
   3. Every `api_endpoints` row captures method, path, params (path/query/header), request/response schemas, `requiresAuth`, and discovery sources
   4. A backfill job probes existing web_application assets for API indicators (JSON content-type, `/api` paths, known spec paths) and auto-promotes detected ones into `apis` rows
   5. The `api_findings` table is queryable with OWASP API Top 10 2023 category, severity, evidence, remediation, and risk score columns in place
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
+- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
+- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
+- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
 
 ### Phase 10: API Credentials
 **Goal**: Ship a credential store for the 7 supported API auth types that reuses the platform's existing KEK/DEK encryption, with URL-pattern mapping and priority resolution so the engine picks the right credential per endpoint.
@@ -88,7 +93,12 @@ Plans:
   3. User can map a credential to a URL pattern (glob/prefix); the engine resolves and applies only matching credentials per endpoint
   4. When multiple credentials match the same URL, the user-assigned priority order determines selection
   5. During the journey wizard, user can create a credential inline without leaving the flow and the new credential is immediately available for selection
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
+- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
+- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
+- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
 
 ### Phase 11: Discovery & Enrichment
 **Goal**: Ship the full endpoint-discovery pipeline — spec-first probing, native OpenAPI/GraphQL parsing, Katana crawling, opt-in Kiterunner brute-force — plus httpx probing and optional Arjun parameter discovery that enriches every discovered endpoint.
@@ -100,7 +110,12 @@ Plans:
   3. Katana crawling of an SPA surfaces XHR/JS/form-derived endpoints and persists them with discovery source set; Kiterunner brute-force is strictly opt-in and uses `routes-large.kite`
   4. Every discovered endpoint has httpx enrichment (status, tech-detect, content-type, TLS) and `requiresAuth=true` when unauthenticated calls return 401/403
   5. Arjun parameter discovery runs only on user-selected GET endpoints and attaches discovered params to the endpoint record; `specHash` is computed and stored per spec fetch so drift is detectable across executions
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
+- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
+- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
+- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
 
 ### Phase 12: Security Testing — Passive
 **Goal**: Run the stateless portion of the OWASP API Top 10 test matrix — Nuclei misconfiguration/exposure/GraphQL/CORS templates plus JWT/auth-failure tests — producing findings that flow into `api_findings`.
@@ -111,7 +126,12 @@ Plans:
   2. When credentials are supplied, the engine executes auth-failure tests — JWT `alg: none`, `kid` injection, token reuse, API key leakage in responses — and records any hits with OWASP category API2
   3. Findings from both test classes land in `api_findings` with severity, evidence, and remediation populated and are visible via an internal read path
   4. Passive-test output is reproducible via a `dryRun` against the internal test target with deterministic results
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
+- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
+- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
+- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
 
 ### Phase 13: Security Testing — Active
 **Goal**: Implement the stateful OWASP API Top 10 vectors in-house (TypeScript) — BOLA, BFLA, BOPLA/Mass Assignment, rate-limit absence, SSRF — which require multi-identity enumeration and cross-request state that Nuclei cannot express.
@@ -123,7 +143,12 @@ Plans:
   3. On PUT/PATCH endpoints with unknown schemas, the engine injects sensitive property names and inspects response reflection to record API3 (BOPLA/Mass Assignment) findings
   4. User can opt into rate-limit-absence testing; the engine bursts N requests and records API4 findings when neither 429 nor `Retry-After` is observed
   5. The engine runs Nuclei + interactsh SSRF tests only on params whose values accept URLs and records API7 findings when an out-of-band interaction fires
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
+- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
+- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
+- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
 
 ### Phase 14: Findings Runtime & Threat Integration
 **Goal**: Harden the findings write path with sanitization, promote high/critical findings into the existing Threat Engine so they surface on the executive dashboard, and emit real-time progress events to the UI over WebSocket.
@@ -134,7 +159,12 @@ Plans:
   2. High and critical `api_findings` are automatically promoted into the existing `threats` table with dedupe against the same endpoint, and appear on the executive dashboard alongside findings from the other 4 journey types
   3. During journey execution, progress events and new findings are streamed over WebSocket and the UI reflects them without a refresh
   4. An end-to-end execution on the dry-run target produces sanitized findings, promoted threats, and WebSocket events observable from the browser dev console
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
+- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
+- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
+- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
 
 ### Phase 15: Journey Orchestration & Safety
 **Goal**: Wire the `api_security` journey into the existing executor, scheduler, and abort machinery — with safety guard-rails (authorization acknowledgment, rate caps, destructive-method gating, structured logs, audit log, dry-run target) enforced at the orchestration layer.
@@ -146,7 +176,12 @@ Plans:
   3. The engine enforces a default 10 req/s per-endpoint cap, honors user overrides up to an absolute 50 req/s ceiling that cannot be bypassed, and respects `Retry-After` / exponential backoff on 429/503
   4. DELETE/PUT/PATCH against unknown schemas are disabled unless the user checks a red-warning box with double-confirmation; `POST /api/v1/jobs/{id}/abort` stops all child processes via AbortController
   5. The internal `/healthz/api-test-target` endpoint supports full `dryRun` executions without touching real targets; all logs are structured JSON and never include request bodies, credentials, or tokens
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
+- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
+- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
+- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
 
 ### Phase 16: UI & Final Integration
 **Goal**: Ship the end-user surface — API Discovery page, endpoint drill-down, findings filters with OWASP badges, false-positive marking, journey wizard (4 steps), and per-finding curl reproduction — delivering the "prioritized, contextualized action plan" promise for API findings.
@@ -158,7 +193,12 @@ Plans:
   3. Each finding has a "Reproduzir" action that produces a `curl` command with credential placeholders only — no real secret is ever rendered
   4. User can mark a finding as `false_positive`; the change is recorded in `audit_log`
   5. The 4-step journey creation wizard (Alvos → Autenticação → Configuração → Confirmação) exposes discovery toggles (spec-first, crawler, kiterunner), testing toggles (misconfigs, auth, BOLA, BFLA, BOPLA, rate-limit, SSRF), inline credential creation, an estimated-requests preview, and the mandatory authorization-acknowledgment checkbox
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
+- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
+- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
+- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
 
 ## Progress
 
