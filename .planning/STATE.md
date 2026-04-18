@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: between_milestones
-stopped_at: v1.1 milestone completed
-last_updated: "2026-03-23T18:10:00.000Z"
-last_activity: 2026-03-23 — v1.1 milestone completed and archived
+milestone: v2.0
+milestone_name: API Discovery & Security Assessment
+status: defining_requirements
+stopped_at: Milestone v2.0 just started — defining requirements
+last_updated: "2026-04-18T00:00:00.000Z"
+last_activity: 2026-04-18 — Milestone v2.0 started
 progress:
   total_phases: 0
   completed_phases: 0
@@ -18,16 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-23)
+See: .planning/PROJECT.md (updated 2026-04-18)
 
 **Core value:** After running a security journey, the user must walk away with a prioritized, contextualized action plan — not a wall of raw findings.
-**Current focus:** Planning next milestone
+**Current focus:** Milestone v2.0 — defining requirements
 
 ## Current Position
 
-Milestone: v1.1 completed (2026-03-23)
-Next milestone: TBD — run `/gsd:new-milestone` to start
-Status: Between milestones
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-18 — Milestone v2.0 started
 
 ## Performance Metrics
 

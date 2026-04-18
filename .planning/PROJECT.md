@@ -8,6 +8,20 @@ SamurEye is an Adversarial Exposure Validation platform for medium businesses. I
 
 After running a security journey, the user must walk away with a prioritized, contextualized action plan — not a wall of raw findings.
 
+## Current Milestone: v2.0 API Discovery & Security Assessment
+
+**Goal:** Deliver the 5th security journey — automated discovery of APIs (REST/GraphQL/SOAP) plus security testing aligned to OWASP API Security Top 10 (2023) — as a first-class capability integrated with the existing Attack Surface and Web Application journeys.
+
+**Target features:**
+- API asset hierarchy (`apis`, `api_endpoints` tables) built on existing `parentAssetId` mechanism
+- Discovery pipeline: spec-first (OpenAPI/Swagger/GraphQL introspection) → Katana crawler → Kiterunner brute-force
+- Enrichment pipeline: httpx probing + Arjun parameter discovery
+- Security testing: Nuclei misconfigs + custom BOLA/BFLA/BOPLA/rate-limit/SSRF
+- API credential store reusing the platform's KEK/DEK pattern
+- OWASP API Top 10 (2023) categorized findings with sanitized evidence
+- Integration with existing Threat Engine (findings promoted to `threats` for the dashboard)
+- `install.sh` modernization as safe hard-reset updater + pinned binary distribution
+
 ## Current State
 
 **Shipped:** v1.1 (2026-03-23)
@@ -64,12 +78,12 @@ After running a security journey, the user must walk away with a prioritized, co
 
 ### Active
 
-(None — next milestone requirements TBD)
+- API Security journey (5th journey type) — REQ-IDs defined in `.planning/REQUIREMENTS.md` (v2.0)
 
 ### Out of Scope
 
 - AI/LLM-generated recommendations — complexity and cost; static contextual templates are sufficient
-- New journey types — focus on improving existing 4 journeys
+- ~~New journey types — focus on improving existing 4 journeys~~ **(Reversed in v2.0 — see Key Decisions)**
 - Mobile app — web-first, responsive improvements only
 - Multi-tenant architecture — single-tenant appliance model stays
 - Agent-based scanning — agentless architecture stays
@@ -102,6 +116,10 @@ After running a security journey, the user must walk away with a prioritized, co
 | Calibration regression tests in scoringEngine.test.ts | One file for all scoring tests, not fragmented | Good — hierarchy invariants enforced alongside unit tests |
 | LEFT JOIN for EDR deployment read path | Enrich deployment rows with host metadata in one query | Good — single round-trip, clean separation |
 | Inline return type in IStorage for circular import avoidance | Prevents edrDeployments.ts → interface.ts → edrDeployments.ts cycle | Good — pragmatic TypeScript workaround |
+| v2.0 reverses "No new journey types" out-of-scope | APIs are the dominant silent attack surface in modern stacks (SPAs, mobile backends, B2B integrations) and are not adequately covered by Web Application journey; separate Discovery model, credential model, and test vectors justify first-class treatment | — Pending |
+| `apis` as separate table (not `asset_type='api'`) | Richer attributes (baseUrl, apiType, specUrl, specVersion, specHash) don't fit generic `assets`; `parentAssetId → assets.id` already gives the hierarchy needed | — Pending |
+| BOLA/BFLA/BOPLA implemented in-house (TypeScript) rather than via Nuclei | Those vectors require state cross requests (two identities, enumerate IDs, try cross-access); Nuclei is stateless by design | — Pending |
+| Include auxiliary binaries via release tarball; deprecate `update.sh` as legacy Replit-era tool | Reproducible deployment model + SHA-256 pinning + no runtime downloads; an automated update service will be designed separately in a future milestone | — Pending |
 
 ---
-*Last updated: 2026-03-23 after v1.1 milestone completion*
+*Last updated: 2026-04-18 after starting milestone v2.0 API Discovery & Security Assessment*
