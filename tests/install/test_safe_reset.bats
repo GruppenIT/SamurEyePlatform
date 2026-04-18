@@ -11,8 +11,9 @@ setup() {
 }
 
 snapshot_tree() {
-  # Deterministic snapshot of tree state (visible + git metadata we care about)
-  ( cd "$INSTALL_DIR" && git status --porcelain; find . -maxdepth 2 -type f | sort | xargs sha256sum 2>/dev/null ) > "$BATS_TEST_TMPDIR/snapshot"
+  # Deterministic snapshot of working tree state (excludes .git/ metadata — git fetch writes
+  # FETCH_HEAD inside .git/ but that is NOT a working tree mutation per INFRA-01 semantics).
+  ( cd "$INSTALL_DIR" && git status --porcelain; find . -maxdepth 2 -not -path './.git/*' -type f | sort | xargs sha256sum 2>/dev/null ) > "$BATS_TEST_TMPDIR/snapshot"
 }
 
 @test "INFRA-01: clean synced tree passes the gate" {
