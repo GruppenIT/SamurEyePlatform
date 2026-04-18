@@ -25,7 +25,7 @@ export default function Postura() {
     ) {
       queryClient.invalidateQueries({ queryKey: ["/api/posture/history"] });
       queryClient.invalidateQueries({ queryKey: ["/api/posture/coverage"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/action-plan"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/recommendations/top"] });
       queryClient.invalidateQueries({ queryKey: ["/api/threats"] });
     }
   }, [lastMessage]);
