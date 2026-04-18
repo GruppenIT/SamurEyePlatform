@@ -75,6 +75,8 @@ source "$SCRIPT_DIR/scripts/install/preserve-paths.sh"
 MANIFEST="${MANIFEST:-$SCRIPT_DIR/scripts/install/binaries.json}"
 export MANIFEST
 source "$SCRIPT_DIR/scripts/install/fetch-binary.sh"
+# shellcheck source=scripts/install/install-wordlists.sh
+source "$SCRIPT_DIR/scripts/install/install-wordlists.sh"
 
 # Função para verificar se o usuário é root
 # Test-only hatch: EUID_OVERRIDE=root bypasses the root check in bats tests.
@@ -1328,6 +1330,7 @@ run_install() {
     setup_database
     install_nginx
     install_security_tools
+    install_wordlists
     create_system_user
     setup_firewall
     install_application
@@ -1421,12 +1424,8 @@ run_safe_update() {
         install_binary "$name"
     done
 
-    # 7. Install wordlists (Plan 05 wires this in — guarded call so Plan 04 merges cleanly)
-    if declare -F install_wordlists >/dev/null 2>&1; then
-        install_wordlists
-    else
-        warn "install_wordlists nao disponivel ainda — sera fornecido pelo Plan 05"
-    fi
+    # 7. Install wordlists (INFRA-04)
+    install_wordlists
 
     # 8. Rebuild app (npm install + build — reuses shared rebuild_app function)
     rebuild_app

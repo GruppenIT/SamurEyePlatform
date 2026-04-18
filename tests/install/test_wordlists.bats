@@ -11,6 +11,10 @@ setup() {
   export FAKE_TAR_SHA
   FAKE_TAR_SHA="$(sha256sum "$FAKE_TAR" | awk '{print $1}')"
 
+  # fetch-binary.sh requires MANIFEST and INSTALL_DIR — set dummies so sourcing works
+  # when install-wordlists.sh sources fetch-binary.sh for verify_sha256_strict/fetch_archive
+  export MANIFEST="$WORDLISTS_MANIFEST"
+
   # Fake local wordlist
   export LOCAL_WL="$BATS_TEST_TMPDIR/local-wl.txt"
   echo "param1" > "$LOCAL_WL"
