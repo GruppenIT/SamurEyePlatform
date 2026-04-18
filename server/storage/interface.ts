@@ -40,6 +40,12 @@ import {
   type ConsoleCommand,
   type EdrDeployment,
   type InsertEdrDeployment,
+  type Api,
+  type InsertApi,
+  type ApiEndpoint,
+  type InsertApiEndpoint,
+  type ApiFinding,
+  type InsertApiFinding,
   type MfaEmailChallenge,
   type InsertMfaEmailChallenge,
   type PasswordResetToken,
@@ -261,6 +267,23 @@ export interface IStorage {
   insertEdrDeployment(data: InsertEdrDeployment): Promise<EdrDeployment>;
   getEdrDeploymentsByJourney(journeyId: string): Promise<EdrDeployment[]>;
   getEdrDeploymentsByJourneyWithHost(journeyId: string): Promise<Array<EdrDeployment & { hostName: string | null; hostIps: string[]; hostOperatingSystem: string | null }>>;
+
+  // API operations — Phase 9 HIER-01, HIER-02, HIER-03, HIER-04, FIND-01
+  getApi(id: string): Promise<Api | undefined>;
+  listApis(): Promise<Api[]>;
+  listApisByParent(parentAssetId: string): Promise<Api[]>;
+  createApi(data: InsertApi, userId: string): Promise<Api>;
+  promoteApiFromBackfill(
+    parentAssetId: string,
+    baseUrl: string,
+    apiType: 'rest' | 'graphql' | 'soap',
+    opts: { specUrl?: string; systemUserId: string },
+  ): Promise<Api | null>;
+  listEndpointsByApi(apiId: string): Promise<ApiEndpoint[]>;
+  createApiEndpoint(data: InsertApiEndpoint): Promise<ApiEndpoint>;
+  upsertApiEndpoint(data: InsertApiEndpoint): Promise<ApiEndpoint>;
+  listFindingsByEndpoint(endpointId: string): Promise<ApiFinding[]>;
+  createApiFinding(data: InsertApiFinding): Promise<ApiFinding>;
 
   // MFA email challenges
   createMfaEmailChallenge(data: InsertMfaEmailChallenge): Promise<MfaEmailChallenge>;

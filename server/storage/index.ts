@@ -10,6 +10,9 @@ import * as sessionOps from "./sessions";
 import * as subscriptionOps from "./subscription";
 import * as databaseInitOps from "./database-init";
 import * as edrDeploymentOps from "./edrDeployments";
+import * as apiOps from "./apis";
+import * as apiEndpointOps from "./apiEndpoints";
+import * as apiFindingOps from "./apiFindings";
 import * as mfaOps from "./mfa";
 import * as passwordResetOps from "./password-reset";
 
@@ -191,6 +194,18 @@ export class DatabaseStorage implements IStorage {
   insertEdrDeployment = edrDeploymentOps.insertEdrDeployment;
   getEdrDeploymentsByJourney = edrDeploymentOps.getEdrDeploymentsByJourney;
   getEdrDeploymentsByJourneyWithHost = edrDeploymentOps.getEdrDeploymentsByJourneyWithHost;
+
+  // API operations — Phase 9 HIER-01, HIER-02, HIER-03, HIER-04, FIND-01
+  getApi = apiOps.getApi;
+  listApis = apiOps.listApis;
+  listApisByParent = apiOps.listApisByParent;
+  createApi = apiOps.createApi;
+  promoteApiFromBackfill = apiOps.promoteApiFromBackfill;
+  listEndpointsByApi = apiEndpointOps.listEndpointsByApi;
+  createApiEndpoint = apiEndpointOps.createApiEndpoint;
+  upsertApiEndpoint = apiEndpointOps.upsertApiEndpoint;
+  listFindingsByEndpoint = apiFindingOps.listFindingsByEndpoint;
+  createApiFinding = apiFindingOps.createApiFinding;
 
   // MFA email challenges
   createMfaEmailChallenge = mfaOps.createMfaEmailChallenge;
