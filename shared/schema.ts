@@ -12,6 +12,7 @@ import {
   boolean,
   pgEnum,
   real,
+  check,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -1200,6 +1201,122 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
 
+// ============================================================================
+// Phase 9: API Discovery & Security Assessment — HIER-01, HIER-02, FIND-01
+// ============================================================================
+
+// Shape validated by apiFindingEvidenceSchema below — JSONB shape is:
+//   { request: {method, url, headers?, bodySnippet?},
+//     response: {status, headers?, bodySnippet?},
+//     extractedValues?, context? }
+// bodySnippet (not body) is defensive naming — Phase 14 will truncate to 8KB.
+export interface ApiFindingEvidence {
+  request: {
+    method: string;
+    url: string;
+    headers?: Record<string, string>;
+    bodySnippet?: string;
+  };
+  response: {
+    status: number;
+    headers?: Record<string, string>;
+    bodySnippet?: string;
+  };
+  extractedValues?: Record<string, unknown>;
+  context?: string;
+}
+
+// apis table — HIER-01, HIER-03. Parent is always type='web_application' (validated at route layer).
+export const apis = pgTable("apis", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  parentAssetId: varchar("parent_asset_id")
+    .references(() => assets.id, { onDelete: 'cascade' }).notNull(),
+  baseUrl: text("base_url").notNull(),
+  apiType: apiTypeEnum("api_type").notNull(),
+  name: text("name"),
+  description: text("description"),
+  specUrl: text("spec_url"),
+  specHash: text("spec_hash"),                // populated Phase 11 (DISC-06)
+  specVersion: text("spec_version"),          // populated Phase 11
+  specLastFetchedAt: timestamp("spec_last_fetched_at"), // populated Phase 11
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("UQ_apis_parent_base_url").on(table.parentAssetId, table.baseUrl),
+  index("IDX_apis_parent_asset_id").on(table.parentAssetId),
+]);
+
+export type Api = typeof apis.$inferSelect;
+export type InsertApi = typeof apis.$inferInsert;
+
+// api_endpoints table — HIER-02. CHECK on method; tri-valor requiresAuth; text[] discoverySources.
+export const apiEndpoints = pgTable("api_endpoints", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  apiId: varchar("api_id").references(() => apis.id, { onDelete: 'cascade' }).notNull(),
+  method: text("method").notNull(),
+  path: text("path").notNull(),
+  pathParams: jsonb("path_params")
+    .$type<Array<{ name: string; type?: string; required?: boolean; example?: unknown }>>()
+    .default([]).notNull(),
+  queryParams: jsonb("query_params")
+    .$type<Array<{ name: string; type?: string; required?: boolean; example?: unknown }>>()
+    .default([]).notNull(),
+  headerParams: jsonb("header_params")
+    .$type<Array<{ name: string; type?: string; required?: boolean; example?: unknown }>>()
+    .default([]).notNull(),
+  requestSchema: jsonb("request_schema").$type<Record<string, unknown>>(),   // populated Phase 11
+  responseSchema: jsonb("response_schema").$type<Record<string, unknown>>(), // populated Phase 11
+  // tri-valor: NULL=not probed, true=401/403, false=open (ENRH-02 populates in Phase 11).
+  requiresAuth: boolean("requires_auth"),
+  // Allowed values: 'spec' | 'crawler' | 'kiterunner' | 'manual' (see shared/owaspApiCategories.ts DISCOVERY_SOURCES).
+  discoverySources: text("discovery_sources").array()
+    .$type<Array<'spec' | 'crawler' | 'kiterunner' | 'manual'>>()
+    .notNull().default(sql`ARRAY[]::text[]`),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("UQ_api_endpoints_api_method_path").on(table.apiId, table.method, table.path),
+  index("IDX_api_endpoints_api_id").on(table.apiId),
+  check(
+    "CK_api_endpoints_method",
+    sql`${table.method} IN ('GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS')`,
+  ),
+]);
+
+export type ApiEndpoint = typeof apiEndpoints.$inferSelect;
+export type InsertApiEndpoint = typeof apiEndpoints.$inferInsert;
+
+// api_findings table — FIND-01. Reuses threatSeverityEnum; promotedThreatId populated by Phase 14 FIND-03.
+export const apiFindings = pgTable("api_findings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  apiEndpointId: varchar("api_endpoint_id")
+    .references(() => apiEndpoints.id, { onDelete: 'cascade' }).notNull(),
+  jobId: varchar("job_id").references(() => jobs.id), // nullable: manual findings have no job
+  owaspCategory: owaspApiCategoryEnum("owasp_category").notNull(),
+  severity: threatSeverityEnum("severity").notNull(),
+  status: apiFindingStatusEnum("status").default('open').notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  remediation: text("remediation"),
+  riskScore: real("risk_score"), // 0-100, null until Phase 12+ scoringEngine runs
+  evidence: jsonb("evidence").$type<ApiFindingEvidence>().default(sql`'{}'::jsonb`).notNull(),
+  // Phase 14 FIND-03 will populate; created now to avoid double migration.
+  promotedThreatId: varchar("promoted_threat_id")
+    .references(() => threats.id, { onDelete: 'set null' }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_api_findings_endpoint_id").on(table.apiEndpointId),
+  index("IDX_api_findings_job_id").on(table.jobId),
+  index("IDX_api_findings_owasp_category").on(table.owaspCategory),
+  index("IDX_api_findings_severity").on(table.severity),
+  index("IDX_api_findings_status").on(table.status),
+]);
+
+export type ApiFinding = typeof apiFindings.$inferSelect;
+export type InsertApiFinding = typeof apiFindings.$inferInsert;
+
 // API contract types for appliance ↔ console communication
 export const activateApplianceSchema = z.object({
   apiKey: z.string().min(1, "Chave de API é obrigatória"),
@@ -1214,6 +1331,52 @@ export const commandResultSchema = z.object({
   error: z.string().optional(),
   startedAt: z.string().datetime().optional(),
   finishedAt: z.string().datetime().optional(),
+});
+
+// Phase 9 Zod schemas --- HIER-03 + FIND-01
+
+// Evidence JSONB shape — Zod-validated, strict (rejects unknown keys).
+// Phase 14 FIND-02 will further sanitize (redact auth headers, PII, truncate to 8KB).
+export const apiFindingEvidenceSchema = z.object({
+  request: z.object({
+    method: z.string().min(1),
+    url: z.string().url(),
+    headers: z.record(z.string()).optional(),
+    bodySnippet: z.string().max(8192).optional(),
+  }),
+  response: z.object({
+    status: z.number().int().min(100).max(599),
+    headers: z.record(z.string()).optional(),
+    bodySnippet: z.string().max(8192).optional(),
+  }),
+  extractedValues: z.record(z.unknown()).optional(),
+  context: z.string().optional(),
+}).strict();
+
+export type ApiFindingEvidenceInput = z.infer<typeof apiFindingEvidenceSchema>;
+
+// POST /api/v1/apis body — HIER-03. parentAssetId/baseUrl shape validated here;
+// parent.type='web_application' check is in the route (Zod cannot cross-DB validate).
+export const insertApiSchema = createInsertSchema(apis).omit({
+  id: true, createdAt: true, createdBy: true, updatedAt: true,
+  specHash: true, specVersion: true, specLastFetchedAt: true,
+}).extend({
+  parentAssetId: z.string().uuid("ID de ativo pai inválido"),
+  baseUrl: z.string().url("URL base inválida"),
+  apiType: z.enum(['rest', 'graphql', 'soap']),
+});
+
+// Endpoint creation — used by Phase 11 discovery writers.
+export const insertApiEndpointSchema = createInsertSchema(apiEndpoints).omit({
+  id: true, createdAt: true, updatedAt: true,
+});
+
+// Finding creation — evidence is strictly Zod-validated.
+export const insertApiFindingSchema = createInsertSchema(apiFindings, {
+  evidence: apiFindingEvidenceSchema,
+}).omit({
+  id: true, createdAt: true, updatedAt: true,
+  promotedThreatId: true, riskScore: true,
 });
 
 export const heartbeatRequestSchema = z.object({
