@@ -15,10 +15,10 @@ load 'helpers'
   [[ "$output" =~ "Flag desconhecida" ]]
 }
 
-@test "install.sh --from-tarball prints 'Plan 06' and exits 2" {
-  run bash "$REPO_ROOT/install.sh" --from-tarball /tmp/fake.tar.gz
-  [ "$status" -eq 2 ]
-  [[ "$output" =~ "Plan 06" ]] || [[ "$output" =~ "nao implementado" ]]
+@test "install.sh --from-tarball prints from-tarball mode log and aborts when tarball missing" {
+  run bash "$REPO_ROOT/install.sh" --from-tarball /tmp/nonexistent-samureye.tar.gz
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "from-tarball" ]]
 }
 
 @test "install.sh PRESERVE_PATHS array contains all 7 required paths" {

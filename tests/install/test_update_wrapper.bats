@@ -14,7 +14,8 @@ exit 0
 SH
     chmod +x "$stage/install.sh"
 
-    # Run update.sh; capture stderr separately
+    # Run the real update.sh with INSTALL_DIR pointing at our mock stage.
+    # Redirect stderr to stdout so bats captures it in $output.
     run env INSTALL_DIR="$stage" bash "$REPO_ROOT/update.sh" 2>&1 >/dev/null
     [[ "$output" =~ "DEPRECATED" ]]
 }
@@ -33,7 +34,8 @@ exit 42
 SH
     chmod +x "$stage/install.sh"
 
-    run env INSTALL_DIR="$stage" AUTO_CONFIRM=true SKIP_BACKUP=true bash "$stage/update.sh" 2>/dev/null
+    # Run the real update.sh pointing INSTALL_DIR at our mock stage.
+    run env INSTALL_DIR="$stage" AUTO_CONFIRM=true SKIP_BACKUP=true bash "$REPO_ROOT/update.sh" 2>/dev/null
 
     [ "$status" -eq 42 ]
     [[ "$output" =~ "INSTALL_ARGS=--update" ]]
@@ -65,7 +67,8 @@ exit 0
 SH
     chmod +x "$stage/install.sh"
 
-    run env INSTALL_DIR="$stage" GIT_TOKEN="test-token-123" bash "$stage/update.sh" 2>/dev/null
+    # Run the real update.sh pointing INSTALL_DIR at our mock stage.
+    run env INSTALL_DIR="$stage" GIT_TOKEN="test-token-123" bash "$REPO_ROOT/update.sh" 2>/dev/null
     [ "$status" -eq 0 ]
     [[ "$output" =~ "GIT_TOKEN=test-token-123" ]]
 }

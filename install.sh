@@ -1437,12 +1437,85 @@ run_safe_update() {
 }
 
 # ── run_from_tarball ──────────────────────────────────────────────────────
-# STUB — full implementation in Plan 06.
+# Offline install from a release tarball produced by scripts/install/build-release.sh.
+# No git clone, no curl, no apt fetch — all binaries and wordlists bundled.
+# MANIFEST env var is overridden to point at the in-tarball MANIFEST.json (rewritten
+# with file:// URLs) so install_binary() resolves archives locally.
 run_from_tarball() {
     local tarball="$1"
-    error "--from-tarball nao implementado — aguardando Plan 06"
-    error "Tarball path solicitado: $tarball"
-    exit 2
+    log "═══ Modo: --from-tarball ($tarball) ═══"
+
+    [[ -f "$tarball" ]] || { error "Tarball não encontrado: $tarball"; exit 1; }
+
+    check_root
+    detect_distro
+
+    # 1. Extract tarball to a staging area
+    local stage
+    stage="$(mktemp -d -t samureye-tarball-XXXXXX)"
+    log "Extraindo tarball em $stage"
+    tar -xzf "$tarball" -C "$stage"
+
+    # Tarball root dir is samureye-<tag>/
+    local rootdir
+    rootdir="$(find "$stage" -maxdepth 1 -type d -name 'samureye-*' | head -1)"
+    [[ -d "$rootdir" ]] || { error "Layout do tarball inválido — diretório samureye-* não encontrado"; rm -rf "$stage"; exit 1; }
+
+    # 2. Rewrite MANIFEST URLs from ./bin/... to file://<rootdir>/bin/... so
+    #    fetch_archive() copies them locally (file:// support in Plan 02).
+    local manifest_local="$stage/MANIFEST.local.json"
+    jq --arg base "$rootdir" '
+      .binaries |= with_entries(
+        .value.url = ("file://" + $base + "/" + (.value.url | ltrimstr("./")))
+      ) |
+      if .wordlists then
+        .wordlists |= with_entries(
+          .value.url = ("file://" + $base + "/" + (.value.url | ltrimstr("./")))
+        )
+      else
+        .
+      end
+    ' "$rootdir/MANIFEST.json" > "$manifest_local"
+    export MANIFEST="$manifest_local"
+
+    # 3. Install app source — fresh install vs. safe-update flow
+    if [[ ! -d "$INSTALL_DIR/.git" ]]; then
+        log "Instalação fresca a partir do tarball"
+        mkdir -p "$INSTALL_DIR"
+        cp -a "$rootdir/app/." "$INSTALL_DIR/"
+    else
+        log "Tarball sobre appliance existente — usando fluxo safe-update"
+        safe_reset_gate
+        preserve_paths_to_staging
+        rm -rf "$INSTALL_DIR"/*
+        cp -a "$rootdir/app/." "$INSTALL_DIR/"
+        restore_paths_from_staging
+    fi
+
+    # 4. Install pinned auxiliary binaries from tarball/bin/ (offline — no curl)
+    log "Instalando binários auxiliares (offline, do tarball)..."
+    for name in $(jq -r '.binaries | keys[]' "$MANIFEST"); do
+        install_binary "$name"
+    done
+
+    # 5. Install wordlists from tarball/wordlists/ — copy directly (no network)
+    log "Instalando wordlists (offline, do tarball)..."
+    mkdir -p "$INSTALL_DIR/wordlists"
+    if [[ -d "$rootdir/wordlists" ]]; then
+        cp -a "$rootdir/wordlists/." "$INSTALL_DIR/wordlists/"
+        log "Wordlists copiadas para $INSTALL_DIR/wordlists/"
+    else
+        warn "Diretório wordlists/ ausente no tarball — pulando wordlists"
+    fi
+
+    # 6. Rebuild app (npm install, build, migrations)
+    rebuild_app
+
+    # 7. Start service
+    systemctl start "${SERVICE_NAME}" || warn "Falha ao iniciar ${SERVICE_NAME}"
+
+    rm -rf "$stage"
+    log "═══ --from-tarball concluído ═══"
 }
 
 # ═════════════════ Main entry point ═════════════════
