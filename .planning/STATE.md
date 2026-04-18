@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: planning
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-04-18T12:43:06.657Z"
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-04-18T13:18:21.605Z"
 last_activity: 2026-04-17 — v2.0 roadmap created, 9 phases, 41 requirements mapped
 progress:
   total_phases: 9
   completed_phases: 0
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 08 P01 | 15m | 2 tasks | 7 files |
 | Phase 08 P03 | 15 | 2 tasks | 5 files |
 | Phase 08 P02 | 35 | 2 tasks | 8 files |
+| Phase 08 P04 | 29 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 08]: safe_reset_gate uses return 1 (not exit 1) to preserve sourcing semantics in parent shell
 - [Phase 08]: fetch_archive() handles file:// URLs natively for hermetic test isolation
 - [Phase 08]: pip_source mktemp requires .tar.gz suffix — pip rejects extensionless paths
+- [Phase 08]: Bats direct calls (not `run`) needed for tests accessing STAGING_DIR/MOVED_PATHS globals from preserve-paths.sh
+- [Phase 08]: Restore failure test uses regular file at INSTALL_DIR path (not chmod 000) — chmod 000 ineffective under root
+- [Phase 08]: rebuild_app() extracted from install_application() — shared by run_install and run_safe_update
 
 ### Pending Todos
 
@@ -79,6 +83,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-18T12:43:06.653Z
-Stopped at: Completed 08-02-PLAN.md
+Last session: 2026-04-18T13:18:21.601Z
+Stopped at: Completed 08-04-PLAN.md
 Resume file: None
