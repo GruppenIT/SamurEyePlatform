@@ -81,6 +81,32 @@ export const adSecurityTestStatusEnum = pgEnum('ad_security_test_status', ['pass
 // Host enrichment protocol enum
 export const enrichmentProtocolEnum = pgEnum('enrichment_protocol', ['wmi', 'ssh', 'snmp']);
 
+// Phase 9: API Discovery enums ---
+
+// API type — ROADMAP Phase 9 HIER-01
+export const apiTypeEnum = pgEnum('api_type_enum', ['rest', 'graphql', 'soap']);
+
+// OWASP API Top 10 2023 — ROADMAP Phase 9 FIND-01
+// NEVER mutate this enum (Postgres enum mutation requires ALTER TYPE).
+// For OWASP 2027, create a new enum `owasp_api_category_2027`.
+// Keys MUST match shared/owaspApiCategories.ts OWASP_API_CATEGORY_LABELS keys.
+export const owaspApiCategoryEnum = pgEnum('owasp_api_category', [
+  'api1_bola_2023',
+  'api2_broken_auth_2023',
+  'api3_bopla_2023',
+  'api4_rate_limit_2023',
+  'api5_bfla_2023',
+  'api6_business_flow_2023',
+  'api7_ssrf_2023',
+  'api8_misconfiguration_2023',
+  'api9_inventory_2023',
+  'api10_unsafe_consumption_2023',
+]);
+
+// api_findings lifecycle status — ROADMAP Phase 9 FIND-01, UI Phase 16 UI-05
+export const apiFindingStatusEnum = pgEnum('api_finding_status',
+  ['open', 'triaged', 'false_positive', 'closed']);
+
 // Users table
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
