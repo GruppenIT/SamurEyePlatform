@@ -57,7 +57,14 @@ See: `.planning/milestones/v1.1-ROADMAP.md` for full details.
   3. After `install.sh` runs, `.planning/`, `docs/`, `backups/`, `uploads/`, `.env`, and cloud-synced skills directories are preserved unchanged
   4. `routes-large.kite` and `arjun-extended-pt-en.txt` are present on disk with verified checksums — no network fetch occurs at runtime
   5. A release tarball containing app + binaries + wordlists can be built and installed end-to-end; `update.sh` displays a deprecation notice
-**Plans**: TBD
+**Plans:** 6 plans (4 waves)
+Plans:
+- [ ] 08-01-PLAN.md — Wave 0: Pinned manifests (binaries.json + wordlists.json), bats-core harness, vendor staging, custom pt-BR Arjun wordlist seeded
+- [ ] 08-02-PLAN.md — Wave 1: Binary fetch/verify module (install_binary + SHA-256 gate) with Arjun pip-source venv handling
+- [ ] 08-03-PLAN.md — Wave 1: safe_reset_gate (ahead-of-origin + porcelain dirty-tree detection with exact recovery hints)
+- [ ] 08-04-PLAN.md — Wave 2: install.sh flag dispatch + PRESERVE_PATHS expansion + run_safe_update flow
+- [ ] 08-05-PLAN.md — Wave 2: Wordlist install + vendored routes-large.kite (in-tree, SHA-verified, CDN-resilient)
+- [ ] 08-06-PLAN.md — Wave 3: build-release.sh tarball + install.sh --from-tarball + update.sh deprecation wrapper
 
 ### Phase 9: Schema & Asset Hierarchy
 **Goal**: Persist the full API data model (apis, api_endpoints, api_findings) as additive migrations under the existing `parentAssetId` hierarchy, and backfill existing web_application assets so discovery has a home to write into.
