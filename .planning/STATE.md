@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
-status: defining_requirements
-stopped_at: Milestone v2.0 just started — defining requirements
-last_updated: "2026-04-18T00:00:00.000Z"
-last_activity: 2026-04-18 — Milestone v2.0 started
+status: ready_to_plan
+stopped_at: Roadmap created for v2.0 — Phase 8 ready to plan
+last_updated: "2026-04-17T00:00:00.000Z"
+last_activity: 2026-04-17 — v2.0 roadmap created (9 phases, 41/41 requirements mapped)
 progress:
-  total_phases: 0
+  total_phases: 9
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-18)
 
 **Core value:** After running a security journey, the user must walk away with a prioritized, contextualized action plan — not a wall of raw findings.
-**Current focus:** Milestone v2.0 — defining requirements
+**Current focus:** v2.0 Phase 8 — Infrastructure & Install
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-18 — Milestone v2.0 started
+Phase: 8 of 16 (Infrastructure & Install) — v2.0 begins
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-04-17 — v2.0 roadmap created, 9 phases, 41 requirements mapped
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -51,7 +53,12 @@ Last activity: 2026-04-18 — Milestone v2.0 started
 
 ### Decisions
 
-Full decision log in PROJECT.md Key Decisions table.
+Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting v2.0:
+
+- v2.0 reverses "no new journey types" — APIs justify first-class treatment
+- `apis` as separate table (not `asset_type='api'`) — richer attributes
+- BOLA/BFLA/BOPLA in-house TypeScript (Nuclei is stateless)
+- Auxiliary binaries via release tarball; `update.sh` deprecated
 
 ### Pending Todos
 
@@ -63,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-23
-Stopped at: v1.1 milestone completed
+Last session: 2026-04-17
+Stopped at: v2.0 roadmap created — ready to plan Phase 8
 Resume file: None

@@ -121,15 +121,78 @@ Explicitly excluded from v2.0. Documented to prevent scope creep.
 
 ## Traceability
 
-Which phases cover which requirements. Populated during roadmap creation.
+Which phases cover which requirements. Populated during roadmap creation 2026-04-17.
 
-_(Empty — will be filled after roadmap is generated.)_
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| INFRA-01 | Phase 8: Infrastructure & Install | Pending |
+| INFRA-02 | Phase 8: Infrastructure & Install | Pending |
+| INFRA-03 | Phase 8: Infrastructure & Install | Pending |
+| INFRA-04 | Phase 8: Infrastructure & Install | Pending |
+| INFRA-05 | Phase 8: Infrastructure & Install | Pending |
+| HIER-01 | Phase 9: Schema & Asset Hierarchy | Pending |
+| HIER-02 | Phase 9: Schema & Asset Hierarchy | Pending |
+| HIER-03 | Phase 9: Schema & Asset Hierarchy | Pending |
+| HIER-04 | Phase 9: Schema & Asset Hierarchy | Pending |
+| FIND-01 | Phase 9: Schema & Asset Hierarchy | Pending |
+| CRED-01 | Phase 10: API Credentials | Pending |
+| CRED-02 | Phase 10: API Credentials | Pending |
+| CRED-03 | Phase 10: API Credentials | Pending |
+| CRED-04 | Phase 10: API Credentials | Pending |
+| CRED-05 | Phase 10: API Credentials | Pending |
+| DISC-01 | Phase 11: Discovery & Enrichment | Pending |
+| DISC-02 | Phase 11: Discovery & Enrichment | Pending |
+| DISC-03 | Phase 11: Discovery & Enrichment | Pending |
+| DISC-04 | Phase 11: Discovery & Enrichment | Pending |
+| DISC-05 | Phase 11: Discovery & Enrichment | Pending |
+| DISC-06 | Phase 11: Discovery & Enrichment | Pending |
+| ENRH-01 | Phase 11: Discovery & Enrichment | Pending |
+| ENRH-02 | Phase 11: Discovery & Enrichment | Pending |
+| ENRH-03 | Phase 11: Discovery & Enrichment | Pending |
+| TEST-01 | Phase 12: Security Testing — Passive | Pending |
+| TEST-02 | Phase 12: Security Testing — Passive | Pending |
+| TEST-03 | Phase 13: Security Testing — Active | Pending |
+| TEST-04 | Phase 13: Security Testing — Active | Pending |
+| TEST-05 | Phase 13: Security Testing — Active | Pending |
+| TEST-06 | Phase 13: Security Testing — Active | Pending |
+| TEST-07 | Phase 13: Security Testing — Active | Pending |
+| FIND-02 | Phase 14: Findings Runtime & Threat Integration | Pending |
+| FIND-03 | Phase 14: Findings Runtime & Threat Integration | Pending |
+| FIND-04 | Phase 14: Findings Runtime & Threat Integration | Pending |
+| JRNY-01 | Phase 15: Journey Orchestration & Safety | Pending |
+| JRNY-02 | Phase 15: Journey Orchestration & Safety | Pending |
+| JRNY-03 | Phase 15: Journey Orchestration & Safety | Pending |
+| JRNY-04 | Phase 15: Journey Orchestration & Safety | Pending |
+| JRNY-05 | Phase 15: Journey Orchestration & Safety | Pending |
+| SAFE-01 | Phase 15: Journey Orchestration & Safety | Pending |
+| SAFE-02 | Phase 15: Journey Orchestration & Safety | Pending |
+| SAFE-03 | Phase 15: Journey Orchestration & Safety | Pending |
+| SAFE-04 | Phase 15: Journey Orchestration & Safety | Pending |
+| SAFE-05 | Phase 15: Journey Orchestration & Safety | Pending |
+| SAFE-06 | Phase 15: Journey Orchestration & Safety | Pending |
+| UI-01 | Phase 16: UI & Final Integration | Pending |
+| UI-02 | Phase 16: UI & Final Integration | Pending |
+| UI-03 | Phase 16: UI & Final Integration | Pending |
+| UI-04 | Phase 16: UI & Final Integration | Pending |
+| UI-05 | Phase 16: UI & Final Integration | Pending |
+| UI-06 | Phase 16: UI & Final Integration | Pending |
 
 **Coverage:**
 - v2.0 requirements: 41 total
-- Mapped to phases: 0 (pending)
-- Unmapped: 41 ⚠️
+- Mapped to phases: 41
+- Unmapped: 0
+
+**Per-phase counts:**
+- Phase 8 (Infrastructure & Install): 5 (INFRA-01..05)
+- Phase 9 (Schema & Asset Hierarchy): 5 (HIER-01..04, FIND-01)
+- Phase 10 (API Credentials): 5 (CRED-01..05)
+- Phase 11 (Discovery & Enrichment): 9 (DISC-01..06, ENRH-01..03)
+- Phase 12 (Security Testing — Passive): 2 (TEST-01, TEST-02)
+- Phase 13 (Security Testing — Active): 5 (TEST-03..07)
+- Phase 14 (Findings Runtime & Threat Integration): 3 (FIND-02, FIND-03, FIND-04)
+- Phase 15 (Journey Orchestration & Safety): 11 (JRNY-01..05, SAFE-01..06)
+- Phase 16 (UI & Final Integration): 6 (UI-01..06)
 
 ---
 *Requirements defined: 2026-04-18*
-*Last updated: 2026-04-18 after milestone v2.0 start*
+*Last updated: 2026-04-17 after milestone v2.0 roadmap creation (9 phases, 41/41 mapped)*
