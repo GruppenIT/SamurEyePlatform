@@ -57,7 +57,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md` for full details.
   3. After `install.sh` runs, `.planning/`, `docs/`, `backups/`, `uploads/`, `.env`, and cloud-synced skills directories are preserved unchanged
   4. `routes-large.kite` and `arjun-extended-pt-en.txt` are present on disk with verified checksums — no network fetch occurs at runtime
   5. A release tarball containing app + binaries + wordlists can be built and installed end-to-end; `update.sh` displays a deprecation notice
-**Plans:** 4/6 plans executed
+**Plans:** 5/6 plans executed
 Plans:
 - [ ] 08-01-PLAN.md — Wave 0: Pinned manifests (binaries.json + wordlists.json), bats-core harness, vendor staging, custom pt-BR Arjun wordlist seeded
 - [ ] 08-02-PLAN.md — Wave 1: Binary fetch/verify module (install_binary + SHA-256 gate) with Arjun pip-source venv handling
@@ -174,7 +174,7 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 5. EDR Timestamps | v1.1 | 1/1 | Complete | 2026-03-17 |
 | 6. Calibration and Quality | v1.1 | 2/2 | Complete | 2026-03-17 |
 | 7. EDR Deployment Read Path | v1.1 | 2/2 | Complete | 2026-03-23 |
-| 8. Infrastructure & Install | 4/6 | In Progress|  | - |
+| 8. Infrastructure & Install | 5/6 | In Progress|  | - |
 | 9. Schema & Asset Hierarchy | v2.0 | 0/TBD | Not started | - |
 | 10. API Credentials | v2.0 | 0/TBD | Not started | - |
 | 11. Discovery & Enrichment | v2.0 | 0/TBD | Not started | - |

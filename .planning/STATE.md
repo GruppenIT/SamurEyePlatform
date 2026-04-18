@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: planning
-stopped_at: Completed 08-04-PLAN.md
-last_updated: "2026-04-18T13:18:21.605Z"
+stopped_at: "Completed 08-05-PLAN.md — checkpoint:human-verify awaiting user decision on 183MB vendored file"
+last_updated: "2026-04-18T18:18:54.060Z"
 last_activity: 2026-04-17 — v2.0 roadmap created, 9 phases, 41 requirements mapped
 progress:
   total_phases: 9
   completed_phases: 0
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 08 P03 | 15 | 2 tasks | 5 files |
 | Phase 08 P02 | 35 | 2 tasks | 8 files |
 | Phase 08 P04 | 29 | 2 tasks | 4 files |
+| Phase 08 P05 | 20 | 1 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 08]: Bats direct calls (not `run`) needed for tests accessing STAGING_DIR/MOVED_PATHS globals from preserve-paths.sh
 - [Phase 08]: Restore failure test uses regular file at INSTALL_DIR path (not chmod 000) — chmod 000 ineffective under root
 - [Phase 08]: rebuild_app() extracted from install_application() — shared by run_install and run_safe_update
+- [Phase 08]: routes-large.kite vendored as 183MB plain git object — user confirms at checkpoint whether in-tree size acceptable or LFS preferred
+- [Phase 08]: extracted_sha256 field added to wordlists.json for extracted-file verification independent of tarball SHA
+- [Phase 08]: _WORDLIST_REPO_ROOT env override pattern enables hermetic bats test isolation for wordlist install tests
 
 ### Pending Todos
 
@@ -83,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-18T13:18:21.601Z
-Stopped at: Completed 08-04-PLAN.md
+Last session: 2026-04-18T18:18:54.056Z
+Stopped at: Completed 08-05-PLAN.md — checkpoint:human-verify awaiting user decision on 183MB vendored file
 Resume file: None
