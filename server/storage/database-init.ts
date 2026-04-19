@@ -138,6 +138,9 @@ export async function initializeDatabaseStructure(): Promise<void> {
     // Phase 9: API Discovery tables (HIER-01, HIER-02, FIND-01)
     await ensureApiTables();
 
+    // Phase 10: API Credentials table (CRED-01..04)
+    await ensureApiCredentialTables();
+
   } catch (error) {
     log.error({ err: error }, 'database initialization error');
     // Don't throw - let the system continue with fallback mode
@@ -335,6 +338,103 @@ export async function ensureApiTables(): Promise<void> {
   } catch (error) {
     // Follow existing pattern: log but do not throw (app continues in fallback mode).
     log.error({ err: error }, 'ensureApiTables error');
+  }
+}
+
+// Phase 10 — API Credentials table (CRED-01..04).
+// Runtime idempotent guard. Replicates ensureApiTables pattern exactly.
+// Safe to re-run; safe to run after `db:push` has already created the objects.
+// Identifiers are quoted in CREATE statements AND in pg_indexes lookups.
+export async function ensureApiCredentialTables(): Promise<void> {
+  try {
+    // ---- pgEnum api_auth_type ----
+    const enumCheck = await db.execute(sql`
+      SELECT typname FROM pg_type WHERE typname = 'api_auth_type'
+    `);
+    if ((enumCheck.rowCount ?? 0) === 0) {
+      log.info('creating api_auth_type enum');
+      await db.execute(sql`
+        CREATE TYPE api_auth_type AS ENUM (
+          'api_key_header',
+          'api_key_query',
+          'bearer_jwt',
+          'basic',
+          'oauth2_client_credentials',
+          'hmac',
+          'mtls'
+        )
+      `);
+    }
+
+    // ---- table api_credentials ----
+    const tableCheck = await db.execute(sql`
+      SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename = 'api_credentials'
+    `);
+    if ((tableCheck.rowCount ?? 0) === 0) {
+      log.info('creating api_credentials table');
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS api_credentials (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          name TEXT NOT NULL,
+          description TEXT,
+          auth_type api_auth_type NOT NULL,
+          url_pattern TEXT NOT NULL DEFAULT '*',
+          priority INTEGER NOT NULL DEFAULT 100,
+          api_id VARCHAR REFERENCES apis(id) ON DELETE SET NULL,
+          secret_encrypted TEXT NOT NULL,
+          dek_encrypted TEXT NOT NULL,
+          api_key_header_name TEXT,
+          api_key_query_param TEXT,
+          basic_username TEXT,
+          bearer_expires_at TIMESTAMP,
+          oauth2_client_id TEXT,
+          oauth2_token_url TEXT,
+          oauth2_scope TEXT,
+          oauth2_audience TEXT,
+          hmac_key_id TEXT,
+          hmac_algorithm TEXT,
+          hmac_signature_header TEXT,
+          hmac_signed_headers TEXT[],
+          hmac_canonical_template TEXT,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          created_by VARCHAR NOT NULL REFERENCES users(id),
+          updated_by VARCHAR REFERENCES users(id)
+        )
+      `);
+    }
+
+    // ---- indexes ----
+    const INDEXES: Array<[string, string]> = [
+      [
+        'IDX_api_credentials_api_id',
+        `CREATE INDEX "IDX_api_credentials_api_id" ON api_credentials (api_id)`,
+      ],
+      [
+        'IDX_api_credentials_priority',
+        `CREATE INDEX "IDX_api_credentials_priority" ON api_credentials (priority)`,
+      ],
+      [
+        'UQ_api_credentials_name_created_by',
+        `CREATE UNIQUE INDEX "UQ_api_credentials_name_created_by" ON api_credentials (name, created_by)`,
+      ],
+    ];
+
+    for (const [idxName, ddl] of INDEXES) {
+      const idxCheck = await db.execute(sql`
+        SELECT indexname FROM pg_indexes
+        WHERE tablename = 'api_credentials' AND indexname = ${idxName}
+      `);
+      if ((idxCheck.rowCount ?? 0) === 0) {
+        log.info({ idxName }, 'creating api_credentials index');
+        await db.execute(sql.raw(ddl));
+      }
+    }
+
+    log.info('ensureApiCredentialTables complete');
+  } catch (error) {
+    // Follow existing pattern: log but do not throw (app continues in fallback mode).
+    log.error({ err: error }, 'ensureApiCredentialTables error');
   }
 }
 
