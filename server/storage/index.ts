@@ -13,6 +13,7 @@ import * as edrDeploymentOps from "./edrDeployments";
 import * as apiOps from "./apis";
 import * as apiEndpointOps from "./apiEndpoints";
 import * as apiFindingOps from "./apiFindings";
+import * as apiCredentialOps from "./apiCredentials";
 import * as mfaOps from "./mfa";
 import * as passwordResetOps from "./password-reset";
 
@@ -206,6 +207,15 @@ export class DatabaseStorage implements IStorage {
   upsertApiEndpoint = apiEndpointOps.upsertApiEndpoint;
   listFindingsByEndpoint = apiFindingOps.listFindingsByEndpoint;
   createApiFinding = apiFindingOps.createApiFinding;
+
+  // Phase 10 — API Credentials (CRED-01..04)
+  listApiCredentials = apiCredentialOps.listApiCredentials;
+  getApiCredential = apiCredentialOps.getApiCredential;
+  getApiCredentialWithSecret = apiCredentialOps.getApiCredentialWithSecret;
+  createApiCredential = apiCredentialOps.createApiCredential;
+  updateApiCredential = apiCredentialOps.updateApiCredential;
+  deleteApiCredential = apiCredentialOps.deleteApiCredential;
+  resolveApiCredential = apiCredentialOps.resolveApiCredential;
 
   // MFA email challenges
   createMfaEmailChallenge = mfaOps.createMfaEmailChallenge;

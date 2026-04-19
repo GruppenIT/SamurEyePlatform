@@ -46,6 +46,11 @@ import {
   type InsertApiEndpoint,
   type ApiFinding,
   type InsertApiFinding,
+  type ApiCredentialSafe,
+  type ApiCredentialWithSecret,
+  type InsertApiCredential,
+  type PatchApiCredential,
+  type ApiAuthType,
   type MfaEmailChallenge,
   type InsertMfaEmailChallenge,
   type PasswordResetToken,
@@ -284,6 +289,15 @@ export interface IStorage {
   upsertApiEndpoint(data: InsertApiEndpoint): Promise<ApiEndpoint>;
   listFindingsByEndpoint(endpointId: string): Promise<ApiFinding[]>;
   createApiFinding(data: InsertApiFinding): Promise<ApiFinding>;
+
+  // Phase 10 — API Credentials operations (CRED-01..04)
+  listApiCredentials(filter?: { apiId?: string; authType?: ApiAuthType }): Promise<ApiCredentialSafe[]>;
+  getApiCredential(id: string): Promise<ApiCredentialSafe | undefined>;
+  getApiCredentialWithSecret(id: string): Promise<ApiCredentialWithSecret | undefined>;
+  createApiCredential(input: InsertApiCredential, userId: string): Promise<ApiCredentialSafe>;
+  updateApiCredential(id: string, patch: PatchApiCredential, userId: string): Promise<ApiCredentialSafe>;
+  deleteApiCredential(id: string): Promise<void>;
+  resolveApiCredential(apiId: string, endpointUrl: string): Promise<ApiCredentialSafe | null>;
 
   // MFA email challenges
   createMfaEmailChallenge(data: InsertMfaEmailChallenge): Promise<MfaEmailChallenge>;
