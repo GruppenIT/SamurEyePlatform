@@ -4,8 +4,8 @@ milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
 stopped_at: Completed 10-05-PLAN.md (Wave 3 CRUD route — Phase 10 CLOSED)
-last_updated: "2026-04-19T19:04:13.424Z"
-last_activity: 2026-04-19 — Plan 10-05 delivered server/routes/apiCredentials.ts (165 lines, 5 CRUD endpoints POST|GET|GET:id|PATCH|DELETE /api/v1/api-credentials) + barrel registration (+2 lines) + 30 route tests GREEN. Phase 10 CLOSED (CRED-01..05 ✓). Suite total 487 passed (+30 vs baseline).
+last_updated: "2026-04-19T19:12:49.192Z"
+last_activity: 2026-04-19 — Plan 10-05 delivered server/routes/apiCredentials.ts (165 lines, registerApiCredentialsRoutes(app)) + barrel registration (+2 lines) + 30 route tests GREEN; 143 apiCredentials tests passing total; full suite 487 passed (+30 vs baseline)
 progress:
   total_phases: 9
   completed_phases: 3
