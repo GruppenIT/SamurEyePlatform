@@ -30,6 +30,13 @@ vi.mock('../../storage', () => ({
   storage: storageMock,
 }));
 
+// Transitive imports through middleware.ts / subscriptionService require DATABASE_URL.
+// Mock db + subscriptionService so the route module is importable in tests.
+vi.mock('../../db', () => ({ db: {}, pool: {} }));
+vi.mock('../../services/subscriptionService', () => ({
+  subscriptionService: { isReadOnly: () => false },
+}));
+
 // --- Auth middleware mock ----------------------------------------------------
 // isAuthenticatedWithPasswordCheck pulls a user off the request when the
 // test has injected one via `__testUser` (set by a prior middleware below).
