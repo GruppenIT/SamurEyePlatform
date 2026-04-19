@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 10-02-PLAN.md (Wave 1 schema)
-last_updated: "2026-04-19T14:30:57.522Z"
-last_activity: 2026-04-19 — Plan 10-03 delivered 2 pure helpers in server/services/credentials/ (~57 linhas prod + 34 passing tests)
+stopped_at: Completed 10-04-PLAN.md (Wave 2 storage + guard + IStorage wiring)
+last_updated: "2026-04-19T18:51:20.305Z"
+last_activity: 2026-04-19 — Plan 10-04 delivered storage facade apiCredentials.ts (7 functions + SAFE_FIELDS) + ensureApiCredentialTables boot guard + IStorage/DatabaseStorage wiring (+24 lines); 41 new tests GREEN (total 113 in phase 10)
 progress:
   total_phases: 9
   completed_phases: 2
   total_plans: 15
-  completed_plans: 13
-  percent: 87
+  completed_plans: 14
+  percent: 93
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-18)
 ## Current Position
 
 Phase: 10 of 16 (API Credentials) — v2.0 Phase 10 executing
-Plan: 01 + 02 + 03 of 05 completed — next: 10-04 (Wave 2 storage facade)
-Status: Plan 10-02 complete (Wave 1 schema — apiAuthTypeEnum + apiCredentials pgTable + insertApiCredentialSchema discriminated union + 6 derived types)
-Last activity: 2026-04-19 — Plan 10-02 adicionou ~189 linhas a shared/schema.ts (38 schema tests GREEN)
+Plan: 01 + 02 + 03 + 04 of 05 completed — next: 10-05 (Wave 3 route)
+Status: Plan 10-04 complete (Wave 2 persistence — storage facade + boot guard + IStorage wiring; 41 new tests GREEN)
+Last activity: 2026-04-19 — Plan 10-04 delivered server/storage/apiCredentials.ts (7 functions + SAFE_FIELDS) + ensureApiCredentialTables guard (+100 lines) + IStorage/DatabaseStorage wiring (+24 lines); 113 apiCredentials tests passing (all Wave 0 stubs promoted except route.test.ts — next plan)
 
-Progress: [█████████░] 87%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [█████████░] 87%
 | Phase 10-api-credentials P01 | 3m | 2 tasks | 7 files |
 | Phase 10-api-credentials P03 | 6m | 2 tasks | 5 files |
 | Phase 10-api-credentials P02 | 7m | 2 tasks | 2 files |
+| Phase 10-api-credentials P04 | 28m | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,10 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 10-api-credentials]: [Phase 10-02]: baseInsertApiCredential uses .strict() (não só .omit) — Armadilha 2 exige REJEITAR campos de outros auth types, não apenas não validá-los
 - [Phase 10-api-credentials]: [Phase 10-02]: patchApiCredentialSchema como z.object flat (não discriminated union .partial) — Zod não suporta .partial() nativo em unions; authType imutável fica fora do patch
 - [Phase 10-api-credentials]: [Phase 10-02]: apiCredentialsRelations usa relationName ('apiCredentialCreator'/'apiCredentialUpdater') para desambiguar 2 FKs da mesma tabela users — pattern novo no projeto
+- [Phase 10-api-credentials]: [Phase 10-04]: Kept and adapted prior executor's in-memory db mock (502 lines) — matches project mock pattern (threatGrouping.test.ts); wrapped all mock state in vi.hoisted() to fix vitest TDZ bug (Rule 1)
+- [Phase 10-api-credentials]: [Phase 10-04]: SAFE_FIELDS explicit projection in apiCredentials facade — list/get/resolve exclude secret*/dek*; getApiCredentialWithSecret is the ONLY path returning encrypted fields (Phase 11 executor only)
+- [Phase 10-api-credentials]: [Phase 10-04]: resolveApiCredential specificity metric = literal count (pattern.replace(/\*/g,'').length) — simplest deterministic tie-break per CONTEXT.md §CRED-04; filter via matchUrlPattern in JS after drizzle fetches scoped candidates
+- [Phase 10-api-credentials]: [Phase 10-04]: updateApiCredential fetches current row via getApiCredentialWithSecret to determine authType (patch payload lacks authType — immutable per Plan 10-02 decision); required for mTLS JSON composite vs plain-string encrypt path
 
 ### Pending Todos
 
@@ -118,6 +123,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-19T14:30:45.645Z
-Stopped at: Completed 10-02-PLAN.md (Wave 1 schema)
+Last session: 2026-04-19T18:51:20.299Z
+Stopped at: Completed 10-04-PLAN.md (Wave 2 storage + guard + IStorage wiring)
 Resume file: None
