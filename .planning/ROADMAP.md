@@ -37,7 +37,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md` for full details.
 
 - [x] **Phase 8: Infrastructure & Install** — Safe hard-reset `install.sh`, pinned binaries, wordlists, tarball flow (completed 2026-04-18)
 - [x] **Phase 9: Schema & Asset Hierarchy** — `apis`, `api_endpoints`, `api_findings` tables + backfill (completed 2026-04-19)
-- [ ] **Phase 10: API Credentials** — 7 auth-type credential store reusing KEK/DEK, URL patterns, priorities
+- [x] **Phase 10: API Credentials** — 7 auth-type credential store reusing KEK/DEK, URL patterns, priorities (completed 2026-04-19)
 - [ ] **Phase 11: Discovery & Enrichment** — Spec-first + crawler + brute-force + httpx + Arjun
 - [ ] **Phase 12: Security Testing — Passive** — Nuclei misconfigs + stateless auth-failure tests
 - [ ] **Phase 13: Security Testing — Active** — Stateful BOLA / BFLA / BOPLA / rate-limit / SSRF
@@ -93,13 +93,13 @@ Plans:
   3. User can map a credential to a URL pattern (glob/prefix); the engine resolves and applies only matching credentials per endpoint
   4. When multiple credentials match the same URL, the user-assigned priority order determines selection
   5. During the journey wizard, user can create a credential inline without leaving the flow and the new credential is immediately available for selection
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 Plans:
 - [x] 10-01-PLAN.md — Wave 0: Nyquist test stubs (6 files) + shared apiCredentialFactory helper (CRED-01..05)
 - [x] 10-02-PLAN.md — Wave 1: shared/schema.ts additions — apiAuthTypeEnum + apiCredentials pgTable + relations + insertApiCredentialSchema discriminated union + tipos derivados (CRED-01, CRED-02)
 - [x] 10-03-PLAN.md — Wave 1: helpers stateless — matchUrlPattern.ts (glob→regex + isValidUrlPattern) + decodeJwtExp.ts (CRED-03, CRED-04)
 - [x] 10-04-PLAN.md — Wave 2: storage facade apiCredentials.ts (7 funções + SAFE_FIELDS) + ensureApiCredentialTables() guard + IStorage + DatabaseStorage wiring (CRED-01, CRED-02, CRED-03, CRED-04)
-- [ ] 10-05-PLAN.md — Wave 3: POST|GET|PATCH|DELETE /api/v1/api-credentials route + barrel registration (CRED-01, CRED-05)
+- [x] 10-05-PLAN.md — Wave 3: POST|GET|PATCH|DELETE /api/v1/api-credentials route + barrel registration (CRED-01, CRED-05)
 
 ### Phase 11: Discovery & Enrichment
 **Goal**: Ship the full endpoint-discovery pipeline — spec-first probing, native OpenAPI/GraphQL parsing, Katana crawling, opt-in Kiterunner brute-force — plus httpx probing and optional Arjun parameter discovery that enriches every discovered endpoint.
@@ -217,7 +217,7 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 7. EDR Deployment Read Path | v1.1 | 2/2 | Complete | 2026-03-23 |
 | 8. Infrastructure & Install | 6/6 | Complete   | 2026-04-18 | - |
 | 9. Schema & Asset Hierarchy | 4/4 | Complete   | 2026-04-19 | - |
-| 10. API Credentials | 4/5 | In Progress|  | - |
+| 10. API Credentials | 5/5 | Complete   | 2026-04-19 | - |
 | 11. Discovery & Enrichment | v2.0 | 0/TBD | Not started | - |
 | 12. Security Testing — Passive | v2.0 | 0/TBD | Not started | - |
 | 13. Security Testing — Active | v2.0 | 0/TBD | Not started | - |

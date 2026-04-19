@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 10-04-PLAN.md (Wave 2 storage + guard + IStorage wiring)
-last_updated: "2026-04-19T18:51:20.305Z"
-last_activity: 2026-04-19 — Plan 10-04 delivered storage facade apiCredentials.ts (7 functions + SAFE_FIELDS) + ensureApiCredentialTables boot guard + IStorage/DatabaseStorage wiring (+24 lines); 41 new tests GREEN (total 113 in phase 10)
+stopped_at: Completed 10-05-PLAN.md (Wave 3 CRUD route — Phase 10 CLOSED)
+last_updated: "2026-04-19T19:04:13.424Z"
+last_activity: 2026-04-19 — Plan 10-05 delivered server/routes/apiCredentials.ts (165 lines, 5 CRUD endpoints POST|GET|GET:id|PATCH|DELETE /api/v1/api-credentials) + barrel registration (+2 lines) + 30 route tests GREEN. Phase 10 CLOSED (CRED-01..05 ✓). Suite total 487 passed (+30 vs baseline).
 progress:
   total_phases: 9
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 15
-  completed_plans: 14
-  percent: 93
+  completed_plans: 15
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-18)
 
 ## Current Position
 
-Phase: 10 of 16 (API Credentials) — v2.0 Phase 10 executing
-Plan: 01 + 02 + 03 + 04 of 05 completed — next: 10-05 (Wave 3 route)
-Status: Plan 10-04 complete (Wave 2 persistence — storage facade + boot guard + IStorage wiring; 41 new tests GREEN)
-Last activity: 2026-04-19 — Plan 10-04 delivered server/storage/apiCredentials.ts (7 functions + SAFE_FIELDS) + ensureApiCredentialTables guard (+100 lines) + IStorage/DatabaseStorage wiring (+24 lines); 113 apiCredentials tests passing (all Wave 0 stubs promoted except route.test.ts — next plan)
+Phase: 10 of 16 (API Credentials) — v2.0 Phase 10 COMPLETE
+Plan: 01 + 02 + 03 + 04 + 05 of 05 completed — Phase 10 CLOSED; next: Phase 11 (runtime executor)
+Status: Plan 10-05 complete (Wave 3 CRUD route — 5 endpoints on /api/v1/api-credentials; 30 new route tests GREEN; Phase 10 CRED-01..05 all satisfied)
+Last activity: 2026-04-19 — Plan 10-05 delivered server/routes/apiCredentials.ts (165 lines, registerApiCredentialsRoutes(app)) + barrel registration (+2 lines) + 30 route tests GREEN; 143 apiCredentials tests passing total; full suite 487 passed (+30 vs baseline)
 
-Progress: [█████████░] 93%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [█████████░] 93%
 | Phase 10-api-credentials P03 | 6m | 2 tasks | 5 files |
 | Phase 10-api-credentials P02 | 7m | 2 tasks | 2 files |
 | Phase 10-api-credentials P04 | 28m | 3 tasks | 7 files |
+| Phase 10-api-credentials P05 | 8m | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 10-api-credentials]: [Phase 10-04]: SAFE_FIELDS explicit projection in apiCredentials facade — list/get/resolve exclude secret*/dek*; getApiCredentialWithSecret is the ONLY path returning encrypted fields (Phase 11 executor only)
 - [Phase 10-api-credentials]: [Phase 10-04]: resolveApiCredential specificity metric = literal count (pattern.replace(/\*/g,'').length) — simplest deterministic tie-break per CONTEXT.md §CRED-04; filter via matchUrlPattern in JS after drizzle fetches scoped candidates
 - [Phase 10-api-credentials]: [Phase 10-04]: updateApiCredential fetches current row via getApiCredentialWithSecret to determine authType (patch payload lacks authType — immutable per Plan 10-02 decision); required for mTLS JSON composite vs plain-string encrypt path
+- [Phase 10-api-credentials]: [Phase 10-05]: In-process HTTP route tests via express().listen(0) + native fetch — avoided supertest dependency
+- [Phase 10-api-credentials]: [Phase 10-05]: Route test mocks require storage + localAuth + db + subscriptionService + logger (5 mocks) — unblocks any route module transitively importing middleware.ts
+- [Phase 10-api-credentials]: [Phase 10-05]: Rule 3 fix — plan code example imported isAuthenticatedWithPasswordCheck from ./middleware, actual export is in ../localAuth (matches server/routes/apis.ts Phase 9 pattern)
 
 ### Pending Todos
 
@@ -123,6 +127,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-19T18:51:20.299Z
-Stopped at: Completed 10-04-PLAN.md (Wave 2 storage + guard + IStorage wiring)
+Last session: 2026-04-19T19:04:13.420Z
+Stopped at: Completed 10-05-PLAN.md (Wave 3 CRUD route — Phase 10 CLOSED)
 Resume file: None
