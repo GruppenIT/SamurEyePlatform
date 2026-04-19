@@ -23,6 +23,7 @@ import { registerAuthMfaRoutes } from "./auth-mfa";
 import { registerAuthPasswordResetRoutes } from "./auth-password-reset";
 import { registerActionPlanRoutes } from "./action-plans";
 import { registerApiRoutes } from "./apis";
+import { registerApiCredentialsRoutes } from "./apiCredentials";
 import { createLogger } from '../lib/logger';
 
 const log = createLogger('routes');
@@ -72,6 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerAuthPasswordResetRoutes(app);
   registerActionPlanRoutes(app);
   registerApiRoutes(app);
+  registerApiCredentialsRoutes(app);
 
   // Health check
   app.get('/api/health', (req, res) => {
