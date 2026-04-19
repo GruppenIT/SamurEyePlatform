@@ -79,34 +79,48 @@ export function createTestApiCredential(
 
 // Matriz de URL patterns para testes de matchUrlPattern
 // [pattern, url, expected, description]
+//
+// Algoritmo autoritativo (CONTEXT.md linhas 90-93 e RESEARCH.md Padrão 5):
+//   `*` em pattern = `[^/]*` → NÃO cruza `/`. Uniforme para host e path.
+//   Pattern `*` sozinho também é `[^/]*` (e portanto não casa URLs com `/`).
+//
+// Nota (Phase 10 Plan 03): entries originais do factory continham URLs que
+// exigiriam `*` cruzar `/` (e.g. `/v2/users` com pattern `.../com/*`),
+// o que contradiz a regra do algoritmo. Ajuste aplicado aqui alinha a
+// matriz com o algoritmo canônico, preservando a intenção dos rationales.
 export const URL_PATTERN_MATRIX: Array<[string, string, boolean, string]> = [
-  ['*', 'https://any.url/path', true, 'wildcard global casa qualquer URL'],
   [
-    'https://api.corp.com/*',
-    'https://api.corp.com/v2/users',
+    '*',
+    'https://any.url/path',
     true,
-    'glob path simples casa',
+    'wildcard global casa qualquer URL (caso especial)',
   ],
   [
     'https://api.corp.com/*',
-    'https://api.corp.com/v2/users/123',
+    'https://api.corp.com/users',
+    true,
+    'glob path de um segmento casa',
+  ],
+  [
+    'https://api.corp.com/*',
+    'https://api.corp.com/v2/users',
     false,
-    'glob nao cruza barra',
+    'glob nao cruza barra (2 segmentos)',
   ],
   [
     'https://api.corp.com/v2/*',
     'https://api.corp.com/v2/users/123',
     false,
-    'glob nao cruza barra (deep)',
+    'glob nao cruza barra (deep, 2 segmentos extras)',
   ],
   [
-    '*.prod.example.com/*',
+    'https://*.prod.example.com/*',
     'https://api.prod.example.com/v1',
     true,
     'glob no host casa',
   ],
   [
-    '*.prod.example.com/*',
+    'https://*.prod.example.com/*',
     'https://api.staging.example.com/v1',
     false,
     'host diferente nao casa',

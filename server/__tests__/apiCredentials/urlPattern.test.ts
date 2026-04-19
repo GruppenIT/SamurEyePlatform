@@ -1,35 +1,128 @@
 import { describe, it, expect } from 'vitest';
 import {
+  matchUrlPattern,
+  isValidUrlPattern,
+} from '../../services/credentials/matchUrlPattern';
+import {
   URL_PATTERN_MATRIX,
   VALID_PATTERN_CASES,
 } from '../helpers/apiCredentialFactory';
 
-// Referenced exports keep TS happy even while stubs are it.todo.
-void URL_PATTERN_MATRIX;
-void VALID_PATTERN_CASES;
-void expect;
-
 describe('matchUrlPattern (Phase 10 — CRED-03)', () => {
-  it.todo('cobre todos os casos da URL_PATTERN_MATRIX [pattern,url,expected]');
+  it.each(URL_PATTERN_MATRIX)(
+    '%s vs %s → %s (%s)',
+    (pattern, url, expected, _description) => {
+      expect(matchUrlPattern(pattern, url)).toBe(expected);
+    },
+  );
 
   describe('casos individuais explicitos da matriz', () => {
-    it.todo('* casa qualquer URL (wildcard global)');
-    it.todo('https://api.corp.com/* casa /v2/users mas nao /v2/users/123 (* nao cruza /)');
-    it.todo('*.prod.example.com/* casa api.prod.example.com mas nao api.staging.example.com');
-    it.todo('match exato sem glob: trailing slash NAO casa');
-    it.todo('path params {id} sao tratados como caracteres literais');
+    it('* casa qualquer URL (wildcard global caso especial)', () => {
+      expect(matchUrlPattern('*', 'https://any.url/path')).toBe(true);
+      expect(matchUrlPattern('*', 'https://api.corp.com/v2/users/123')).toBe(
+        true,
+      );
+    });
+    it('https://api.corp.com/* casa /users mas nao /v2/users (* nao cruza /)', () => {
+      expect(
+        matchUrlPattern(
+          'https://api.corp.com/*',
+          'https://api.corp.com/users',
+        ),
+      ).toBe(true);
+      expect(
+        matchUrlPattern(
+          'https://api.corp.com/*',
+          'https://api.corp.com/v2/users',
+        ),
+      ).toBe(false);
+    });
+    it('https://*.prod.example.com/* casa api.prod.example.com mas nao api.staging.example.com', () => {
+      expect(
+        matchUrlPattern(
+          'https://*.prod.example.com/*',
+          'https://api.prod.example.com/v1',
+        ),
+      ).toBe(true);
+      expect(
+        matchUrlPattern(
+          'https://*.prod.example.com/*',
+          'https://api.staging.example.com/v1',
+        ),
+      ).toBe(false);
+    });
+    it('match exato sem glob: trailing slash NAO casa', () => {
+      expect(
+        matchUrlPattern(
+          'https://api.corp.com/v2/users',
+          'https://api.corp.com/v2/users',
+        ),
+      ).toBe(true);
+      expect(
+        matchUrlPattern(
+          'https://api.corp.com/v2/users',
+          'https://api.corp.com/v2/users/',
+        ),
+      ).toBe(false);
+    });
+    it('path params {id} sao tratados como caracteres literais', () => {
+      expect(
+        matchUrlPattern(
+          'https://api.corp.com/v2/users/{id}',
+          'https://api.corp.com/v2/users/{id}',
+        ),
+      ).toBe(true);
+      expect(
+        matchUrlPattern(
+          'https://api.corp.com/v2/users/{id}',
+          'https://api.corp.com/v2/users/123',
+        ),
+      ).toBe(false);
+    });
   });
 
   describe('escape de caracteres regex', () => {
-    it.todo('ponto em pattern e escapado (literal . no regex resultante)');
-    it.todo('parenteses, colchetes, chaves regex sao escapados');
+    it('ponto em pattern e escapado (literal . no regex resultante)', () => {
+      expect(matchUrlPattern('a.b', 'aXb')).toBe(false);
+      expect(matchUrlPattern('a.b', 'a.b')).toBe(true);
+    });
+    it('parenteses, colchetes, chaves regex sao escapados', () => {
+      expect(matchUrlPattern('foo(bar)', 'foo(bar)')).toBe(true);
+      expect(matchUrlPattern('foo[bar]', 'foo[bar]')).toBe(true);
+      expect(matchUrlPattern('foo{bar}', 'foo{bar}')).toBe(true);
+    });
+  });
+
+  describe('guards de input vazio', () => {
+    it('pattern vazio retorna false', () => {
+      expect(matchUrlPattern('', 'https://api.corp.com')).toBe(false);
+    });
+    it('url vazia retorna false', () => {
+      expect(matchUrlPattern('*', '')).toBe(false);
+    });
   });
 });
 
 describe('isValidUrlPattern (Phase 10 — CRED-03)', () => {
-  it.todo('cobre todos os casos da VALID_PATTERN_CASES [pattern,expected]');
-  it.todo('** retorna false (ambiguo)');
-  it.todo('string vazia retorna false');
-  it.todo('* retorna true');
-  it.todo('https://api.corp.com/* retorna true');
+  it.each(VALID_PATTERN_CASES)(
+    'isValidUrlPattern(%s) → %s (%s)',
+    (pattern, expected, _description) => {
+      expect(isValidUrlPattern(pattern)).toBe(expected);
+    },
+  );
+  it('** retorna false (ambiguo)', () => {
+    expect(isValidUrlPattern('**')).toBe(false);
+  });
+  it('string vazia retorna false', () => {
+    expect(isValidUrlPattern('')).toBe(false);
+  });
+  it('* retorna true', () => {
+    expect(isValidUrlPattern('*')).toBe(true);
+  });
+  it('padrao com wildcard retorna true', () => {
+    expect(isValidUrlPattern('https://api.corp.com/*')).toBe(true);
+  });
+  it('rejeita pattern com caractere fora da whitelist', () => {
+    expect(isValidUrlPattern('https://api.corp.com/<script>')).toBe(false);
+  });
 });
