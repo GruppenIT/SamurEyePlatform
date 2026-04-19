@@ -36,7 +36,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md` for full details.
 **Milestone Goal:** Deliver the 5th security journey — automated discovery of APIs (REST/GraphQL/SOAP) plus security testing aligned to OWASP API Security Top 10 (2023) — as a first-class capability integrated with the existing Attack Surface and Web Application journeys.
 
 - [x] **Phase 8: Infrastructure & Install** — Safe hard-reset `install.sh`, pinned binaries, wordlists, tarball flow (completed 2026-04-18)
-- [ ] **Phase 9: Schema & Asset Hierarchy** — `apis`, `api_endpoints`, `api_findings` tables + backfill
+- [x] **Phase 9: Schema & Asset Hierarchy** — `apis`, `api_endpoints`, `api_findings` tables + backfill (completed 2026-04-19)
 - [ ] **Phase 10: API Credentials** — 7 auth-type credential store reusing KEK/DEK, URL patterns, priorities
 - [ ] **Phase 11: Discovery & Enrichment** — Spec-first + crawler + brute-force + httpx + Arjun
 - [ ] **Phase 12: Security Testing — Passive** — Nuclei misconfigs + stateless auth-failure tests
@@ -76,7 +76,7 @@ Plans:
   3. Every `api_endpoints` row captures method, path, params (path/query/header), request/response schemas, `requiresAuth`, and discovery sources
   4. A backfill job probes existing web_application assets for API indicators (JSON content-type, `/api` paths, known spec paths) and auto-promotes detected ones into `apis` rows
   5. The `api_findings` table is queryable with OWASP API Top 10 2023 category, severity, evidence, remediation, and risk score columns in place
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
 - [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
@@ -215,7 +215,7 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 6. Calibration and Quality | v1.1 | 2/2 | Complete | 2026-03-17 |
 | 7. EDR Deployment Read Path | v1.1 | 2/2 | Complete | 2026-03-23 |
 | 8. Infrastructure & Install | 6/6 | Complete   | 2026-04-18 | - |
-| 9. Schema & Asset Hierarchy | 3/4 | In Progress|  | - |
+| 9. Schema & Asset Hierarchy | 4/4 | Complete   | 2026-04-19 | - |
 | 10. API Credentials | v2.0 | 0/TBD | Not started | - |
 | 11. Discovery & Enrichment | v2.0 | 0/TBD | Not started | - |
 | 12. Security Testing — Passive | v2.0 | 0/TBD | Not started | - |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: planning
-stopped_at: Completed 09-03-PLAN.md
-last_updated: "2026-04-18T22:09:06.627Z"
+stopped_at: Completed 09-04-PLAN.md
+last_updated: "2026-04-19T13:14:54.198Z"
 last_activity: 2026-04-17 — v2.0 roadmap created, 9 phases, 41 requirements mapped
 progress:
   total_phases: 9
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -57,6 +57,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 09 P01 | 157 | 3 tasks | 8 files |
 | Phase 09 P02 | 5 | 2 tasks | 3 files |
 | Phase 09 P03 | 269 | 3 tasks | 6 files |
+| Phase 09-schema-asset-hierarchy P04 | 3 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 09]: sql.raw() used for api_findings index loop — identifiers cannot be SQL parameters
 - [Phase 09]: ensureApiTables() placed after edr_deployments block in initializeDatabaseStructure
 - [Phase 09]: Error swallowed in ensureApiTables catch — matches existing pattern, keeps app booting
+- [Phase 09]: POST /api/v1/apis uses /api/v1/ prefix (locked per CONTEXT.md HIER-03), not /api/ prefix used by existing routes
+- [Phase 09]: backfillApiDiscovery uses direct db.insert (not storage facade) — mirrors backfillWebAppParent template, keeps CLI tsx-standalone-safe
+- [Phase 09]: import.meta.url guard in backfillApiDiscovery enables named exports for unit tests without triggering main()
 
 ### Pending Todos
 
@@ -102,6 +106,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-18T22:09:06.622Z
-Stopped at: Completed 09-03-PLAN.md
+Last session: 2026-04-19T13:14:54.194Z
+Stopped at: Completed 09-04-PLAN.md
 Resume file: None

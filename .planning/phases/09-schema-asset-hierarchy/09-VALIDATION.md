@@ -1,9 +1,9 @@
 ---
 phase: 9
 slug: schema-asset-hierarchy
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-18
 ---
 
@@ -42,6 +42,8 @@ created: 2026-04-18
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
 | 09-02 T1 | 09-02 | 1 | HIER-01, FIND-01 | Unit (enum values) | `grep -c "apiTypeEnum\|owaspApiCategoryEnum\|apiFindingStatusEnum" shared/schema.ts` | shared/schema.ts | ✅ green |
 | 09-02 T2 | 09-02 | 1 | HIER-01, HIER-02, FIND-01 | Unit (Zod schema) | `npx vitest run shared/__tests__/evidenceSchema.test.ts` | shared/__tests__/evidenceSchema.test.ts | ✅ green |
+| 09-04 T1 | 09-04 | 3 | HIER-03 | Integration stub | `grep -q "registerApiRoutes" server/routes/index.ts && grep -q "app.post('/api/v1/apis'" server/routes/apis.ts` | server/routes/apis.ts | ✅ green |
+| 09-04 T2 | 09-04 | 3 | HIER-04 | CLI stub | `grep -q "probeWebApp" server/scripts/backfillApiDiscovery.ts && grep -q "## How to run" docs/operations/backfill-api-discovery.md` | server/scripts/backfillApiDiscovery.ts | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
