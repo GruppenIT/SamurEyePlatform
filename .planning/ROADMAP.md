@@ -111,12 +111,15 @@ Plans:
   3. Katana crawling of an SPA surfaces XHR/JS/form-derived endpoints and persists them with discovery source set; Kiterunner brute-force is strictly opt-in and uses `routes-large.kite`
   4. Every discovered endpoint has httpx enrichment (status, tech-detect, content-type, TLS) and `requiresAuth=true` when unauthenticated calls return 401/403
   5. Arjun parameter discovery runs only on user-selected GET endpoints and attaches discovered params to the endpoint record; `specHash` is computed and stored per spec fetch so drift is detectable across executions
-**Plans:** 4 plans
+**Plans:** 7 plans
 Plans:
-- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
-- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
-- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
-- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
+- [ ] 11-01-PLAN.md — Wave 0: 13 Nyquist test stubs + 7 fixtures + discoverApiOptsSchema + 5 httpx_* additive columns on api_endpoints + ensureApiEndpointHttpxColumns guard (DISC-01..06, ENRH-01..03)
+- [ ] 11-02-PLAN.md — Wave 1: shared preflightApiBinary (4 binaries memoized) + canonical specHash helper + processTracker typing widened + 5 storage extensions (upsertApiEndpoints bulk, mergeHttpxEnrichment, appendQueryParams, markEndpointsStale, updateApiSpecMetadata) (DISC-06)
+- [ ] 11-03-PLAN.md — Wave 2: scanners/api/openapi.ts (fetchAndParseSpec + specToEndpoints + same-origin $ref SSRF guard) + scanners/api/graphql.ts (probeGraphQL + schemaToEndpoints + INTROSPECTION_QUERY) + @apidevtools/swagger-parser@^12.1.0 (DISC-01, DISC-02, DISC-03)
+- [ ] 11-04-PLAN.md — Wave 2: scanners/api/katana.ts (7-branch auth matrix + JSONL stream + AbortSignal) + scanners/api/kiterunner.ts (opt-in, -x 5 -j 100 defensive + explicit success/fail status codes) (DISC-04, DISC-05)
+- [ ] 11-05-PLAN.md — Wave 2: scanners/api/httpx.ts (stdin batch + tri-valor mapRequiresAuth) + scanners/api/arjun.ts (Zod dict-keyed validation + tempfile try/finally) (ENRH-01, ENRH-02, ENRH-03)
+- [ ] 11-06-PLAN.md — Wave 3: journeys/apiDiscovery.ts orchestrator (spec → crawler → kiterunner → httpx 2-pass → arjun) + DiscoveryResult contract + drift detection + stale endpoint logging + OAuth2 per-run cache (all DISC + ENRH)
+- [ ] 11-07-PLAN.md — Wave 4: POST /api/v1/apis/:id/discover route (RBAC + Zod + audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md + human verification checkpoint against petstore3.swagger.io
 
 ### Phase 12: Security Testing — Passive
 **Goal**: Run the stateless portion of the OWASP API Top 10 test matrix — Nuclei misconfiguration/exposure/GraphQL/CORS templates plus JWT/auth-failure tests — producing findings that flow into `api_findings`.
