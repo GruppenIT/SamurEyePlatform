@@ -93,12 +93,13 @@ Plans:
   3. User can map a credential to a URL pattern (glob/prefix); the engine resolves and applies only matching credentials per endpoint
   4. When multiple credentials match the same URL, the user-assigned priority order determines selection
   5. During the journey wizard, user can create a credential inline without leaving the flow and the new credential is immediately available for selection
-**Plans:** 4 plans
+**Plans:** 5 plans
 Plans:
-- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
-- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
-- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
-- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
+- [ ] 10-01-PLAN.md — Wave 0: Nyquist test stubs (6 files) + shared apiCredentialFactory helper (CRED-01..05)
+- [ ] 10-02-PLAN.md — Wave 1: shared/schema.ts additions — apiAuthTypeEnum + apiCredentials pgTable + relations + insertApiCredentialSchema discriminated union + tipos derivados (CRED-01, CRED-02)
+- [ ] 10-03-PLAN.md — Wave 1: helpers stateless — matchUrlPattern.ts (glob→regex + isValidUrlPattern) + decodeJwtExp.ts (CRED-03, CRED-04)
+- [ ] 10-04-PLAN.md — Wave 2: storage facade apiCredentials.ts (7 funções + SAFE_FIELDS) + ensureApiCredentialTables() guard + IStorage + DatabaseStorage wiring (CRED-01, CRED-02, CRED-03, CRED-04)
+- [ ] 10-05-PLAN.md — Wave 3: POST|GET|PATCH|DELETE /api/v1/api-credentials route + barrel registration (CRED-01, CRED-05)
 
 ### Phase 11: Discovery & Enrichment
 **Goal**: Ship the full endpoint-discovery pipeline — spec-first probing, native OpenAPI/GraphQL parsing, Katana crawling, opt-in Kiterunner brute-force — plus httpx probing and optional Arjun parameter discovery that enriches every discovered endpoint.
