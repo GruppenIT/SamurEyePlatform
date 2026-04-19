@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
-status: planning
-stopped_at: Phase 10 context gathered
-last_updated: "2026-04-19T13:33:27.107Z"
-last_activity: 2026-04-17 — v2.0 roadmap created, 9 phases, 41 requirements mapped
+status: executing
+stopped_at: Completed 10-01-PLAN.md (Wave 0 stubs); next is 10-02
+last_updated: "2026-04-19T14:16:50.771Z"
+last_activity: 2026-04-19 — Plan 10-01 delivered 6 it.todo stubs + factory; external commit fd8bfc3 antecipou parte de Plan 10-03
 progress:
   total_phases: 9
   completed_phases: 2
-  total_plans: 10
-  completed_plans: 10
-  percent: 0
+  total_plans: 15
+  completed_plans: 11
+  percent: 73
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-18)
 
 ## Current Position
 
-Phase: 8 of 16 (Infrastructure & Install) — v2.0 begins
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-04-17 — v2.0 roadmap created, 9 phases, 41 requirements mapped
+Phase: 10 of 16 (API Credentials) — v2.0 Phase 10 executing
+Plan: 01 of 05 completed — next: 10-02
+Status: Plan 10-01 complete (Wave 0 Nyquist stubs)
+Last activity: 2026-04-19 — Plan 10-01 delivered 6 it.todo stubs + factory; external commit fd8bfc3 antecipou parte de Plan 10-03
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███████░░░] 73%
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 09 P02 | 5 | 2 tasks | 3 files |
 | Phase 09 P03 | 269 | 3 tasks | 6 files |
 | Phase 09-schema-asset-hierarchy P04 | 3 | 2 tasks | 5 files |
+| Phase 10-api-credentials P01 | 3m | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 09]: POST /api/v1/apis uses /api/v1/ prefix (locked per CONTEXT.md HIER-03), not /api/ prefix used by existing routes
 - [Phase 09]: backfillApiDiscovery uses direct db.insert (not storage facade) — mirrors backfillWebAppParent template, keeps CLI tsx-standalone-safe
 - [Phase 09]: import.meta.url guard in backfillApiDiscovery enables named exports for unit tests without triggering main()
+- [Phase 10-api-credentials]: [Phase 10-01]: 99 it.todo stubs em 6 arquivos + factory compartilhado apiCredentialFactory.ts cobrindo os 7 auth types e CRED-01..05
+- [Phase 10-api-credentials]: [Phase 10-01]: External commit fd8bfc3 feat(10-03) antecipou matchUrlPattern + isValidUrlPattern ja no Plan 01; urlPattern.test.ts promovido de 14 it.todo para 27 it() reais. Plan 10-03 devera consolidar (no-op ou ajustes)
+- [Phase 10-api-credentials]: [Phase 10-01]: stubs usam void statements para suprimir TS6133 em imports nao-utilizados enquanto it.todo nao tem assertions
 
 ### Pending Todos
 
@@ -106,6 +110,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-19T13:33:27.103Z
-Stopped at: Phase 10 context gathered
-Resume file: .planning/phases/10-api-credentials/10-CONTEXT.md
+Last session: 2026-04-19T14:16:50.766Z
+Stopped at: Completed 10-01-PLAN.md (Wave 0 stubs); next is 10-02
+Resume file: .planning/phases/10-api-credentials/10-02-PLAN.md

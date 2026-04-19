@@ -16,11 +16,11 @@ Requirements for the API Discovery & Security Assessment milestone. Each maps to
 
 ### API Credentials (CRED)
 
-- [ ] **CRED-01**: User can store API credentials with auth types: api_key_header, api_key_query, bearer_jwt, basic, oauth2_client_credentials, hmac, mtls
-- [ ] **CRED-02**: System encrypts credentials reusing the existing KEK/DEK pattern (no new crypto logic)
-- [ ] **CRED-03**: User maps each credential to a URL pattern (glob/prefix) so the engine applies it only to matching endpoints
-- [ ] **CRED-04**: User can prioritize credentials when multiple match the same URL
-- [ ] **CRED-05**: User can create a credential inline during the journey wizard
+- [x] **CRED-01**: User can store API credentials with auth types: api_key_header, api_key_query, bearer_jwt, basic, oauth2_client_credentials, hmac, mtls
+- [x] **CRED-02**: System encrypts credentials reusing the existing KEK/DEK pattern (no new crypto logic)
+- [x] **CRED-03**: User maps each credential to a URL pattern (glob/prefix) so the engine applies it only to matching endpoints
+- [x] **CRED-04**: User can prioritize credentials when multiple match the same URL
+- [x] **CRED-05**: User can create a credential inline during the journey wizard
 
 ### Discovery (DISC)
 
@@ -135,11 +135,11 @@ Which phases cover which requirements. Populated during roadmap creation 2026-04
 | HIER-03 | Phase 9: Schema & Asset Hierarchy | Complete |
 | HIER-04 | Phase 9: Schema & Asset Hierarchy | Complete |
 | FIND-01 | Phase 9: Schema & Asset Hierarchy | Complete |
-| CRED-01 | Phase 10: API Credentials | Pending |
-| CRED-02 | Phase 10: API Credentials | Pending |
-| CRED-03 | Phase 10: API Credentials | Pending |
-| CRED-04 | Phase 10: API Credentials | Pending |
-| CRED-05 | Phase 10: API Credentials | Pending |
+| CRED-01 | Phase 10: API Credentials | Complete |
+| CRED-02 | Phase 10: API Credentials | Complete |
+| CRED-03 | Phase 10: API Credentials | Complete |
+| CRED-04 | Phase 10: API Credentials | Complete |
+| CRED-05 | Phase 10: API Credentials | Complete |
 | DISC-01 | Phase 11: Discovery & Enrichment | Pending |
 | DISC-02 | Phase 11: Discovery & Enrichment | Pending |
 | DISC-03 | Phase 11: Discovery & Enrichment | Pending |
