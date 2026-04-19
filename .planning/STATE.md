@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 10-03-PLAN.md (Wave 1 helpers); next is 10-02
-last_updated: "2026-04-19T14:19:18.335Z"
+stopped_at: Completed 10-02-PLAN.md (Wave 1 schema)
+last_updated: "2026-04-19T14:30:57.522Z"
 last_activity: 2026-04-19 — Plan 10-03 delivered 2 pure helpers in server/services/credentials/ (~57 linhas prod + 34 passing tests)
 progress:
   total_phases: 9
   completed_phases: 2
   total_plans: 15
-  completed_plans: 12
-  percent: 80
+  completed_plans: 13
+  percent: 87
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-18)
 ## Current Position
 
 Phase: 10 of 16 (API Credentials) — v2.0 Phase 10 executing
-Plan: 01 + 03 of 05 completed — next: 10-02 (Wave 1 schema, parallel)
-Status: Plan 10-03 complete (Wave 1 helpers — matchUrlPattern + decodeJwtExp)
-Last activity: 2026-04-19 — Plan 10-03 delivered 2 pure helpers in server/services/credentials/ (~57 linhas prod + 34 passing tests)
+Plan: 01 + 02 + 03 of 05 completed — next: 10-04 (Wave 2 storage facade)
+Status: Plan 10-02 complete (Wave 1 schema — apiAuthTypeEnum + apiCredentials pgTable + insertApiCredentialSchema discriminated union + 6 derived types)
+Last activity: 2026-04-19 — Plan 10-02 adicionou ~189 linhas a shared/schema.ts (38 schema tests GREEN)
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 87%
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Progress: [████████░░] 80%
 | Phase 09-schema-asset-hierarchy P04 | 3 | 2 tasks | 5 files |
 | Phase 10-api-credentials P01 | 3m | 2 tasks | 7 files |
 | Phase 10-api-credentials P03 | 6m | 2 tasks | 5 files |
+| Phase 10-api-credentials P02 | 7m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 10-api-credentials]: [Phase 10-03]: Pattern `*` isolado e caso especial (`.*` global) — sem guard, algoritmo uniforme `[^/]*` nunca casaria URLs com `/`, invalidando a semântica de wildcard global do CONTEXT.md
 - [Phase 10-api-credentials]: [Phase 10-03]: 2 entries do URL_PATTERN_MATRIX ajustadas para consistência com algoritmo `* = [^/]*` (Rule 1 bug fix); comentário explicativo adicionado ao factory
 - [Phase 10-api-credentials]: [Phase 10-03]: decodeJwtExp usa 4 guards explícitos (typeof string, split len, typeof number, Number.isFinite) + try/catch para silent-fail completo — cobre exp ausente, string, NaN, Infinity, base64 malformado, JWT opaco
+- [Phase 10-api-credentials]: [Phase 10-02]: baseInsertApiCredential uses .strict() (não só .omit) — Armadilha 2 exige REJEITAR campos de outros auth types, não apenas não validá-los
+- [Phase 10-api-credentials]: [Phase 10-02]: patchApiCredentialSchema como z.object flat (não discriminated union .partial) — Zod não suporta .partial() nativo em unions; authType imutável fica fora do patch
+- [Phase 10-api-credentials]: [Phase 10-02]: apiCredentialsRelations usa relationName ('apiCredentialCreator'/'apiCredentialUpdater') para desambiguar 2 FKs da mesma tabela users — pattern novo no projeto
 
 ### Pending Todos
 
@@ -114,6 +118,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-19T14:19:18.330Z
-Stopped at: Completed 10-03-PLAN.md (Wave 1 helpers); next is 10-02
+Last session: 2026-04-19T14:30:45.645Z
+Stopped at: Completed 10-02-PLAN.md (Wave 1 schema)
 Resume file: None
