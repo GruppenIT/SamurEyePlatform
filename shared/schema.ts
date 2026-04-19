@@ -1391,6 +1391,121 @@ export const apiCredentialsRelations = relations(apiCredentials, ({ one }) => ({
   }),
 }));
 
+// Phase 10 — Discriminated union para insert de api_credentials (CRED-01)
+// Armadilha 2 do RESEARCH: TODOS os campos por-tipo são omitidos do baseInsert
+// para que cada variante REJEITE campos de outros tipos.
+const baseInsertApiCredential = createInsertSchema(apiCredentials).omit({
+  id: true,
+  secretEncrypted: true,
+  dekEncrypted: true,
+  createdAt: true,
+  updatedAt: true,
+  createdBy: true,
+  updatedBy: true,
+  bearerExpiresAt: true, // derivado no backend a partir do JWT exp
+  // Campos por-tipo — omitir do base, adicionar SO na variante correta:
+  apiKeyHeaderName: true,
+  apiKeyQueryParam: true,
+  basicUsername: true,
+  oauth2ClientId: true,
+  oauth2TokenUrl: true,
+  oauth2Scope: true,
+  oauth2Audience: true,
+  hmacKeyId: true,
+  hmacAlgorithm: true,
+  hmacSignatureHeader: true,
+  hmacSignedHeaders: true,
+  hmacCanonicalTemplate: true,
+}).strict();
+
+// Regex PEM compartilhado (mTLS)
+const PEM_REGEX = /-----BEGIN [A-Z ]+-----[\s\S]+-----END [A-Z ]+-----/;
+
+export const insertApiCredentialSchema = z.discriminatedUnion("authType", [
+  baseInsertApiCredential.extend({
+    authType: z.literal("api_key_header"),
+    apiKeyHeaderName: z.string().min(1, "Nome do header é obrigatório"),
+    secret: z.string().min(1, "API key é obrigatória"),
+  }),
+  baseInsertApiCredential.extend({
+    authType: z.literal("api_key_query"),
+    apiKeyQueryParam: z.string().min(1, "Parâmetro de query é obrigatório"),
+    secret: z.string().min(1, "API key é obrigatória"),
+  }),
+  baseInsertApiCredential.extend({
+    authType: z.literal("bearer_jwt"),
+    secret: z.string().min(1, "JWT é obrigatório"),
+  }),
+  baseInsertApiCredential.extend({
+    authType: z.literal("basic"),
+    basicUsername: z.string().min(1, "Username é obrigatório"),
+    secret: z.string().min(1, "Senha é obrigatória"),
+  }),
+  baseInsertApiCredential.extend({
+    authType: z.literal("oauth2_client_credentials"),
+    oauth2ClientId: z.string().min(1, "Client ID é obrigatório"),
+    oauth2TokenUrl: z.string().url("Token URL inválida"),
+    oauth2Scope: z.string().optional(),
+    oauth2Audience: z.string().optional(),
+    secret: z.string().min(1, "Client secret é obrigatório"),
+  }),
+  baseInsertApiCredential.extend({
+    authType: z.literal("hmac"),
+    hmacKeyId: z.string().min(1, "Key ID é obrigatório"),
+    hmacAlgorithm: z.enum(["HMAC-SHA1", "HMAC-SHA256", "HMAC-SHA512"]),
+    hmacSignatureHeader: z.string().default("Authorization"),
+    hmacSignedHeaders: z.array(z.string()).default([]),
+    hmacCanonicalTemplate: z.string().nullable().optional(),
+    secret: z.string().min(1, "HMAC secret key é obrigatória"),
+  }),
+  baseInsertApiCredential.extend({
+    authType: z.literal("mtls"),
+    mtlsCert: z.string().regex(PEM_REGEX, "Certificado PEM inválido"),
+    mtlsKey: z.string().regex(PEM_REGEX, "Chave PEM inválida"),
+    mtlsCa: z.string().regex(PEM_REGEX, "CA PEM inválida").nullable().optional(),
+  }),
+]);
+
+// Schema de PATCH — flat com todos campos opcionais, exceto authType (imutável).
+// Ver Pergunta em Aberto #3 do RESEARCH: discriminated union .partial() não é nativo.
+export const patchApiCredentialSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().nullable().optional(),
+  urlPattern: z.string().min(1).optional(),
+  priority: z.number().int().optional(),
+  apiId: z.string().nullable().optional(),
+  // Campos por-tipo — todos opcionais; rota valida que não cruzam authType
+  apiKeyHeaderName: z.string().min(1).optional(),
+  apiKeyQueryParam: z.string().min(1).optional(),
+  basicUsername: z.string().min(1).optional(),
+  oauth2ClientId: z.string().min(1).optional(),
+  oauth2TokenUrl: z.string().url().optional(),
+  oauth2Scope: z.string().optional(),
+  oauth2Audience: z.string().optional(),
+  hmacKeyId: z.string().min(1).optional(),
+  hmacAlgorithm: z.enum(["HMAC-SHA1", "HMAC-SHA256", "HMAC-SHA512"]).optional(),
+  hmacSignatureHeader: z.string().optional(),
+  hmacSignedHeaders: z.array(z.string()).optional(),
+  hmacCanonicalTemplate: z.string().nullable().optional(),
+  // Re-encrypt do secret se passado
+  secret: z.string().min(1).optional(),
+  mtlsCert: z.string().regex(PEM_REGEX).optional(),
+  mtlsKey: z.string().regex(PEM_REGEX).optional(),
+  mtlsCa: z.string().regex(PEM_REGEX).nullable().optional(),
+});
+
+// Phase 10 — Tipos derivados de api_credentials
+export type ApiCredential = typeof apiCredentials.$inferSelect;
+export type InsertApiCredential = z.infer<typeof insertApiCredentialSchema>;
+export type PatchApiCredential = z.infer<typeof patchApiCredentialSchema>;
+export type ApiAuthType = ApiCredential["authType"];
+
+// Shape sanitizado retornado por listApiCredentials/getApiCredential (sem secret*/dek*)
+export type ApiCredentialSafe = Omit<ApiCredential, "secretEncrypted" | "dekEncrypted">;
+
+// Shape interno usado SO pelo executor (Phase 11+) via getApiCredentialWithSecret
+export type ApiCredentialWithSecret = ApiCredential;
+
 // API contract types for appliance ↔ console communication
 export const activateApplianceSchema = z.object({
   apiKey: z.string().min(1, "Chave de API é obrigatória"),
