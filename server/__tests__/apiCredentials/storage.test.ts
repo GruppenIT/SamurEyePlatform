@@ -16,243 +16,261 @@ beforeAll(() => {
   process.env.ENCRYPTION_KEK = TEST_KEK;
 });
 
-// --- In-memory db mock ------------------------------------------------------
-// Shape: table → { rows: any[] }. Enough to cover select/insert/update/delete
-// with where-by-id, orderBy, returning, and simulated UNIQUE + FK behavior.
+// --- In-memory db mock (hoisted) --------------------------------------------
+// Everything the vi.mock() factories reference must be inside vi.hoisted() so
+// it is evaluated BEFORE the import hoisting runs. Top-level consts would be
+// in the temporal dead zone when the mock factory is first executed.
 
 type Row = Record<string, any>;
-interface InMemoryDb {
-  rows: Row[];
-  apis: Row[];
-  users: Row[];
-}
 
-const store: InMemoryDb = {
-  rows: [],
-  apis: [],
-  users: [],
-};
+const mockState = vi.hoisted(() => {
+  interface Cond {
+    type: 'eq' | 'and' | 'or' | 'isNull';
+    field?: string;
+    value?: any;
+    children?: Cond[];
+  }
 
-function resetStore() {
-  store.rows.length = 0;
-  store.apis.length = 0;
-  store.users.length = 0;
-  // Seed minimal users/apis needed as FK targets
-  store.users.push({ id: 'user-1' }, { id: 'user-2' });
-  store.apis.push({ id: 'api-1' }, { id: 'api-2' });
-}
+  const store: { rows: Row[]; apis: Row[]; users: Row[] } = {
+    rows: [],
+    apis: [],
+    users: [],
+  };
 
-// Predicate builder — returns a Function(row) => boolean
-// We capture where() calls via a marker object with `__cond` holding field/value pairs.
+  function resetStore() {
+    store.rows.length = 0;
+    store.apis.length = 0;
+    store.users.length = 0;
+    store.users.push({ id: 'user-1' }, { id: 'user-2' });
+    store.apis.push({ id: 'api-1' }, { id: 'api-2' });
+  }
 
-interface Cond {
-  type: 'eq' | 'and' | 'or' | 'isNull';
-  field?: string;
-  value?: any;
-  children?: Cond[];
-}
+  function evalCond(cond: Cond | undefined, row: Row): boolean {
+    if (!cond) return true;
+    if (cond.type === 'eq') return row[cond.field!] === cond.value;
+    if (cond.type === 'isNull')
+      return row[cond.field!] === null || row[cond.field!] === undefined;
+    if (cond.type === 'and') return (cond.children ?? []).every((c) => evalCond(c, row));
+    if (cond.type === 'or') return (cond.children ?? []).some((c) => evalCond(c, row));
+    return true;
+  }
 
-function evalCond(cond: Cond | undefined, row: Row): boolean {
-  if (!cond) return true;
-  if (cond.type === 'eq') return row[cond.field!] === cond.value;
-  if (cond.type === 'isNull') return row[cond.field!] === null || row[cond.field!] === undefined;
-  if (cond.type === 'and') return (cond.children ?? []).every((c) => evalCond(c, row));
-  if (cond.type === 'or') return (cond.children ?? []).some((c) => evalCond(c, row));
-  return true;
-}
+  function colProxy(table: string): any {
+    return new Proxy(
+      {},
+      { get: (_t, prop: string) => ({ __table: table, __col: prop }) },
+    );
+  }
 
-// Column markers — proxy that records which column is being referenced in eq()/isNull()
-function colProxy(table: string): any {
-  return new Proxy(
-    {},
-    {
-      get: (_t, prop: string) => ({ __table: table, __col: prop }),
-    },
-  );
-}
+  const apiCredentialsCols = colProxy('api_credentials');
 
-const apiCredentialsCols = colProxy('api_credentials');
+  function buildSelectBuilder(projection: Record<string, any> | null) {
+    let cond: Cond | undefined;
+    const orderSpecs: Array<{ col: string; dir: 'asc' | 'desc' }> = [];
+    const builder: any = {
+      from() {
+        return builder;
+      },
+      where(c: Cond) {
+        cond = c;
+        return builder;
+      },
+      orderBy(...specs: any[]) {
+        for (const s of specs) orderSpecs.push({ col: s.__col, dir: s.__order });
+        return builder;
+      },
+      then(resolve: any) {
+        return Promise.resolve(execute()).then(resolve);
+      },
+      [Symbol.asyncIterator]() {
+        return execute()[Symbol.iterator]();
+      },
+    };
 
-// Mock of drizzle-orm helpers
-vi.mock('drizzle-orm', async () => {
-  const actual: any = await vi.importActual('drizzle-orm');
-  return {
-    ...actual,
+    function project(row: Row): Row {
+      if (!projection) return { ...row };
+      const out: Row = {};
+      for (const key of Object.keys(projection)) out[key] = row[key];
+      return out;
+    }
+
+    function execute(): Row[] {
+      let out = store.rows.filter((r) => evalCond(cond, r));
+      for (const { col, dir } of orderSpecs) {
+        out = [...out].sort((a, b) => {
+          const av = a[col];
+          const bv = b[col];
+          if (av === bv) return 0;
+          if (av == null) return 1;
+          if (bv == null) return -1;
+          const cmp = av < bv ? -1 : 1;
+          return dir === 'asc' ? cmp : -cmp;
+        });
+      }
+      return out.map(project);
+    }
+
+    return builder;
+  }
+
+  function buildInsertBuilder() {
+    let valuesData: Row = {};
+    const builder: any = {
+      values(v: Row) {
+        valuesData = { ...v };
+        return builder;
+      },
+      returning(_projection?: Record<string, any>) {
+        // Simulate UNIQUE (name, created_by) constraint
+        const dup = store.rows.find(
+          (r) => r.name === valuesData.name && r.createdBy === valuesData.createdBy,
+        );
+        if (dup) {
+          const err: any = new Error('duplicate key value violates unique constraint');
+          err.code = '23505';
+          throw err;
+        }
+        // crypto.randomUUID is on globalThis in node >=18
+        const id =
+          valuesData.id ??
+          `cred-${(globalThis.crypto as any)?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
+        const now = new Date();
+        const row: Row = {
+          id,
+          createdAt: valuesData.createdAt ?? now,
+          updatedAt: valuesData.updatedAt ?? now,
+          description: null,
+          urlPattern: '*',
+          priority: 100,
+          apiId: null,
+          apiKeyHeaderName: null,
+          apiKeyQueryParam: null,
+          basicUsername: null,
+          bearerExpiresAt: null,
+          oauth2ClientId: null,
+          oauth2TokenUrl: null,
+          oauth2Scope: null,
+          oauth2Audience: null,
+          hmacKeyId: null,
+          hmacAlgorithm: null,
+          hmacSignatureHeader: null,
+          hmacSignedHeaders: null,
+          hmacCanonicalTemplate: null,
+          updatedBy: null,
+          ...valuesData,
+        };
+        store.rows.push(row);
+        const projection = _projection as Record<string, any> | undefined;
+        if (projection) {
+          const out: Row = {};
+          for (const key of Object.keys(projection)) out[key] = row[key];
+          return Promise.resolve([out]);
+        }
+        return Promise.resolve([{ ...row }]);
+      },
+    };
+    return builder;
+  }
+
+  function buildUpdateBuilder() {
+    let cond: Cond | undefined;
+    let updates: Row = {};
+    const builder: any = {
+      set(u: Row) {
+        updates = { ...u };
+        return builder;
+      },
+      where(c: Cond) {
+        cond = c;
+        return builder;
+      },
+      returning(_projection?: Record<string, any>) {
+        const target = store.rows.find((r) => evalCond(cond, r));
+        if (!target) return Promise.resolve([]);
+        Object.assign(target, updates);
+        const projection = _projection as Record<string, any> | undefined;
+        if (projection) {
+          const out: Row = {};
+          for (const key of Object.keys(projection)) out[key] = target[key];
+          return Promise.resolve([out]);
+        }
+        return Promise.resolve([{ ...target }]);
+      },
+    };
+    return builder;
+  }
+
+  function buildDeleteBuilder() {
+    let cond: Cond | undefined;
+    const builder: any = {
+      where(c: Cond) {
+        cond = c;
+        return Promise.resolve({
+          rowCount: store.rows.filter((r) => evalCond(cond, r)).length,
+        }).then(() => {
+          for (let i = store.rows.length - 1; i >= 0; i--) {
+            if (evalCond(cond, store.rows[i])) store.rows.splice(i, 1);
+          }
+        });
+      },
+    };
+    return builder;
+  }
+
+  const makeCond = {
     eq: (col: any, value: any): Cond => ({ type: 'eq', field: col.__col, value }),
     and: (...children: Cond[]): Cond => ({ type: 'and', children }),
     or: (...children: Cond[]): Cond => ({ type: 'or', children }),
     isNull: (col: any): Cond => ({ type: 'isNull', field: col.__col }),
     asc: (col: any) => ({ __order: 'asc', __col: col.__col }),
     desc: (col: any) => ({ __order: 'desc', __col: col.__col }),
+  };
+
+  return {
+    store,
+    resetStore,
+    apiCredentialsCols,
+    buildSelectBuilder,
+    buildInsertBuilder,
+    buildUpdateBuilder,
+    buildDeleteBuilder,
+    makeCond,
+  };
+});
+
+// Expose store + reset for test bodies (outside the hoisted block so it's fine).
+const store = mockState.store;
+const resetStore = mockState.resetStore;
+
+// Mock of drizzle-orm helpers
+vi.mock('drizzle-orm', async () => {
+  const actual: any = await vi.importActual('drizzle-orm');
+  return {
+    ...actual,
+    eq: mockState.makeCond.eq,
+    and: mockState.makeCond.and,
+    or: mockState.makeCond.or,
+    isNull: mockState.makeCond.isNull,
+    asc: mockState.makeCond.asc,
+    desc: mockState.makeCond.desc,
     sql: actual.sql,
     relations: actual.relations,
   };
 });
 
-// Build a query object that supports chainable .where/.orderBy/.returning
-function buildSelectBuilder(projection: Record<string, any> | null) {
-  let cond: Cond | undefined;
-  const orderSpecs: Array<{ col: string; dir: 'asc' | 'desc' }> = [];
-  const builder: any = {
-    from() {
-      return builder;
-    },
-    where(c: Cond) {
-      cond = c;
-      return builder;
-    },
-    orderBy(...specs: any[]) {
-      for (const s of specs) orderSpecs.push({ col: s.__col, dir: s.__order });
-      return builder;
-    },
-    then(resolve: any) {
-      return Promise.resolve(execute()).then(resolve);
-    },
-    [Symbol.asyncIterator]() {
-      return execute()[Symbol.iterator]();
-    },
-  };
-
-  function project(row: Row): Row {
-    if (!projection) return { ...row };
-    const out: Row = {};
-    for (const key of Object.keys(projection)) out[key] = row[key];
-    return out;
-  }
-
-  function execute(): Row[] {
-    let out = store.rows.filter((r) => evalCond(cond, r));
-    for (const { col, dir } of orderSpecs) {
-      out = [...out].sort((a, b) => {
-        const av = a[col];
-        const bv = b[col];
-        if (av === bv) return 0;
-        if (av == null) return 1;
-        if (bv == null) return -1;
-        const cmp = av < bv ? -1 : 1;
-        return dir === 'asc' ? cmp : -cmp;
-      });
-    }
-    return out.map(project);
-  }
-
-  return builder;
-}
-
-function buildInsertBuilder() {
-  let valuesData: Row = {};
-  const builder: any = {
-    values(v: Row) {
-      valuesData = { ...v };
-      return builder;
-    },
-    returning(_projection?: Record<string, any>) {
-      // Simulate UNIQUE (name, created_by) constraint
-      const dup = store.rows.find(
-        (r) => r.name === valuesData.name && r.createdBy === valuesData.createdBy,
-      );
-      if (dup) {
-        const err: any = new Error('duplicate key value violates unique constraint');
-        err.code = '23505';
-        throw err;
-      }
-      const id = valuesData.id ?? `cred-${crypto.randomUUID()}`;
-      const now = new Date();
-      const row: Row = {
-        id,
-        createdAt: valuesData.createdAt ?? now,
-        updatedAt: valuesData.updatedAt ?? now,
-        description: null,
-        urlPattern: '*',
-        priority: 100,
-        apiId: null,
-        apiKeyHeaderName: null,
-        apiKeyQueryParam: null,
-        basicUsername: null,
-        bearerExpiresAt: null,
-        oauth2ClientId: null,
-        oauth2TokenUrl: null,
-        oauth2Scope: null,
-        oauth2Audience: null,
-        hmacKeyId: null,
-        hmacAlgorithm: null,
-        hmacSignatureHeader: null,
-        hmacSignedHeaders: null,
-        hmacCanonicalTemplate: null,
-        updatedBy: null,
-        ...valuesData,
-      };
-      store.rows.push(row);
-      const projection = _projection as Record<string, any> | undefined;
-      if (projection) {
-        const out: Row = {};
-        for (const key of Object.keys(projection)) out[key] = row[key];
-        return Promise.resolve([out]);
-      }
-      return Promise.resolve([{ ...row }]);
-    },
-  };
-  return builder;
-}
-
-function buildUpdateBuilder() {
-  let cond: Cond | undefined;
-  let updates: Row = {};
-  const builder: any = {
-    set(u: Row) {
-      updates = { ...u };
-      return builder;
-    },
-    where(c: Cond) {
-      cond = c;
-      return builder;
-    },
-    returning(_projection?: Record<string, any>) {
-      const target = store.rows.find((r) => evalCond(cond, r));
-      if (!target) return Promise.resolve([]);
-      Object.assign(target, updates);
-      const projection = _projection as Record<string, any> | undefined;
-      if (projection) {
-        const out: Row = {};
-        for (const key of Object.keys(projection)) out[key] = target[key];
-        return Promise.resolve([out]);
-      }
-      return Promise.resolve([{ ...target }]);
-    },
-  };
-  return builder;
-}
-
-function buildDeleteBuilder() {
-  let cond: Cond | undefined;
-  const builder: any = {
-    where(c: Cond) {
-      cond = c;
-      return Promise.resolve({ rowCount: store.rows.filter((r) => evalCond(cond, r)).length }).then(
-        () => {
-          for (let i = store.rows.length - 1; i >= 0; i--) {
-            if (evalCond(cond, store.rows[i])) store.rows.splice(i, 1);
-          }
-        },
-      );
-    },
-  };
-  return builder;
-}
-
 vi.mock('../../db', () => {
   const dbMock = {
     select(projection?: Record<string, any>) {
-      return buildSelectBuilder(projection ?? null);
+      return mockState.buildSelectBuilder(projection ?? null);
     },
     insert(_table: any) {
-      return buildInsertBuilder();
+      return mockState.buildInsertBuilder();
     },
     update(_table: any) {
-      return buildUpdateBuilder();
+      return mockState.buildUpdateBuilder();
     },
     delete(_table: any) {
-      return buildDeleteBuilder();
+      return mockState.buildDeleteBuilder();
     },
     execute() {
       return Promise.resolve({ rowCount: 0, rows: [] });
@@ -268,7 +286,7 @@ vi.mock('@shared/schema', async () => {
   const actual: any = await vi.importActual('@shared/schema');
   return {
     ...actual,
-    apiCredentials: apiCredentialsCols,
+    apiCredentials: mockState.apiCredentialsCols,
   };
 });
 

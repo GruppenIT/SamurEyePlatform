@@ -20,160 +20,183 @@ beforeAll(() => {
 });
 
 // ---------------------------------------------------------------------------
-// In-memory db mock (aligned with storage.test.ts)
+// In-memory db mock (hoisted — see storage.test.ts for the same pattern)
 // ---------------------------------------------------------------------------
 type Row = Record<string, any>;
-const store: { rows: Row[] } = { rows: [] };
 
-interface Cond {
-  type: 'eq' | 'and' | 'or' | 'isNull';
-  field?: string;
-  value?: any;
-  children?: Cond[];
-}
+const mockState = vi.hoisted(() => {
+  interface Cond {
+    type: 'eq' | 'and' | 'or' | 'isNull';
+    field?: string;
+    value?: any;
+    children?: Cond[];
+  }
 
-function evalCond(cond: Cond | undefined, row: Row): boolean {
-  if (!cond) return true;
-  if (cond.type === 'eq') return row[cond.field!] === cond.value;
-  if (cond.type === 'isNull') return row[cond.field!] === null || row[cond.field!] === undefined;
-  if (cond.type === 'and') return (cond.children ?? []).every((c) => evalCond(c, row));
-  if (cond.type === 'or') return (cond.children ?? []).some((c) => evalCond(c, row));
-  return true;
-}
+  const store: { rows: Row[] } = { rows: [] };
 
-function colProxy(table: string): any {
-  return new Proxy(
-    {},
-    {
-      get: (_t, prop: string) => ({ __table: table, __col: prop }),
-    },
-  );
-}
+  function evalCond(cond: Cond | undefined, row: Row): boolean {
+    if (!cond) return true;
+    if (cond.type === 'eq') return row[cond.field!] === cond.value;
+    if (cond.type === 'isNull')
+      return row[cond.field!] === null || row[cond.field!] === undefined;
+    if (cond.type === 'and') return (cond.children ?? []).every((c) => evalCond(c, row));
+    if (cond.type === 'or') return (cond.children ?? []).some((c) => evalCond(c, row));
+    return true;
+  }
 
-const apiCredentialsCols = colProxy('api_credentials');
+  function colProxy(table: string): any {
+    return new Proxy(
+      {},
+      { get: (_t, prop: string) => ({ __table: table, __col: prop }) },
+    );
+  }
 
-vi.mock('drizzle-orm', async () => {
-  const actual: any = await vi.importActual('drizzle-orm');
-  return {
-    ...actual,
+  const apiCredentialsCols = colProxy('api_credentials');
+
+  function buildSelectBuilder(projection: Record<string, any> | null) {
+    let cond: Cond | undefined;
+    const orderSpecs: Array<{ col: string; dir: 'asc' | 'desc' }> = [];
+
+    function project(row: Row): Row {
+      if (!projection) return { ...row };
+      const out: Row = {};
+      for (const key of Object.keys(projection)) out[key] = row[key];
+      return out;
+    }
+
+    function execute(): Row[] {
+      let out = store.rows.filter((r) => evalCond(cond, r));
+      for (const { col, dir } of orderSpecs) {
+        out = [...out].sort((a, b) => {
+          const av = a[col];
+          const bv = b[col];
+          if (av === bv) return 0;
+          if (av == null) return 1;
+          if (bv == null) return -1;
+          const cmp = av < bv ? -1 : 1;
+          return dir === 'asc' ? cmp : -cmp;
+        });
+      }
+      return out.map(project);
+    }
+
+    const builder: any = {
+      from() {
+        return builder;
+      },
+      where(c: Cond) {
+        cond = c;
+        return builder;
+      },
+      orderBy(...specs: any[]) {
+        for (const s of specs) orderSpecs.push({ col: s.__col, dir: s.__order });
+        return builder;
+      },
+      then(resolve: any) {
+        return Promise.resolve(execute()).then(resolve);
+      },
+    };
+    return builder;
+  }
+
+  function buildInsertBuilder() {
+    let valuesData: Row = {};
+    const builder: any = {
+      values(v: Row) {
+        valuesData = { ...v };
+        return builder;
+      },
+      returning(_projection?: Record<string, any>) {
+        const dup = store.rows.find(
+          (r) => r.name === valuesData.name && r.createdBy === valuesData.createdBy,
+        );
+        if (dup) {
+          const err: any = new Error('duplicate key value violates unique constraint');
+          err.code = '23505';
+          throw err;
+        }
+        const id =
+          valuesData.id ??
+          `cred-${(globalThis.crypto as any)?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
+        const row: Row = {
+          id,
+          createdAt: valuesData.createdAt ?? new Date(),
+          updatedAt: valuesData.updatedAt ?? new Date(),
+          description: null,
+          urlPattern: '*',
+          priority: 100,
+          apiId: null,
+          apiKeyHeaderName: null,
+          apiKeyQueryParam: null,
+          basicUsername: null,
+          bearerExpiresAt: null,
+          oauth2ClientId: null,
+          oauth2TokenUrl: null,
+          oauth2Scope: null,
+          oauth2Audience: null,
+          hmacKeyId: null,
+          hmacAlgorithm: null,
+          hmacSignatureHeader: null,
+          hmacSignedHeaders: null,
+          hmacCanonicalTemplate: null,
+          updatedBy: null,
+          ...valuesData,
+        };
+        store.rows.push(row);
+        const projection = _projection as Record<string, any> | undefined;
+        if (projection) {
+          const out: Row = {};
+          for (const key of Object.keys(projection)) out[key] = row[key];
+          return Promise.resolve([out]);
+        }
+        return Promise.resolve([{ ...row }]);
+      },
+    };
+    return builder;
+  }
+
+  const makeCond = {
     eq: (col: any, value: any): Cond => ({ type: 'eq', field: col.__col, value }),
     and: (...children: Cond[]): Cond => ({ type: 'and', children }),
     or: (...children: Cond[]): Cond => ({ type: 'or', children }),
     isNull: (col: any): Cond => ({ type: 'isNull', field: col.__col }),
     asc: (col: any) => ({ __order: 'asc', __col: col.__col }),
     desc: (col: any) => ({ __order: 'desc', __col: col.__col }),
+  };
+
+  return {
+    store,
+    apiCredentialsCols,
+    buildSelectBuilder,
+    buildInsertBuilder,
+    makeCond,
+  };
+});
+
+const store = mockState.store;
+
+vi.mock('drizzle-orm', async () => {
+  const actual: any = await vi.importActual('drizzle-orm');
+  return {
+    ...actual,
+    eq: mockState.makeCond.eq,
+    and: mockState.makeCond.and,
+    or: mockState.makeCond.or,
+    isNull: mockState.makeCond.isNull,
+    asc: mockState.makeCond.asc,
+    desc: mockState.makeCond.desc,
     sql: actual.sql,
     relations: actual.relations,
   };
 });
 
-function buildSelectBuilder(projection: Record<string, any> | null) {
-  let cond: Cond | undefined;
-  const orderSpecs: Array<{ col: string; dir: 'asc' | 'desc' }> = [];
-
-  function project(row: Row): Row {
-    if (!projection) return { ...row };
-    const out: Row = {};
-    for (const key of Object.keys(projection)) out[key] = row[key];
-    return out;
-  }
-
-  function execute(): Row[] {
-    let out = store.rows.filter((r) => evalCond(cond, r));
-    for (const { col, dir } of orderSpecs) {
-      out = [...out].sort((a, b) => {
-        const av = a[col];
-        const bv = b[col];
-        if (av === bv) return 0;
-        if (av == null) return 1;
-        if (bv == null) return -1;
-        const cmp = av < bv ? -1 : 1;
-        return dir === 'asc' ? cmp : -cmp;
-      });
-    }
-    return out.map(project);
-  }
-
-  const builder: any = {
-    from() {
-      return builder;
-    },
-    where(c: Cond) {
-      cond = c;
-      return builder;
-    },
-    orderBy(...specs: any[]) {
-      for (const s of specs) orderSpecs.push({ col: s.__col, dir: s.__order });
-      return builder;
-    },
-    then(resolve: any) {
-      return Promise.resolve(execute()).then(resolve);
-    },
-  };
-  return builder;
-}
-
-function buildInsertBuilder() {
-  let valuesData: Row = {};
-  const builder: any = {
-    values(v: Row) {
-      valuesData = { ...v };
-      return builder;
-    },
-    returning(_projection?: Record<string, any>) {
-      const dup = store.rows.find(
-        (r) => r.name === valuesData.name && r.createdBy === valuesData.createdBy,
-      );
-      if (dup) {
-        const err: any = new Error('duplicate key value violates unique constraint');
-        err.code = '23505';
-        throw err;
-      }
-      const id = valuesData.id ?? `cred-${crypto.randomUUID()}`;
-      const row: Row = {
-        id,
-        createdAt: valuesData.createdAt ?? new Date(),
-        updatedAt: valuesData.updatedAt ?? new Date(),
-        description: null,
-        urlPattern: '*',
-        priority: 100,
-        apiId: null,
-        apiKeyHeaderName: null,
-        apiKeyQueryParam: null,
-        basicUsername: null,
-        bearerExpiresAt: null,
-        oauth2ClientId: null,
-        oauth2TokenUrl: null,
-        oauth2Scope: null,
-        oauth2Audience: null,
-        hmacKeyId: null,
-        hmacAlgorithm: null,
-        hmacSignatureHeader: null,
-        hmacSignedHeaders: null,
-        hmacCanonicalTemplate: null,
-        updatedBy: null,
-        ...valuesData,
-      };
-      store.rows.push(row);
-      const projection = _projection as Record<string, any> | undefined;
-      if (projection) {
-        const out: Row = {};
-        for (const key of Object.keys(projection)) out[key] = row[key];
-        return Promise.resolve([out]);
-      }
-      return Promise.resolve([{ ...row }]);
-    },
-  };
-  return builder;
-}
-
 vi.mock('../../db', () => {
   const dbMock = {
     select(projection?: Record<string, any>) {
-      return buildSelectBuilder(projection ?? null);
+      return mockState.buildSelectBuilder(projection ?? null);
     },
     insert() {
-      return buildInsertBuilder();
+      return mockState.buildInsertBuilder();
     },
     update() {
       return { set: () => ({ where: () => ({ returning: () => Promise.resolve([]) }) }) };
@@ -192,7 +215,7 @@ vi.mock('@shared/schema', async () => {
   const actual: any = await vi.importActual('@shared/schema');
   return {
     ...actual,
-    apiCredentials: apiCredentialsCols,
+    apiCredentials: mockState.apiCredentialsCols,
   };
 });
 
@@ -248,8 +271,20 @@ function seedCred(overrides: Partial<Row> = {}): Row {
 describe('resolveApiCredential (Phase 10 — CRED-04)', () => {
   describe('priority como tie-break primario', () => {
     it('multiplas credenciais casam → retorna a com menor priority', async () => {
-      seedCred({ id: 'low', priority: 50, urlPattern: 'https://api.example.com/*', apiId: 'api-1', name: 'low' });
-      seedCred({ id: 'high', priority: 100, urlPattern: 'https://api.example.com/*', apiId: 'api-1', name: 'high' });
+      seedCred({
+        id: 'low',
+        priority: 50,
+        urlPattern: 'https://api.example.com/*',
+        apiId: 'api-1',
+        name: 'low',
+      });
+      seedCred({
+        id: 'high',
+        priority: 100,
+        urlPattern: 'https://api.example.com/*',
+        apiId: 'api-1',
+        name: 'high',
+      });
       const winner = await resolveApiCredential('api-1', 'https://api.example.com/users');
       expect(winner).not.toBeNull();
       expect(winner!.id).toBe('low');
@@ -283,11 +318,14 @@ describe('resolveApiCredential (Phase 10 — CRED-04)', () => {
       expect(winner!.id).toBe('specific');
     });
 
-    it('https://api.corp.com/v2/users vence https://api.corp.com/* quando ambos casam', async () => {
-      seedCred({ id: 'wild', priority: 100, urlPattern: 'https://api.corp.com/*', apiId: 'api-1', name: 'w' });
-      // For deep specific pattern we need URL that ALSO matches the wildcard.
-      // Wildcard `api.corp.com/*` does NOT match `/v2/users` (two segments, no cross-slash).
-      // Pick a URL that matches both: "users" (single segment).
+    it('https://api.corp.com/users vence https://api.corp.com/* quando ambos casam', async () => {
+      seedCred({
+        id: 'wild',
+        priority: 100,
+        urlPattern: 'https://api.corp.com/*',
+        apiId: 'api-1',
+        name: 'w',
+      });
       seedCred({
         id: 'exact',
         priority: 100,
@@ -358,7 +396,7 @@ describe('resolveApiCredential (Phase 10 — CRED-04)', () => {
       expect(winner).toBeNull();
     });
 
-    it('store vazio → retorna null sem lançar', async () => {
+    it('store vazio → retorna null sem lancar', async () => {
       const winner = await resolveApiCredential('api-1', 'https://x.com/');
       expect(winner).toBeNull();
     });
