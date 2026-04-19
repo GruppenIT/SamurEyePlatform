@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
-status: executing
-stopped_at: Completed 10-01-PLAN.md (Wave 0 stubs); next is 10-02
-last_updated: "2026-04-19T14:16:50.771Z"
-last_activity: 2026-04-19 — Plan 10-01 delivered 6 it.todo stubs + factory; external commit fd8bfc3 antecipou parte de Plan 10-03
+status: completed
+stopped_at: Completed 10-03-PLAN.md (Wave 1 helpers); next is 10-02
+last_updated: "2026-04-19T14:19:18.335Z"
+last_activity: 2026-04-19 — Plan 10-03 delivered 2 pure helpers in server/services/credentials/ (~57 linhas prod + 34 passing tests)
 progress:
   total_phases: 9
   completed_phases: 2
   total_plans: 15
-  completed_plans: 11
-  percent: 73
+  completed_plans: 12
+  percent: 80
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-18)
 ## Current Position
 
 Phase: 10 of 16 (API Credentials) — v2.0 Phase 10 executing
-Plan: 01 of 05 completed — next: 10-02
-Status: Plan 10-01 complete (Wave 0 Nyquist stubs)
-Last activity: 2026-04-19 — Plan 10-01 delivered 6 it.todo stubs + factory; external commit fd8bfc3 antecipou parte de Plan 10-03
+Plan: 01 + 03 of 05 completed — next: 10-02 (Wave 1 schema, parallel)
+Status: Plan 10-03 complete (Wave 1 helpers — matchUrlPattern + decodeJwtExp)
+Last activity: 2026-04-19 — Plan 10-03 delivered 2 pure helpers in server/services/credentials/ (~57 linhas prod + 34 passing tests)
 
-Progress: [███████░░░] 73%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Progress: [███████░░░] 73%
 | Phase 09 P03 | 269 | 3 tasks | 6 files |
 | Phase 09-schema-asset-hierarchy P04 | 3 | 2 tasks | 5 files |
 | Phase 10-api-credentials P01 | 3m | 2 tasks | 7 files |
+| Phase 10-api-credentials P03 | 6m | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 10-api-credentials]: [Phase 10-01]: 99 it.todo stubs em 6 arquivos + factory compartilhado apiCredentialFactory.ts cobrindo os 7 auth types e CRED-01..05
 - [Phase 10-api-credentials]: [Phase 10-01]: External commit fd8bfc3 feat(10-03) antecipou matchUrlPattern + isValidUrlPattern ja no Plan 01; urlPattern.test.ts promovido de 14 it.todo para 27 it() reais. Plan 10-03 devera consolidar (no-op ou ajustes)
 - [Phase 10-api-credentials]: [Phase 10-01]: stubs usam void statements para suprimir TS6133 em imports nao-utilizados enquanto it.todo nao tem assertions
+- [Phase 10-api-credentials]: [Phase 10-03]: Pattern `*` isolado e caso especial (`.*` global) — sem guard, algoritmo uniforme `[^/]*` nunca casaria URLs com `/`, invalidando a semântica de wildcard global do CONTEXT.md
+- [Phase 10-api-credentials]: [Phase 10-03]: 2 entries do URL_PATTERN_MATRIX ajustadas para consistência com algoritmo `* = [^/]*` (Rule 1 bug fix); comentário explicativo adicionado ao factory
+- [Phase 10-api-credentials]: [Phase 10-03]: decodeJwtExp usa 4 guards explícitos (typeof string, split len, typeof number, Number.isFinite) + try/catch para silent-fail completo — cobre exp ausente, string, NaN, Infinity, base64 malformado, JWT opaco
 
 ### Pending Todos
 
@@ -110,6 +114,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-19T14:16:50.766Z
-Stopped at: Completed 10-01-PLAN.md (Wave 0 stubs); next is 10-02
-Resume file: .planning/phases/10-api-credentials/10-02-PLAN.md
+Last session: 2026-04-19T14:19:18.330Z
+Stopped at: Completed 10-03-PLAN.md (Wave 1 helpers); next is 10-02
+Resume file: None

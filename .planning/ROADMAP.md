@@ -93,7 +93,7 @@ Plans:
   3. User can map a credential to a URL pattern (glob/prefix); the engine resolves and applies only matching credentials per endpoint
   4. When multiple credentials match the same URL, the user-assigned priority order determines selection
   5. During the journey wizard, user can create a credential inline without leaving the flow and the new credential is immediately available for selection
-**Plans:** 1/5 plans executed
+**Plans:** 2/5 plans executed
 Plans:
 - [ ] 10-01-PLAN.md — Wave 0: Nyquist test stubs (6 files) + shared apiCredentialFactory helper (CRED-01..05)
 - [ ] 10-02-PLAN.md — Wave 1: shared/schema.ts additions — apiAuthTypeEnum + apiCredentials pgTable + relations + insertApiCredentialSchema discriminated union + tipos derivados (CRED-01, CRED-02)
@@ -217,7 +217,7 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 7. EDR Deployment Read Path | v1.1 | 2/2 | Complete | 2026-03-23 |
 | 8. Infrastructure & Install | 6/6 | Complete   | 2026-04-18 | - |
 | 9. Schema & Asset Hierarchy | 4/4 | Complete   | 2026-04-19 | - |
-| 10. API Credentials | 1/5 | In Progress|  | - |
+| 10. API Credentials | 2/5 | In Progress|  | - |
 | 11. Discovery & Enrichment | v2.0 | 0/TBD | Not started | - |
 | 12. Security Testing — Passive | v2.0 | 0/TBD | Not started | - |
 | 13. Security Testing — Active | v2.0 | 0/TBD | Not started | - |
