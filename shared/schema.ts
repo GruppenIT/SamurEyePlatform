@@ -108,6 +108,18 @@ export const owaspApiCategoryEnum = pgEnum('owasp_api_category', [
 export const apiFindingStatusEnum = pgEnum('api_finding_status',
   ['open', 'triaged', 'false_positive', 'closed']);
 
+// Phase 10 — API Credentials (CRED-01)
+// Ordem fixa — qualquer adição futura cria nova enum em vez de ALTER TYPE.
+export const apiAuthTypeEnum = pgEnum('api_auth_type', [
+  'api_key_header',
+  'api_key_query',
+  'bearer_jwt',
+  'basic',
+  'oauth2_client_credentials',
+  'hmac',
+  'mtls',
+]);
+
 // Users table
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1316,6 +1328,68 @@ export const apiFindings = pgTable("api_findings", {
 
 export type ApiFinding = typeof apiFindings.$inferSelect;
 export type InsertApiFinding = typeof apiFindings.$inferInsert;
+
+// Phase 10 — API Credentials (CRED-01..05)
+// Tabela isolada — NÃO estende `credentials` legada (ssh/wmi/omi/ad).
+// Secrets cifrados via encryptionService (KEK/DEK existente, AES-256-GCM).
+export const apiCredentials = pgTable("api_credentials", {
+  // --- identidade ---
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  authType: apiAuthTypeEnum("auth_type").notNull(),
+
+  // --- mapeamento (CRED-03, CRED-04) ---
+  urlPattern: text("url_pattern").notNull().default("*"),
+  priority: integer("priority").notNull().default(100),
+  apiId: varchar("api_id").references(() => apis.id, { onDelete: "set null" }),
+
+  // --- crypto (CRED-02) ---
+  secretEncrypted: text("secret_encrypted").notNull(),
+  dekEncrypted: text("dek_encrypted").notNull(),
+
+  // --- por auth type (nullable, validados via Zod discriminated union) ---
+  apiKeyHeaderName: text("api_key_header_name"),
+  apiKeyQueryParam: text("api_key_query_param"),
+  basicUsername: text("basic_username"),
+  bearerExpiresAt: timestamp("bearer_expires_at"),
+  oauth2ClientId: text("oauth2_client_id"),
+  oauth2TokenUrl: text("oauth2_token_url"),
+  oauth2Scope: text("oauth2_scope"),
+  oauth2Audience: text("oauth2_audience"),
+  hmacKeyId: text("hmac_key_id"),
+  hmacAlgorithm: text("hmac_algorithm"), // HMAC-SHA1 | HMAC-SHA256 | HMAC-SHA512
+  hmacSignatureHeader: text("hmac_signature_header"),
+  hmacSignedHeaders: text("hmac_signed_headers").array(),
+  hmacCanonicalTemplate: text("hmac_canonical_template"),
+
+  // --- auditoria ---
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  updatedBy: varchar("updated_by").references(() => users.id),
+}, (table) => [
+  index("IDX_api_credentials_api_id").on(table.apiId),
+  index("IDX_api_credentials_priority").on(table.priority),
+  uniqueIndex("UQ_api_credentials_name_created_by").on(table.name, table.createdBy),
+]);
+
+export const apiCredentialsRelations = relations(apiCredentials, ({ one }) => ({
+  api: one(apis, {
+    fields: [apiCredentials.apiId],
+    references: [apis.id],
+  }),
+  creator: one(users, {
+    fields: [apiCredentials.createdBy],
+    references: [users.id],
+    relationName: "apiCredentialCreator",
+  }),
+  updater: one(users, {
+    fields: [apiCredentials.updatedBy],
+    references: [users.id],
+    relationName: "apiCredentialUpdater",
+  }),
+}));
 
 // API contract types for appliance ↔ console communication
 export const activateApplianceSchema = z.object({
