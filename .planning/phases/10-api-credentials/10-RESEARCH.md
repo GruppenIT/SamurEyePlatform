@@ -757,6 +757,306 @@ app.post('/api/v1/api-credentials', isAuthenticatedWithPasswordCheck, requireOpe
 
 ---
 
+## Validation Architecture
+
+> Esta seção expande a Arquitetura de Validação com a estratégia de amostragem detalhada, casos de teste exaustivos por auth type, fixtures reutilizáveis e delimitação explícita de escopo.
+
+### O que DEVE ser validado no Phase 10
+
+Mapeado diretamente para os 5 success criteria do milestone.
+
+#### SC1 — Todos os 7 auth types podem ser armazenados e recuperados decriptados via facade
+
+Cada auth type é um caso de teste independente — sem subconjunto "representativo". A tabela abaixo enumera o caso de teste mínimo por tipo:
+
+| Auth Type | Arquivo de teste | Caso obrigatório |
+|-----------|-----------------|-----------------|
+| `api_key_header` | `apiCredentialSchema.test.ts` | schema aceita `{ authType, apiKeyHeaderName, secret }` |
+| `api_key_query` | `apiCredentialSchema.test.ts` | schema aceita `{ authType, apiKeyQueryParam, secret }` |
+| `bearer_jwt` | `apiCredentialSchema.test.ts` | schema aceita `{ authType, secret }` (JWT string) |
+| `basic` | `apiCredentialSchema.test.ts` | schema aceita `{ authType, basicUsername, secret }` |
+| `oauth2_client_credentials` | `apiCredentialSchema.test.ts` | schema aceita `{ authType, oauth2ClientId, oauth2TokenUrl, secret }` |
+| `hmac` | `apiCredentialSchema.test.ts` | schema aceita `{ authType, hmacKeyId, hmacAlgorithm: 'HMAC-SHA256', secret }` |
+| `mtls` | `apiCredentialSchema.test.ts` | schema aceita `{ authType, mtlsCert: PEM, mtlsKey: PEM }` sem `mtlsCa` |
+| `mtls` com CA | `apiCredentialSchema.test.ts` | schema aceita `{ authType, mtlsCert, mtlsKey, mtlsCa }` todos PEM |
+
+Para o facade (`apiCredentialStorage.test.ts`), cada tipo precisa de um caso de round-trip armazenamento + recuperação via `getApiCredentialWithSecret()` com assert nos campos específicos do tipo.
+
+#### SC2 — Secret em repouso criptografado com KEK/DEK existente (sem nova primitiva)
+
+| Caso | Arquivo | Assert |
+|------|---------|--------|
+| Campos `secretEncrypted` e `dekEncrypted` presentes na row do DB após `createApiCredential()` | `apiCredentialStorage.test.ts` | `row.secretEncrypted` is truthy, `row.dekEncrypted` is truthy |
+| `decryptCredential(secretEncrypted, dekEncrypted)` retorna o `secret` original | `apiCredentialStorage.test.ts` | strict equal ao valor enviado no POST |
+| mTLS: decrypt → `JSON.parse` retorna objeto com `cert`, `key` e `ca` quando presentes | `apiCredentialStorage.test.ts` | object deep equal `{ cert, key, ca }` |
+| `listApiCredentials()` não expõe `secretEncrypted` nem `dekEncrypted` | `apiCredentialStorage.test.ts` | `Object.keys(result[0])` não contém os campos proibidos |
+
+#### SC3 — URL pattern (glob) match com helper
+
+Casos de teste obrigatórios em `matchUrlPattern.test.ts`:
+
+| Pattern | URL alvo | Resultado esperado | Rationale |
+|---------|----------|--------------------|-----------|
+| `*` | `https://any.url/path/deep` | `true` | wildcard global — pega tudo |
+| `https://api.corp.com/*` | `https://api.corp.com/v2/users` | `true` | glob path simples |
+| `https://api.corp.com/*` | `https://api.corp.com/v2/users/123` | `false` | `*` não cruza `/` |
+| `https://api.corp.com/v2/*` | `https://api.corp.com/v2/users/123` | `false` | `*` não cruza `/` (deep path) |
+| `*.prod.example.com/*` | `https://api.prod.example.com/v1` | `true` | glob no host |
+| `*.prod.example.com/*` | `https://api.staging.example.com/v1` | `false` | host não casa |
+| `https://api.corp.com/v2/users` | `https://api.corp.com/v2/users` | `true` | match exato sem glob |
+| `https://api.corp.com/v2/users` | `https://api.corp.com/v2/users/` | `false` | trailing slash não casa |
+| `https://api.corp.com/v2/users/{id}` | `https://api.corp.com/v2/users/{id}` | `true` | path params literais casam literalmente |
+
+Casos de `isValidUrlPattern`:
+
+| Pattern | Resultado | Rationale |
+|---------|-----------|-----------|
+| `**` | `false` | ambíguo — rejeitado |
+| `` (empty) | `false` | vazio não é válido |
+| `https://api.corp.com/*` | `true` | padrão válido |
+| `*` | `true` | wildcard global é válido |
+
+#### SC4 — Resolução de priority quando múltiplas credenciais casam
+
+Casos obrigatórios em `apiCredentialStorage.test.ts`:
+
+| Cenário | Setup | Assert |
+|---------|-------|--------|
+| Priority diferente | cred A: priority=50, pattern=`*`; cred B: priority=100, pattern=`*` | retorna cred A |
+| Priority igual, specificity diferente | cred A: priority=100, pattern=`https://api.corp.com/*`; cred B: priority=100, pattern=`*` | retorna cred A (mais específica) |
+| Priority e specificity iguais | cred A: priority=100, pattern=`*`, createdAt=T1; cred B: priority=100, pattern=`*`, createdAt=T2 onde T1 < T2 | retorna cred A (mais antiga) |
+| Nenhuma cred casa | pattern=`https://other.com/*`, URL=`https://api.corp.com/v1` | retorna `null` |
+| Credencial global (`apiId IS NULL`) | cred sem apiId, pattern=`*`; query com apiId X | cred global é candidata |
+| Credencial scoped (`apiId = X`) | cred com apiId=X, pattern=`*`; query com apiId X | cred scoped é candidata |
+| Credencial scoped de outro API | cred com apiId=Y, pattern=`*`; query com apiId X | cred NÃO é candidata |
+
+#### SC5 — Criação inline via POST /api/v1/api-credentials
+
+Casos de contract test em `apiCredentialsRoute.test.ts`:
+
+| Caso | Assert |
+|------|--------|
+| POST com payload válido retorna 201 | status code 201 |
+| Resposta 201 contém campos `id`, `name`, `authType`, `urlPattern`, `priority`, `createdAt` | deep include dos campos |
+| Resposta 201 NÃO contém `secretEncrypted` nem `dekEncrypted` | `Object.keys(body)` não inclui os campos proibidos |
+| POST com nome duplicado para o mesmo usuário retorna 409 | status 409, message inclui "Credencial já cadastrada" |
+| POST sem autenticação retorna 401 | status 401 |
+| POST com role `read_only` retorna 403 | status 403 |
+| POST com `authType: 'bearer_jwt'` e JWT com `exp` válido popula `bearerExpiresAt` na resposta | `body.bearerExpiresAt` is a valid ISO date string |
+| POST com `authType: 'bearer_jwt'` e JWT opaco (sem `exp`) retorna 201 sem erro | status 201, `body.bearerExpiresAt` is null/undefined |
+
+### Tipos de Teste por Alvo
+
+| Alvo de validação | Tipo recomendado | Justificativa |
+|-------------------|-----------------|---------------|
+| `insertApiCredentialSchema` (discriminated union, PEM regex) | unit | puro Zod, sem I/O |
+| `matchUrlPattern()` e `isValidUrlPattern()` | unit | pura função, determinística |
+| `decodeJwtExp()` | unit | pura função, sem I/O |
+| `createApiCredential()` round-trip com DB | integration | requer conexão real ao Postgres |
+| `listApiCredentials()` sanitização de campos | integration | requer row real no DB |
+| `resolveApiCredential()` algoritmo de priority | integration | requer rows reais para ordenação |
+| `ensureApiCredentialTables()` idempotência | integration | requer Postgres para checar pg_tables/pg_type |
+| Rotas POST/GET/PATCH/DELETE shape e RBAC | integration | requer Express + DB |
+| E2E wizard UI inline-create | **ADIADO Phase 16** | UI não existe neste phase |
+| Runtime de consumo da credencial (inject header, sign HMAC, OAuth2 token) | **ADIADO Phase 11** | executor não existe neste phase |
+| OAuth2 token caching | **ADIADO Phase 11** | cache in-memory é Phase 11 |
+
+### Estratégia de Amostragem Detalhada
+
+#### Casos explícitos por auth type (todos os 7 — sem "representativo")
+
+Para `apiCredentialSchema.test.ts`:
+
+```typescript
+// Fixture factory — um por auth type
+function validPayload(authType: string): Record<string, unknown> {
+  const base = { name: 'test-cred', urlPattern: '*', priority: 100 };
+  switch (authType) {
+    case 'api_key_header':
+      return { ...base, authType, apiKeyHeaderName: 'X-API-Key', secret: 'sk-test' };
+    case 'api_key_query':
+      return { ...base, authType, apiKeyQueryParam: 'api_key', secret: 'sk-test' };
+    case 'bearer_jwt':
+      return { ...base, authType, secret: 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.sig' };
+    case 'basic':
+      return { ...base, authType, basicUsername: 'admin', secret: 'p@ssw0rd' };
+    case 'oauth2_client_credentials':
+      return { ...base, authType, oauth2ClientId: 'client-id', oauth2TokenUrl: 'https://auth.example.com/token', secret: 'client-secret' };
+    case 'hmac':
+      return { ...base, authType, hmacKeyId: 'key-1', hmacAlgorithm: 'HMAC-SHA256', secret: 'hmac-secret' };
+    case 'mtls':
+      return { ...base, authType, mtlsCert: VALID_PEM_CERT, mtlsKey: VALID_PEM_KEY };
+  }
+}
+
+// Constantes PEM mínimas para testes (auto-assinados, sem valor real)
+const VALID_PEM_CERT = `-----BEGIN CERTIFICATE-----\nMIIBxxx\n-----END CERTIFICATE-----`;
+const VALID_PEM_KEY  = `-----BEGIN PRIVATE KEY-----\nMIIBxxx\n-----END PRIVATE KEY-----`;
+```
+
+#### Corner cases de URL pattern
+
+Casos prioritários que as implementações mais simples erram:
+
+1. `*` como wildcard global — deve casar `https://qualquer.coisa/com/path`
+2. Glob no host: `*.corp.com/*` — deve casar `api.corp.com/v1` mas não `corp.com/v1` (ponto literal)
+3. Path params literais: `https://api.corp.com/v2/users/{id}` — `{` e `}` são caracteres literais, não especiais
+4. Trailing slash: `https://api.corp.com/v2/users` NÃO casa `https://api.corp.com/v2/users/`
+5. Query string: patterns não testam query string (URL alvo é `baseUrl + path` sem query)
+
+#### Priority ties e casos de borda
+
+1. Priority + specificity + createdAt — os 3 tie-breaks devem ser cobertos separadamente
+2. `apiId IS NULL` (credencial global) deve ser candidata para qualquer `apiId`
+3. Credencial com `apiId = X` NÃO deve aparecer para query com `apiId = Y`
+4. Quando nenhuma credencial casa, retornar `null` (não lançar exceção)
+
+#### Casos negativos (discriminated union rejections)
+
+Todos os casos abaixo devem resultar em erro Zod (não aceitar silenciosamente):
+
+| Auth type | Campo ausente | Campo inválido |
+|-----------|--------------|----------------|
+| `api_key_header` | `apiKeyHeaderName` ausente | `secret` string vazia |
+| `api_key_query` | `apiKeyQueryParam` ausente | — |
+| `bearer_jwt` | `secret` ausente | — |
+| `basic` | `basicUsername` ausente | `secret` ausente |
+| `oauth2_client_credentials` | `oauth2ClientId` ausente | `oauth2TokenUrl` não-URL |
+| `hmac` | `hmacKeyId` ausente | `hmacAlgorithm: 'HMAC-MD5'` (não suportado) |
+| `mtls` | `mtlsCert` ausente | `mtlsCert: 'not-a-pem'` (regex rejeita) |
+| qualquer | `authType: 'saml'` | — (tipo desconhecido) |
+| cross-type | `authType: 'bearer_jwt'` + `apiKeyHeaderName: 'X-API-Key'` presente | campo de outro tipo não deve ser aceito |
+
+#### Round-trip de encryption para mTLS (JSON composite)
+
+Este caso merece atenção especial por ser o único tipo com secret multi-part:
+
+```typescript
+// Caso: mTLS round-trip completo
+it('mTLS: encrypt composite JSON → decrypt → parse retorna cert, key e ca', () => {
+  const cert = VALID_PEM_CERT;
+  const key  = VALID_PEM_KEY;
+  const ca   = VALID_PEM_CERT; // CA pode ser o mesmo PEM em testes
+
+  const composite = JSON.stringify({ cert, key, ca });
+  const { secretEncrypted, dekEncrypted } = encryptionService.encryptCredential(composite);
+  const decrypted = encryptionService.decryptCredential(secretEncrypted, dekEncrypted);
+  const parsed = JSON.parse(decrypted);
+
+  expect(parsed.cert).toBe(cert);
+  expect(parsed.key).toBe(key);
+  expect(parsed.ca).toBe(ca);
+});
+
+// Caso: mTLS sem CA opcional
+it('mTLS sem ca: composite JSON não contém chave ca quando ausente', () => {
+  const composite = JSON.stringify({ cert: VALID_PEM_CERT, key: VALID_PEM_KEY, ca: undefined });
+  const parsed = JSON.parse(composite);
+  expect(parsed.ca).toBeUndefined();
+});
+```
+
+### O que NÃO testar no Phase 10 (disciplina de escopo)
+
+Os itens abaixo estão explicitamente fora do escopo de validação deste phase. Criar testes para eles agora é desperdício e pode gerar dependências prematuras:
+
+| Comportamento | Phase responsável | Motivo da exclusão |
+|--------------|------------------|--------------------|
+| Runtime de consumo da credencial (injetar `Authorization: Bearer`, assinar HMAC, montar `Basic`) | Phase 11 | O executor HTTP não existe ainda |
+| OAuth2 token flow (POST ao token endpoint, cache TTL) | Phase 11 | Cache in-memory é Phase 11 |
+| Renovação automática de bearer JWT expirado | Phase 11 | Alertas e lógica de expiração são Phase 11 |
+| Integração do inline-create com o wizard UI (select, validação visual) | Phase 16 | UI não existe neste phase |
+| Página dedicada de API credentials (`/settings/api-credentials`) | Phase 16 | UI não existe neste phase |
+| Audit log formal com tabela `audit_log` | Phase 15 (SAFE-04) | Tabela `audit_log` não existe ainda |
+| Endpoint `POST /api/v1/api-credentials/:id/test` (connection test) | Adiado indefinidamente | Declarado como deferred no CONTEXT.md |
+| mTLS configuração real de `https.Agent` | Phase 11 | Requer chamada HTTP real ao target |
+
+### Fixtures Reutilizáveis Recomendadas
+
+Criar em `server/__tests__/helpers/apiCredentialFactory.ts` para compartilhar entre os arquivos de teste:
+
+```typescript
+// server/__tests__/helpers/apiCredentialFactory.ts
+//
+// Factory que produz payload de insert válido por auth type.
+// Útil para testes de schema, storage e rota sem duplicar dados.
+
+export const TEST_PEM_CERT = `-----BEGIN CERTIFICATE-----\nMIIBpTCCAQ+gAwIBAgIUtest\n-----END CERTIFICATE-----`;
+export const TEST_PEM_KEY  = `-----BEGIN PRIVATE KEY-----\nMIIBVAIBADANBgkqtest\n-----END PRIVATE KEY-----`;
+
+type AuthType =
+  | 'api_key_header'
+  | 'api_key_query'
+  | 'bearer_jwt'
+  | 'basic'
+  | 'oauth2_client_credentials'
+  | 'hmac'
+  | 'mtls';
+
+export function createTestApiCredential(authType: AuthType, overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  const base = {
+    name: `test-${authType}-cred`,
+    description: null,
+    urlPattern: '*',
+    priority: 100,
+    apiId: null,
+  };
+
+  const typeFields: Record<AuthType, Record<string, unknown>> = {
+    api_key_header: { authType, apiKeyHeaderName: 'X-API-Key', secret: 'test-api-key-value' },
+    api_key_query:  { authType, apiKeyQueryParam: 'api_key',    secret: 'test-api-key-value' },
+    bearer_jwt:     { authType, secret: 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiZXhwIjo5OTk5OTk5OTk5fQ.sig' },
+    basic:          { authType, basicUsername: 'testuser',      secret: 'testpassword' },
+    oauth2_client_credentials: {
+      authType,
+      oauth2ClientId:  'test-client-id',
+      oauth2TokenUrl:  'https://auth.example.com/oauth/token',
+      oauth2Scope:     'read:api',
+      oauth2Audience:  'https://api.example.com',
+      secret:          'test-client-secret',
+    },
+    hmac: {
+      authType,
+      hmacKeyId:           'key-2024-01',
+      hmacAlgorithm:       'HMAC-SHA256',
+      hmacSignatureHeader: 'Authorization',
+      hmacSignedHeaders:   ['host', 'x-date'],
+      hmacCanonicalTemplate: null,
+      secret:              'test-hmac-secret-key',
+    },
+    mtls: {
+      authType,
+      mtlsCert: TEST_PEM_CERT,
+      mtlsKey:  TEST_PEM_KEY,
+      mtlsCa:   null,
+    },
+  };
+
+  return { ...base, ...typeFields[authType], ...overrides };
+}
+
+// Matriz de URL patterns para testes de matchUrlPattern
+export const URL_PATTERN_MATRIX = [
+  // [pattern, url, expected, description]
+  ['*',                              'https://any.url/path',                       true,  'wildcard global casa qualquer URL'],
+  ['https://api.corp.com/*',         'https://api.corp.com/v2/users',              true,  'glob path simples casa'],
+  ['https://api.corp.com/*',         'https://api.corp.com/v2/users/123',          false, 'glob nao cruza barra'],
+  ['https://api.corp.com/v2/*',      'https://api.corp.com/v2/users/123',          false, 'glob nao cruza barra (deep)'],
+  ['*.prod.example.com/*',           'https://api.prod.example.com/v1',            true,  'glob no host casa'],
+  ['*.prod.example.com/*',           'https://api.staging.example.com/v1',         false, 'host diferente nao casa'],
+  ['https://api.corp.com/v2/users',  'https://api.corp.com/v2/users',              true,  'match exato casa'],
+  ['https://api.corp.com/v2/users',  'https://api.corp.com/v2/users/',             false, 'trailing slash nao casa'],
+  ['https://api.corp.com/v2/{id}',   'https://api.corp.com/v2/{id}',               true,  'path params literais casam literalmente'],
+  ['https://api.corp.com/*',         'https://other.com/v2',                       false, 'host diferente nao casa com glob path'],
+] as const;
+```
+
+### Regra de Ouro dos Testes do Phase 10
+
+Cada test file deve ser executavel de forma isolada em menos de 30 segundos. Testes de storage e rota que precisam de DB devem usar uma instancia Postgres de test isolada (variavel de ambiente `DATABASE_URL` apontando para schema de test). Testes de schema e helpers puros nao precisam de nenhuma infra — apenas Node.js + vitest.
+
+---
+
 ## Fontes
 
 ### Primário (confiança HIGH — código verificado no codebase)
