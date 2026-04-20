@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 14-findings-runtime-threat-integration/14-03-PLAN.md
-last_updated: "2026-04-20T18:22:50.731Z"
+stopped_at: Completed 14-findings-runtime-threat-integration/14-04-PLAN.md
+last_updated: "2026-04-20T18:31:22.971Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 34
-  completed_plans: 33
+  completed_plans: 34
   percent: 100
 ---
 
@@ -80,6 +80,7 @@ Progress: [██████████] 100%
 | Phase 14-findings-runtime-threat-integration P01 | 4 | 3 tasks | 2 files |
 | Phase 14-findings-runtime-threat-integration P02 | 8m | 3 tasks | 5 files |
 | Phase 14-findings-runtime-threat-integration P03 | 4m | 3 tasks | 4 files |
+| Phase 14-findings-runtime-threat-integration P04 | 329 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -180,6 +181,8 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 14-findings-runtime-threat-integration]: WebSocket route in jobs.ts is REST-only — import anchor + TODO comment placed; upgrade handler deferred to Wave 3 (14-04) / Phase 15
 - [Phase 14-findings-runtime-threat-integration]: forEach instead of for..of on Set<WebSocket> — avoids TS2802 downlevelIteration error given no explicit target in tsconfig
 - [Phase 14-findings-runtime-threat-integration]: pino createLogger used in broadcaster (not console.warn) — consistent with project CONVENTIONS.md logging pattern
+- [Phase 14-findings-runtime-threat-integration]: runPostScannerPipeline helper for Steps 2+3; sanitize inline per-handler (grep ≥ 2 call sites); listApiFindings({jobId}) for IDs post-scan
+- [Phase 14-findings-runtime-threat-integration]: endpointPath in findings_batch uses apiEndpointId (UUID) as proxy — Phase 15 resolves human-readable path
 
 ### Pending Todos
 
@@ -191,6 +194,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T18:22:50.727Z
-Stopped at: Completed 14-findings-runtime-threat-integration/14-03-PLAN.md
+Last session: 2026-04-20T18:31:22.967Z
+Stopped at: Completed 14-findings-runtime-threat-integration/14-04-PLAN.md
 Resume file: None
