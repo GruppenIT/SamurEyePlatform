@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Phase 11 context gathered
-last_updated: "2026-04-19T19:26:10.079Z"
+stopped_at: Completed 11-discovery-enrichment-01-PLAN.md
+last_updated: "2026-04-20T00:41:38.208Z"
 last_activity: 2026-04-19 — Plan 10-05 delivered server/routes/apiCredentials.ts (165 lines, registerApiCredentialsRoutes(app)) + barrel registration (+2 lines) + 30 route tests GREEN; 143 apiCredentials tests passing total; full suite 487 passed (+30 vs baseline)
 progress:
   total_phases: 9
   completed_phases: 3
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 22
+  completed_plans: 16
   percent: 100
 ---
 
@@ -63,6 +63,7 @@ Progress: [██████████] 100%
 | Phase 10-api-credentials P02 | 7m | 2 tasks | 2 files |
 | Phase 10-api-credentials P04 | 28m | 3 tasks | 7 files |
 | Phase 10-api-credentials P05 | 8m | 2 tasks | 3 files |
+| Phase 11-discovery-enrichment P01 | 10m | 3 tasks | 23 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 10-api-credentials]: [Phase 10-05]: In-process HTTP route tests via express().listen(0) + native fetch — avoided supertest dependency
 - [Phase 10-api-credentials]: [Phase 10-05]: Route test mocks require storage + localAuth + db + subscriptionService + logger (5 mocks) — unblocks any route module transitively importing middleware.ts
 - [Phase 10-api-credentials]: [Phase 10-05]: Rule 3 fix — plan code example imported isAuthenticatedWithPasswordCheck from ./middleware, actual export is in ../localAuth (matches server/routes/apis.ts Phase 9 pattern)
+- [Phase 11-discovery-enrichment]: 8 fixtures created (not 7): plan frontmatter explicitly listed 8 files; plan prose '7' was typo
+- [Phase 11-discovery-enrichment]: discoverApiOptsSchema uses .strict() on both root and stages sub-object + superRefine cross-field validation with pt-BR error message for arjunEndpointIds
+- [Phase 11-discovery-enrichment]: httpx_* columns added as additive nullable columns on apiEndpoints; ensureApiEndpointHttpxColumns() boot-time guard; no drizzle migration file
 
 ### Pending Todos
 
@@ -127,6 +131,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-19T19:26:10.074Z
-Stopped at: Phase 11 context gathered
-Resume file: .planning/phases/11-discovery-enrichment/11-CONTEXT.md
+Last session: 2026-04-20T00:41:38.203Z
+Stopped at: Completed 11-discovery-enrichment-01-PLAN.md
+Resume file: None

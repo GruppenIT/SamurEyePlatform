@@ -24,18 +24,18 @@ Requirements for the API Discovery & Security Assessment milestone. Each maps to
 
 ### Discovery (DISC)
 
-- [ ] **DISC-01**: System probes spec-first paths (`/openapi.json`, `/swagger.json`, `/v2/api-docs`, `/v3/api-docs`, `/api-docs`, `/swagger-ui.html`, `/docs/openapi`) and parses the result
-- [ ] **DISC-02**: System parses OpenAPI 2.0 / 3.0 / 3.1 specs natively (via `@apidevtools/swagger-parser`), extracting every endpoint with full schema
-- [ ] **DISC-03**: System performs GraphQL introspection against common endpoints (`/graphql`, `/api/graphql`, `/query`) and captures schema when introspection is enabled
-- [ ] **DISC-04**: System crawls web applications via Katana with XHR/JS/form extraction to surface endpoints invoked by SPAs
-- [ ] **DISC-05**: System optionally brute-forces routes via Kiterunner (opt-in) using the `routes-large.kite` wordlist
-- [ ] **DISC-06**: System computes and stores a `specHash` to detect spec drift across executions
+- [x] **DISC-01**: System probes spec-first paths (`/openapi.json`, `/swagger.json`, `/v2/api-docs`, `/v3/api-docs`, `/api-docs`, `/swagger-ui.html`, `/docs/openapi`) and parses the result
+- [x] **DISC-02**: System parses OpenAPI 2.0 / 3.0 / 3.1 specs natively (via `@apidevtools/swagger-parser`), extracting every endpoint with full schema
+- [x] **DISC-03**: System performs GraphQL introspection against common endpoints (`/graphql`, `/api/graphql`, `/query`) and captures schema when introspection is enabled
+- [x] **DISC-04**: System crawls web applications via Katana with XHR/JS/form extraction to surface endpoints invoked by SPAs
+- [x] **DISC-05**: System optionally brute-forces routes via Kiterunner (opt-in) using the `routes-large.kite` wordlist
+- [x] **DISC-06**: System computes and stores a `specHash` to detect spec drift across executions
 
 ### Enrichment (ENRH)
 
-- [ ] **ENRH-01**: System probes every discovered endpoint via httpx to capture status, tech-detect, content-type, and TLS info
-- [ ] **ENRH-02**: System marks `requiresAuth=true` when an endpoint returns 401/403 without credentials
-- [ ] **ENRH-03**: System optionally discovers hidden parameters via Arjun on selected GET endpoints
+- [x] **ENRH-01**: System probes every discovered endpoint via httpx to capture status, tech-detect, content-type, and TLS info
+- [x] **ENRH-02**: System marks `requiresAuth=true` when an endpoint returns 401/403 without credentials
+- [x] **ENRH-03**: System optionally discovers hidden parameters via Arjun on selected GET endpoints
 
 ### Security Testing (TEST)
 
@@ -140,15 +140,15 @@ Which phases cover which requirements. Populated during roadmap creation 2026-04
 | CRED-03 | Phase 10: API Credentials | Complete |
 | CRED-04 | Phase 10: API Credentials | Complete |
 | CRED-05 | Phase 10: API Credentials | Complete |
-| DISC-01 | Phase 11: Discovery & Enrichment | Pending |
-| DISC-02 | Phase 11: Discovery & Enrichment | Pending |
-| DISC-03 | Phase 11: Discovery & Enrichment | Pending |
-| DISC-04 | Phase 11: Discovery & Enrichment | Pending |
-| DISC-05 | Phase 11: Discovery & Enrichment | Pending |
-| DISC-06 | Phase 11: Discovery & Enrichment | Pending |
-| ENRH-01 | Phase 11: Discovery & Enrichment | Pending |
-| ENRH-02 | Phase 11: Discovery & Enrichment | Pending |
-| ENRH-03 | Phase 11: Discovery & Enrichment | Pending |
+| DISC-01 | Phase 11: Discovery & Enrichment | Complete |
+| DISC-02 | Phase 11: Discovery & Enrichment | Complete |
+| DISC-03 | Phase 11: Discovery & Enrichment | Complete |
+| DISC-04 | Phase 11: Discovery & Enrichment | Complete |
+| DISC-05 | Phase 11: Discovery & Enrichment | Complete |
+| DISC-06 | Phase 11: Discovery & Enrichment | Complete |
+| ENRH-01 | Phase 11: Discovery & Enrichment | Complete |
+| ENRH-02 | Phase 11: Discovery & Enrichment | Complete |
+| ENRH-03 | Phase 11: Discovery & Enrichment | Complete |
 | TEST-01 | Phase 12: Security Testing — Passive | Pending |
 | TEST-02 | Phase 12: Security Testing — Passive | Pending |
 | TEST-03 | Phase 13: Security Testing — Active | Pending |
