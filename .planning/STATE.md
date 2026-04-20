@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 16-01-PLAN.md
-last_updated: "2026-04-20T21:34:34.763Z"
+stopped_at: Completed 16-02-PLAN.md
+last_updated: "2026-04-20T21:36:58.428Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 43
-  completed_plans: 39
+  completed_plans: 40
   percent: 100
 ---
 
@@ -85,6 +85,7 @@ Progress: [██████████] 100%
 | Phase 15-journey-orchestration-safety P03 | 4m | 2 tasks | 4 files |
 | Phase 15-journey-orchestration-safety P02 | 3m | 2 tasks | 4 files |
 | Phase 16-ui-final-integration P01 | 5m | 2 tasks | 20 files |
+| Phase 16-ui-final-integration P02 | 6 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -194,6 +195,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 15-journey-orchestration-safety]: ensureJourneyApiSecurityColumns() follows try/catch swallow pattern — matches ensureApiEndpointHttpxColumns
 - [Phase 16-ui-final-integration]: environmentMatchGlobs keeps jsdom for tests/ui/** and node for server+routes — avoids TextEncoder invariant errors caused by jsdom overriding esbuild globals
 - [Phase 16-ui-final-integration]: shared/ui/ helpers (curlBuilder, estimateRequests, methodColors, owaspBadge) are pure TS with no DOM dependency — usable in both server and client contexts
+- [Phase 16-ui-final-integration]: patchApiFinding returns {previous, current} so route layer calls logAudit after tx — matches existing POST /api/v1/apis pattern
+- [Phase 16-ui-final-integration]: GET /api/v1/apis uses requireAnyRole (not requireOperator) — list is read-only, safe for readonly_analyst
+- [Phase 16-ui-final-integration]: listApisWithEndpointCount uses LEFT JOIN so APIs with 0 endpoints still appear with endpointCount=0
 
 ### Pending Todos
 
@@ -205,6 +209,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T21:34:34.759Z
-Stopped at: Completed 16-01-PLAN.md
+Last session: 2026-04-20T21:36:58.425Z
+Stopped at: Completed 16-02-PLAN.md
 Resume file: None
