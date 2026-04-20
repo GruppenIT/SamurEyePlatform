@@ -56,20 +56,20 @@ Requirements for the API Discovery & Security Assessment milestone. Each maps to
 
 ### Journey Orchestration (JRNY)
 
-- [ ] **JRNY-01**: `journey_type` enum gains `api_security` and jobs of that type route to the API journey executor
-- [ ] **JRNY-02**: User must explicitly acknowledge authorization to test ("I have permission to test this API") before a journey starts; acknowledgment is persisted
-- [ ] **JRNY-03**: User configures discovery toggles (spec-first, crawler, kiterunner) and testing toggles (misconfigs, auth, BOLA, BFLA, BOPLA, rate-limit, SSRF) via the wizard
+- [x] **JRNY-01**: `journey_type` enum gains `api_security` and jobs of that type route to the API journey executor
+- [x] **JRNY-02**: User must explicitly acknowledge authorization to test ("I have permission to test this API") before a journey starts; acknowledgment is persisted
+- [x] **JRNY-03**: User configures discovery toggles (spec-first, crawler, kiterunner) and testing toggles (misconfigs, auth, BOLA, BFLA, BOPLA, rate-limit, SSRF) via the wizard
 - [ ] **JRNY-04**: User can schedule recurring `api_security` journeys via the existing scheduler (no new scheduler code)
-- [ ] **JRNY-05**: `POST /api/v1/jobs/{id}/abort` stops all child processes for a running API journey via AbortController
+- [x] **JRNY-05**: `POST /api/v1/jobs/{id}/abort` stops all child processes for a running API journey via AbortController
 
 ### Safety & Guard-rails (SAFE)
 
-- [ ] **SAFE-01**: Per-endpoint rate cap defaults to 10 req/s, is user-configurable up to an absolute ceiling of 50 req/s the user cannot override
-- [ ] **SAFE-02**: Engine respects `Retry-After` headers and applies exponential backoff on 429/503
-- [ ] **SAFE-03**: Destructive methods (DELETE / PUT / PATCH against unknown schemas) are disabled by default; enabling requires a checkbox with a red warning + double-confirmation
-- [ ] **SAFE-04**: Each journey execution creates an entry in `audit_log` with user, targets, credential IDs (never secrets), timestamp, and outcome
-- [ ] **SAFE-05**: Appliance exposes an internal `/healthz/api-test-target` endpoint used by `dryRun` runs to validate the engine without touching real targets
-- [ ] **SAFE-06**: Logs are structured JSON and never include request bodies, credentials, or tokens
+- [x] **SAFE-01**: Per-endpoint rate cap defaults to 10 req/s, is user-configurable up to an absolute ceiling of 50 req/s the user cannot override
+- [x] **SAFE-02**: Engine respects `Retry-After` headers and applies exponential backoff on 429/503
+- [x] **SAFE-03**: Destructive methods (DELETE / PUT / PATCH against unknown schemas) are disabled by default; enabling requires a checkbox with a red warning + double-confirmation
+- [x] **SAFE-04**: Each journey execution creates an entry in `audit_log` with user, targets, credential IDs (never secrets), timestamp, and outcome
+- [x] **SAFE-05**: Appliance exposes an internal `/healthz/api-test-target` endpoint used by `dryRun` runs to validate the engine without touching real targets
+- [x] **SAFE-06**: Logs are structured JSON and never include request bodies, credentials, or tokens
 
 ### UI (UI)
 
@@ -159,17 +159,17 @@ Which phases cover which requirements. Populated during roadmap creation 2026-04
 | FIND-02 | Phase 14: Findings Runtime & Threat Integration | Complete |
 | FIND-03 | Phase 14: Findings Runtime & Threat Integration | Complete |
 | FIND-04 | Phase 14: Findings Runtime & Threat Integration | Complete |
-| JRNY-01 | Phase 15: Journey Orchestration & Safety | Pending |
-| JRNY-02 | Phase 15: Journey Orchestration & Safety | Pending |
-| JRNY-03 | Phase 15: Journey Orchestration & Safety | Pending |
+| JRNY-01 | Phase 15: Journey Orchestration & Safety | Complete |
+| JRNY-02 | Phase 15: Journey Orchestration & Safety | Complete |
+| JRNY-03 | Phase 15: Journey Orchestration & Safety | Complete |
 | JRNY-04 | Phase 15: Journey Orchestration & Safety | Pending |
-| JRNY-05 | Phase 15: Journey Orchestration & Safety | Pending |
-| SAFE-01 | Phase 15: Journey Orchestration & Safety | Pending |
-| SAFE-02 | Phase 15: Journey Orchestration & Safety | Pending |
-| SAFE-03 | Phase 15: Journey Orchestration & Safety | Pending |
-| SAFE-04 | Phase 15: Journey Orchestration & Safety | Pending |
-| SAFE-05 | Phase 15: Journey Orchestration & Safety | Pending |
-| SAFE-06 | Phase 15: Journey Orchestration & Safety | Pending |
+| JRNY-05 | Phase 15: Journey Orchestration & Safety | Complete |
+| SAFE-01 | Phase 15: Journey Orchestration & Safety | Complete |
+| SAFE-02 | Phase 15: Journey Orchestration & Safety | Complete |
+| SAFE-03 | Phase 15: Journey Orchestration & Safety | Complete |
+| SAFE-04 | Phase 15: Journey Orchestration & Safety | Complete |
+| SAFE-05 | Phase 15: Journey Orchestration & Safety | Complete |
+| SAFE-06 | Phase 15: Journey Orchestration & Safety | Complete |
 | UI-01 | Phase 16: UI & Final Integration | Pending |
 | UI-02 | Phase 16: UI & Final Integration | Pending |
 | UI-03 | Phase 16: UI & Final Integration | Pending |
