@@ -12,7 +12,7 @@ import type { Express } from 'express';
 import { z } from 'zod';
 import { storage } from '../storage';
 import { isAuthenticatedWithPasswordCheck } from '../localAuth';
-import { requireAnyRole } from './middleware';
+import { requireAnyRole, requireOperator } from './middleware';
 import { createLogger } from '../lib/logger';
 
 const log = createLogger('routes:apiFindings');
@@ -50,6 +50,12 @@ const listFindingsQuerySchema = z
   .refine((q) => !!(q.apiId || q.endpointId || q.jobId), {
     message: 'Forneça ao menos um filtro: apiId, endpointId ou jobId',
   });
+
+const patchFindingBodySchema = z
+  .object({
+    falsePositive: z.boolean(),
+  })
+  .strict();
 
 export function registerApiFindingsRoutes(app: Express) {
   /**
@@ -98,6 +104,46 @@ export function registerApiFindingsRoutes(app: Express) {
       } catch (err) {
         log.error({ err }, 'failed to list api findings');
         return res.status(500).json({ message: 'Falha ao listar findings de API' });
+      }
+    },
+  );
+
+  // --- Phase 16 UI-05 — Mark finding as false_positive ---
+  app.patch(
+    '/api/v1/api-findings/:id',
+    isAuthenticatedWithPasswordCheck,
+    requireOperator,
+    async (req: any, res) => {
+      let body: z.infer<typeof patchFindingBodySchema>;
+      try {
+        body = patchFindingBodySchema.parse(req.body ?? {});
+      } catch (err: any) {
+        log.info({ err }, 'patch api-finding rejected by Zod');
+        return res.status(400).json({
+          message: 'Dados de atualização inválidos',
+          details: err?.errors ?? undefined,
+        });
+      }
+      const findingId = req.params.id;
+      const userId = req.user.id;
+      try {
+        const { previous, current } = await storage.patchApiFinding(findingId, body);
+        await storage.logAudit({
+          actorId: userId,
+          action: 'update',
+          objectType: 'api_finding',
+          objectId: findingId,
+          before: { status: previous.status, falsePositive: previous.status === 'false_positive' },
+          after: { status: current.status, falsePositive: body.falsePositive },
+        });
+        log.info({ findingId, userId, falsePositive: body.falsePositive }, 'api finding patched');
+        return res.json(current);
+      } catch (err: any) {
+        if (err?.message?.includes('not found')) {
+          return res.status(404).json({ message: 'Finding não encontrado' });
+        }
+        log.error({ err, findingId }, 'failed to patch api finding');
+        return res.status(500).json({ message: 'Falha ao atualizar finding' });
       }
     },
   );

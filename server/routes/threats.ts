@@ -13,19 +13,20 @@ const log = createLogger('routes:threats');
 export function registerThreatRoutes(app: Express) {
   app.get('/api/threats', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
-      const { severity, status, assetId, hostId } = req.query;
+      const { severity, status, assetId, hostId, source } = req.query;
       const filters: any = {};
 
       if (severity) filters.severity = severity as string;
       if (status) filters.status = status as string;
       if (assetId) filters.assetId = assetId as string;
       if (hostId) filters.hostId = hostId as string;
+      if (source) filters.source = source as string;
 
       const threats = await storage.getThreatsWithHosts(filters);
       res.json(threats);
     } catch (error) {
       log.error({ err: error }, 'failed to fetch threats');
-      res.status(500).json({ message: "Falha ao buscar ameaças" });
+      res.status(500).json({ message: "Falha a buscar ameaças" });
     }
   });
 

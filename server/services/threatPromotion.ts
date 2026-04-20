@@ -160,9 +160,11 @@ export async function promoteHighCriticalFindings(
             category: apiId,   // store apiId in category for hierarchy grouping
             correlationKey,
             status: 'open',
+            // Phase 16 UI-03 depends on owaspCategory being in evidence so the threats table
+            // can render OWASP badges client-side without parsing title strings.
             evidence: {
               apiEndpointId: finding.apiEndpointId,
-              owaspCategory: finding.owaspCategory,
+              owaspCategory: finding.owaspCategory,  // consumed by client OwaspBadge component
               findingIds: [finding.id],
             },
           })

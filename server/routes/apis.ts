@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticatedWithPasswordCheck } from "../localAuth";
-import { requireOperator } from "./middleware";
+import { requireOperator, requireAnyRole } from "./middleware";
 import { insertApiSchema, discoverApiOptsSchema, apiPassiveTestOptsSchema, apiActiveTestOptsSchema } from "@shared/schema";
 import type { JobEvent } from "@shared/schema";
 import { normalizeTarget } from "../services/journeys/urls";
@@ -124,6 +124,43 @@ async function runPostScannerPipeline(
 }
 
 export function registerApiRoutes(app: Express) {
+  // --- Phase 16 UI-01 — List APIs with endpointCount ---
+  app.get(
+    '/api/v1/apis',
+    isAuthenticatedWithPasswordCheck,
+    requireAnyRole,
+    async (_req, res) => {
+      try {
+        const apis = await storage.listApisWithEndpointCount();
+        return res.json(apis);
+      } catch (err) {
+        log.error({ err }, 'failed to list apis');
+        return res.status(500).json({ message: 'Falha ao listar APIs' });
+      }
+    },
+  );
+
+  // --- Phase 16 UI-02 — List endpoints of a given API ---
+  app.get(
+    '/api/v1/apis/:id/endpoints',
+    isAuthenticatedWithPasswordCheck,
+    requireAnyRole,
+    async (req: any, res) => {
+      const apiId = req.params.id;
+      try {
+        const api = await storage.getApi(apiId);
+        if (!api) {
+          return res.status(404).json({ message: 'API não encontrada' });
+        }
+        const endpoints = await storage.listEndpointsByApi(apiId);
+        return res.json(endpoints);
+      } catch (err) {
+        log.error({ err, apiId }, 'failed to list endpoints');
+        return res.status(500).json({ message: 'Falha ao listar endpoints' });
+      }
+    },
+  );
+
   /**
    * POST /api/v1/apis — HIER-03 manual API registration.
    *
