@@ -52,7 +52,7 @@ Requirements for the API Discovery & Security Assessment milestone. Each maps to
 - [x] **FIND-01**: System persists findings in a dedicated `api_findings` table with OWASP API Top 10 2023 category, severity, evidence, remediation, and risk score
 - [x] **FIND-02**: System sanitizes evidence before persistence — auth headers redacted, response body truncated to 8KB, PII masked (CPF/CNPJ/email/credit-card)
 - [x] **FIND-03**: System promotes high/critical `api_findings` to the existing `threats` table (with dedupe against the same endpoint) so they appear in the executive dashboard
-- [ ] **FIND-04**: System emits findings and progress events over WebSocket in real time during journey execution
+- [x] **FIND-04**: System emits findings and progress events over WebSocket in real time during journey execution
 
 ### Journey Orchestration (JRNY)
 
@@ -158,7 +158,7 @@ Which phases cover which requirements. Populated during roadmap creation 2026-04
 | TEST-07 | Phase 13: Security Testing — Active | Complete |
 | FIND-02 | Phase 14: Findings Runtime & Threat Integration | Complete |
 | FIND-03 | Phase 14: Findings Runtime & Threat Integration | Complete |
-| FIND-04 | Phase 14: Findings Runtime & Threat Integration | Pending |
+| FIND-04 | Phase 14: Findings Runtime & Threat Integration | Complete |
 | JRNY-01 | Phase 15: Journey Orchestration & Safety | Pending |
 | JRNY-02 | Phase 15: Journey Orchestration & Safety | Pending |
 | JRNY-03 | Phase 15: Journey Orchestration & Safety | Pending |
