@@ -197,7 +197,7 @@ Plans:
   3. Each finding has a "Reproduzir" action that produces a `curl` command with credential placeholders only — no real secret is ever rendered
   4. User can mark a finding as `false_positive`; the change is recorded in `audit_log`
   5. The 4-step journey creation wizard (Alvos → Autenticação → Configuração → Confirmação) exposes discovery toggles (spec-first, crawler, kiterunner), testing toggles (misconfigs, auth, BOLA, BFLA, BOPLA, rate-limit, SSRF), inline credential creation, an estimated-requests preview, and the mandatory authorization-acknowledgment checkbox
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 Plans:
 - [ ] 16-01-PLAN.md — Wave 0: vitest jsdom setup + @testing-library install + 4 shared/ui helpers (curlBuilder, estimateRequests, methodColors, owaspBadge) + 11 Nyquist test stubs (UI-01..06)
 - [ ] 16-02-PLAN.md — Wave 1: 4 backend endpoints (GET /api/v1/apis, GET /api/v1/apis/:id/endpoints, PATCH /api/v1/api-findings/:id, source filter on /api/threats) + listApisWithEndpointCount + patchApiFinding storage (UI-01, UI-02, UI-03, UI-05)
@@ -227,4 +227,4 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 13. Security Testing — Active | 4/4 | Complete    | 2026-04-20 | - |
 | 14. Findings Runtime & Threat Integration | 4/4 | Complete    | 2026-04-20 | - |
 | 15. Journey Orchestration & Safety | 3/4 | Complete    | 2026-04-20 | - |
-| 16. UI & Final Integration | 2/5 | In Progress|  | - |
+| 16. UI & Final Integration | 3/5 | In Progress|  | - |

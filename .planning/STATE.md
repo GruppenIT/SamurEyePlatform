@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 16-02-PLAN.md
-last_updated: "2026-04-20T21:36:58.428Z"
+stopped_at: Completed 16-03-PLAN.md
+last_updated: "2026-04-20T21:48:05.694Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 43
-  completed_plans: 40
+  completed_plans: 41
   percent: 100
 ---
 
@@ -86,6 +86,7 @@ Progress: [██████████] 100%
 | Phase 15-journey-orchestration-safety P02 | 3m | 2 tasks | 4 files |
 | Phase 16-ui-final-integration P01 | 5m | 2 tasks | 20 files |
 | Phase 16-ui-final-integration P02 | 6 | 2 tasks | 14 files |
+| Phase 16-ui-final-integration P03 | 9 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -198,6 +199,8 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 16-ui-final-integration]: patchApiFinding returns {previous, current} so route layer calls logAudit after tx — matches existing POST /api/v1/apis pattern
 - [Phase 16-ui-final-integration]: GET /api/v1/apis uses requireAnyRole (not requireOperator) — list is read-only, safe for readonly_analyst
 - [Phase 16-ui-final-integration]: listApisWithEndpointCount uses LEFT JOIN so APIs with 0 endpoints still appear with endpointCount=0
+- [Phase 16-ui-final-integration]: ApiWithCount extends Api with optional discoveryMethod?/lastExecutionAt? — real server type only has endpointCount; optional fields prevent TS errors while supporting future extension
+- [Phase 16-ui-final-integration]: fireEvent.click(groupRoot.querySelector('button')) for Radix CollapsibleTrigger in jsdom — userEvent blocked by pointer-events:none overlay when Sheet is open
 
 ### Pending Todos
 
@@ -209,6 +212,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T21:36:58.425Z
-Stopped at: Completed 16-02-PLAN.md
+Last session: 2026-04-20T21:48:05.690Z
+Stopped at: Completed 16-03-PLAN.md
 Resume file: None
