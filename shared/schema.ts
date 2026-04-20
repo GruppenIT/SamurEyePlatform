@@ -1832,3 +1832,41 @@ export const NormalizedFindingSchema = z.discriminatedUnion('type', [
 ]);
 
 export type NormalizedFinding = z.infer<typeof NormalizedFindingSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 11 DISC/ENRH — discoverApiOptsSchema
+// opts for discoverApi(apiId, opts, jobId?) + POST /api/v1/apis/:id/discover.
+// Zod schema; .strict() rejects unknown top-level fields. Defaults applied here
+// so the orchestrator never observes undefined stages.
+// ─────────────────────────────────────────────────────────────────────────────
+export const discoverApiOptsSchema = z.object({
+  stages: z.object({
+    spec: z.boolean().default(true),
+    crawler: z.boolean().default(true),
+    kiterunner: z.boolean().default(false),  // opt-in per DISC-05
+    httpx: z.boolean().default(true),
+    arjun: z.boolean().default(false),        // opt-in per ENRH-03
+  }).strict().default({}),
+  arjunEndpointIds: z.array(z.string().uuid()).min(1).optional(),
+  credentialIdOverride: z.string().uuid().optional(),
+  dryRun: z.boolean().default(false),
+  katana: z.object({
+    headless: z.boolean().optional(),
+    depth: z.number().int().min(1).max(10).optional(),
+  }).strict().optional(),
+  kiterunner: z.object({
+    rateLimit: z.number().int().min(1).max(50).optional(),
+  }).strict().optional(),
+}).strict().superRefine((data, ctx) => {
+  // Arjun stage requires arjunEndpointIds — enforced here because the field is
+  // optional at the schema level (undefined is valid when stages.arjun=false).
+  if (data.stages?.arjun === true && (!data.arjunEndpointIds || data.arjunEndpointIds.length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'arjunEndpointIds é obrigatório quando stages.arjun=true',
+      path: ['arjunEndpointIds'],
+    });
+  }
+});
+
+export type DiscoverApiOpts = z.infer<typeof discoverApiOptsSchema>;
