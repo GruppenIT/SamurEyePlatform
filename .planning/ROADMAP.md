@@ -197,12 +197,13 @@ Plans:
   3. Each finding has a "Reproduzir" action that produces a `curl` command with credential placeholders only — no real secret is ever rendered
   4. User can mark a finding as `false_positive`; the change is recorded in `audit_log`
   5. The 4-step journey creation wizard (Alvos → Autenticação → Configuração → Confirmação) exposes discovery toggles (spec-first, crawler, kiterunner), testing toggles (misconfigs, auth, BOLA, BFLA, BOPLA, rate-limit, SSRF), inline credential creation, an estimated-requests preview, and the mandatory authorization-acknowledgment checkbox
-**Plans:** 4 plans
+**Plans:** 5 plans
 Plans:
-- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
-- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
-- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
-- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
+- [ ] 16-01-PLAN.md — Wave 0: vitest jsdom setup + @testing-library install + 4 shared/ui helpers (curlBuilder, estimateRequests, methodColors, owaspBadge) + 11 Nyquist test stubs (UI-01..06)
+- [ ] 16-02-PLAN.md — Wave 1: 4 backend endpoints (GET /api/v1/apis, GET /api/v1/apis/:id/endpoints, PATCH /api/v1/api-findings/:id, source filter on /api/threats) + listApisWithEndpointCount + patchApiFinding storage (UI-01, UI-02, UI-03, UI-05)
+- [ ] 16-03-PLAN.md — Wave 2: /journeys/api page (Table + Sheet drill-down with Collapsible per path + method/param badges) + sidebar entry + App.tsx route (UI-01, UI-02)
+- [ ] 16-04-PLAN.md — Wave 3: threats.tsx extension — source filter Select + conditional OWASP column + Reproduzir Dialog with curl + Falso Positivo AlertDialog + mutation (UI-03, UI-04, UI-05)
+- [ ] 16-05-PLAN.md — Wave 4: 4-step journey creation wizard (Alvos → Autenticação → Configuração → Confirmação) with authorizationAck + destructiveEnabled + estimateRequests preview + POST /api/v1/jobs submission (UI-06)
 
 ## Progress
 
@@ -226,4 +227,4 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 13. Security Testing — Active | 4/4 | Complete    | 2026-04-20 | - |
 | 14. Findings Runtime & Threat Integration | 4/4 | Complete    | 2026-04-20 | - |
 | 15. Journey Orchestration & Safety | 3/4 | Complete    | 2026-04-20 | - |
-| 16. UI & Final Integration | v2.0 | 0/TBD | Not started | - |
+| 16. UI & Final Integration | v2.0 | 0/5 | Planned | - |
