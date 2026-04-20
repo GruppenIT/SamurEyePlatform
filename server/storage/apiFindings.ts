@@ -174,3 +174,45 @@ export async function listApiFindings(
 
   return rows;
 }
+
+// ============================================================================
+// FIND-03: Promotion support — Phase 14
+// ============================================================================
+
+/**
+ * listFindingsForPromotion — batch fetch findings by ID for the promotion
+ * service. Returns records with ALL fields needed to decide promotion eligibility
+ * (severity, status, promotedThreatId) and to construct the threat record
+ * (apiEndpointId, owaspCategory, endpointPath, title).
+ *
+ * Throws on DB error (service layer handles fail-open; storage is transparent).
+ */
+export async function listFindingsForPromotion(findingIds: string[]): Promise<ApiFinding[]> {
+  if (findingIds.length === 0) {
+    return [];
+  }
+  const rows = await db
+    .select()
+    .from(apiFindings)
+    .where(inArray(apiFindings.id, findingIds));
+  return rows;
+}
+
+/**
+ * updateFindingPromotedThreatId — update only the promotedThreatId column on
+ * api_findings. Accepts an optional drizzle Transaction so the caller can
+ * atomically compose: BEGIN → insert threats → update api_findings → COMMIT.
+ *
+ * Pass threatId=null to clear the link (e.g., in retry/compensation flows).
+ */
+export async function updateFindingPromotedThreatId(
+  findingId: string,
+  threatId: string | null,
+  tx?: typeof db,
+): Promise<void> {
+  const runner = tx ?? db;
+  await runner
+    .update(apiFindings)
+    .set({ promotedThreatId: threatId, updatedAt: new Date() })
+    .where(eq(apiFindings.id, findingId));
+}

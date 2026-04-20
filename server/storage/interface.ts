@@ -297,6 +297,9 @@ export interface IStorage {
     data: InsertApiFinding,
   ): Promise<{ finding: ApiFinding; action: 'inserted' | 'updated' }>;
   listApiFindings(filter: import('./apiFindings').ListApiFindingsFilter): Promise<ApiFinding[]>;
+  // Phase 14 FIND-03: Promotion support (tx parameter is internal detail — interface exposes public contract only)
+  listFindingsForPromotion(findingIds: string[]): Promise<ApiFinding[]>;
+  updateFindingPromotedThreatId(findingId: string, threatId: string | null): Promise<void>;
 
   // Phase 11 Discovery & Enrichment extensions
   upsertApiEndpoints(apiId: string, rows: InsertApiEndpoint[]): Promise<{ inserted: number; updated: number }>;

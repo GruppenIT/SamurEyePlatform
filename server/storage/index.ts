@@ -214,6 +214,9 @@ export class DatabaseStorage implements IStorage {
   createApiFinding = apiFindingOps.createApiFinding;
   upsertApiFindingByKey = apiFindingOps.upsertApiFindingByKey;
   listApiFindings = apiFindingOps.listApiFindings;
+  // Phase 14 FIND-03: Promotion support
+  listFindingsForPromotion = apiFindingOps.listFindingsForPromotion;
+  updateFindingPromotedThreatId = apiFindingOps.updateFindingPromotedThreatId;
 
   // Phase 10 — API Credentials (CRED-01..04)
   listApiCredentials = apiCredentialOps.listApiCredentials;
