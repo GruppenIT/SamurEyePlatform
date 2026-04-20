@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 16-04-PLAN.md
-last_updated: "2026-04-20T22:07:15.378Z"
+stopped_at: Completed 16-05-PLAN.md
+last_updated: "2026-04-20T22:18:15.133Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 43
-  completed_plans: 42
+  completed_plans: 43
   percent: 100
 ---
 
@@ -88,6 +88,7 @@ Progress: [██████████] 100%
 | Phase 16-ui-final-integration P02 | 6 | 2 tasks | 14 files |
 | Phase 16-ui-final-integration P03 | 9 | 2 tasks | 7 files |
 | Phase 16-ui-final-integration P04 | 14m | 2 tasks | 4 files |
+| Phase 16-ui-final-integration P05 | 460 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -204,6 +205,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 16-ui-final-integration]: fireEvent.click(groupRoot.querySelector('button')) for Radix CollapsibleTrigger in jsdom — userEvent blocked by pointer-events:none overlay when Sheet is open
 - [Phase 16]: Added React default import to threats.tsx — required for OwaspBadge JSX in vitest jsdom (Vite automatic JSX transform vs jsdom explicit React scope)
 - [Phase 16]: navigator.clipboard mock must be set AFTER dialog opens in jsdom — setting before renderWithProviders causes JSDOM reinit to lose the mock; fireEvent.click bypasses pointer-events:none from Radix Dialog overlay
+- [Phase 16-ui-final-integration]: POST /api/v1/jobs added to jobs.ts — was missing from Phase 15; wizard create requires it (Rule 3 auto-add)
+- [Phase 16-ui-final-integration]: Radix Select __none__ sentinel for no-credential placeholder — empty-string value rejected by Radix UI (Rule 1 bug fix)
+- [Phase 16-ui-final-integration]: queryData pre-population for wizard test — consistent with Phase 16 UI test pattern, avoids fetch mock complexity
 
 ### Pending Todos
 
@@ -215,6 +219,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T22:07:15.375Z
-Stopped at: Completed 16-04-PLAN.md
+Last session: 2026-04-20T22:18:15.130Z
+Stopped at: Completed 16-05-PLAN.md
 Resume file: None
