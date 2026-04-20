@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 13-security-testing-active/13-04-PLAN.md — Phase 13 COMPLETE
-last_updated: "2026-04-20T17:20:24.685Z"
+stopped_at: Completed 14-findings-runtime-threat-integration/14-01-PLAN.md
+last_updated: "2026-04-20T18:11:06.804Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
   completed_phases: 6
-  total_plans: 30
-  completed_plans: 30
+  total_plans: 34
+  completed_plans: 31
   percent: 100
 ---
 
@@ -77,6 +77,7 @@ Progress: [██████████] 100%
 | Phase 13-security-testing-active P02 | 6 | 5 tasks | 6 files |
 | Phase 13-security-testing-active P03 | 4 | 1 tasks | 1 files |
 | Phase 13-security-testing-active P04 | 6 | 4 tasks | 3 files |
+| Phase 14-findings-runtime-threat-integration P01 | 4 | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -168,6 +169,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 13-security-testing-active]: dryRun handling is orchestrator responsibility for all active stages; scanner interfaces don't carry dryRunFixturePath params
 - [Phase 13-security-testing-active]: Used actorId (not userId) in logAudit for POST /test/active — matches Phase 12 passive handler pattern
 - [Phase 13-security-testing-active]: UAT auto-approved in auto-mode: Steps 1-4 static checks pass; Steps 5-8 require live server (not available in CI)
+- [Phase 14-findings-runtime-threat-integration]: Use new RegExp(pattern.source, 'g') per call instead of reusing /g constants — avoids lastIndex statefulness bugs in global regex
+- [Phase 14-findings-runtime-threat-integration]: console.warn in fail-open path (not pino logger) — shared/sanitization.ts is runtime-agnostic, no server logger dependency
+- [Phase 14-findings-runtime-threat-integration]: CPF formatted pattern applied before CPF plain to prevent 11-digit plain match from swallowing already-formatted CPF digits
 
 ### Pending Todos
 
@@ -179,6 +183,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T17:14:58.084Z
-Stopped at: Completed 13-security-testing-active/13-04-PLAN.md — Phase 13 COMPLETE
+Last session: 2026-04-20T18:11:06.800Z
+Stopped at: Completed 14-findings-runtime-threat-integration/14-01-PLAN.md
 Resume file: None

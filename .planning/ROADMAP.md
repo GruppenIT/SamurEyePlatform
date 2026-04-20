@@ -163,7 +163,7 @@ Plans:
   2. High and critical `api_findings` are automatically promoted into the existing `threats` table with dedupe against the same endpoint, and appear on the executive dashboard alongside findings from the other 4 journey types
   3. During journey execution, progress events and new findings are streamed over WebSocket and the UI reflects them without a refresh
   4. An end-to-end execution on the dry-run target produces sanitized findings, promoted threats, and WebSocket events observable from the browser dev console
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 Plans:
 - [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
 - [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
@@ -224,6 +224,6 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 11. Discovery & Enrichment | 7/7 | Complete    | 2026-04-20 | - |
 | 12. Security Testing — Passive | 4/4 | Complete    | 2026-04-20 | - |
 | 13. Security Testing — Active | 4/4 | Complete    | 2026-04-20 | - |
-| 14. Findings Runtime & Threat Integration | v2.0 | 0/TBD | Not started | - |
+| 14. Findings Runtime & Threat Integration | 1/4 | In Progress|  | - |
 | 15. Journey Orchestration & Safety | v2.0 | 0/TBD | Not started | - |
 | 16. UI & Final Integration | v2.0 | 0/TBD | Not started | - |
