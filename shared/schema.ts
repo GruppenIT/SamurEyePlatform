@@ -1930,3 +1930,93 @@ export interface PassiveTestResult {
   dryRun: boolean;
   durationMs: number;
 }
+
+// ============================================================================
+// Phase 13: Security Testing — Active — TEST-03, TEST-04, TEST-05, TEST-06, TEST-07
+// ============================================================================
+
+/**
+ * BOPLA_SENSITIVE_KEYS — lista curada de 10 chaves sensíveis injetadas em
+ * bodies de PUT/PATCH pelo scanner bopla.ts. Ordem é carry-forward de
+ * 13-CONTEXT.md §"BOPLA / Mass Assignment (TEST-05 / API3)".
+ *
+ * Severity mapping (aplicado pelo scanner bopla.ts):
+ *   - is_admin, role, superuser → critical
+ *   - isAdmin, admin, roles, permissions, owner, verified, email_verified → high
+ */
+export const BOPLA_SENSITIVE_KEYS = [
+  'is_admin',
+  'isAdmin',
+  'admin',
+  'role',
+  'roles',
+  'permissions',
+  'superuser',
+  'owner',
+  'verified',
+  'email_verified',
+] as const;
+
+export type BoplaSensitiveKey = typeof BOPLA_SENSITIVE_KEYS[number];
+
+/**
+ * apiActiveTestOptsSchema — input contract for runApiActiveTests() and POST
+ * /api/v1/apis/:id/test/active. Uses `.strict()` on root and every sub-object
+ * to reject unknown fields (mirrors apiPassiveTestOptsSchema Phase 12 decision).
+ *
+ * Defaults (applied at call site by orchestrator):
+ *   stages.bola=true, stages.bfla=true, stages.bopla=true (but gated by
+ *   destructiveEnabled), stages.rateLimit=false (OPT-IN), stages.ssrf=true.
+ *   destructiveEnabled=false (gate for BOPLA entire stage + BFLA method-based).
+ *   bola.maxCredentials=4 (max 6), bola.maxIdsPerEndpoint=3 (max 5).
+ *   rateLimit.burstSize=20 (max 50), rateLimit.windowMs=2000.
+ *   ssrf.interactshUrl=env INTERACTSH_URL || 'oast.me'.
+ */
+export const apiActiveTestOptsSchema = z.object({
+  stages: z.object({
+    bola: z.boolean().optional(),          // default true
+    bfla: z.boolean().optional(),          // default true
+    bopla: z.boolean().optional(),         // default true (gated by destructiveEnabled)
+    rateLimit: z.boolean().optional(),     // default false (opt-in)
+    ssrf: z.boolean().optional(),          // default true
+  }).strict().optional(),
+  destructiveEnabled: z.boolean().optional(),  // default false — gates BOPLA + BFLA method-based
+  credentialIds: z.array(z.string().uuid()).optional(),  // default = listApiCredentials({apiId})
+  endpointIds: z.array(z.string().uuid()).optional(),    // default = all endpoints for API
+  dryRun: z.boolean().optional(),                        // default false
+  rateLimit: z.object({
+    burstSize: z.number().int().min(1).max(50).optional(),  // default 20, max 50 (SAFE-01 ceiling Phase 15 owns global)
+    windowMs: z.number().int().min(100).optional(),         // default 2000
+    endpointIds: z.array(z.string().uuid()).max(5).optional(),  // default = 1 first GET+200 endpoint
+  }).strict().optional(),
+  ssrf: z.object({
+    interactshUrl: z.string().url().optional(),  // default = env INTERACTSH_URL || 'oast.me'
+  }).strict().optional(),
+  bola: z.object({
+    maxCredentials: z.number().int().min(2).max(6).optional(),        // default 4
+    maxIdsPerEndpoint: z.number().int().min(1).max(5).optional(),     // default 3
+  }).strict().optional(),
+}).strict();
+
+export type ApiActiveTestOpts = z.infer<typeof apiActiveTestOptsSchema>;
+
+/**
+ * ActiveTestResult — public contract returned by runApiActiveTests().
+ * Consumed by Phase 15 journey executor. Extend without breaking.
+ *
+ * stagesRun uses snake_case 'rate_limit' (not camelCase rateLimit) for
+ * consistency with Phase 12 PassiveTestResult stage-name convention.
+ */
+export interface ActiveTestResult {
+  apiId: string;
+  stagesRun: Array<'bola' | 'bfla' | 'bopla' | 'rate_limit' | 'ssrf'>;
+  stagesSkipped: Array<{ stage: string; reason: string }>;
+  findingsCreated: number;
+  findingsUpdated: number;       // dedupe upsert path
+  findingsByCategory: Record<string, number>;
+  findingsBySeverity: Record<string, number>;
+  cancelled: boolean;
+  dryRun: boolean;
+  durationMs: number;
+  credentialsUsed: number;       // how many creds participated (useful for telemetry)
+}
