@@ -182,10 +182,10 @@ Plans:
   5. The internal `/healthz/api-test-target` endpoint supports full `dryRun` executions without touching real targets; all logs are structured JSON and never include request bodies, credentials, or tokens
 **Plans:** 4 plans
 Plans:
-- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
-- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
-- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
-- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
+- [ ] 15-01-PLAN.md — Wave 1: 4 Nyquist test stubs (journeyOrchestration + rateLimiter + abortRoute + healthzTarget) cobrindo JRNY-01..05 + SAFE-01..06
+- [ ] 15-02-PLAN.md — Wave 2: shared/schema.ts journeyTypeEnum estendido (api_security) + journeys.authorizationAck column + ensureJourneyApiSecurityColumns guard
+- [ ] 15-03-PLAN.md — Wave 2: server/services/rateLimiter.ts (TokenBucketRateLimiter + MAX_API_RATE_LIMIT=50 + backoff) + GET /healthz/api-test-target route
+- [ ] 15-04-PLAN.md — Wave 3: executeApiSecurity() method in journeyExecutor.ts (JRNY-01..03, SAFE-03/04/06) + POST /api/v1/jobs/:id/abort route (JRNY-05)
 
 ### Phase 16: UI & Final Integration
 **Goal**: Ship the end-user surface — API Discovery page, endpoint drill-down, findings filters with OWASP badges, false-positive marking, journey wizard (4 steps), and per-finding curl reproduction — delivering the "prioritized, contextualized action plan" promise for API findings.
