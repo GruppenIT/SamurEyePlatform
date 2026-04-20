@@ -134,4 +134,75 @@ export function registerJobRoutes(app: Express) {
       res.status(500).json({ message: "Falha ao cancelar job" });
     }
   });
+
+  /**
+   * Phase 15 JRNY-05 — POST /api/v1/jobs/:id/abort
+   *
+   * Aborta uma jornada em execução. Encapsula a mesma lógica de
+   * POST /api/jobs/:id/cancel-process (mantida para backward compat) mas
+   * com path canônico /api/v1/ e semântica de "abort" no audit log.
+   *
+   * Fluxo:
+   *   1. Valida existência do job (404 se não existir)
+   *   2. Valida status='running' (400 caso contrário)
+   *   3. jobQueue.markJobAsCancelled(id) — cooperative cancellation flag
+   *   4. processTracker.killAll(id) — SIGTERM+SIGKILL em todos os child processes
+   *   5. storage.updateJob(id, { status: 'failed', error, finishedAt })
+   *   6. jobQueue.emit('jobUpdate', ...) — WebSocket para UI
+   *   7. storage.logAudit(action='abort', objectType='job')
+   *
+   * Response: 200 { message: 'Jornada abortada', killedProcesses: N }
+   */
+  app.post('/api/v1/jobs/:id/abort', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+
+      const job = await storage.getJob(id);
+      if (!job) {
+        return res.status(404).json({ message: "Job não encontrado" });
+      }
+
+      if (job.status !== 'running') {
+        return res.status(400).json({ message: "Job não está em execução" });
+      }
+
+      // Phase 15 JRNY-05 — cooperative cancel + hard kill sequence
+      jobQueue.markJobAsCancelled(id);
+      const killedCount = processTracker.killAll(id);
+
+      await storage.updateJob(id, {
+        status: 'failed',
+        error: 'Jornada abortada pelo usuário',
+        finishedAt: new Date(),
+      });
+
+      jobQueue.emit('jobUpdate', {
+        jobId: id,
+        status: 'failed',
+        progress: job.progress,
+        currentTask: 'Jornada abortada pelo usuário',
+        error: 'Jornada abortada pelo usuário',
+      });
+
+      await storage.logAudit({
+        actorId: userId,
+        action: 'abort',
+        objectType: 'job',
+        objectId: id,
+        before: null,
+        after: { status: 'failed', error: 'Jornada abortada pelo usuário', killedProcesses: killedCount },
+      });
+
+      log.info({ jobId: id, userId, killedCount }, 'job aborted by user');
+
+      return res.json({
+        message: 'Jornada abortada',
+        killedProcesses: killedCount,
+      });
+    } catch (error) {
+      log.error({ err: error }, 'failed to abort job');
+      return res.status(500).json({ message: 'Falha ao abortar jornada' });
+    }
+  });
 }
