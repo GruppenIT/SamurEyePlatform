@@ -1,10 +1,12 @@
+import { randomUUID } from 'crypto';
 import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticatedWithPasswordCheck } from "../localAuth";
 import { requireOperator } from "./middleware";
-import { insertApiSchema } from "@shared/schema";
+import { insertApiSchema, discoverApiOptsSchema } from "@shared/schema";
 import { normalizeTarget } from "../services/journeys/urls";
 import { createLogger } from '../lib/logger';
+import { discoverApi } from "../services/journeys/apiDiscovery";
 
 const log = createLogger('routes:apis');
 
@@ -81,6 +83,70 @@ export function registerApiRoutes(app: Express) {
       }
       log.error({ err: error }, 'failed to create api');
       return res.status(400).json({ message: "Falha ao cadastrar API" });
+    }
+  });
+
+  /**
+   * POST /api/v1/apis/:id/discover — DISC-01..06, ENRH-01..03.
+   *
+   * Body: DiscoverApiOpts (validated by discoverApiOptsSchema).
+   * RBAC: operator + global_administrator (via requireOperator).
+   * Returns 202 Accepted with { jobId, result: DiscoveryResult } on success.
+   * Phase 15 will wire jobQueue; Phase 11 generates a synthetic jobId.
+   */
+  app.post('/api/v1/apis/:id/discover', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
+    const apiId = req.params.id;
+
+    let opts: ReturnType<typeof discoverApiOptsSchema.parse>;
+    try {
+      opts = discoverApiOptsSchema.parse(req.body ?? {});
+    } catch (err: any) {
+      log.info({ err, apiId }, 'discovery opts rejected by Zod');
+      return res.status(400).json({
+        message: "Dados inválidos para discovery",
+        details: err?.errors ?? undefined,
+      });
+    }
+
+    try {
+      const api = await storage.getApi(apiId);
+      if (!api) {
+        return res.status(404).json({ message: "API não encontrada" });
+      }
+
+      const jobId = randomUUID();
+      const userId = req.user.id;
+
+      log.info({
+        apiId,
+        userId,
+        jobId,
+        stages: opts.stages,
+        dryRun: opts.dryRun,
+        hasArjun: opts.stages.arjun,
+        hasKiterunner: opts.stages.kiterunner,
+      }, 'discovery requested');
+
+      const result = await discoverApi(apiId, opts, jobId);
+
+      await storage.logAudit({
+        actorId: userId,
+        action: 'discover',
+        objectType: 'api',
+        objectId: apiId,
+        before: null,
+        after: {
+          stagesRun: result.stagesRun,
+          endpointsDiscovered: result.endpointsDiscovered,
+          endpointsUpdated: result.endpointsUpdated,
+          durationMs: result.durationMs,
+        },
+      });
+
+      return res.status(202).json({ jobId, result });
+    } catch (error: any) {
+      log.error({ err: error, apiId }, 'failed to execute discovery');
+      return res.status(500).json({ message: "Falha ao executar discovery" });
     }
   });
 }
