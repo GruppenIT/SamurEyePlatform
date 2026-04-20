@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Checkpoint 12-04 Task 5 UAT — awaiting human verification
-last_updated: "2026-04-20T12:28:19.149Z"
+stopped_at: Phase 12 Plan 04 complete — UAT approved, Phase 12 CLOSED
+last_updated: "2026-04-20T12:41:24.945Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
@@ -152,6 +152,7 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 12-security-testing-passive]: requireAnyRole added to middleware.ts (readonly_analyst access for GET /api-findings)
 - [Phase 12-security-testing-passive]: POST /test/passive audit log uses actorId (not userId) — matches Phase 11 pattern
 - [Phase 12-security-testing-passive]: CLI uses pathToFileURL guard (not bare template string) — cross-platform correctness
+- [Phase 12-security-testing-passive]: UAT humana aprovada em 2026-04-20 — fluxo completo dryRun confirmado, Phase 12 CLOSED
 
 ### Pending Todos
 
@@ -163,6 +164,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T12:28:19.146Z
-Stopped at: Checkpoint 12-04 Task 5 UAT — awaiting human verification
+Last session: 2026-04-20T12:41:00.825Z
+Stopped at: Phase 12 Plan 04 complete — UAT approved, Phase 12 CLOSED
 Resume file: None

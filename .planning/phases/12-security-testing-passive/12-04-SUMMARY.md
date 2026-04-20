@@ -60,7 +60,7 @@ requirements:
 | 2 | GET /api/v1/api-findings route + barrel | 259e186 | server/routes/apiFindings.ts, index.ts |
 | 3 | CLI runApiPassiveTests.ts | f093604 | server/scripts/runApiPassiveTests.ts |
 | 4 | Runbook run-api-passive-tests.md | 3628a36 | docs/operations/run-api-passive-tests.md |
-| 5 | UAT checkpoint | PENDING | — |
+| 5 | UAT checkpoint | APPROVED | — |
 
 ## Key Decisions
 
@@ -118,5 +118,10 @@ Checking commits exist:
 - [x] 259e186 — feat(12-04): POST /test/passive + GET /api-findings routes
 - [x] f093604 — feat(12-04): CLI server/scripts/runApiPassiveTests.ts
 - [x] 3628a36 — docs(12-04): runbook run-api-passive-tests.md pt-BR
+
+## UAT Result
+
+**Status:** APPROVED by user on 2026-04-20.
+Phase 12 cycle closed. All 5 tasks complete.
 
 ## Self-Check: PASSED
