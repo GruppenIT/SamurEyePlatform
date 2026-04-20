@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 14-findings-runtime-threat-integration/14-01-PLAN.md
-last_updated: "2026-04-20T18:11:06.804Z"
+stopped_at: Completed 14-findings-runtime-threat-integration/14-02-PLAN.md
+last_updated: "2026-04-20T18:16:42.989Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 34
-  completed_plans: 31
+  completed_plans: 32
   percent: 100
 ---
 
@@ -78,6 +78,7 @@ Progress: [██████████] 100%
 | Phase 13-security-testing-active P03 | 4 | 1 tasks | 1 files |
 | Phase 13-security-testing-active P04 | 6 | 4 tasks | 3 files |
 | Phase 14-findings-runtime-threat-integration P01 | 4 | 3 tasks | 2 files |
+| Phase 14-findings-runtime-threat-integration P02 | 8m | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -172,6 +173,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 14-findings-runtime-threat-integration]: Use new RegExp(pattern.source, 'g') per call instead of reusing /g constants — avoids lastIndex statefulness bugs in global regex
 - [Phase 14-findings-runtime-threat-integration]: console.warn in fail-open path (not pino logger) — shared/sanitization.ts is runtime-agnostic, no server logger dependency
 - [Phase 14-findings-runtime-threat-integration]: CPF formatted pattern applied before CPF plain to prevent 11-digit plain match from swallowing already-formatted CPF digits
+- [Phase 14-findings-runtime-threat-integration]: threats.category=apiId para agrupamento (schema real sem parentAssetId — plano descrevia schema hipotético)
+- [Phase 14-findings-runtime-threat-integration]: correlationKey='api_security:{apiId}:{owaspCategory}:{endpointId}' para idempotência de promoção
+- [Phase 14-findings-runtime-threat-integration]: updateFindingPromotedThreatId aceita tx?: typeof db — type cast necessário pois drizzle Tx não é assignable a typeof db
 
 ### Pending Todos
 
@@ -183,6 +187,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T18:11:06.800Z
-Stopped at: Completed 14-findings-runtime-threat-integration/14-01-PLAN.md
+Last session: 2026-04-20T18:16:42.986Z
+Stopped at: Completed 14-findings-runtime-threat-integration/14-02-PLAN.md
 Resume file: None
