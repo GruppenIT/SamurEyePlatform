@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 12-03-PLAN.md
-last_updated: "2026-04-20T12:16:18.896Z"
+stopped_at: Checkpoint 12-04 Task 5 UAT — awaiting human verification
+last_updated: "2026-04-20T12:28:19.149Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 26
-  completed_plans: 25
+  completed_plans: 26
   percent: 100
 ---
 
@@ -72,6 +72,7 @@ Progress: [██████████] 100%
 | Phase 12-security-testing-passive P01 | 7 | 3 tasks | 17 files |
 | Phase 12-security-testing-passive P02 | 13m | 4 tasks | 11 files |
 | Phase 12 P03 | 18 | 2 tasks | 4 files |
+| Phase 12-security-testing-passive P04 | 9 | 4 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -148,6 +149,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 12]: upsertApiFindingByKey uses db.transaction (not ON CONFLICT) — dedupe rule requires status check; ON CONFLICT cannot express closed-row reopen logic
 - [Phase 12]: listApiFindings guard requires at least one of apiId/endpointId/jobId — prevents full-table scans from callers
 - [Phase 12]: encryptionService.decryptCredential(secretEncrypted, dekEncrypted) for credential secret access — ApiCredentialWithSecret has no plain .secret field
+- [Phase 12-security-testing-passive]: requireAnyRole added to middleware.ts (readonly_analyst access for GET /api-findings)
+- [Phase 12-security-testing-passive]: POST /test/passive audit log uses actorId (not userId) — matches Phase 11 pattern
+- [Phase 12-security-testing-passive]: CLI uses pathToFileURL guard (not bare template string) — cross-platform correctness
 
 ### Pending Todos
 
@@ -159,6 +163,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T12:16:18.893Z
-Stopped at: Completed 12-03-PLAN.md
+Last session: 2026-04-20T12:28:19.146Z
+Stopped at: Checkpoint 12-04 Task 5 UAT — awaiting human verification
 Resume file: None

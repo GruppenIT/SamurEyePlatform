@@ -39,7 +39,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md` for full details.
 - [x] **Phase 9: Schema & Asset Hierarchy** — `apis`, `api_endpoints`, `api_findings` tables + backfill (completed 2026-04-19)
 - [x] **Phase 10: API Credentials** — 7 auth-type credential store reusing KEK/DEK, URL patterns, priorities (completed 2026-04-19)
 - [x] **Phase 11: Discovery & Enrichment** — Spec-first + crawler + brute-force + httpx + Arjun (completed 2026-04-20)
-- [ ] **Phase 12: Security Testing — Passive** — Nuclei misconfigs + stateless auth-failure tests
+- [x] **Phase 12: Security Testing — Passive** — Nuclei misconfigs + stateless auth-failure tests (completed 2026-04-20)
 - [ ] **Phase 13: Security Testing — Active** — Stateful BOLA / BFLA / BOPLA / rate-limit / SSRF
 - [ ] **Phase 14: Findings Runtime & Threat Integration** — Sanitization, promotion to threats, WebSocket events
 - [ ] **Phase 15: Journey Orchestration & Safety** — Enum, abort, wizard-backend, rate caps, audit, dry-run
@@ -130,7 +130,7 @@ Plans:
   2. When credentials are supplied, the engine executes auth-failure tests — JWT `alg: none`, `kid` injection, token reuse, API key leakage in responses — and records any hits with OWASP category API2
   3. Findings from both test classes land in `api_findings` with severity, evidence, and remediation populated and are visible via an internal read path
   4. Passive-test output is reproducible via a `dryRun` against the internal test target with deterministic results
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
 - [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
@@ -222,7 +222,7 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 9. Schema & Asset Hierarchy | 4/4 | Complete   | 2026-04-19 | - |
 | 10. API Credentials | 5/5 | Complete    | 2026-04-19 | - |
 | 11. Discovery & Enrichment | 7/7 | Complete    | 2026-04-20 | - |
-| 12. Security Testing — Passive | 3/4 | In Progress|  | - |
+| 12. Security Testing — Passive | 4/4 | Complete   | 2026-04-20 | - |
 | 13. Security Testing — Active | v2.0 | 0/TBD | Not started | - |
 | 14. Findings Runtime & Threat Integration | v2.0 | 0/TBD | Not started | - |
 | 15. Journey Orchestration & Safety | v2.0 | 0/TBD | Not started | - |
