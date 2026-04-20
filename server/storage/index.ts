@@ -202,9 +202,14 @@ export class DatabaseStorage implements IStorage {
   listApisByParent = apiOps.listApisByParent;
   createApi = apiOps.createApi;
   promoteApiFromBackfill = apiOps.promoteApiFromBackfill;
+  updateApiSpecMetadata = apiOps.updateApiSpecMetadata;
   listEndpointsByApi = apiEndpointOps.listEndpointsByApi;
   createApiEndpoint = apiEndpointOps.createApiEndpoint;
   upsertApiEndpoint = apiEndpointOps.upsertApiEndpoint;
+  upsertApiEndpoints = apiEndpointOps.upsertApiEndpoints;
+  mergeHttpxEnrichment = apiEndpointOps.mergeHttpxEnrichment;
+  appendQueryParams = apiEndpointOps.appendQueryParams;
+  markEndpointsStale = apiEndpointOps.markEndpointsStale;
   listFindingsByEndpoint = apiFindingOps.listFindingsByEndpoint;
   createApiFinding = apiFindingOps.createApiFinding;
 

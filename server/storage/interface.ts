@@ -290,6 +290,13 @@ export interface IStorage {
   listFindingsByEndpoint(endpointId: string): Promise<ApiFinding[]>;
   createApiFinding(data: InsertApiFinding): Promise<ApiFinding>;
 
+  // Phase 11 Discovery & Enrichment extensions
+  upsertApiEndpoints(apiId: string, rows: InsertApiEndpoint[]): Promise<{ inserted: number; updated: number }>;
+  mergeHttpxEnrichment(endpointId: string, data: { status: number | null; contentType: string | null; tech: string[] | null; tls: Record<string, unknown> | null }): Promise<void>;
+  appendQueryParams(endpointId: string, params: Array<{ name: string; type?: string; required?: boolean; example?: unknown }>): Promise<void>;
+  markEndpointsStale(apiId: string, endpointIds: string[]): Promise<string[]>;
+  updateApiSpecMetadata(apiId: string, data: { specUrl: string; specVersion: string; specHash: string }): Promise<Api>;
+
   // Phase 10 — API Credentials operations (CRED-01..04)
   listApiCredentials(filter?: { apiId?: string; authType?: ApiAuthType }): Promise<ApiCredentialSafe[]>;
   getApiCredential(id: string): Promise<ApiCredentialSafe | undefined>;

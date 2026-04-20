@@ -3,6 +3,7 @@ import { apis, type Api, type InsertApi } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 import { createLogger } from '../lib/logger';
 
+
 const log = createLogger('storage');
 
 export async function getApi(id: string): Promise<Api | undefined> {
@@ -58,4 +59,27 @@ export async function promoteApiFromBackfill(
     return created;
   }
   return null;
+}
+
+/**
+ * Phase 11 DISC-06 — update spec metadata after a successful spec fetch+parse.
+ * Stamps specLastFetchedAt = now(); used by drift detection to compare hashes
+ * across runs.
+ */
+export async function updateApiSpecMetadata(
+  apiId: string,
+  data: { specUrl: string; specVersion: string; specHash: string },
+): Promise<Api> {
+  const [updated] = await db.update(apis)
+    .set({
+      specUrl: data.specUrl,
+      specVersion: data.specVersion,
+      specHash: data.specHash,
+      specLastFetchedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(apis.id, apiId))
+    .returning();
+  log.info({ apiId, specVersion: data.specVersion, specHash: data.specHash.slice(0, 16) + '...' }, 'api spec metadata updated');
+  return updated;
 }
