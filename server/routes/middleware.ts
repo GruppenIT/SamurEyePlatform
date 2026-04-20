@@ -33,6 +33,17 @@ export function requireOperator(req: any, res: any, next: any) {
   next();
 }
 
+// Any authenticated role — allows operator, global_administrator, and readonly_analyst.
+// Use for read-only endpoints where audit/analyst access is intentional.
+export function requireAnyRole(req: any, res: any, next: any) {
+  const role = req.user?.role;
+  const validRoleValues = ['global_administrator', 'operator', 'readonly_analyst'];
+  if (!role || !validRoleValues.includes(role)) {
+    return res.status(403).json({ message: "Acesso negado." });
+  }
+  next();
+}
+
 // Subscription read-only middleware: blocks write operations when subscription is expired
 // Allows: GET requests, login/logout, subscription management, settings reads
 export function requireActiveSubscription(req: any, res: any, next: any) {

@@ -24,6 +24,7 @@ import { registerAuthPasswordResetRoutes } from "./auth-password-reset";
 import { registerActionPlanRoutes } from "./action-plans";
 import { registerApiRoutes } from "./apis";
 import { registerApiCredentialsRoutes } from "./apiCredentials";
+import { registerApiFindingsRoutes } from "./apiFindings";
 import { createLogger } from '../lib/logger';
 
 const log = createLogger('routes');
@@ -74,6 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerActionPlanRoutes(app);
   registerApiRoutes(app);
   registerApiCredentialsRoutes(app);
+  registerApiFindingsRoutes(app);
 
   // Health check
   app.get('/api/health', (req, res) => {

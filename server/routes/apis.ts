@@ -3,10 +3,11 @@ import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticatedWithPasswordCheck } from "../localAuth";
 import { requireOperator } from "./middleware";
-import { insertApiSchema, discoverApiOptsSchema } from "@shared/schema";
+import { insertApiSchema, discoverApiOptsSchema, apiPassiveTestOptsSchema } from "@shared/schema";
 import { normalizeTarget } from "../services/journeys/urls";
 import { createLogger } from '../lib/logger';
 import { discoverApi } from "../services/journeys/apiDiscovery";
+import { runApiPassiveTests } from "../services/journeys/apiPassiveTests";
 
 const log = createLogger('routes:apis');
 
@@ -149,4 +150,76 @@ export function registerApiRoutes(app: Express) {
       return res.status(500).json({ message: "Falha ao executar discovery" });
     }
   });
+
+  /**
+   * POST /api/v1/apis/:id/test/passive — Phase 12 TEST-01/TEST-02 entrypoint.
+   *
+   * Body: ApiPassiveTestOpts (see shared/schema.ts apiPassiveTestOptsSchema).
+   * RBAC: operator + global_administrator (requireOperator).
+   * Returns 201 with PassiveTestResult. 404 if API not found. 400 on Zod fail.
+   *
+   * Phase 15 will replace synthetic jobId with real jobQueue.enqueue().
+   */
+  app.post(
+    '/api/v1/apis/:id/test/passive',
+    isAuthenticatedWithPasswordCheck,
+    requireOperator,
+    async (req: any, res) => {
+      let opts: ReturnType<typeof apiPassiveTestOptsSchema.parse>;
+      try {
+        opts = apiPassiveTestOptsSchema.parse(req.body ?? {});
+      } catch (err: any) {
+        log.info({ err, apiId: req.params.id }, 'passive test request rejected by Zod');
+        return res.status(400).json({
+          message: 'Opções de teste passivo inválidas',
+          details: err?.errors ?? undefined,
+        });
+      }
+
+      const apiId = req.params.id;
+      const api = await storage.getApi(apiId);
+      if (!api) {
+        return res.status(404).json({ message: 'API não encontrada' });
+      }
+
+      // Synthetic jobId — Phase 15 replaces with real jobQueue.enqueue().
+      const jobId = randomUUID();
+
+      try {
+        await storage.logAudit({
+          actorId: req.user.id,
+          action: 'api_passive_test_started',
+          objectType: 'api',
+          objectId: apiId,
+          before: null,
+          after: { jobId, dryRun: opts.dryRun ?? false, stages: opts.stages ?? {} },
+        });
+      } catch (err) {
+        log.warn({ err, apiId, jobId }, 'failed to write audit log for passive test start — continuing');
+      }
+
+      try {
+        const result = await runApiPassiveTests(apiId, opts, jobId);
+        log.info(
+          {
+            apiId,
+            jobId,
+            userId: req.user.id,
+            stagesRun: result.stagesRun.length,
+            findingsCreated: result.findingsCreated,
+            findingsUpdated: result.findingsUpdated,
+            cancelled: result.cancelled,
+            dryRun: result.dryRun,
+          },
+          'api passive tests executed via route',
+        );
+        return res.status(201).json(result);
+      } catch (err) {
+        log.error({ err, apiId, jobId }, 'api passive tests failed');
+        return res.status(500).json({
+          message: 'Falha ao executar testes passivos',
+        });
+      }
+    },
+  );
 }
