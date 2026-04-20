@@ -81,6 +81,30 @@ export const API_REMEDIATION_TEMPLATES = {
       "campos sensitivos antes de JSON.stringify). Considere rotação imediata da " +
       "chave vazada e auditoria de acessos desde a última data de uso.",
   },
+
+  // ── Phase 13: Security Testing — Active ──────────────────────────────────
+
+  api1_bola_2023:
+    'Implemente verificação de autorização por objeto (object-level ACL) antes de servir recursos. ' +
+    'Nunca confie apenas no ID fornecido pelo cliente — valide que o principal autenticado tem ' +
+    'permissão no objeto específico.',
+
+  api3_bopla_2023:
+    'Use allow-list explícita de campos aceitáveis em PUT/PATCH. Rejeite ou ignore silenciosamente ' +
+    'propriedades sensíveis (role, is_admin, permissions) mesmo se presentes no payload.',
+
+  api4_rate_limit_2023:
+    'Implemente rate limiting com respostas 429 Too Many Requests + header Retry-After. ' +
+    'Use limites diferenciados por tier de usuário e endpoint.',
+
+  api5_bfla_2023:
+    'Aplique autorização por função (role-based access control) em todos endpoints administrativos. ' +
+    'Valide privilégios no backend mesmo quando a UI não expõe a ação — nunca confie no cliente.',
+
+  api7_ssrf_2023:
+    'Valide URLs fornecidas pelo usuário contra allow-list explícita de destinos. Bloqueie ranges ' +
+    'privados (RFC 1918), localhost, link-local, e cloud metadata endpoints (169.254.169.254). ' +
+    'Use client HTTP dedicado sem seguir redirects para metadata.',
 } as const;
 
 export type ApiRemediationTemplate = typeof API_REMEDIATION_TEMPLATES;
