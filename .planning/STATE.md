@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Phase 16 context gathered
-last_updated: "2026-04-20T21:04:12.638Z"
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-04-20T21:34:34.763Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
   completed_phases: 8
-  total_plans: 38
-  completed_plans: 38
+  total_plans: 43
+  completed_plans: 39
   percent: 100
 ---
 
@@ -84,6 +84,7 @@ Progress: [██████████] 100%
 | Phase 15-journey-orchestration-safety P01 | 2 | 2 tasks | 4 files |
 | Phase 15-journey-orchestration-safety P03 | 4m | 2 tasks | 4 files |
 | Phase 15-journey-orchestration-safety P02 | 3m | 2 tasks | 4 files |
+| Phase 16-ui-final-integration P01 | 5m | 2 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -191,6 +192,8 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 15-journey-orchestration-safety]: /healthz/api-test-target usa prefixo /healthz/ (não /api/) para escapar requireActiveSubscription linha 37
 - [Phase 15-journey-orchestration-safety]: JourneyFormData client type updated to include api_security (Rule 1 — TypeScript enforced correctness)
 - [Phase 15-journey-orchestration-safety]: ensureJourneyApiSecurityColumns() follows try/catch swallow pattern — matches ensureApiEndpointHttpxColumns
+- [Phase 16-ui-final-integration]: environmentMatchGlobs keeps jsdom for tests/ui/** and node for server+routes — avoids TextEncoder invariant errors caused by jsdom overriding esbuild globals
+- [Phase 16-ui-final-integration]: shared/ui/ helpers (curlBuilder, estimateRequests, methodColors, owaspBadge) are pure TS with no DOM dependency — usable in both server and client contexts
 
 ### Pending Todos
 
@@ -202,6 +205,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T21:04:12.634Z
-Stopped at: Phase 16 context gathered
-Resume file: .planning/phases/16-ui-final-integration/16-CONTEXT.md
+Last session: 2026-04-20T21:34:34.759Z
+Stopped at: Completed 16-01-PLAN.md
+Resume file: None

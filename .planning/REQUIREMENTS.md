@@ -73,12 +73,12 @@ Requirements for the API Discovery & Security Assessment milestone. Each maps to
 
 ### UI (UI)
 
-- [ ] **UI-01**: New page `/journeys/api` lists discovered APIs with baseUrl, type, discovery method, endpoint count, last-execution metadata
-- [ ] **UI-02**: Drill-down view shows endpoints grouped by path with method badges, auth-required indicator, and known parameters
-- [ ] **UI-03**: Findings page supports filtering by `source=api_security` and displays OWASP API Top 10 category badges
-- [ ] **UI-04**: Each finding has a "Reproduzir" button that outputs a `curl` command with credential placeholders (never actual secret values)
-- [ ] **UI-05**: User can mark a finding as `false_positive`, which is recorded in the audit log
-- [ ] **UI-06**: Journey creation wizard (4 steps: Alvos → Autenticação → Configuração → Confirmação) includes the authorization acknowledgment checkbox and an estimated-requests preview
+- [x] **UI-01**: New page `/journeys/api` lists discovered APIs with baseUrl, type, discovery method, endpoint count, last-execution metadata
+- [x] **UI-02**: Drill-down view shows endpoints grouped by path with method badges, auth-required indicator, and known parameters
+- [x] **UI-03**: Findings page supports filtering by `source=api_security` and displays OWASP API Top 10 category badges
+- [x] **UI-04**: Each finding has a "Reproduzir" button that outputs a `curl` command with credential placeholders (never actual secret values)
+- [x] **UI-05**: User can mark a finding as `false_positive`, which is recorded in the audit log
+- [x] **UI-06**: Journey creation wizard (4 steps: Alvos → Autenticação → Configuração → Confirmação) includes the authorization acknowledgment checkbox and an estimated-requests preview
 
 ### Infrastructure (INFRA)
 
@@ -170,12 +170,12 @@ Which phases cover which requirements. Populated during roadmap creation 2026-04
 | SAFE-04 | Phase 15: Journey Orchestration & Safety | Complete |
 | SAFE-05 | Phase 15: Journey Orchestration & Safety | Complete |
 | SAFE-06 | Phase 15: Journey Orchestration & Safety | Complete |
-| UI-01 | Phase 16: UI & Final Integration | Pending |
-| UI-02 | Phase 16: UI & Final Integration | Pending |
-| UI-03 | Phase 16: UI & Final Integration | Pending |
-| UI-04 | Phase 16: UI & Final Integration | Pending |
-| UI-05 | Phase 16: UI & Final Integration | Pending |
-| UI-06 | Phase 16: UI & Final Integration | Pending |
+| UI-01 | Phase 16: UI & Final Integration | Complete |
+| UI-02 | Phase 16: UI & Final Integration | Complete |
+| UI-03 | Phase 16: UI & Final Integration | Complete |
+| UI-04 | Phase 16: UI & Final Integration | Complete |
+| UI-05 | Phase 16: UI & Final Integration | Complete |
+| UI-06 | Phase 16: UI & Final Integration | Complete |
 
 **Coverage:**
 - v2.0 requirements: 41 total
