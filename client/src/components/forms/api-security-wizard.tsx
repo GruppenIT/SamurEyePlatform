@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -314,12 +314,15 @@ export default function ApiSecurityWizard({ open, onOpenChange }: ApiSecurityWiz
                   control={form.control}
                   name="credentialId"
                   render={({ field }) => (
-                    <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value ?? "__none__"}
+                      onValueChange={(v) => field.onChange(v === "__none__" ? undefined : v)}
+                    >
                       <SelectTrigger data-testid="select-credential">
                         <SelectValue placeholder="Selecione uma credencial" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Sem credencial (testes não autenticados)</SelectItem>
+                        <SelectItem value="__none__">Sem credencial (testes não autenticados)</SelectItem>
                         {credentials.map((c: any) => (
                           <SelectItem key={c.id} value={c.id}>
                             {c.name} ({c.authType})
