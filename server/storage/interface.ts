@@ -289,6 +289,14 @@ export interface IStorage {
   upsertApiEndpoint(data: InsertApiEndpoint): Promise<ApiEndpoint>;
   listFindingsByEndpoint(endpointId: string): Promise<ApiFinding[]>;
   createApiFinding(data: InsertApiFinding): Promise<ApiFinding>;
+  // Phase 12 TEST-01/TEST-02:
+  upsertApiFindingByKey(
+    endpointId: string,
+    owaspCategory: InsertApiFinding['owaspCategory'],
+    title: string,
+    data: InsertApiFinding,
+  ): Promise<{ finding: ApiFinding; action: 'inserted' | 'updated' }>;
+  listApiFindings(filter: import('./apiFindings').ListApiFindingsFilter): Promise<ApiFinding[]>;
 
   // Phase 11 Discovery & Enrichment extensions
   upsertApiEndpoints(apiId: string, rows: InsertApiEndpoint[]): Promise<{ inserted: number; updated: number }>;

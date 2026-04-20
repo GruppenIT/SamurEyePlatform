@@ -212,6 +212,8 @@ export class DatabaseStorage implements IStorage {
   markEndpointsStale = apiEndpointOps.markEndpointsStale;
   listFindingsByEndpoint = apiFindingOps.listFindingsByEndpoint;
   createApiFinding = apiFindingOps.createApiFinding;
+  upsertApiFindingByKey = apiFindingOps.upsertApiFindingByKey;
+  listApiFindings = apiFindingOps.listApiFindings;
 
   // Phase 10 — API Credentials (CRED-01..04)
   listApiCredentials = apiCredentialOps.listApiCredentials;
