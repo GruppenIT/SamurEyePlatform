@@ -1,0 +1,5 @@
+{"method":"GET","path":"/api/admin","status_code":401,"content_length":42,"target":"https://target.example.com"}
+{"method":"GET","path":"/api/users","status_code":200,"content_length":512,"target":"https://target.example.com"}
+{"method":"POST","path":"/api/auth/token","status_code":200,"content_length":128,"target":"https://target.example.com"}
+{"method":"GET","path":"/api/internal/metrics","status_code":403,"content_length":18,"target":"https://target.example.com"}
+{"method":"GET","path":"/api/v2/products","status_code":200,"content_length":1024,"target":"https://target.example.com"}
