@@ -1285,6 +1285,23 @@ export const apiEndpoints = pgTable("api_endpoints", {
   discoverySources: text("discovery_sources").array()
     .$type<Array<'spec' | 'crawler' | 'kiterunner' | 'manual'>>()
     .notNull().default(sql`ARRAY[]::text[]`),
+  // Phase 11 ENRH-01 — httpx enrichment columns (additive, all nullable).
+  // Populated by httpx.ts scanner on every discovery run; NULL means unprobed.
+  httpxStatus: integer("httpx_status"),
+  httpxContentType: text("httpx_content_type"),
+  httpxTech: text("httpx_tech").array().$type<string[]>(),
+  httpxTls: jsonb("httpx_tls").$type<{
+    host?: string;
+    port?: number;
+    tls_version?: string;
+    cipher?: string;
+    not_after?: string;
+    not_before?: string;
+    subject_cn?: string;
+    subject_san?: string[];
+    issuer_cn?: string;
+  }>(),
+  httpxLastProbedAt: timestamp("httpx_last_probed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [

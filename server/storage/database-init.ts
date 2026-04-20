@@ -141,6 +141,9 @@ export async function initializeDatabaseStructure(): Promise<void> {
     // Phase 10: API Credentials table (CRED-01..04)
     await ensureApiCredentialTables();
 
+    // Phase 11: httpx enrichment columns on api_endpoints (ENRH-01)
+    await ensureApiEndpointHttpxColumns();  // Phase 11 ENRH-01
+
   } catch (error) {
     log.error({ err: error }, 'database initialization error');
     // Don't throw - let the system continue with fallback mode
@@ -435,6 +438,25 @@ export async function ensureApiCredentialTables(): Promise<void> {
   } catch (error) {
     // Follow existing pattern: log but do not throw (app continues in fallback mode).
     log.error({ err: error }, 'ensureApiCredentialTables error');
+  }
+}
+
+// Phase 11 ENRH-01 — runtime idempotent guard for httpx enrichment columns on api_endpoints.
+// Replicates ensureApiTables pattern: ADD COLUMN IF NOT EXISTS against existing table.
+// Failures are logged but swallowed so app boot continues (matches ensureApiTables catch).
+export async function ensureApiEndpointHttpxColumns(): Promise<void> {
+  try {
+    await db.execute(sql`
+      ALTER TABLE api_endpoints
+        ADD COLUMN IF NOT EXISTS httpx_status INTEGER,
+        ADD COLUMN IF NOT EXISTS httpx_content_type TEXT,
+        ADD COLUMN IF NOT EXISTS httpx_tech TEXT[],
+        ADD COLUMN IF NOT EXISTS httpx_tls JSONB,
+        ADD COLUMN IF NOT EXISTS httpx_last_probed_at TIMESTAMP
+    `);
+    log.info('ensureApiEndpointHttpxColumns complete');
+  } catch (error) {
+    log.error({ err: error }, 'ensureApiEndpointHttpxColumns error');
   }
 }
 
