@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 13-security-testing-active/13-02-PLAN.md — Wave 1 scanners
-last_updated: "2026-04-20T16:59:51.021Z"
+stopped_at: Completed 13-security-testing-active/13-03-PLAN.md — Wave 2 orchestrator
+last_updated: "2026-04-20T17:06:58.438Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
   completed_phases: 5
   total_plans: 30
-  completed_plans: 28
+  completed_plans: 29
   percent: 100
 ---
 
@@ -75,6 +75,7 @@ Progress: [██████████] 100%
 | Phase 12-security-testing-passive P04 | 9 | 4 tasks | 7 files |
 | Phase 13-security-testing-active P01 | 5m | 3 tasks | 18 files |
 | Phase 13-security-testing-active P02 | 6 | 5 tasks | 6 files |
+| Phase 13-security-testing-active P03 | 4 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -161,6 +162,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 13-security-testing-active]: ssrfNuclei.ts reads interaction=true from raw JSON pre-schema-strip; uses camelCase matchedAt from Zod output (Phase 12 NucleiFindingSchema decision)
 - [Phase 13-security-testing-active]: bola.ts isListLikePath uses /\{\w+\}/.test() non-stateful check to avoid global regex lastIndex bugs
 - [Phase 13-security-testing-active]: bopla.ts re-exports BOPLA_SENSITIVE_KEYS so orchestrator imports from single scanner module
+- [Phase 13-security-testing-active]: pairCredentials generic type {id} requires orchestrator to re-resolve full CredWithSecret from credsWithSecrets array after pairing
+- [Phase 13-security-testing-active]: identifyLowPrivCreds returns BflaCredentialSignal (no secret); orchestrator resolves full cred via .find() before buildAuthHeaders
+- [Phase 13-security-testing-active]: dryRun handling is orchestrator responsibility for all active stages; scanner interfaces don't carry dryRunFixturePath params
 
 ### Pending Todos
 
@@ -172,6 +176,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T16:59:51.018Z
-Stopped at: Completed 13-security-testing-active/13-02-PLAN.md — Wave 1 scanners
+Last session: 2026-04-20T17:06:58.435Z
+Stopped at: Completed 13-security-testing-active/13-03-PLAN.md — Wave 2 orchestrator
 Resume file: None
