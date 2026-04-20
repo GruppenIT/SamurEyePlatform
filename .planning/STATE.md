@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 15-01-PLAN.md
-last_updated: "2026-04-20T19:00:31.797Z"
+stopped_at: Completed 15-03-PLAN.md
+last_updated: "2026-04-20T19:04:49.850Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 38
-  completed_plans: 35
+  completed_plans: 36
   percent: 100
 ---
 
@@ -82,6 +82,7 @@ Progress: [██████████] 100%
 | Phase 14-findings-runtime-threat-integration P03 | 4m | 3 tasks | 4 files |
 | Phase 14-findings-runtime-threat-integration P04 | 329 | 2 tasks | 2 files |
 | Phase 15-journey-orchestration-safety P01 | 2 | 2 tasks | 4 files |
+| Phase 15-journey-orchestration-safety P03 | 4m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -185,6 +186,8 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 14-findings-runtime-threat-integration]: runPostScannerPipeline helper for Steps 2+3; sanitize inline per-handler (grep ≥ 2 call sites); listApiFindings({jobId}) for IDs post-scan
 - [Phase 14-findings-runtime-threat-integration]: endpointPath in findings_batch uses apiEndpointId (UUID) as proxy — Phase 15 resolves human-readable path
 - [Phase 15-journey-orchestration-safety]: [Phase 15-01]: Nyquist Wave 0 stubs created before implementation — Plans 02-04 promote it.todo to real it() with assertions
+- [Phase 15-journey-orchestration-safety]: MAX_API_RATE_LIMIT=50 exportado como constante nomeada — Plan 04 importa via named import sem hardcode
+- [Phase 15-journey-orchestration-safety]: /healthz/api-test-target usa prefixo /healthz/ (não /api/) para escapar requireActiveSubscription linha 37
 
 ### Pending Todos
 
@@ -196,6 +199,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T19:00:31.793Z
-Stopped at: Completed 15-01-PLAN.md
+Last session: 2026-04-20T19:04:49.847Z
+Stopped at: Completed 15-03-PLAN.md
 Resume file: None
