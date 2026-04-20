@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 12-security-testing-passive-01-PLAN.md
-last_updated: "2026-04-20T11:57:41.951Z"
+stopped_at: Completed 12-02-PLAN.md
+last_updated: "2026-04-20T12:03:00.946Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 26
-  completed_plans: 23
+  completed_plans: 24
   percent: 100
 ---
 
@@ -70,6 +70,7 @@ Progress: [██████████] 100%
 | Phase 11-discovery-enrichment P05 | 5 | 2 tasks | 4 files |
 | Phase 11-discovery-enrichment P06 | 6 | 2 tasks | 3 files |
 | Phase 12-security-testing-passive P01 | 7 | 3 tasks | 17 files |
+| Phase 12-security-testing-passive P02 | 13m | 4 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 12-security-testing-passive]: apiPassiveTestOptsSchema uses .strict() on root and stages sub-object — mirrors discoverApiOptsSchema Phase 11 pattern
 - [Phase 12-security-testing-passive]: PassiveTestResult as TypeScript interface (not z.infer) — allows extension by Waves 2-3 without changing Zod schema boundary
 - [Phase 12-security-testing-passive]: Nyquist Wave 0: it.todo stubs created before implementation so Wave 1-3 can use them as automated verify targets
+- [Phase 12-security-testing-passive]: NucleiFinding schema uses camelCase fields (matchedAt/templateId/matcherName) not kebab-case as plan docs showed
+- [Phase 12-security-testing-passive]: decodeJwtExp returns Date | null (not number | undefined) — checkTokenReuse uses .getTime() comparison
+- [Phase 12-security-testing-passive]: mask-at-source pattern: API keys/tokens stored as 3-char prefix + *** at point of capture in all authFailure vectors
 
 ### Pending Todos
 
@@ -151,6 +155,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T11:57:41.947Z
-Stopped at: Completed 12-security-testing-passive-01-PLAN.md
+Last session: 2026-04-20T12:02:52.617Z
+Stopped at: Completed 12-02-PLAN.md
 Resume file: None
