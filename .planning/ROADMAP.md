@@ -222,7 +222,7 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 9. Schema & Asset Hierarchy | 4/4 | Complete   | 2026-04-19 | - |
 | 10. API Credentials | 5/5 | Complete    | 2026-04-19 | - |
 | 11. Discovery & Enrichment | 7/7 | Complete    | 2026-04-20 | - |
-| 12. Security Testing — Passive | 4/4 | Complete   | 2026-04-20 | - |
+| 12. Security Testing — Passive | 4/4 | Complete    | 2026-04-20 | - |
 | 13. Security Testing — Active | v2.0 | 0/TBD | Not started | - |
 | 14. Findings Runtime & Threat Integration | v2.0 | 0/TBD | Not started | - |
 | 15. Journey Orchestration & Safety | v2.0 | 0/TBD | Not started | - |
