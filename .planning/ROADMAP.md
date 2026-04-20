@@ -130,7 +130,7 @@ Plans:
   2. When credentials are supplied, the engine executes auth-failure tests — JWT `alg: none`, `kid` injection, token reuse, API key leakage in responses — and records any hits with OWASP category API2
   3. Findings from both test classes land in `api_findings` with severity, evidence, and remediation populated and are visible via an internal read path
   4. Passive-test output is reproducible via a `dryRun` against the internal test target with deterministic results
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 Plans:
 - [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
 - [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
@@ -222,7 +222,7 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 9. Schema & Asset Hierarchy | 4/4 | Complete   | 2026-04-19 | - |
 | 10. API Credentials | 5/5 | Complete    | 2026-04-19 | - |
 | 11. Discovery & Enrichment | 7/7 | Complete    | 2026-04-20 | - |
-| 12. Security Testing — Passive | 2/4 | In Progress|  | - |
+| 12. Security Testing — Passive | 3/4 | In Progress|  | - |
 | 13. Security Testing — Active | v2.0 | 0/TBD | Not started | - |
 | 14. Findings Runtime & Threat Integration | v2.0 | 0/TBD | Not started | - |
 | 15. Journey Orchestration & Safety | v2.0 | 0/TBD | Not started | - |
