@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 11-discovery-enrichment-06-PLAN.md
-last_updated: "2026-04-20T01:15:03.722Z"
-last_activity: 2026-04-19 — Plan 10-05 delivered server/routes/apiCredentials.ts (165 lines, registerApiCredentialsRoutes(app)) + barrel registration (+2 lines) + 30 route tests GREEN; 143 apiCredentials tests passing total; full suite 487 passed (+30 vs baseline)
+stopped_at: Completed 11-discovery-enrichment-07-PLAN.md
+last_updated: "2026-04-20T01:22:32.629Z"
+last_activity: 2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI runApiDiscovery.ts + operator runbook + 8 route tests GREEN; human UAT 6 smoke tests passed; Phase 11 COMPLETE (DISC-01..06 + ENRH-01..03 all satisfied)
 progress:
   total_phases: 9
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 22
-  completed_plans: 21
+  completed_plans: 22
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-18)
 
 ## Current Position
 
-Phase: 10 of 16 (API Credentials) — v2.0 Phase 10 COMPLETE
-Plan: 01 + 02 + 03 + 04 + 05 of 05 completed — Phase 10 CLOSED; next: Phase 11 (runtime executor)
-Status: Plan 10-05 complete (Wave 3 CRUD route — 5 endpoints on /api/v1/api-credentials; 30 new route tests GREEN; Phase 10 CRED-01..05 all satisfied)
-Last activity: 2026-04-19 — Plan 10-05 delivered server/routes/apiCredentials.ts (165 lines, registerApiCredentialsRoutes(app)) + barrel registration (+2 lines) + 30 route tests GREEN; 143 apiCredentials tests passing total; full suite 487 passed (+30 vs baseline)
+Phase: 11 of 16 (Discovery & Enrichment) — v2.0 Phase 11 COMPLETE
+Plan: 01 + 02 + 03 + 04 + 05 + 06 + 07 of 07 completed — Phase 11 CLOSED; next: Phase 12 (Security Testing — Passive)
+Status: Plan 11-07 complete (Wave 4 public surfaces — POST /api/v1/apis/:id/discover route + CLI runApiDiscovery.ts + operator runbook + 8 route tests GREEN; human UAT 6 smoke tests passed; DISC-01..06 + ENRH-01..03 all satisfied)
+Last activity: 2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete
 
 Progress: [██████████] 100%
 
@@ -133,6 +133,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 11-discovery-enrichment]: opts.authHeader in httpx.ts auto-prefixes Authorization: when bare token passed; arjun tempfile uses mkdtemp for concurrency safety; ArjunOutputSchema exported from arjun.ts; parsed[url] ?? Object.values(parsed)[0] fallback for URL normalization edge cases
 - [Phase 11-discovery-enrichment]: httpx stage always 'ran' even with 0 endpoints — stagesRun includes 'httpx' to signal stage was active (not skipped by configuration)
 - [Phase 11-discovery-enrichment]: finalize() as inner closure captures all mutable state by reference — single exit path for all cancel/normal paths in discoverApi orchestrator
+- [Phase 11-discovery-enrichment]: POST /api/v1/apis/:id/discover appended to registerApiRoutes(app) in apis.ts (not new route file) — consistent with Phase 9 barrel pattern
+- [Phase 11-discovery-enrichment]: Synthetic jobId via crypto.randomUUID() for Phase 11; Phase 15 replaces with real queue.enqueue() — explicitly documented in route JSDoc
+- [Phase 11-discovery-enrichment]: Human UAT smoke tests passed on real target — all 6 smoke tests confirmed green, no secrets in logs
 
 ### Pending Todos
 
@@ -144,6 +147,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T01:15:03.717Z
-Stopped at: Completed 11-discovery-enrichment-06-PLAN.md
+Last session: 2026-04-20T01:22:26.115Z
+Stopped at: Completed 11-discovery-enrichment-07-PLAN.md
 Resume file: None
