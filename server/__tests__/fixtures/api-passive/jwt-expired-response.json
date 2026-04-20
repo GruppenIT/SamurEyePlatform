@@ -1,0 +1,10 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "x-request-id": "test-token-reuse-001"
+  },
+  "body": "{\"authenticated\":true,\"user\":\"alice\"}",
+  "describedBy": "Server accepted expired JWT — token reuse not rejected",
+  "tokenExpiredAt": "2024-01-01T00:00:00Z"
+}
