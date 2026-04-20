@@ -42,7 +42,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md` for full details.
 - [x] **Phase 12: Security Testing — Passive** — Nuclei misconfigs + stateless auth-failure tests (completed 2026-04-20)
 - [x] **Phase 13: Security Testing — Active** — Stateful BOLA / BFLA / BOPLA / rate-limit / SSRF (completed 2026-04-20)
 - [x] **Phase 14: Findings Runtime & Threat Integration** — Sanitization, promotion to threats, WebSocket events (completed 2026-04-20)
-- [ ] **Phase 15: Journey Orchestration & Safety** — Enum, abort, wizard-backend, rate caps, audit, dry-run
+- [x] **Phase 15: Journey Orchestration & Safety** — Enum, abort, wizard-backend, rate caps, audit, dry-run (completed 2026-04-20)
 - [ ] **Phase 16: UI & Final Integration** — API page, drill-down, findings filters, wizard, curl reproduction
 
 ## Phase Details
@@ -180,7 +180,7 @@ Plans:
   3. The engine enforces a default 10 req/s per-endpoint cap, honors user overrides up to an absolute 50 req/s ceiling that cannot be bypassed, and respects `Retry-After` / exponential backoff on 429/503
   4. DELETE/PUT/PATCH against unknown schemas are disabled unless the user checks a red-warning box with double-confirmation; `POST /api/v1/jobs/{id}/abort` stops all child processes via AbortController
   5. The internal `/healthz/api-test-target` endpoint supports full `dryRun` executions without touching real targets; all logs are structured JSON and never include request bodies, credentials, or tokens
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [ ] 15-01-PLAN.md — Wave 1: 4 Nyquist test stubs (journeyOrchestration + rateLimiter + abortRoute + healthzTarget) cobrindo JRNY-01..05 + SAFE-01..06
 - [ ] 15-02-PLAN.md — Wave 2: shared/schema.ts journeyTypeEnum estendido (api_security) + journeys.authorizationAck column + ensureJourneyApiSecurityColumns guard
@@ -225,5 +225,5 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 12. Security Testing — Passive | 4/4 | Complete    | 2026-04-20 | - |
 | 13. Security Testing — Active | 4/4 | Complete    | 2026-04-20 | - |
 | 14. Findings Runtime & Threat Integration | 4/4 | Complete    | 2026-04-20 | - |
-| 15. Journey Orchestration & Safety | 3/4 | In Progress|  | - |
+| 15. Journey Orchestration & Safety | 3/4 | Complete    | 2026-04-20 | - |
 | 16. UI & Final Integration | v2.0 | 0/TBD | Not started | - |
