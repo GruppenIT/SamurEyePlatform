@@ -4,8 +4,8 @@ milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
 stopped_at: Completed 11-discovery-enrichment-07-PLAN.md
-last_updated: "2026-04-20T01:22:32.629Z"
-last_activity: 2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI runApiDiscovery.ts + operator runbook + 8 route tests GREEN; human UAT 6 smoke tests passed; Phase 11 COMPLETE (DISC-01..06 + ENRH-01..03 all satisfied)
+last_updated: "2026-04-20T01:24:09.647Z"
+last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
   completed_phases: 4
