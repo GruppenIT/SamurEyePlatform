@@ -147,7 +147,7 @@ Plans:
   3. On PUT/PATCH endpoints with unknown schemas, the engine injects sensitive property names and inspects response reflection to record API3 (BOPLA/Mass Assignment) findings
   4. User can opt into rate-limit-absence testing; the engine bursts N requests and records API4 findings when neither 429 nor `Retry-After` is observed
   5. The engine runs Nuclei + interactsh SSRF tests only on params whose values accept URLs and records API7 findings when an out-of-band interaction fires
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 Plans:
 - [ ] 13-01-PLAN.md — Wave 0: Nyquist stubs + fixtures api-active/ + apiActiveTestOptsSchema + ActiveTestResult
 - [ ] 13-02-PLAN.md — Wave 1: 5 scanners (bola/bfla/bopla/rateLimit/ssrfNuclei) + remediation templates extension
@@ -223,7 +223,7 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 10. API Credentials | 5/5 | Complete    | 2026-04-19 | - |
 | 11. Discovery & Enrichment | 7/7 | Complete    | 2026-04-20 | - |
 | 12. Security Testing — Passive | 4/4 | Complete    | 2026-04-20 | - |
-| 13. Security Testing — Active | v2.0 | 0/TBD | Not started | - |
+| 13. Security Testing — Active | 1/4 | In Progress|  | - |
 | 14. Findings Runtime & Threat Integration | v2.0 | 0/TBD | Not started | - |
 | 15. Journey Orchestration & Safety | v2.0 | 0/TBD | Not started | - |
 | 16. UI & Final Integration | v2.0 | 0/TBD | Not started | - |

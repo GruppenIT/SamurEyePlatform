@@ -41,11 +41,11 @@ Requirements for the API Discovery & Security Assessment milestone. Each maps to
 
 - [x] **TEST-01**: System runs Nuclei misconfiguration/exposure/graphql/cors templates without credentials (API8 Misconfiguration + API9 Inventory coverage)
 - [x] **TEST-02**: System executes auth-failure tests (JWT `alg: none`, `kid` injection, token reuse, API key leakage in responses) when credentials are provided (API2)
-- [ ] **TEST-03**: System performs BOLA tests (cross-identity object access) when two or more distinct credentials are supplied (API1)
-- [ ] **TEST-04**: System performs BFLA tests (admin-level endpoint/method access with a low-privilege credential) (API5)
-- [ ] **TEST-05**: System performs BOPLA / Mass Assignment tests (injects sensitive property names into PUT/PATCH bodies and inspects reflection) (API3)
-- [ ] **TEST-06**: System performs Rate-Limit-absence tests (burst N requests, checks 429 / Retry-After presence) — opt-in (API4)
-- [ ] **TEST-07**: System performs SSRF tests via Nuclei + interactsh on endpoints whose params accept URLs (API7)
+- [x] **TEST-03**: System performs BOLA tests (cross-identity object access) when two or more distinct credentials are supplied (API1)
+- [x] **TEST-04**: System performs BFLA tests (admin-level endpoint/method access with a low-privilege credential) (API5)
+- [x] **TEST-05**: System performs BOPLA / Mass Assignment tests (injects sensitive property names into PUT/PATCH bodies and inspects reflection) (API3)
+- [x] **TEST-06**: System performs Rate-Limit-absence tests (burst N requests, checks 429 / Retry-After presence) — opt-in (API4)
+- [x] **TEST-07**: System performs SSRF tests via Nuclei + interactsh on endpoints whose params accept URLs (API7)
 
 ### Findings & Threat Integration (FIND)
 
@@ -151,11 +151,11 @@ Which phases cover which requirements. Populated during roadmap creation 2026-04
 | ENRH-03 | Phase 11: Discovery & Enrichment | Complete |
 | TEST-01 | Phase 12: Security Testing — Passive | Complete |
 | TEST-02 | Phase 12: Security Testing — Passive | Complete |
-| TEST-03 | Phase 13: Security Testing — Active | Pending |
-| TEST-04 | Phase 13: Security Testing — Active | Pending |
-| TEST-05 | Phase 13: Security Testing — Active | Pending |
-| TEST-06 | Phase 13: Security Testing — Active | Pending |
-| TEST-07 | Phase 13: Security Testing — Active | Pending |
+| TEST-03 | Phase 13: Security Testing — Active | Complete |
+| TEST-04 | Phase 13: Security Testing — Active | Complete |
+| TEST-05 | Phase 13: Security Testing — Active | Complete |
+| TEST-06 | Phase 13: Security Testing — Active | Complete |
+| TEST-07 | Phase 13: Security Testing — Active | Complete |
 | FIND-02 | Phase 14: Findings Runtime & Threat Integration | Pending |
 | FIND-03 | Phase 14: Findings Runtime & Threat Integration | Pending |
 | FIND-04 | Phase 14: Findings Runtime & Threat Integration | Pending |

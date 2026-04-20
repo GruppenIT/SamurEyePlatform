@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Phase 13 context gathered
-last_updated: "2026-04-20T12:57:16.018Z"
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-04-20T16:58:09.022Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
   completed_phases: 5
-  total_plans: 26
-  completed_plans: 26
+  total_plans: 30
+  completed_plans: 27
   percent: 100
 ---
 
@@ -73,6 +73,7 @@ Progress: [██████████] 100%
 | Phase 12-security-testing-passive P02 | 13m | 4 tasks | 11 files |
 | Phase 12 P03 | 18 | 2 tasks | 4 files |
 | Phase 12-security-testing-passive P04 | 9 | 4 tasks | 7 files |
+| Phase 13-security-testing-active P01 | 5m | 3 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -153,6 +154,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 12-security-testing-passive]: POST /test/passive audit log uses actorId (not userId) — matches Phase 11 pattern
 - [Phase 12-security-testing-passive]: CLI uses pathToFileURL guard (not bare template string) — cross-platform correctness
 - [Phase 12-security-testing-passive]: UAT humana aprovada em 2026-04-20 — fluxo completo dryRun confirmado, Phase 12 CLOSED
+- [Phase 13-security-testing-active]: stagesRun uses snake_case 'rate_limit' for consistency with Phase 12 PassiveTestResult convention
+- [Phase 13-security-testing-active]: BOPLA_SENSITIVE_KEYS as const array (not enum) — preserves literal tuple type for BoplaSensitiveKey derivation
+- [Phase 13-security-testing-active]: ActiveTestResult as TypeScript interface (not z.infer) — allows extension by Waves 1-3 without changing Zod schema boundary
 
 ### Pending Todos
 
@@ -164,6 +168,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T12:57:16.015Z
-Stopped at: Phase 13 context gathered
-Resume file: .planning/phases/13-security-testing-active/13-CONTEXT.md
+Last session: 2026-04-20T16:58:09.017Z
+Stopped at: Completed 13-01-PLAN.md
+Resume file: None
