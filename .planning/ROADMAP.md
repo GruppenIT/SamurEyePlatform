@@ -111,7 +111,7 @@ Plans:
   3. Katana crawling of an SPA surfaces XHR/JS/form-derived endpoints and persists them with discovery source set; Kiterunner brute-force is strictly opt-in and uses `routes-large.kite`
   4. Every discovered endpoint has httpx enrichment (status, tech-detect, content-type, TLS) and `requiresAuth=true` when unauthenticated calls return 401/403
   5. Arjun parameter discovery runs only on user-selected GET endpoints and attaches discovered params to the endpoint record; `specHash` is computed and stored per spec fetch so drift is detectable across executions
-**Plans:** 3/7 plans executed
+**Plans:** 4/7 plans executed
 Plans:
 - [ ] 11-01-PLAN.md — Wave 0: 13 Nyquist test stubs + 7 fixtures + discoverApiOptsSchema + 5 httpx_* additive columns on api_endpoints + ensureApiEndpointHttpxColumns guard (DISC-01..06, ENRH-01..03)
 - [ ] 11-02-PLAN.md — Wave 1: shared preflightApiBinary (4 binaries memoized) + canonical specHash helper + processTracker typing widened + 5 storage extensions (upsertApiEndpoints bulk, mergeHttpxEnrichment, appendQueryParams, markEndpointsStale, updateApiSpecMetadata) (DISC-06)
@@ -221,7 +221,7 @@ Phases execute in numeric order: 8 → 9 → 10 → 11 → 12 → 13 → 14 → 
 | 8. Infrastructure & Install | 6/6 | Complete   | 2026-04-18 | - |
 | 9. Schema & Asset Hierarchy | 4/4 | Complete   | 2026-04-19 | - |
 | 10. API Credentials | 5/5 | Complete    | 2026-04-19 | - |
-| 11. Discovery & Enrichment | 3/7 | In Progress|  | - |
+| 11. Discovery & Enrichment | 4/7 | In Progress|  | - |
 | 12. Security Testing — Passive | v2.0 | 0/TBD | Not started | - |
 | 13. Security Testing — Active | v2.0 | 0/TBD | Not started | - |
 | 14. Findings Runtime & Threat Integration | v2.0 | 0/TBD | Not started | - |

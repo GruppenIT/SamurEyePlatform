@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 11-discovery-enrichment-03-PLAN.md
-last_updated: "2026-04-20T00:54:50.486Z"
+stopped_at: Completed 11-discovery-enrichment-04-PLAN.md
+last_updated: "2026-04-20T01:00:46.381Z"
 last_activity: 2026-04-19 — Plan 10-05 delivered server/routes/apiCredentials.ts (165 lines, registerApiCredentialsRoutes(app)) + barrel registration (+2 lines) + 30 route tests GREEN; 143 apiCredentials tests passing total; full suite 487 passed (+30 vs baseline)
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 22
-  completed_plans: 18
+  completed_plans: 19
   percent: 100
 ---
 
@@ -66,6 +66,7 @@ Progress: [██████████] 100%
 | Phase 11-discovery-enrichment P01 | 10m | 3 tasks | 23 files |
 | Phase 11-discovery-enrichment P02 | 5 | 3 tasks | 10 files |
 | Phase 11-discovery-enrichment P03 | 4 | 2 tasks | 7 files |
+| Phase 11-discovery-enrichment P04 | 4 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,8 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 11-discovery-enrichment]: INSTALL_PATHS uses absolute /opt/samureye/bin/* first, falls back to PATH; kiterunner tries 'kr' before 'kiterunner'; arjun venv-only path
 - [Phase 11-discovery-enrichment]: upsertApiEndpoints insert/update heuristic: createdAt === updatedAt means insert; appendQueryParams uses JS-side dedup; markEndpointsStale is logging-only
 - [Phase 11-discovery-enrichment]: @apidevtools/swagger-parser@^12.1.0 pinned (v11 had SSRF CVE); INTROSPECTION_QUERY hardcoded string to avoid graphql-js dep; same-origin  check uses URL.origin for SSRF boundary
+- [Phase 11-discovery-enrichment]: SUCCESS_STATUSES in kiterunner.ts as integer array joined at call site — type-safe for both arg building and JSONL filter
+- [Phase 11-discovery-enrichment]: kiterunner -x flag is connections-per-host (NOT QPS) per RESEARCH.md Pitfall 3; Phase 15 SAFE-01 governs true rate ceiling
 
 ### Pending Todos
 
@@ -136,6 +139,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T00:54:50.481Z
-Stopped at: Completed 11-discovery-enrichment-03-PLAN.md
+Last session: 2026-04-20T01:00:46.376Z
+Stopped at: Completed 11-discovery-enrichment-04-PLAN.md
 Resume file: None
