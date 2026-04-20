@@ -51,14 +51,28 @@ import {
   AlertCircle,
   ListChecks,
   ClipboardList,
+  Terminal,
+  ShieldOff,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AssociateToPlanDialog } from "@/components/action-plan/AssociateToPlanDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { usePlanLinks, type PlanLink } from "@/hooks/useActionPlans";
 import { Threat, Host } from "@shared/schema";
 import { ThreatStats } from "@/types";
+import { buildCurlCommand } from "@shared/ui/curlBuilder";
+import { getOwaspBadgeInfo } from "@shared/ui/owaspBadge";
 
 // -------------------------
 // Evidence label mapping (UIFN-02)
@@ -261,6 +275,23 @@ function RemediationPreview({ threatId }: { threatId: string }) {
   );
 }
 
+// Inline OWASP badge component (UI-03)
+function OwaspBadge({ category, severity, severityColorFn }: { category: string | null; severity: string; severityColorFn: (s: string) => string }) {
+  const info = getOwaspBadgeInfo(category);
+  if (!info) {
+    return <Badge variant="secondary" className="bg-muted text-muted-foreground" data-testid="owasp-badge-na">N/A</Badge>;
+  }
+  return (
+    <Badge
+      className={severityColorFn(severity)}
+      title={info.titulo}
+      data-testid={`owasp-badge-${info.codigo}`}
+    >
+      {info.codigo}
+    </Badge>
+  );
+}
+
 export default function Threats() {
   const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
@@ -296,6 +327,12 @@ export default function Threats() {
     hibernatedUntil: "",
   });
 
+  // API Security source filter + UI-03/04/05 state
+  const [sourceFilter, setSourceFilter] = useState<"all" | "api_security">("all");
+  const [curlDialogThreat, setCurlDialogThreat] = useState<Threat | null>(null);
+  const [falsePositiveAlertThreat, setFalsePositiveAlertThreat] = useState<Threat | null>(null);
+  const [falsePositiveIds, setFalsePositiveIds] = useState<Set<string>>(new Set());
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { connected } = useWebSocket();
@@ -313,7 +350,13 @@ export default function Threats() {
   }, [location]);
 
   const { data: threats = [], isLoading } = useQuery<(Threat & { host?: Host })[]>({
-    queryKey: ["/api/threats"],
+    queryKey: ["/api/threats", { source: sourceFilter }],
+    queryFn: async () => {
+      const qs = sourceFilter !== "all" ? `?source=${encodeURIComponent(sourceFilter)}` : "";
+      const res = await fetch(`/api/threats${qs}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Falha ao buscar ameacas");
+      return res.json();
+    },
     refetchInterval: 30000,
   });
 
@@ -545,6 +588,22 @@ export default function Threats() {
         description: "Falha ao alterar status da ameaca",
         variant: "destructive",
       });
+    },
+  });
+
+  // UI-05 — False positive mutation
+  const falsePositiveMutation = useMutation({
+    mutationFn: async ({ findingId, threatId }: { findingId: string; threatId: string }) => {
+      const res = await apiRequest("PATCH", `/api/v1/api-findings/${findingId}`, { falsePositive: true });
+      return { res, threatId };
+    },
+    onSuccess: ({ threatId }) => {
+      setFalsePositiveIds((prev) => new Set(prev).add(threatId));
+      toast({ title: "Sucesso", description: "Finding marcado como falso positivo" });
+      queryClient.invalidateQueries({ queryKey: ["/api/threats"] });
+    },
+    onError: () => {
+      toast({ title: "Erro", description: "Falha ao marcar falso positivo", variant: "destructive" });
     },
   });
 
@@ -831,7 +890,7 @@ export default function Threats() {
       <TableRow
         key={threat.id}
         data-testid={`threat-row-${threat.id}`}
-        className={`${selectedIds.has(threat.id) ? "bg-primary/5" : ""} ${isChild ? "bg-muted/30" : ""}`}
+        className={`${selectedIds.has(threat.id) ? "bg-primary/5" : ""} ${isChild ? "bg-muted/30" : ""} ${falsePositiveIds.has(threat.id) ? "opacity-50" : ""}`}
       >
         <TableCell className={isChild ? "pl-10" : ""}>
           <Checkbox
@@ -945,7 +1004,44 @@ export default function Threats() {
             );
           })()}
         </TableCell>
+        {sourceFilter === "api_security" && (
+          <TableCell>
+            <OwaspBadge
+              category={(threat.evidence as any)?.owaspCategory ?? null}
+              severity={threat.severity}
+              severityColorFn={getSeverityColor}
+            />
+          </TableCell>
+        )}
         <TableCell className="text-right">
+          {sourceFilter === "api_security" && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurlDialogThreat(threat)}
+                data-testid={`button-reproduce-${threat.id}`}
+                title="Reproduzir"
+              >
+                <Terminal className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFalsePositiveAlertThreat(threat)}
+                data-testid={`button-false-positive-${threat.id}`}
+                title="Marcar como falso positivo"
+                disabled={falsePositiveIds.has(threat.id)}
+              >
+                <ShieldOff className="h-4 w-4" />
+              </Button>
+              {falsePositiveIds.has(threat.id) && (
+                <Badge variant="outline" className="ml-2 text-xs" data-testid={`badge-false-positive-${threat.id}`}>
+                  Falso Positivo
+                </Badge>
+              )}
+            </>
+          )}
           <Button
             variant="ghost"
             size="sm"
@@ -1107,7 +1203,44 @@ export default function Threats() {
                 );
               })()}
             </TableCell>
+            {sourceFilter === "api_security" && (
+              <TableCell>
+                <OwaspBadge
+                  category={(parent.evidence as any)?.owaspCategory ?? null}
+                  severity={parent.severity}
+                  severityColorFn={getSeverityColor}
+                />
+              </TableCell>
+            )}
             <TableCell className="text-right">
+              {sourceFilter === "api_security" && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurlDialogThreat(parent)}
+                    data-testid={`button-reproduce-${parent.id}`}
+                    title="Reproduzir"
+                  >
+                    <Terminal className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFalsePositiveAlertThreat(parent)}
+                    data-testid={`button-false-positive-${parent.id}`}
+                    title="Marcar como falso positivo"
+                    disabled={falsePositiveIds.has(parent.id)}
+                  >
+                    <ShieldOff className="h-4 w-4" />
+                  </Button>
+                  {falsePositiveIds.has(parent.id) && (
+                    <Badge variant="outline" className="ml-2 text-xs" data-testid={`badge-false-positive-${parent.id}`}>
+                      Falso Positivo
+                    </Badge>
+                  )}
+                </>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -1402,6 +1535,15 @@ export default function Threats() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as "all" | "api_security")}>
+                  <SelectTrigger className="w-48" data-testid="select-source-filter">
+                    <SelectValue placeholder="Filtrar por fonte" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Fontes</SelectItem>
+                    <SelectItem value="api_security">API Security</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Badge variant="secondary" data-testid="threats-count">
                   {filteredParents.length + filteredStandalone.length} grupos/ameacas
                 </Badge>
@@ -1524,6 +1666,9 @@ export default function Threats() {
                           <TableHead>Status</TableHead>
                           <TableHead>Detectado em</TableHead>
                           <TableHead>Plano de Ação</TableHead>
+                          {sourceFilter === "api_security" && (
+                            <TableHead data-testid="th-owasp">OWASP</TableHead>
+                          )}
                           <TableHead className="text-right">Acoes</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -2158,6 +2303,83 @@ export default function Threats() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Reproduzir curl Dialog (UI-04) */}
+      <Dialog open={!!curlDialogThreat} onOpenChange={(open) => !open && setCurlDialogThreat(null)}>
+        <DialogContent className="max-w-2xl" data-testid="dialog-curl">
+          <DialogHeader>
+            <DialogTitle>Comando curl de reproducao</DialogTitle>
+          </DialogHeader>
+          {curlDialogThreat && (() => {
+            const curl = buildCurlCommand({ evidence: curlDialogThreat.evidence as any });
+            if (!curl) {
+              return (
+                <p className="text-muted-foreground text-sm" data-testid="curl-empty">
+                  Nao foi possivel gerar curl — dados de endpoint insuficientes.
+                </p>
+              );
+            }
+            // Defensive: never show *** redaction in UI
+            const safeCurl = curl.includes("***") ? curl.replace(/\*\*\*/g, "[redacted]") : curl;
+            return (
+              <>
+                <pre
+                  className="bg-muted p-4 rounded-md font-mono text-xs overflow-x-auto whitespace-pre"
+                  data-testid="curl-pre"
+                >{safeCurl}</pre>
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="outline" onClick={() => setCurlDialogThreat(null)}>
+                    Fechar
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(safeCurl);
+                      toast({ title: "Copiado", description: "Comando curl copiado para a area de transferencia." });
+                    }}
+                    data-testid="button-copy-curl"
+                  >
+                    Copiar
+                  </Button>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Falso Positivo AlertDialog (UI-05) */}
+      <AlertDialog
+        open={!!falsePositiveAlertThreat}
+        onOpenChange={(open) => !open && setFalsePositiveAlertThreat(null)}
+      >
+        <AlertDialogContent data-testid="alert-false-positive">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Marcar como falso positivo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acao e registrada no audit log e remove a ameaca da lista ativa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              data-testid="button-confirm-false-positive"
+              onClick={() => {
+                if (!falsePositiveAlertThreat) return;
+                const evidence = falsePositiveAlertThreat.evidence as any;
+                const findingId = evidence?.findingIds?.[0];
+                if (!findingId) {
+                  toast({ title: "Erro", description: "ID de finding nao encontrado no threat.", variant: "destructive" });
+                  return;
+                }
+                falsePositiveMutation.mutate({ findingId, threatId: falsePositiveAlertThreat.id });
+                setFalsePositiveAlertThreat(null);
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AssociateToPlanDialog
         open={associateDialogOpen}
