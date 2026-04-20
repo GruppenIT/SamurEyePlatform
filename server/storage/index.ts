@@ -200,6 +200,7 @@ export class DatabaseStorage implements IStorage {
   getApi = apiOps.getApi;
   listApis = apiOps.listApis;
   listApisByParent = apiOps.listApisByParent;
+  listApisWithEndpointCount = apiOps.listApisWithEndpointCount;
   createApi = apiOps.createApi;
   promoteApiFromBackfill = apiOps.promoteApiFromBackfill;
   updateApiSpecMetadata = apiOps.updateApiSpecMetadata;
@@ -214,6 +215,7 @@ export class DatabaseStorage implements IStorage {
   createApiFinding = apiFindingOps.createApiFinding;
   upsertApiFindingByKey = apiFindingOps.upsertApiFindingByKey;
   listApiFindings = apiFindingOps.listApiFindings;
+  patchApiFinding = apiFindingOps.patchApiFinding;
   // Phase 14 FIND-03: Promotion support
   listFindingsForPromotion = apiFindingOps.listFindingsForPromotion;
   updateFindingPromotedThreatId = apiFindingOps.updateFindingPromotedThreatId;

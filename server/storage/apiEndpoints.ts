@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { apiEndpoints, type ApiEndpoint, type InsertApiEndpoint } from "@shared/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, asc, sql } from "drizzle-orm";
 import { createLogger } from '../lib/logger';
 
 type QueryParam = { name: string; type?: string; required?: boolean; example?: unknown };
@@ -10,7 +10,7 @@ const log = createLogger('storage');
 export async function listEndpointsByApi(apiId: string): Promise<ApiEndpoint[]> {
   return await db.select().from(apiEndpoints)
     .where(eq(apiEndpoints.apiId, apiId))
-    .orderBy(desc(apiEndpoints.createdAt));
+    .orderBy(asc(apiEndpoints.path), asc(apiEndpoints.method));
 }
 
 export async function createApiEndpoint(data: InsertApiEndpoint): Promise<ApiEndpoint> {

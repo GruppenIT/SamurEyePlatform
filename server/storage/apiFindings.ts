@@ -198,6 +198,48 @@ export async function listFindingsForPromotion(findingIds: string[]): Promise<Ap
   return rows;
 }
 
+export interface PatchApiFindingData {
+  falsePositive: boolean;
+}
+
+/**
+ * Phase 16 UI-05 — Patch api_finding status (false positive toggle).
+ *
+ * Returns {previous, current} so the route handler can call logAudit()
+ * after the transaction commits. This matches the existing pattern in
+ * server/routes/apis.ts where POST /api/v1/apis calls logAudit after createApi.
+ *
+ * Throws when id not found ("api_finding {id} not found").
+ */
+export async function patchApiFinding(
+  id: string,
+  data: PatchApiFindingData,
+): Promise<{ previous: ApiFinding; current: ApiFinding }> {
+  return await db.transaction(async (tx) => {
+    const [previous] = await tx
+      .select()
+      .from(apiFindings)
+      .where(eq(apiFindings.id, id))
+      .limit(1);
+    if (!previous) {
+      throw new Error(`api_finding ${id} not found`);
+    }
+    const newStatus = data.falsePositive ? 'false_positive' : 'open';
+    const [current] = await tx
+      .update(apiFindings)
+      .set({ status: newStatus as ApiFinding['status'], updatedAt: new Date() })
+      .where(eq(apiFindings.id, id))
+      .returning();
+    log.info({
+      findingId: id,
+      from: previous.status,
+      to: newStatus,
+      falsePositive: data.falsePositive,
+    }, 'api finding status patched');
+    return { previous, current };
+  });
+}
+
 /**
  * updateFindingPromotedThreatId — update only the promotedThreatId column on
  * api_findings. Accepts an optional drizzle Transaction so the caller can

@@ -128,7 +128,7 @@ export interface IStorage {
 
   // Threat operations
   getThreats(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string }): Promise<Threat[]>;
-  getThreatsWithHosts(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string }): Promise<(Threat & { host?: Host })[]>;
+  getThreatsWithHosts(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string; source?: string }): Promise<(Threat & { host?: Host })[]>;
   getThreat(id: string): Promise<Threat | undefined>;
   createThreat(threat: InsertThreat): Promise<Threat>;
   updateThreat(id: string, threat: Partial<Threat>): Promise<Threat>;
@@ -300,6 +300,10 @@ export interface IStorage {
   // Phase 14 FIND-03: Promotion support (tx parameter is internal detail — interface exposes public contract only)
   listFindingsForPromotion(findingIds: string[]): Promise<ApiFinding[]>;
   updateFindingPromotedThreatId(findingId: string, threatId: string | null): Promise<void>;
+  // Phase 16 UI-05: Patch api_finding (false positive toggle)
+  patchApiFinding(id: string, data: { falsePositive: boolean }): Promise<{ previous: ApiFinding; current: ApiFinding }>;
+  // Phase 16 UI-01: List APIs with computed endpoint count
+  listApisWithEndpointCount(): Promise<(Api & { endpointCount: number })[]>;
 
   // Phase 11 Discovery & Enrichment extensions
   upsertApiEndpoints(apiId: string, rows: InsertApiEndpoint[]): Promise<{ inserted: number; updated: number }>;

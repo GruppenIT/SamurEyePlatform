@@ -39,7 +39,7 @@ export async function getThreats(filters?: { severity?: string; status?: string;
   return await db.select().from(threats).orderBy(desc(threats.createdAt));
 }
 
-export async function getThreatsWithHosts(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string }): Promise<any[]> {
+export async function getThreatsWithHosts(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string; source?: string }): Promise<any[]> {
   let query = db
     .select({
       // Threat fields
@@ -91,6 +91,7 @@ export async function getThreatsWithHosts(filters?: { severity?: string; status?
     if (filters.status) conditions.push(eq(threats.status, filters.status as any));
     if (filters.assetId) conditions.push(eq(threats.assetId, filters.assetId));
     if (filters.hostId) conditions.push(eq(threats.hostId, filters.hostId));
+    if (filters.source) conditions.push(eq(threats.source, filters.source as any));
   }
 
   const results = await (conditions.length > 0

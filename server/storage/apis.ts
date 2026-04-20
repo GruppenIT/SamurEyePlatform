@@ -1,6 +1,6 @@
 import { db } from "../db";
-import { apis, type Api, type InsertApi } from "@shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { apis, apiEndpoints, type Api, type InsertApi } from "@shared/schema";
+import { eq, desc, count } from "drizzle-orm";
 import { createLogger } from '../lib/logger';
 
 
@@ -59,6 +59,31 @@ export async function promoteApiFromBackfill(
     return created;
   }
   return null;
+}
+
+export interface ApiWithEndpointCount extends Api {
+  endpointCount: number;
+}
+
+/**
+ * Phase 16 UI-01 — List all APIs with a computed endpointCount.
+ * Uses LEFT JOIN so APIs with zero endpoints still appear with count=0.
+ * Ordering: desc(createdAt) — matches listApis().
+ */
+export async function listApisWithEndpointCount(): Promise<ApiWithEndpointCount[]> {
+  const rows = await db
+    .select({
+      api: apis,
+      endpointCount: count(apiEndpoints.id),
+    })
+    .from(apis)
+    .leftJoin(apiEndpoints, eq(apiEndpoints.apiId, apis.id))
+    .groupBy(apis.id)
+    .orderBy(desc(apis.createdAt));
+  return rows.map((r) => ({
+    ...r.api,
+    endpointCount: Number(r.endpointCount),
+  }));
 }
 
 /**
