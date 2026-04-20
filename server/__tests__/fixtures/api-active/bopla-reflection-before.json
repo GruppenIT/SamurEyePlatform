@@ -1,0 +1,10 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "x-request-id": "test-bopla-before-001"
+  },
+  "body": "{\"id\":\"user-42\",\"name\":\"Alice\",\"email\":\"alice@example.internal\",\"verified\":false}",
+  "describedBy": "Seed response body before BOPLA sensitive-key injection (no admin elevation keys present)",
+  "endpointPath": "/users/{id}"
+}

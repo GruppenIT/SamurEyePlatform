@@ -1,0 +1,13 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "x-request-id": "test-bfla-admin-001"
+  },
+  "body": "{\"users\":[{\"id\":1,\"email\":\"admin@example.internal\",\"role\":\"admin\"},{\"id\":2,\"email\":\"alice@example.internal\",\"role\":\"user\"}],\"total\":2}",
+  "describedBy": "Admin endpoint accessible via low-priv credential — RBAC failure, BFLA positive",
+  "credentialId": "mock-lowpriv-cred-uuid",
+  "priorityLevel": 3,
+  "matchedPattern": "admin",
+  "endpointPath": "/admin/users"
+}

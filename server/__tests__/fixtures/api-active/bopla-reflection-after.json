@@ -1,0 +1,13 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "x-request-id": "test-bopla-after-001"
+  },
+  "body": "{\"id\":\"user-42\",\"name\":\"Alice\",\"email\":\"alice@example.internal\",\"verified\":false,\"is_admin\":true}",
+  "describedBy": "Response after PUT with injected is_admin:true — mass assignment accepted, reflection confirmed",
+  "endpointPath": "/users/{id}",
+  "injectedKey": "is_admin",
+  "originalValue": null,
+  "reflectedValue": true
+}
