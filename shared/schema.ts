@@ -1887,3 +1887,46 @@ export const discoverApiOptsSchema = z.object({
 });
 
 export type DiscoverApiOpts = z.infer<typeof discoverApiOptsSchema>;
+
+// ============================================================================
+// Phase 12: Security Testing — Passive — TEST-01, TEST-02
+// ============================================================================
+
+/**
+ * apiPassiveTestOptsSchema — input contract for runApiPassiveTests() and POST
+ * /api/v1/apis/:id/test/passive. Uses `.strict()` on root and stages sub-object
+ * to reject unknown fields (mirrors discoverApiOptsSchema Phase 11 decision).
+ */
+export const apiPassiveTestOptsSchema = z.object({
+  stages: z.object({
+    nucleiPassive: z.boolean().optional(),   // default true (applied at call site)
+    authFailure: z.boolean().optional(),     // default true
+    api9Inventory: z.boolean().optional(),   // default true
+  }).strict().optional(),
+  credentialIdOverride: z.string().uuid().optional(),
+  endpointIds: z.array(z.string().uuid()).optional(),
+  dryRun: z.boolean().optional(),            // default false
+  nuclei: z.object({
+    rateLimit: z.number().int().min(1).max(50).optional(),  // default 10 req/s
+    timeoutSec: z.number().int().min(1).max(120).optional(), // default 10s
+  }).strict().optional(),
+}).strict();
+
+export type ApiPassiveTestOpts = z.infer<typeof apiPassiveTestOptsSchema>;
+
+/**
+ * PassiveTestResult — public contract returned by runApiPassiveTests().
+ * Consumed by Phase 15 journey executor. Extend without breaking.
+ */
+export interface PassiveTestResult {
+  apiId: string;
+  stagesRun: Array<'nuclei_passive' | 'auth_failure' | 'api9_inventory'>;
+  stagesSkipped: Array<{ stage: string; reason: string }>;
+  findingsCreated: number;
+  findingsUpdated: number;
+  findingsByCategory: Record<string, number>;
+  findingsBySeverity: Record<string, number>;
+  cancelled: boolean;
+  dryRun: boolean;
+  durationMs: number;
+}
