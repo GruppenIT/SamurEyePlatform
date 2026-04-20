@@ -149,10 +149,10 @@ Plans:
   5. The engine runs Nuclei + interactsh SSRF tests only on params whose values accept URLs and records API7 findings when an out-of-band interaction fires
 **Plans:** 4 plans
 Plans:
-- [ ] 09-01-PLAN.md — Wave 0: OWASP pt-BR labels constants + 7 Nyquist test stubs (evidence Zod, schema, guard, route, storage, backfill, owasp)
-- [ ] 09-02-PLAN.md — Wave 1: shared/schema.ts additions (3 pgEnums, 3 tables, 3 insertSchemas, evidence Zod)
-- [ ] 09-03-PLAN.md — Wave 2: storage facades (apis/apiEndpoints/apiFindings) + IStorage + DatabaseStorage + ensureApiTables guard
-- [ ] 09-04-PLAN.md — Wave 3: POST /api/v1/apis route + backfillApiDiscovery CLI + operator docs
+- [ ] 13-01-PLAN.md — Wave 0: Nyquist stubs + fixtures api-active/ + apiActiveTestOptsSchema + ActiveTestResult
+- [ ] 13-02-PLAN.md — Wave 1: 5 scanners (bola/bfla/bopla/rateLimit/ssrfNuclei) + remediation templates extension
+- [ ] 13-03-PLAN.md — Wave 2: Orchestrator runApiActiveTests (5 stages + dryRun + cancel + BOPLA/rateLimit gates)
+- [ ] 13-04-PLAN.md — Wave 3: POST /api/v1/apis/:id/test/active + CLI + runbook + UAT checkpoint
 
 ### Phase 14: Findings Runtime & Threat Integration
 **Goal**: Harden the findings write path with sanitization, promote high/critical findings into the existing Threat Engine so they surface on the executive dashboard, and emit real-time progress events to the UI over WebSocket.
