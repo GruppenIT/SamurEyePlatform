@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 11-discovery-enrichment-05-PLAN.md
-last_updated: "2026-04-20T01:07:43.783Z"
+stopped_at: Completed 11-discovery-enrichment-06-PLAN.md
+last_updated: "2026-04-20T01:15:03.722Z"
 last_activity: 2026-04-19 — Plan 10-05 delivered server/routes/apiCredentials.ts (165 lines, registerApiCredentialsRoutes(app)) + barrel registration (+2 lines) + 30 route tests GREEN; 143 apiCredentials tests passing total; full suite 487 passed (+30 vs baseline)
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 22
-  completed_plans: 20
+  completed_plans: 21
   percent: 100
 ---
 
@@ -68,6 +68,7 @@ Progress: [██████████] 100%
 | Phase 11-discovery-enrichment P03 | 4 | 2 tasks | 7 files |
 | Phase 11-discovery-enrichment P04 | 4 | 2 tasks | 4 files |
 | Phase 11-discovery-enrichment P05 | 5 | 2 tasks | 4 files |
+| Phase 11-discovery-enrichment P06 | 6 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,8 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 11-discovery-enrichment]: SUCCESS_STATUSES in kiterunner.ts as integer array joined at call site — type-safe for both arg building and JSONL filter
 - [Phase 11-discovery-enrichment]: kiterunner -x flag is connections-per-host (NOT QPS) per RESEARCH.md Pitfall 3; Phase 15 SAFE-01 governs true rate ceiling
 - [Phase 11-discovery-enrichment]: opts.authHeader in httpx.ts auto-prefixes Authorization: when bare token passed; arjun tempfile uses mkdtemp for concurrency safety; ArjunOutputSchema exported from arjun.ts; parsed[url] ?? Object.values(parsed)[0] fallback for URL normalization edge cases
+- [Phase 11-discovery-enrichment]: httpx stage always 'ran' even with 0 endpoints — stagesRun includes 'httpx' to signal stage was active (not skipped by configuration)
+- [Phase 11-discovery-enrichment]: finalize() as inner closure captures all mutable state by reference — single exit path for all cancel/normal paths in discoverApi orchestrator
 
 ### Pending Todos
 
@@ -141,6 +144,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T01:07:35.811Z
-Stopped at: Completed 11-discovery-enrichment-05-PLAN.md
+Last session: 2026-04-20T01:15:03.717Z
+Stopped at: Completed 11-discovery-enrichment-06-PLAN.md
 Resume file: None
