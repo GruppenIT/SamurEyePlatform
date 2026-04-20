@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 11-discovery-enrichment-01-PLAN.md
-last_updated: "2026-04-20T00:41:38.208Z"
+stopped_at: Completed 11-discovery-enrichment-02-PLAN.md
+last_updated: "2026-04-20T00:48:48.737Z"
 last_activity: 2026-04-19 — Plan 10-05 delivered server/routes/apiCredentials.ts (165 lines, registerApiCredentialsRoutes(app)) + barrel registration (+2 lines) + 30 route tests GREEN; 143 apiCredentials tests passing total; full suite 487 passed (+30 vs baseline)
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 22
-  completed_plans: 16
+  completed_plans: 17
   percent: 100
 ---
 
@@ -64,6 +64,7 @@ Progress: [██████████] 100%
 | Phase 10-api-credentials P04 | 28m | 3 tasks | 7 files |
 | Phase 10-api-credentials P05 | 8m | 2 tasks | 3 files |
 | Phase 11-discovery-enrichment P01 | 10m | 3 tasks | 23 files |
+| Phase 11-discovery-enrichment P02 | 5 | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,8 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 11-discovery-enrichment]: 8 fixtures created (not 7): plan frontmatter explicitly listed 8 files; plan prose '7' was typo
 - [Phase 11-discovery-enrichment]: discoverApiOptsSchema uses .strict() on both root and stages sub-object + superRefine cross-field validation with pt-BR error message for arjunEndpointIds
 - [Phase 11-discovery-enrichment]: httpx_* columns added as additive nullable columns on apiEndpoints; ensureApiEndpointHttpxColumns() boot-time guard; no drizzle migration file
+- [Phase 11-discovery-enrichment]: INSTALL_PATHS uses absolute /opt/samureye/bin/* first, falls back to PATH; kiterunner tries 'kr' before 'kiterunner'; arjun venv-only path
+- [Phase 11-discovery-enrichment]: upsertApiEndpoints insert/update heuristic: createdAt === updatedAt means insert; appendQueryParams uses JS-side dedup; markEndpointsStale is logging-only
 
 ### Pending Todos
 
@@ -131,6 +134,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T00:41:38.203Z
-Stopped at: Completed 11-discovery-enrichment-01-PLAN.md
+Last session: 2026-04-20T00:48:48.731Z
+Stopped at: Completed 11-discovery-enrichment-02-PLAN.md
 Resume file: None
