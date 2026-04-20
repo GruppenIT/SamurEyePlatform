@@ -144,6 +144,9 @@ export async function initializeDatabaseStructure(): Promise<void> {
     // Phase 11: httpx enrichment columns on api_endpoints (ENRH-01)
     await ensureApiEndpointHttpxColumns();  // Phase 11 ENRH-01
 
+    // Phase 15: journey_type enum extension + authorizationAck column (JRNY-01, JRNY-02)
+    await ensureJourneyApiSecurityColumns();
+
   } catch (error) {
     log.error({ err: error }, 'database initialization error');
     // Don't throw - let the system continue with fallback mode
@@ -457,6 +460,31 @@ export async function ensureApiEndpointHttpxColumns(): Promise<void> {
     log.info('ensureApiEndpointHttpxColumns complete');
   } catch (error) {
     log.error({ err: error }, 'ensureApiEndpointHttpxColumns error');
+  }
+}
+
+// Phase 15 JRNY-01, JRNY-02 — runtime idempotent guard for journey_type enum extension +
+// journeys.authorization_ack column. Drizzle does NOT auto-generate ALTER TYPE ADD VALUE
+// migrations (RESEARCH.md §Pitfall 1), so this guard handles it at boot.
+// Pattern mirrors ensureApiEndpointHttpxColumns: try/catch with logged failure, no re-throw.
+// Safe to re-run; idempotent via IF NOT EXISTS clauses.
+export async function ensureJourneyApiSecurityColumns(): Promise<void> {
+  try {
+    // Extend journey_type enum with 'api_security' value (append-only per Postgres semantics).
+    await db.execute(sql`
+      ALTER TYPE journey_type ADD VALUE IF NOT EXISTS 'api_security'
+    `);
+
+    // Add authorization_ack boolean column with NOT NULL DEFAULT false.
+    // Default false keeps existing journeys unaffected (attack_surface/ad_security/edr_av/web_application).
+    await db.execute(sql`
+      ALTER TABLE journeys
+        ADD COLUMN IF NOT EXISTS authorization_ack boolean NOT NULL DEFAULT false
+    `);
+
+    log.info('ensureJourneyApiSecurityColumns complete');
+  } catch (error) {
+    log.error({ err: error }, 'ensureJourneyApiSecurityColumns error');
   }
 }
 
