@@ -5,6 +5,17 @@ import { requireOperator } from "./middleware";
 import { jobQueue } from "../services/jobQueue";
 import { processTracker } from "../services/processTracker";
 import { createLogger } from '../lib/logger';
+// Phase 14 FIND-04: WebSocket event broadcaster anchor.
+// TODO(14-04/Phase-15): Wire upgrade handler GET /api/v1/jobs/:jobId/ws
+//   wss.on('connection', (ws, req) => {
+//     const match = req.url?.match(/\/api\/v1\/jobs\/([^/]+)\/ws$/);
+//     if (!match) { ws.close(); return; }
+//     const jobId = match[1];
+//     jobEventBroadcaster.subscribe(jobId, ws);
+//     ws.on('close', () => jobEventBroadcaster.unsubscribe(jobId, ws));
+//     ws.on('error', () => jobEventBroadcaster.unsubscribe(jobId, ws));
+//   });
+import { jobEventBroadcaster } from '../services/jobEventBroadcaster';
 
 const log = createLogger('routes:jobs');
 
