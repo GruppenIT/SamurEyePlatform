@@ -5,6 +5,7 @@ import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -26,9 +27,10 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Globe, Lock, ChevronDown, ChevronRight } from "lucide-react";
+import { Globe, Lock, ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { METHOD_COLORS, PARAM_COLORS } from "@shared/ui/methodColors";
 import type { Api, ApiEndpoint } from "@shared/schema";
+import ApiSecurityWizard from "@/components/forms/api-security-wizard";
 
 type ApiWithCount = Api & {
   endpointCount: number;
@@ -152,6 +154,7 @@ function EndpointGroup({
 
 export default function ApiDiscovery() {
   const [selectedApiId, setSelectedApiId] = useState<string | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   const { data: apis = [], isLoading } = useQuery<ApiWithCount[]>({
     queryKey: ["/api/v1/apis"],
@@ -193,8 +196,11 @@ export default function ApiDiscovery() {
             </div>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>APIs</CardTitle>
+                <Button onClick={() => setWizardOpen(true)} data-testid="button-new-journey">
+                  <Plus className="h-4 w-4 mr-1" /> Nova Jornada API
+                </Button>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
@@ -278,6 +284,8 @@ export default function ApiDiscovery() {
           </div>
         </main>
       </div>
+
+      <ApiSecurityWizard open={wizardOpen} onOpenChange={setWizardOpen} />
 
       <Sheet
         open={!!selectedApiId}

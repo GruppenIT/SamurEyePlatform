@@ -1,10 +1,12 @@
 import type { Express } from "express";
+import { z } from "zod";
 import { storage } from "../storage";
 import { isAuthenticatedWithPasswordCheck } from "../localAuth";
 import { requireOperator } from "./middleware";
 import { jobQueue } from "../services/jobQueue";
 import { processTracker } from "../services/processTracker";
 import { createLogger } from '../lib/logger';
+import { MAX_API_RATE_LIMIT } from '../services/rateLimiter';
 // Phase 14 FIND-04: WebSocket event broadcaster anchor.
 // TODO(14-04/Phase-15): Wire upgrade handler GET /api/v1/jobs/:jobId/ws
 //   wss.on('connection', (ws, req) => {
@@ -132,6 +134,115 @@ export function registerJobRoutes(app: Express) {
     } catch (error) {
       log.error({ err: error }, 'failed to cancel job');
       res.status(500).json({ message: "Falha ao cancelar job" });
+    }
+  });
+
+  /**
+   * Phase 16 UI-06 — POST /api/v1/jobs
+   *
+   * Creates an api_security journey + queues for execution.
+   * Validates authorizationAck=true (SAFE-04) and rateLimit ≤ MAX_API_RATE_LIMIT (SAFE-01).
+   *
+   * Body shape (type=api_security):
+   *   { type, name, description?, params: { assetIds, targetBaseUrl?, credentialId?,
+   *     authorizationAck, apiSecurityConfig: { discovery, testing, rateLimit, destructiveEnabled, dryRun } } }
+   *
+   * Response: 201 { id: string, journeyId: string }
+   */
+  const createApiSecurityJobSchema = z.object({
+    type: z.literal("api_security"),
+    name: z.string().min(1, "Nome é obrigatório"),
+    description: z.string().optional(),
+    params: z.object({
+      assetIds: z.array(z.string()).min(1, "Selecione ao menos um alvo"),
+      targetBaseUrl: z.string().optional(),
+      credentialId: z.string().optional(),
+      authorizationAck: z.boolean(),
+      apiSecurityConfig: z.object({
+        discovery: z.object({
+          specFirst: z.boolean(),
+          crawler: z.boolean(),
+          kiterunner: z.boolean(),
+        }),
+        testing: z.object({
+          misconfigs: z.boolean(),
+          auth: z.boolean(),
+          bola: z.boolean(),
+          bfla: z.boolean(),
+          bopla: z.boolean(),
+          rateLimit: z.boolean(),
+          ssrf: z.boolean(),
+        }),
+        rateLimit: z.number().int().min(1).max(MAX_API_RATE_LIMIT),
+        destructiveEnabled: z.boolean(),
+        dryRun: z.boolean(),
+      }),
+    }),
+  });
+
+  app.post('/api/v1/jobs', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+
+      const parsed = createApiSecurityJobSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          message: "Dados inválidos",
+          errors: parsed.error.flatten().fieldErrors,
+        });
+      }
+
+      const { name, description, params } = parsed.data;
+
+      // SAFE-04: authorizationAck must be true
+      if (params.authorizationAck !== true) {
+        return res.status(400).json({
+          message: "Autorização de teste é obrigatória (authorizationAck deve ser true)",
+        });
+      }
+
+      // SAFE-01: rateLimit ceiling
+      if (params.apiSecurityConfig.rateLimit > MAX_API_RATE_LIMIT) {
+        return res.status(400).json({
+          message: `Rate limit não pode exceder ${MAX_API_RATE_LIMIT} req/s`,
+        });
+      }
+
+      // Create journey record
+      const journey = await storage.createJourney(
+        {
+          name,
+          description: description || null,
+          type: "api_security",
+          authorizationAck: true,
+          params: {
+            assetIds: params.assetIds,
+            targetBaseUrl: params.targetBaseUrl,
+            credentialId: params.credentialId,
+            apiSecurityConfig: params.apiSecurityConfig,
+          },
+        } as any,
+        userId,
+      );
+
+      // Enqueue job
+      const job = await jobQueue.executeJobNow(journey.id);
+
+      await storage.logAudit({
+        actorId: userId,
+        action: 'create',
+        objectType: 'job',
+        objectId: job.id,
+        before: null,
+        after: { journeyId: journey.id, type: 'api_security', dryRun: params.apiSecurityConfig.dryRun },
+      });
+
+      log.info({ jobId: job.id, journeyId: journey.id, userId }, 'api_security job created');
+
+      return res.status(201).json({ id: job.id, journeyId: journey.id });
+    } catch (error) {
+      log.error({ err: error }, 'failed to create api_security job');
+      return res.status(500).json({ message: 'Falha ao criar jornada' });
     }
   });
 
