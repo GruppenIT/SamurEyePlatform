@@ -2020,3 +2020,54 @@ export interface ActiveTestResult {
   durationMs: number;
   credentialsUsed: number;       // how many creds participated (useful for telemetry)
 }
+
+// ============================================================================
+// Phase 14: Findings Runtime & Threat Integration — FIND-04 WebSocket events
+// ============================================================================
+
+/**
+ * jobEventSchema — Zod discriminated union for real-time job events pushed
+ * over WebSocket (`/api/v1/jobs/:jobId/ws`). 3 variants:
+ *
+ *   - stage_progress: per-stage completion event with count + duration
+ *   - findings_batch: batch of newly-discovered findings (max 20 per event)
+ *   - journey_complete: final event for the whole journey (jobId)
+ *
+ * Carry-forward from 14-CONTEXT.md §"WebSocket Events (FIND-04)":
+ *   - findings_batch.findings.max(20) — avoids massive JSON per event
+ *   - stage_progress.message.max(200) — pt-BR human-readable summary
+ *   - rate limit 10 events/sec/jobId — enforced by broadcaster (not schema)
+ */
+export const jobEventSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('stage_progress'),
+    stage: z.string(),
+    status: z.enum(['started', 'completed', 'failed']),
+    findingsDiscovered: z.number().int().min(0),
+    durationMs: z.number().int().min(0),
+    message: z.string().max(200),
+  }),
+  z.object({
+    type: z.literal('findings_batch'),
+    findings: z.array(z.object({
+      id: z.string(),
+      owaspCategory: z.string(),
+      severity: z.string(),
+      endpointPath: z.string(),
+      title: z.string(),
+    })).max(20),
+    batchNumber: z.number().int().min(1),
+    totalNewInBatch: z.number().int().min(0),
+  }),
+  z.object({
+    type: z.literal('journey_complete'),
+    jobId: z.string(),
+    apiId: z.string(),
+    totalFindings: z.number().int().min(0),
+    totalThreatsPromoted: z.number().int().min(0),
+    durationMs: z.number().int().min(0),
+    status: z.enum(['success', 'cancelled']),
+  }),
+]);
+
+export type JobEvent = z.infer<typeof jobEventSchema>;
