@@ -38,7 +38,7 @@ export const assetTypeEnum = pgEnum('asset_type', ['host', 'range', 'web_applica
 export const credentialTypeEnum = pgEnum('credential_type', ['ssh', 'wmi', 'omi', 'ad']);
 
 // Journey types enum
-export const journeyTypeEnum = pgEnum('journey_type', ['attack_surface', 'ad_security', 'edr_av', 'web_application']);
+export const journeyTypeEnum = pgEnum('journey_type', ['attack_surface', 'ad_security', 'edr_av', 'web_application', 'api_security']);
 
 // Schedule kinds enum
 export const scheduleKindEnum = pgEnum('schedule_kind', ['on_demand', 'once', 'recurring']);
@@ -183,6 +183,9 @@ export const journeys = pgTable("journeys", {
   targetSelectionMode: targetSelectionModeEnum("target_selection_mode").default('individual').notNull(),
   selectedTags: jsonb("selected_tags").$type<string[]>().default([]).notNull(),
   enableCveDetection: boolean("enable_cve_detection").default(true).notNull(), // For attack_surface journey
+  // Phase 15 JRNY-02 — journey api_security requires explicit test-authorization ack.
+  // Default false keeps existing journeys (attack_surface/ad_security/edr_av/web_application) unaffected.
+  authorizationAck: boolean("authorization_ack").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: varchar("created_by").references(() => users.id).notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
