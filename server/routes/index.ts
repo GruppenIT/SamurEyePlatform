@@ -86,6 +86,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Phase 15 SAFE-05 — /healthz/api-test-target for dryRun validation.
+  // NOT authenticated (infra-only endpoint). Hardcoded response — no DB queries.
+  // Path uses /healthz/ prefix (not /api/) so requireActiveSubscription middleware
+  // registered at line 37 does NOT intercept. Returns 4 mock findings covering
+  // all severities (low/medium/high/critical) with valid owasp_api_category values.
+  app.get('/healthz/api-test-target', (_req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      dryRun: true,
+      mockFindings: [
+        {
+          category: 'api9_inventory_2023',
+          severity: 'low',
+          title: 'Mock: Endpoint sem documentação detectado',
+        },
+        {
+          category: 'api8_misconfiguration_2023',
+          severity: 'medium',
+          title: 'Mock: CORS permissivo detectado',
+        },
+        {
+          category: 'api2_broken_auth_2023',
+          severity: 'high',
+          title: 'Mock: JWT alg:none aceito',
+        },
+        {
+          category: 'api1_bola_2023',
+          severity: 'critical',
+          title: 'Mock: BOLA — acesso cross-identity confirmado',
+        },
+      ],
+    });
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server for real-time updates
