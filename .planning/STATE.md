@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Completed 13-security-testing-active/13-03-PLAN.md — Wave 2 orchestrator
-last_updated: "2026-04-20T17:06:58.438Z"
+stopped_at: Completed 13-security-testing-active/13-04-PLAN.md — Phase 13 COMPLETE
+last_updated: "2026-04-20T17:14:58.088Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 30
-  completed_plans: 29
+  completed_plans: 30
   percent: 100
 ---
 
@@ -76,6 +76,7 @@ Progress: [██████████] 100%
 | Phase 13-security-testing-active P01 | 5m | 3 tasks | 18 files |
 | Phase 13-security-testing-active P02 | 6 | 5 tasks | 6 files |
 | Phase 13-security-testing-active P03 | 4 | 1 tasks | 1 files |
+| Phase 13-security-testing-active P04 | 6 | 4 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -165,6 +166,8 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 13-security-testing-active]: pairCredentials generic type {id} requires orchestrator to re-resolve full CredWithSecret from credsWithSecrets array after pairing
 - [Phase 13-security-testing-active]: identifyLowPrivCreds returns BflaCredentialSignal (no secret); orchestrator resolves full cred via .find() before buildAuthHeaders
 - [Phase 13-security-testing-active]: dryRun handling is orchestrator responsibility for all active stages; scanner interfaces don't carry dryRunFixturePath params
+- [Phase 13-security-testing-active]: Used actorId (not userId) in logAudit for POST /test/active — matches Phase 12 passive handler pattern
+- [Phase 13-security-testing-active]: UAT auto-approved in auto-mode: Steps 1-4 static checks pass; Steps 5-8 require live server (not available in CI)
 
 ### Pending Todos
 
@@ -176,6 +179,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T17:06:58.435Z
-Stopped at: Completed 13-security-testing-active/13-03-PLAN.md — Wave 2 orchestrator
+Last session: 2026-04-20T17:14:58.084Z
+Stopped at: Completed 13-security-testing-active/13-04-PLAN.md — Phase 13 COMPLETE
 Resume file: None
