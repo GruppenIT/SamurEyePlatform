@@ -59,7 +59,7 @@ Requirements for the API Discovery & Security Assessment milestone. Each maps to
 - [x] **JRNY-01**: `journey_type` enum gains `api_security` and jobs of that type route to the API journey executor
 - [x] **JRNY-02**: User must explicitly acknowledge authorization to test ("I have permission to test this API") before a journey starts; acknowledgment is persisted
 - [x] **JRNY-03**: User configures discovery toggles (spec-first, crawler, kiterunner) and testing toggles (misconfigs, auth, BOLA, BFLA, BOPLA, rate-limit, SSRF) via the wizard
-- [ ] **JRNY-04**: User can schedule recurring `api_security` journeys via the existing scheduler (no new scheduler code)
+- [x] **JRNY-04**: User can schedule recurring `api_security` journeys via the existing scheduler (no new scheduler code)
 - [x] **JRNY-05**: `POST /api/v1/jobs/{id}/abort` stops all child processes for a running API journey via AbortController
 
 ### Safety & Guard-rails (SAFE)
@@ -162,7 +162,7 @@ Which phases cover which requirements. Populated during roadmap creation 2026-04
 | JRNY-01 | Phase 15: Journey Orchestration & Safety | Complete |
 | JRNY-02 | Phase 15: Journey Orchestration & Safety | Complete |
 | JRNY-03 | Phase 15: Journey Orchestration & Safety | Complete |
-| JRNY-04 | Phase 15: Journey Orchestration & Safety | Pending |
+| JRNY-04 | Phase 15: Journey Orchestration & Safety | Complete |
 | JRNY-05 | Phase 15: Journey Orchestration & Safety | Complete |
 | SAFE-01 | Phase 15: Journey Orchestration & Safety | Complete |
 | SAFE-02 | Phase 15: Journey Orchestration & Safety | Complete |
