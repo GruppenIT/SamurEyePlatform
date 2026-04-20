@@ -20,6 +20,7 @@ import {
   FileBarChart,
   CreditCard,
   ClipboardList,
+  Globe,
 } from "lucide-react";
 
 interface NavItem {
@@ -53,6 +54,7 @@ const navGroups: NavGroup[] = [
     title: "Operações",
     items: [
       { href: "/journeys", label: "Jornadas", icon: Route },
+      { href: "/journeys/api", label: "API Discovery", icon: Globe },
       { href: "/schedules", label: "Agendamentos", icon: Clock },
       { href: "/jobs", label: "Jobs", icon: List },
     ],

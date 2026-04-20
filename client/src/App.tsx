@@ -18,6 +18,7 @@ import Assets from "@/pages/assets";
 import Hosts from "@/pages/hosts";
 import Credentials from "@/pages/credentials";
 import Journeys from "@/pages/journeys";
+import ApiDiscovery from "@/pages/api-discovery";
 import Schedules from "@/pages/schedules";
 import Jobs from "@/pages/jobs";
 import Threats from "@/pages/threats";
@@ -156,6 +157,7 @@ function Router() {
         <Route path="/hosts" component={Hosts} />
         <Route path="/credentials" component={Credentials} />
         <Route path="/journeys" component={Journeys} />
+        <Route path="/journeys/api" component={ApiDiscovery} />
         <Route path="/schedules" component={Schedules} />
         <Route path="/jobs" component={Jobs} />
         <Route path="/threats" component={Threats} />
