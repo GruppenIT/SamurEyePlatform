@@ -39,8 +39,8 @@ Requirements for the API Discovery & Security Assessment milestone. Each maps to
 
 ### Security Testing (TEST)
 
-- [ ] **TEST-01**: System runs Nuclei misconfiguration/exposure/graphql/cors templates without credentials (API8 Misconfiguration + API9 Inventory coverage)
-- [ ] **TEST-02**: System executes auth-failure tests (JWT `alg: none`, `kid` injection, token reuse, API key leakage in responses) when credentials are provided (API2)
+- [x] **TEST-01**: System runs Nuclei misconfiguration/exposure/graphql/cors templates without credentials (API8 Misconfiguration + API9 Inventory coverage)
+- [x] **TEST-02**: System executes auth-failure tests (JWT `alg: none`, `kid` injection, token reuse, API key leakage in responses) when credentials are provided (API2)
 - [ ] **TEST-03**: System performs BOLA tests (cross-identity object access) when two or more distinct credentials are supplied (API1)
 - [ ] **TEST-04**: System performs BFLA tests (admin-level endpoint/method access with a low-privilege credential) (API5)
 - [ ] **TEST-05**: System performs BOPLA / Mass Assignment tests (injects sensitive property names into PUT/PATCH bodies and inspects reflection) (API3)
@@ -149,8 +149,8 @@ Which phases cover which requirements. Populated during roadmap creation 2026-04
 | ENRH-01 | Phase 11: Discovery & Enrichment | Complete |
 | ENRH-02 | Phase 11: Discovery & Enrichment | Complete |
 | ENRH-03 | Phase 11: Discovery & Enrichment | Complete |
-| TEST-01 | Phase 12: Security Testing — Passive | Pending |
-| TEST-02 | Phase 12: Security Testing — Passive | Pending |
+| TEST-01 | Phase 12: Security Testing — Passive | Complete |
+| TEST-02 | Phase 12: Security Testing — Passive | Complete |
 | TEST-03 | Phase 13: Security Testing — Active | Pending |
 | TEST-04 | Phase 13: Security Testing — Active | Pending |
 | TEST-05 | Phase 13: Security Testing — Active | Pending |

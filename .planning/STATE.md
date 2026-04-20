@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
-stopped_at: Phase 12 context gathered
-last_updated: "2026-04-20T01:41:03.682Z"
+stopped_at: Completed 12-security-testing-passive-01-PLAN.md
+last_updated: "2026-04-20T11:57:41.951Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
   completed_phases: 4
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 26
+  completed_plans: 23
   percent: 100
 ---
 
@@ -69,6 +69,7 @@ Progress: [██████████] 100%
 | Phase 11-discovery-enrichment P04 | 4 | 2 tasks | 4 files |
 | Phase 11-discovery-enrichment P05 | 5 | 2 tasks | 4 files |
 | Phase 11-discovery-enrichment P06 | 6 | 2 tasks | 3 files |
+| Phase 12-security-testing-passive P01 | 7 | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,9 @@ Full decision log in PROJECT.md Key Decisions table. Recent decisions affecting 
 - [Phase 11-discovery-enrichment]: POST /api/v1/apis/:id/discover appended to registerApiRoutes(app) in apis.ts (not new route file) — consistent with Phase 9 barrel pattern
 - [Phase 11-discovery-enrichment]: Synthetic jobId via crypto.randomUUID() for Phase 11; Phase 15 replaces with real queue.enqueue() — explicitly documented in route JSDoc
 - [Phase 11-discovery-enrichment]: Human UAT smoke tests passed on real target — all 6 smoke tests confirmed green, no secrets in logs
+- [Phase 12-security-testing-passive]: apiPassiveTestOptsSchema uses .strict() on root and stages sub-object — mirrors discoverApiOptsSchema Phase 11 pattern
+- [Phase 12-security-testing-passive]: PassiveTestResult as TypeScript interface (not z.infer) — allows extension by Waves 2-3 without changing Zod schema boundary
+- [Phase 12-security-testing-passive]: Nyquist Wave 0: it.todo stubs created before implementation so Wave 1-3 can use them as automated verify targets
 
 ### Pending Todos
 
@@ -147,6 +151,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T01:41:03.677Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-security-testing-passive/12-CONTEXT.md
+Last session: 2026-04-20T11:57:41.947Z
+Stopped at: Completed 12-security-testing-passive-01-PLAN.md
+Resume file: None
