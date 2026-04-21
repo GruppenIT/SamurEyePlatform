@@ -1615,7 +1615,6 @@ class JourneyExecutorService {
     onProgress: ProgressCallback
   ): Promise<void> {
     const startedAt = Date.now();
-    const apiId: string | undefined = journey.params?.apiId;
     const params = journey.params ?? {};
 
     // ─── JRNY-02 ─── authorizationAck guard — MUST run before any scan
@@ -1623,9 +1622,28 @@ class JourneyExecutorService {
       throw new Error('Jornada api_security requer acknowledgment de autorização de teste');
     }
 
-    if (!apiId) {
-      throw new Error('Jornada api_security requer journey.params.apiId');
+    // ─── Resolve apiId — support both new format (params.apiId) and legacy wizard
+    // format (params.assetIds + params.targetBaseUrl without pre-registered API).
+    let resolvedApiId: string | undefined = params.apiId;
+    if (!resolvedApiId && params.targetBaseUrl && params.assetIds?.length > 0) {
+      const primaryAssetId = params.assetIds[0];
+      const existingApis = await storage.listApisByParent(primaryAssetId);
+      const existing = existingApis.find((a: any) => a.baseUrl === params.targetBaseUrl);
+      if (existing) {
+        resolvedApiId = existing.id;
+      } else {
+        const newApi = await storage.createApi(
+          { parentAssetId: primaryAssetId, baseUrl: params.targetBaseUrl, apiType: 'rest' } as any,
+          journey.createdBy,
+        );
+        resolvedApiId = newApi.id;
+      }
     }
+
+    if (!resolvedApiId) {
+      throw new Error('Jornada api_security requer journey.params.apiId ou assetIds+targetBaseUrl');
+    }
+    const apiId = resolvedApiId;
 
     // Verify API exists (fail-fast)
     const api = await storage.getApi(apiId);
@@ -1633,10 +1651,52 @@ class JourneyExecutorService {
       throw new Error(`API não encontrada: ${apiId}`);
     }
 
-    // ─── JRNY-03 ─── extract opts from journey.params (all optional with defaults)
-    const discoveryOpts: DiscoverApiOpts = params.discoveryOpts ?? { stages: {}, dryRun: false } as DiscoverApiOpts;
-    const passiveOpts: ApiPassiveTestOpts = params.passiveOpts ?? {};
-    const rawActiveOpts: ApiActiveTestOpts = params.activeOpts ?? {};
+    // ─── JRNY-03 ─── extract opts — support both new format (discoveryOpts/passiveOpts/activeOpts)
+    // and legacy apiSecurityConfig format from the wizard before Phase 15 fix.
+    let discoveryOpts: DiscoverApiOpts;
+    let passiveOpts: ApiPassiveTestOpts;
+    let rawActiveOpts: ApiActiveTestOpts;
+
+    if (params.discoveryOpts) {
+      discoveryOpts = params.discoveryOpts;
+      passiveOpts = params.passiveOpts ?? {};
+      rawActiveOpts = params.activeOpts ?? {};
+    } else if (params.apiSecurityConfig) {
+      const cfg = params.apiSecurityConfig;
+      discoveryOpts = {
+        stages: {
+          spec: cfg.discovery?.specFirst ?? true,
+          crawler: cfg.discovery?.crawler ?? true,
+          kiterunner: cfg.discovery?.kiterunner ?? false,
+          httpx: true,
+          arjun: false,
+        },
+        dryRun: cfg.dryRun ?? false,
+      } as DiscoverApiOpts;
+      passiveOpts = {
+        stages: {
+          nucleiPassive: cfg.testing?.misconfigs ?? true,
+          authFailure: cfg.testing?.auth ?? true,
+          api9Inventory: true,
+        },
+        dryRun: cfg.dryRun ?? false,
+      };
+      rawActiveOpts = {
+        stages: {
+          bola: cfg.testing?.bola ?? false,
+          bfla: cfg.testing?.bfla ?? false,
+          bopla: cfg.testing?.bopla ?? false,
+          rateLimit: cfg.testing?.rateLimit ?? false,
+          ssrf: cfg.testing?.ssrf ?? false,
+        },
+        destructiveEnabled: cfg.destructiveEnabled ?? false,
+        dryRun: cfg.dryRun ?? false,
+      };
+    } else {
+      discoveryOpts = { stages: {}, dryRun: false } as DiscoverApiOpts;
+      passiveOpts = {};
+      rawActiveOpts = {};
+    }
     const dryRun: boolean = Boolean(discoveryOpts.dryRun || passiveOpts.dryRun || rawActiveOpts.dryRun);
 
     // ─── SAFE-04 ─── audit start — credential UUIDs only (no secrets)

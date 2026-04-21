@@ -58,6 +58,40 @@ vi.mock('../../lib/logger', () => ({
   }),
 }));
 
+// Phase 14 additions — prevent heavy transitive chains from loading esbuild in vm context
+vi.mock('../../routes/middleware', () => ({
+  requireOperator: (req: any, res: any, next: any) => {
+    const role = req.user?.role;
+    if (role !== 'global_administrator' && role !== 'operator') {
+      return res.status(403).json({ message: 'Acesso negado.' });
+    }
+    next();
+  },
+  requireAnyRole: (req: any, res: any, next: any) => {
+    const role = req.user?.role;
+    if (!role || !['global_administrator', 'operator', 'readonly_analyst'].includes(role)) {
+      return res.status(403).json({ message: 'Acesso negado.' });
+    }
+    next();
+  },
+}));
+
+vi.mock('../../services/journeys/apiDiscovery', () => ({
+  discoverApi: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock('../../services/journeys/apiActiveTests', () => ({
+  runApiActiveTests: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock('../../services/threatPromotion', () => ({
+  promoteHighCriticalFindings: vi.fn().mockResolvedValue({ promoted: 0, linked: 0, skipped: 0 }),
+}));
+
+vi.mock('../../services/jobEventBroadcaster', () => ({
+  jobEventBroadcaster: { emit: vi.fn(), subscribe: vi.fn(), unsubscribe: vi.fn() },
+}));
+
 // ── Test helpers ─────────────────────────────────────────────────────────────
 
 function operatorUser() {

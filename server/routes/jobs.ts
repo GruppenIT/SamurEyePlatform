@@ -7,6 +7,7 @@ import { jobQueue } from "../services/jobQueue";
 import { processTracker } from "../services/processTracker";
 import { createLogger } from '../lib/logger';
 import { MAX_API_RATE_LIMIT } from '../services/rateLimiter';
+import type { DiscoverApiOpts, ApiPassiveTestOpts, ApiActiveTestOpts } from '@shared/schema';
 // Phase 14 FIND-04: WebSocket event broadcaster anchor.
 // TODO(14-04/Phase-15): Wire upgrade handler GET /api/v1/jobs/:jobId/ws
 //   wss.on('connection', (ws, req) => {
@@ -208,6 +209,64 @@ export function registerJobRoutes(app: Express) {
         });
       }
 
+      // Resolve apiId — find or auto-register API record for the primary asset + URL
+      const primaryAssetId = params.assetIds[0];
+      const targetUrl = params.targetBaseUrl;
+      let apiId: string;
+      if (targetUrl) {
+        const existingApis = await storage.listApisByParent(primaryAssetId);
+        const existing = existingApis.find(a => a.baseUrl === targetUrl);
+        if (existing) {
+          apiId = existing.id;
+        } else {
+          const newApi = await storage.createApi(
+            { parentAssetId: primaryAssetId, baseUrl: targetUrl, apiType: 'rest' } as any,
+            userId,
+          );
+          apiId = newApi.id;
+        }
+      } else {
+        const existingApis = await storage.listApisByParent(primaryAssetId);
+        if (existingApis.length === 0) {
+          return res.status(400).json({
+            message: 'Nenhuma API cadastrada para este ativo. Informe targetBaseUrl para registro automático.',
+          });
+        }
+        apiId = existingApis[0].id;
+      }
+
+      // Map apiSecurityConfig → executor opts
+      const cfg = params.apiSecurityConfig;
+      const discoveryOpts: DiscoverApiOpts = {
+        stages: {
+          spec: cfg.discovery.specFirst,
+          crawler: cfg.discovery.crawler,
+          kiterunner: cfg.discovery.kiterunner,
+          httpx: true,
+          arjun: false,
+        },
+        dryRun: cfg.dryRun,
+      };
+      const passiveOpts: ApiPassiveTestOpts = {
+        stages: {
+          nucleiPassive: cfg.testing.misconfigs,
+          authFailure: cfg.testing.auth,
+          api9Inventory: true,
+        },
+        dryRun: cfg.dryRun,
+      };
+      const activeOpts: ApiActiveTestOpts = {
+        stages: {
+          bola: cfg.testing.bola,
+          bfla: cfg.testing.bfla,
+          bopla: cfg.testing.bopla,
+          rateLimit: cfg.testing.rateLimit,
+          ssrf: cfg.testing.ssrf,
+        },
+        destructiveEnabled: cfg.destructiveEnabled,
+        dryRun: cfg.dryRun,
+      };
+
       // Create journey record
       const journey = await storage.createJourney(
         {
@@ -216,10 +275,14 @@ export function registerJobRoutes(app: Express) {
           type: "api_security",
           authorizationAck: true,
           params: {
+            apiId,
             assetIds: params.assetIds,
-            targetBaseUrl: params.targetBaseUrl,
+            targetBaseUrl: targetUrl,
             credentialId: params.credentialId,
-            apiSecurityConfig: params.apiSecurityConfig,
+            discoveryOpts,
+            passiveOpts,
+            activeOpts,
+            rateLimit: cfg.rateLimit,
           },
         } as any,
         userId,

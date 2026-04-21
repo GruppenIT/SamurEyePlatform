@@ -25,6 +25,7 @@ const mocks = vi.hoisted(() => ({
   getApi: vi.fn(),
   listEndpointsByApi: vi.fn(async () => []),
   createApi: vi.fn(),
+  listApisByParent: vi.fn(),
 }));
 
 vi.mock('../../server/storage', () => ({
@@ -39,6 +40,7 @@ vi.mock('../../server/storage', () => ({
     getApi: mocks.getApi,
     listEndpointsByApi: mocks.listEndpointsByApi,
     createApi: mocks.createApi,
+    listApisByParent: mocks.listApisByParent,
   },
 }));
 
@@ -133,6 +135,8 @@ describe('POST /api/v1/jobs — api_security type', () => {
     // Default happy-path mocks
     mocks.createJourney.mockResolvedValue({ id: 'jrny-1', name: 'Test Journey', type: 'api_security' });
     mocks.executeJobNow.mockResolvedValue({ id: 'job-1', status: 'queued' });
+    // Return existing api so apiId resolution doesn't need to create one
+    mocks.listApisByParent.mockResolvedValue([{ id: 'api-1', baseUrl: 'http://test.com', apiType: 'rest' }]);
   });
 
   it('POST with type="api_security" and authorizationAck=true creates job and returns 201', async () => {
@@ -238,8 +242,10 @@ describe('POST /api/v1/jobs — api_security type', () => {
       }),
     });
     expect(res.status).toBe(201);
-    // Verify createJourney was called with dryRun in config
+    // Verify createJourney was called with dryRun propagated to all opts
     const callArgs = mocks.createJourney.mock.calls[0][0];
-    expect(callArgs.params.apiSecurityConfig.dryRun).toBe(true);
+    expect(callArgs.params.discoveryOpts.dryRun).toBe(true);
+    expect(callArgs.params.passiveOpts.dryRun).toBe(true);
+    expect(callArgs.params.activeOpts.dryRun).toBe(true);
   });
 });
