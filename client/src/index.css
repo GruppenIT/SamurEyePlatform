@@ -3,99 +3,208 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================================================
+   LIGHT THEME (default / :root)
+   ========================================================= */
 :root {
   --radius: 8px;
 
-  /* Dark security theme - refined palette */
-  --background: hsl(222, 18%, 8%);
-  --foreground: hsl(210, 20%, 93%);
+  --background:         hsl(213, 27%, 97%);
+  --foreground:         hsl(222, 30%, 14%);
 
-  --card: hsl(222, 16%, 13%);
-  --card-foreground: hsl(210, 20%, 93%);
+  --card:               hsl(0, 0%, 100%);
+  --card-foreground:    hsl(222, 30%, 14%);
 
-  --popover: hsl(222, 16%, 13%);
+  --popover:            hsl(0, 0%, 100%);
+  --popover-foreground: hsl(222, 30%, 14%);
+
+  --primary:            hsl(197, 75%, 36%);
+  --primary-foreground: hsl(0, 0%, 100%);
+
+  --secondary:          hsl(213, 20%, 92%);
+  --secondary-foreground: hsl(222, 25%, 25%);
+
+  --muted:              hsl(213, 20%, 93%);
+  --muted-foreground:   hsl(222, 15%, 45%);
+
+  --accent:             hsl(45, 75%, 45%);
+  --accent-foreground:  hsl(0, 0%, 100%);
+
+  --destructive:        hsl(0, 72%, 51%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+
+  --border:             hsl(213, 20%, 88%);
+  --input:              hsl(213, 20%, 94%);
+  --ring:               hsl(197, 75%, 36%);
+
+  /* Chart colors */
+  --chart-1: hsl(197, 75%, 36%);
+  --chart-2: hsl(45, 75%, 45%);
+  --chart-3: hsl(0, 72%, 51%);
+  --chart-4: hsl(142, 55%, 35%);
+  --chart-5: hsl(280, 50%, 50%);
+
+  /* Sidebar */
+  --sidebar:                    hsl(218, 25%, 94%);
+  --sidebar-foreground:         hsl(222, 30%, 14%);
+  --sidebar-primary:            hsl(197, 75%, 36%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent:             hsl(213, 20%, 89%);
+  --sidebar-accent-foreground:  hsl(222, 25%, 25%);
+  --sidebar-border:             hsl(213, 20%, 85%);
+  --sidebar-ring:               hsl(197, 75%, 36%);
+
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Shadows — subtle for light bg */
+  --shadow-2xs: 0 1px 2px 0 hsl(222, 20%, 50%, 0.08);
+  --shadow-xs:  0 1px 3px 0 hsl(222, 20%, 50%, 0.10);
+  --shadow-sm:  0 1px 3px 0 hsl(222, 20%, 50%, 0.10), 0 1px 2px -1px hsl(222, 20%, 50%, 0.08);
+  --shadow:     0 2px 4px 0 hsl(222, 20%, 50%, 0.10), 0 1px 3px -1px hsl(222, 20%, 50%, 0.08);
+  --shadow-md:  0 4px 6px -1px hsl(222, 20%, 50%, 0.12), 0 2px 4px -2px hsl(222, 20%, 50%, 0.10);
+  --shadow-lg:  0 8px 16px -4px hsl(222, 20%, 50%, 0.15), 0 4px 6px -2px hsl(222, 20%, 50%, 0.10);
+  --shadow-xl:  0 16px 32px -8px hsl(222, 20%, 50%, 0.18), 0 8px 16px -4px hsl(222, 20%, 50%, 0.12);
+  --shadow-2xl: 0 24px 48px -12px hsl(222, 20%, 50%, 0.22);
+
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  /* Severity — lighter bg variants */
+  --severity-critical:        hsl(0, 75%, 50%);
+  --severity-critical-bg:     hsl(0, 75%, 50%, 0.10);
+  --severity-critical-border: hsl(0, 75%, 50%, 0.30);
+
+  --severity-high:        hsl(25, 85%, 45%);
+  --severity-high-bg:     hsl(25, 85%, 45%, 0.10);
+  --severity-high-border: hsl(25, 85%, 45%, 0.30);
+
+  --severity-medium:        hsl(45, 80%, 42%);
+  --severity-medium-bg:     hsl(45, 80%, 42%, 0.10);
+  --severity-medium-border: hsl(45, 80%, 42%, 0.30);
+
+  --severity-low:        hsl(142, 55%, 35%);
+  --severity-low-bg:     hsl(142, 55%, 35%, 0.10);
+  --severity-low-border: hsl(142, 55%, 35%, 0.30);
+
+  --severity-info:        hsl(210, 55%, 45%);
+  --severity-info-bg:     hsl(210, 55%, 45%, 0.10);
+  --severity-info-border: hsl(210, 55%, 45%, 0.30);
+
+  /* Status */
+  --status-open:         hsl(0, 75%, 50%);
+  --status-investigating: hsl(45, 80%, 42%);
+  --status-mitigated:    hsl(197, 75%, 36%);
+  --status-closed:       hsl(142, 55%, 35%);
+  --status-hibernated:   hsl(280, 50%, 50%);
+  --status-accepted:     hsl(210, 55%, 45%);
+
+  /* Sidebar interactive states (var-based) */
+  --sidebar-item-hover: hsl(213, 20%, 89%);
+  --sidebar-item-active-bg: hsl(197, 75%, 36%, 0.12);
+  --sidebar-item-active-border: hsl(197, 75%, 36%);
+
+  /* Metric card gradient */
+  --metric-card-gradient-from: var(--card);
+  --metric-card-gradient-to: hsl(213, 20%, 97%);
+}
+
+/* =========================================================
+   DARK THEME (.dark on <html>)
+   ========================================================= */
+.dark {
+  --background:         hsl(222, 18%, 8%);
+  --foreground:         hsl(210, 20%, 93%);
+
+  --card:               hsl(222, 16%, 13%);
+  --card-foreground:    hsl(210, 20%, 93%);
+
+  --popover:            hsl(222, 16%, 13%);
   --popover-foreground: hsl(210, 20%, 93%);
 
-  --primary: hsl(197, 75%, 48%);
+  --primary:            hsl(197, 75%, 48%);
   --primary-foreground: hsl(222, 18%, 8%);
 
-  --secondary: hsl(222, 16%, 17%);
+  --secondary:          hsl(222, 16%, 17%);
   --secondary-foreground: hsl(210, 20%, 85%);
 
-  --muted: hsl(222, 14%, 15%);
-  --muted-foreground: hsl(210, 12%, 72%);
+  --muted:              hsl(222, 14%, 15%);
+  --muted-foreground:   hsl(210, 12%, 72%);
 
-  --accent: hsl(45, 80%, 60%);
-  --accent-foreground: hsl(222, 18%, 8%);
+  --accent:             hsl(45, 80%, 60%);
+  --accent-foreground:  hsl(222, 18%, 8%);
 
-  --destructive: hsl(0, 75%, 55%);
+  --destructive:        hsl(0, 75%, 55%);
   --destructive-foreground: hsl(210, 20%, 95%);
 
-  --border: hsl(222, 14%, 22%);
-  --input: hsl(222, 14%, 17%);
-  --ring: hsl(197, 75%, 48%);
+  --border:             hsl(222, 14%, 22%);
+  --input:              hsl(222, 14%, 17%);
+  --ring:               hsl(197, 75%, 48%);
 
-  /* Chart colors - softer */
   --chart-1: hsl(197, 75%, 48%);
   --chart-2: hsl(45, 80%, 60%);
   --chart-3: hsl(0, 75%, 55%);
   --chart-4: hsl(142, 60%, 40%);
   --chart-5: hsl(280, 55%, 58%);
 
-  /* Sidebar - slightly darker than content */
-  --sidebar: hsl(222, 18%, 10%);
-  --sidebar-foreground: hsl(210, 20%, 93%);
-  --sidebar-primary: hsl(197, 75%, 48%);
+  --sidebar:                    hsl(222, 18%, 10%);
+  --sidebar-foreground:         hsl(210, 20%, 93%);
+  --sidebar-primary:            hsl(197, 75%, 48%);
   --sidebar-primary-foreground: hsl(222, 18%, 8%);
-  --sidebar-accent: hsl(222, 16%, 17%);
-  --sidebar-accent-foreground: hsl(210, 20%, 85%);
-  --sidebar-border: hsl(222, 14%, 18%);
-  --sidebar-ring: hsl(197, 75%, 48%);
+  --sidebar-accent:             hsl(222, 16%, 17%);
+  --sidebar-accent-foreground:  hsl(210, 20%, 85%);
+  --sidebar-border:             hsl(222, 14%, 18%);
+  --sidebar-ring:               hsl(197, 75%, 48%);
 
-  --font-sans: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-
-  /* Shadows - real depth for dark theme */
   --shadow-2xs: 0 1px 2px 0 hsl(0, 0%, 0%, 0.15);
-  --shadow-xs: 0 1px 3px 0 hsl(0, 0%, 0%, 0.2);
-  --shadow-sm: 0 1px 3px 0 hsl(0, 0%, 0%, 0.2), 0 1px 2px -1px hsl(0, 0%, 0%, 0.15);
-  --shadow: 0 2px 4px 0 hsl(0, 0%, 0%, 0.2), 0 1px 3px -1px hsl(0, 0%, 0%, 0.15);
-  --shadow-md: 0 4px 6px -1px hsl(0, 0%, 0%, 0.25), 0 2px 4px -2px hsl(0, 0%, 0%, 0.2);
-  --shadow-lg: 0 8px 16px -4px hsl(0, 0%, 0%, 0.3), 0 4px 6px -2px hsl(0, 0%, 0%, 0.2);
-  --shadow-xl: 0 16px 32px -8px hsl(0, 0%, 0%, 0.35), 0 8px 16px -4px hsl(0, 0%, 0%, 0.2);
-  --shadow-2xl: 0 24px 48px -12px hsl(0, 0%, 0%, 0.4);
+  --shadow-xs:  0 1px 3px 0 hsl(0, 0%, 0%, 0.20);
+  --shadow-sm:  0 1px 3px 0 hsl(0, 0%, 0%, 0.20), 0 1px 2px -1px hsl(0, 0%, 0%, 0.15);
+  --shadow:     0 2px 4px 0 hsl(0, 0%, 0%, 0.20), 0 1px 3px -1px hsl(0, 0%, 0%, 0.15);
+  --shadow-md:  0 4px 6px -1px hsl(0, 0%, 0%, 0.25), 0 2px 4px -2px hsl(0, 0%, 0%, 0.20);
+  --shadow-lg:  0 8px 16px -4px hsl(0, 0%, 0%, 0.30), 0 4px 6px -2px hsl(0, 0%, 0%, 0.20);
+  --shadow-xl:  0 16px 32px -8px hsl(0, 0%, 0%, 0.35), 0 8px 16px -4px hsl(0, 0%, 0%, 0.20);
+  --shadow-2xl: 0 24px 48px -12px hsl(0, 0%, 0%, 0.40);
 
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
-
-  /* Semantic severity colors - single source of truth */
-  --severity-critical: hsl(0, 75%, 55%);
-  --severity-critical-bg: hsl(0, 75%, 55%, 0.12);
+  --severity-critical:        hsl(0, 75%, 55%);
+  --severity-critical-bg:     hsl(0, 75%, 55%, 0.12);
   --severity-critical-border: hsl(0, 75%, 55%, 0.25);
 
-  --severity-high: hsl(25, 85%, 50%);
-  --severity-high-bg: hsl(25, 85%, 50%, 0.12);
+  --severity-high:        hsl(25, 85%, 50%);
+  --severity-high-bg:     hsl(25, 85%, 50%, 0.12);
   --severity-high-border: hsl(25, 85%, 50%, 0.25);
 
-  --severity-medium: hsl(45, 80%, 55%);
-  --severity-medium-bg: hsl(45, 80%, 55%, 0.12);
+  --severity-medium:        hsl(45, 80%, 55%);
+  --severity-medium-bg:     hsl(45, 80%, 55%, 0.12);
   --severity-medium-border: hsl(45, 80%, 55%, 0.25);
 
-  --severity-low: hsl(142, 60%, 40%);
-  --severity-low-bg: hsl(142, 60%, 40%, 0.12);
+  --severity-low:        hsl(142, 60%, 40%);
+  --severity-low-bg:     hsl(142, 60%, 40%, 0.12);
   --severity-low-border: hsl(142, 60%, 40%, 0.25);
 
-  --severity-info: hsl(210, 50%, 55%);
-  --severity-info-bg: hsl(210, 50%, 55%, 0.12);
+  --severity-info:        hsl(210, 50%, 55%);
+  --severity-info-bg:     hsl(210, 50%, 55%, 0.12);
   --severity-info-border: hsl(210, 50%, 55%, 0.25);
 
-  /* Status colors */
-  --status-open: hsl(0, 75%, 55%);
+  --status-open:          hsl(0, 75%, 55%);
   --status-investigating: hsl(45, 80%, 55%);
-  --status-mitigated: hsl(197, 75%, 48%);
-  --status-closed: hsl(142, 60%, 40%);
-  --status-hibernated: hsl(280, 55%, 58%);
-  --status-accepted: hsl(210, 50%, 55%);
+  --status-mitigated:     hsl(197, 75%, 48%);
+  --status-closed:        hsl(142, 60%, 40%);
+  --status-hibernated:    hsl(280, 55%, 58%);
+  --status-accepted:      hsl(210, 50%, 55%);
+
+  --sidebar-item-hover:         hsl(222, 16%, 17%);
+  --sidebar-item-active-bg:     hsl(197, 75%, 48%, 0.15);
+  --sidebar-item-active-border: hsl(197, 75%, 48%);
+
+  --metric-card-gradient-from: var(--card);
+  --metric-card-gradient-to:   hsl(222, 14%, 15%);
+}
+
+/* =========================================================
+   THEME TRANSITION — smooth swap on toggle
+   ========================================================= */
+html.theme-transitioning * {
+  transition: background-color 150ms ease, border-color 150ms ease, color 100ms ease !important;
 }
 
 @layer base {
@@ -108,7 +217,9 @@
   }
 }
 
-/* Status indicators */
+/* =========================================================
+   STATUS INDICATORS
+   ========================================================= */
 .status-indicator {
   width: 10px;
   height: 10px;
@@ -118,40 +229,48 @@
 
 .status-success { background-color: var(--severity-low); }
 .status-warning { background-color: var(--severity-medium); }
-.status-error { background-color: var(--severity-critical); }
-.status-info { background-color: var(--primary); }
+.status-error   { background-color: var(--severity-critical); }
+.status-info    { background-color: var(--primary); }
 .status-pending { background-color: var(--muted-foreground); }
 
-/* Sidebar styles */
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
 .sidebar-item:hover {
-  background-color: hsl(222, 16%, 17%);
+  background-color: var(--sidebar-item-hover);
 }
 
 .sidebar-item.active {
-  background-color: hsl(197, 75%, 48%, 0.15);
-  border-right: 3px solid hsl(197, 75%, 48%);
+  background-color: var(--sidebar-item-active-bg);
+  border-right: 3px solid var(--sidebar-item-active-border);
 }
 
-/* Metric card gradient */
+/* =========================================================
+   METRIC CARD
+   ========================================================= */
 .metric-card {
-  background: linear-gradient(135deg, var(--card) 0%, hsl(222, 14%, 15%) 100%);
+  background: linear-gradient(135deg, var(--metric-card-gradient-from) 0%, var(--metric-card-gradient-to) 100%);
   border: 1px solid var(--border);
 }
 
-/* Threat severity left-border indicators */
+/* =========================================================
+   THREAT SEVERITY BORDERS
+   ========================================================= */
 .threat-critical { border-left: 4px solid var(--severity-critical); }
-.threat-high { border-left: 4px solid var(--severity-high); }
-.threat-medium { border-left: 4px solid var(--severity-medium); }
-.threat-low { border-left: 4px solid var(--severity-low); }
+.threat-high     { border-left: 4px solid var(--severity-high); }
+.threat-medium   { border-left: 4px solid var(--severity-medium); }
+.threat-low      { border-left: 4px solid var(--severity-low); }
 
-/* Animations */
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
 .pulse-animation {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: .5; }
+  50%       { opacity: .5; }
 }
 
 .job-running {
@@ -161,25 +280,19 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
 
-/* Scrollbar - refined */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: hsl(222, 14%, 22%);
+  background: var(--border);
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(222, 14%, 30%);
+  background: var(--muted-foreground);
 }

@@ -55,9 +55,10 @@ export class SettingsService {
   }
 
   /**
-   * Obtém configurações específicas para higiene AD
+   * Obtém configurações de higiene AD.
+   * journeyParams pode fornecer overrides por-jornada; valores ausentes fazem fallback para o setting global.
    */
-  static async getADHygieneSettings(): Promise<SystemSettings> {
+  static async getADHygieneSettings(journeyParams?: Record<string, any>): Promise<SystemSettings> {
     try {
       const [
         passwordAgeLimit,
@@ -72,19 +73,22 @@ export class SettingsService {
       ]);
 
       return {
-        adPasswordAgeLimitDays: passwordAgeLimit?.value || 90,
-        adInactiveUserLimitDays: inactiveUserLimit?.value || 180,
-        adMaxPrivilegedGroupMembers: maxPrivilegedMembers?.value || 5,
-        adComputerInactiveDays: computerInactiveDays?.value || 90,
+        adPasswordAgeLimitDays:
+          journeyParams?.passwordAgeLimitDays ?? passwordAgeLimit?.value ?? 90,
+        adInactiveUserLimitDays:
+          journeyParams?.inactiveUserLimitDays ?? inactiveUserLimit?.value ?? 180,
+        adMaxPrivilegedGroupMembers:
+          journeyParams?.maxPrivilegedGroupMembers ?? maxPrivilegedMembers?.value ?? 5,
+        adComputerInactiveDays:
+          journeyParams?.computerInactiveDays ?? computerInactiveDays?.value ?? 90,
       };
     } catch (error) {
       log.error({ err: error }, 'erro ao obter configurações AD');
-      // Retornar valores padrão em caso de erro
       return {
-        adPasswordAgeLimitDays: 90,
-        adInactiveUserLimitDays: 180,
-        adMaxPrivilegedGroupMembers: 5,
-        adComputerInactiveDays: 90,
+        adPasswordAgeLimitDays:   journeyParams?.passwordAgeLimitDays   ?? 90,
+        adInactiveUserLimitDays:  journeyParams?.inactiveUserLimitDays  ?? 180,
+        adMaxPrivilegedGroupMembers: journeyParams?.maxPrivilegedGroupMembers ?? 5,
+        adComputerInactiveDays:   journeyParams?.computerInactiveDays   ?? 90,
       };
     }
   }

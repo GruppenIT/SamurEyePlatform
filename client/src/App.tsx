@@ -3,11 +3,11 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Shield, AlertTriangle, RefreshCw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import NotFound from "@/pages/not-found";
-import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import ChangePassword from "@/pages/change-password";
 import ForgotPassword from "@/pages/forgot-password";
@@ -113,11 +113,9 @@ function Router() {
   if (!isAuthenticated) {
     return (
       <Switch>
-        <Route path="/" component={Landing} />
         <Route path="/login" component={Login} />
         <Route path="/forgot-password" component={ForgotPassword} />
         <Route path="/reset-password" component={ResetPassword} />
-        {/* Redirect any other path to login */}
         <Route>{() => <Redirect to="/login" />}</Route>
       </Switch>
     );
@@ -146,7 +144,6 @@ function Router() {
     <>
       <SetupAdminBanner />
       <Switch>
-        {/* Landing */}
         <Route path="/" component={Postura} />
         <Route path="/postura" component={Postura} />
 
@@ -187,6 +184,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
+      <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -198,6 +196,7 @@ function App() {
           </div>
         </TooltipProvider>
       </QueryClientProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

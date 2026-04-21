@@ -173,6 +173,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         params.credentialId = form.getValues('params.credentialId');
         params.primaryDC = form.getValues('params.primaryDC');
         params.secondaryDC = form.getValues('params.secondaryDC');
+        // Thresholds de validação (com fallback para defaults globais)
+        params.passwordAgeLimitDays = parseInt(form.getValues('params.passwordAgeLimitDays')) || 90;
+        params.inactiveUserLimitDays = parseInt(form.getValues('params.inactiveUserLimitDays')) || 180;
+        params.maxPrivilegedGroupMembers = parseInt(form.getValues('params.maxPrivilegedGroupMembers')) || 5;
+        params.computerInactiveDays = parseInt(form.getValues('params.computerInactiveDays')) || 90;
         // Categorias de testes habilitadas (padrão: todas)
         params.enabledCategories = {
           configuracoes_criticas: form.getValues('params.enabledCategories.configuracoes_criticas') ?? true,
@@ -770,6 +775,98 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                   />
                 </div>
 
+              </div>
+            </div>
+
+            {/* Seção: Parâmetros de Validação */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">
+                Parâmetros de Validação
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Thresholds usados para classificar achados nesta jornada. Deixe em branco para usar os valores globais.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="params.passwordAgeLimitDays"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Limite de idade de senha (dias)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="90"
+                          {...field}
+                          data-testid="input-ad-password-age"
+                        />
+                      </FormControl>
+                      <FormDescription>Senha mais velha que N dias = achado</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="params.inactiveUserLimitDays"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Limite de inatividade de usuário (dias)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="180"
+                          {...field}
+                          data-testid="input-ad-inactive-user"
+                        />
+                      </FormControl>
+                      <FormDescription>Usuário sem login há N dias = inativo</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="params.maxPrivilegedGroupMembers"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Máx. membros em grupo privilegiado</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="5"
+                          {...field}
+                          data-testid="input-ad-max-priv"
+                        />
+                      </FormControl>
+                      <FormDescription>Acima de N membros = excesso de privilégio</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="params.computerInactiveDays"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Inatividade de computador (dias)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="90"
+                          {...field}
+                          data-testid="input-ad-computer-inactive"
+                        />
+                      </FormControl>
+                      <FormDescription>Computador sem comunicação há N dias = inativo</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
           </div>

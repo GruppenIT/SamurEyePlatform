@@ -667,8 +667,17 @@ export default function Settings() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    <Alert>
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription>
+                        Estes valores são os <strong>defaults globais</strong>. Para configurar por jornada, use a seção
+                        {" "}<strong>Parâmetros de Validação</strong> no formulário de criação/edição de cada jornada AD Security.
+                        Os valores da jornada têm prioridade sobre estes defaults.
+                      </AlertDescription>
+                    </Alert>
+
                     <div>
-                      <Label htmlFor="adPasswordAgeThreshold">Limite Idade da Senha (dias)</Label>
+                      <Label htmlFor="adPasswordAgeThreshold">Limite Idade da Senha — padrão global (dias)</Label>
                       <Input
                         id="adPasswordAgeThreshold"
                         type="number"
@@ -677,12 +686,12 @@ export default function Settings() {
                         data-testid="input-ad-password-age"
                       />
                       <p className="text-sm text-muted-foreground mt-1">
-                        Alertar sobre senhas não alteradas há X dias
+                        Alertar sobre senhas não alteradas há X dias (usado quando a jornada não define o valor)
                       </p>
                     </div>
 
                     <div>
-                      <Label htmlFor="adInactiveUserThreshold">Limite Usuário Inativo (dias)</Label>
+                      <Label htmlFor="adInactiveUserThreshold">Limite Usuário Inativo — padrão global (dias)</Label>
                       <Input
                         id="adInactiveUserThreshold"
                         type="number"
@@ -691,7 +700,7 @@ export default function Settings() {
                         data-testid="input-ad-inactive-user"
                       />
                       <p className="text-sm text-muted-foreground mt-1">
-                        Alertar sobre usuários sem login há X dias
+                        Alertar sobre usuários sem login há X dias (usado quando a jornada não define o valor)
                       </p>
                     </div>
                   </CardContent>

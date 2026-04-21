@@ -279,4 +279,35 @@ export function registerUserRoutes(app: Express) {
       res.status(500).json({ message: "Falha ao revogar todas as sessões" });
     }
   });
+
+  // UI preferences — any authenticated user, scoped to own account
+  app.get('/api/user/preferences', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const prefs = await storage.getUserPreferences(req.user.id);
+      res.json(prefs ?? {});
+    } catch (error) {
+      log.error({ err: error }, 'failed to get user preferences');
+      res.status(500).json({ message: 'Falha ao buscar preferências' });
+    }
+  });
+
+  app.patch('/api/user/preferences', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    try {
+      const { theme, sidebarCollapsed } = req.body;
+      const allowed = ['light', 'dark', 'system'];
+      const prefs: { theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean } = {};
+      if (theme !== undefined) {
+        if (!allowed.includes(theme)) return res.status(400).json({ message: 'Tema inválido' });
+        prefs.theme = theme;
+      }
+      if (sidebarCollapsed !== undefined) {
+        prefs.sidebarCollapsed = Boolean(sidebarCollapsed);
+      }
+      await storage.updateUserPreferences(req.user.id, prefs);
+      res.json({ ok: true });
+    } catch (error) {
+      log.error({ err: error }, 'failed to update user preferences');
+      res.status(500).json({ message: 'Falha ao salvar preferências' });
+    }
+  });
 }

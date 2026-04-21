@@ -73,6 +73,8 @@ export interface IStorage {
   setUserMfa(id: string, data: { mfaEnabled: boolean; mfaSecretEncrypted: string | null; mfaSecretDek: string | null; mfaBackupCodes: string[] | null; mfaEnabledAt: Date | null }): Promise<void>;
   updateBackupCodes(id: string, codes: string[]): Promise<void>;
   dismissMfaInvitation(id: string): Promise<void>;
+  updateUserPreferences(id: string, prefs: { theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean }): Promise<void>;
+  getUserPreferences(id: string): Promise<{ theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean } | null>;
 
   // Asset operations
   getAssets(): Promise<Asset[]>;

@@ -140,6 +140,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastLogin: timestamp("last_login"),
+  uiPreferences: jsonb("ui_preferences").$type<{ theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean }>(),
 });
 
 // Assets table

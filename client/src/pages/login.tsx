@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -12,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useTheme } from "@/hooks/useTheme";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -25,6 +25,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { resolvedTheme } = useTheme();
 
   const featuresQuery = useQuery<{ passwordRecoveryAvailable: boolean }>({
     queryKey: ["/api/auth/features"],
@@ -33,10 +34,7 @@ export default function Login() {
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
   const loginMutation = useMutation({
@@ -51,11 +49,7 @@ export default function Login() {
         setLocation("/mfa-challenge");
         return;
       }
-
-      // Invalida cache de usuário e redireciona
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-
-      // Verifica se precisa trocar senha
       if (data?.user?.mustChangePassword) {
         setLocation("/change-password");
       } else {
@@ -72,22 +66,42 @@ export default function Login() {
     loginMutation.mutate(data);
   };
 
+  const logoSrc = resolvedTheme === 'dark' ? '/Logos_white.png' : '/logo.png';
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center">
-              <Shield className="w-8 h-8 text-primary-foreground" />
-            </div>
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{
+        backgroundImage: "url('/Logon_bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/40" />
+
+      <Card className="relative z-10 w-full max-w-md shadow-2xl bg-card/95 backdrop-blur-sm border-border">
+        <CardContent className="pt-8 pb-8 px-8">
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <img
+              src={logoSrc}
+              alt="SamurEye"
+              className="h-12 object-contain"
+              onError={(e) => {
+                // Fallback: hide broken image
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
           </div>
-          <CardTitle className="text-2xl font-bold">SamurEye</CardTitle>
-          <CardDescription>
+
+          <h1 className="text-xl font-semibold text-foreground text-center mb-1">
+            Bem-vindo de volta
+          </h1>
+          <p className="text-sm text-muted-foreground text-center mb-6">
             Entre na sua conta para acessar a plataforma
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+
           {error && (
             <Alert className="mb-4" variant="destructive">
               <AlertDescription>{error}</AlertDescription>
@@ -141,9 +155,9 @@ export default function Login() {
                           data-testid="button-toggle-password"
                         >
                           {showPassword ? (
-                            <EyeOff className="h-4 w-4" />
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
                           ) : (
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-4 w-4 text-muted-foreground" />
                           )}
                         </Button>
                       </div>
@@ -155,26 +169,25 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full mt-2"
                 disabled={loginMutation.isPending}
                 data-testid="button-submit"
               >
                 {loginMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Fazer Login
+                Entrar
               </Button>
 
               {featuresQuery.data?.passwordRecoveryAvailable && (
-                <div className="text-center text-sm">
+                <p className="text-center text-sm text-muted-foreground">
                   <Link href="/forgot-password" className="text-primary hover:underline" data-testid="link-forgot-password">
                     Esqueci minha senha
                   </Link>
-                </div>
+                </p>
               )}
             </form>
           </Form>
-
         </CardContent>
       </Card>
     </div>

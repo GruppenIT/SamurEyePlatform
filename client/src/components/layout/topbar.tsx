@@ -3,6 +3,7 @@ import { Search, Plus } from "lucide-react";
 import { Link } from "wouter";
 import SystemStatusPopup from "@/components/system-status-popup";
 import { UserMenu } from "@/components/account/user-menu";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface TopBarProps {
   title: string;
@@ -26,6 +27,7 @@ export default function TopBar({ title, subtitle, wsConnected = false, actions }
         <div className="flex items-center space-x-4">
           {/* System status popup (click to expand) */}
           <SystemStatusPopup wsConnected={wsConnected} />
+          <ThemeToggle />
 
           {/* Default actions or custom actions */}
           {actions || (
