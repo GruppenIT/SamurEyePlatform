@@ -40,6 +40,49 @@
 
 ---
 
+## Milestone: v2.0 — API Discovery & Security Assessment
+
+**Shipped:** 2026-04-21
+**Phases:** 9 (8-16) | **Plans:** 43 | **Timeline:** 3 dias (2026-04-18 → 2026-04-20)
+
+### What Was Built
+- Offline-capable appliance update path — `install.sh` hard-reset + tarball (124MB) com SHA-256 para 4 binários
+- API data model completo — `apis`, `api_endpoints`, `api_findings` + backfill automático de `web_application` existentes
+- Credential store para 7 tipos de auth com KEK/DEK, URL patterns, e prioridade por credential
+- Pipeline de discovery multi-método: OpenAPI 2/3/GraphQL + Katana + Kiterunner + httpx + Arjun
+- OWASP API Top 10 (2023) completo: Nuclei passivo + TypeScript stateful (BOLA/BFLA/BOPLA/rate-limit/SSRF)
+- Journey orchestration com safety guard-rails: authorizationAck, rate caps, gating destrutivo, audit log, abort
+- UI completa: `/journeys/api`, drill-down, OWASP badges, wizard 4-steps, curl "Reproduzir", false-positive marking
+
+### What Worked
+- Waves estruturadas (0-stubs → 1-core → 2-orchestrator → 3-public surface) mantiveram cada fase focada e testável
+- Reutilização de padrões existentes (KEK/DEK, parentAssetId, audit log, storage facade) acelerou fases 9-10 significativamente
+- Nyquist test stubs no Wave 0 de cada fase garantiram cobertura sem retrabalho
+- TypeScript stateful para BOLA/BFLA foi a decisão certa — Nuclei não conseguiria expressar esses vetores
+- 3 dias para 9 fases de complexidade alta = milestone mais rápido até agora
+
+### What Was Inefficient
+- Plans 12/13/14 "phase details" em ROADMAP.md vieram copiados errados do Phase 9 (bug de template no gsd-tools) — não afetou execução mas poluiu o arquivo
+- Fase 15 planos listados como 3/4 em ROADMAP.md progress table (erro de tracking)
+- Accomplishments do `milestone complete` CLI vieram vazios — extração de one_liners falhou (campo não serializado no frontmatter YAML)
+
+### Patterns Established
+- Wave 0 = Nyquist test stubs para toda a fase — garante que nenhuma feature sai sem teste escrito antes
+- `ensureXxxTables()` guard em cada nova entidade de schema — padrão de migração idempotente consolidado
+- SAFE_FIELDS projection em todo storage de credenciais — nunca retornar segredos por descuido
+- `__none__` sentinel para Radix Select sem empty-string — workaround validado para Radix UI
+
+### Key Lessons
+1. Fases com mais de 6 planos (Phase 11 com 7) podem ser divididas sem perder coesão — descoberta encadeada em sub-waves funciona bem
+2. Release tarball bundled (app + binários + wordlists) é o único modelo viável para appliances air-gapped — o pattern `build-release.sh + --from-tarball` deve ser padrão em todos os projetos
+3. authorizationAck persistido no banco (não apenas validado na UI) é o design correto — auditável e defensável
+
+### Cost Observations
+- Sessions: ~8-10 ao longo de 3 dias (Apr 18-20)
+- Notable: Maior milestone até agora em volume (9 fases, 43 planos, 292 arquivos) concluído em menos tempo que v1.1
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -48,15 +91,19 @@
 |-----------|--------|-------|------------|
 | v1.0 | 4 | 12 | Full product revision with GSD workflow |
 | v1.1 | 3 | 5 | Gap-driven scope, audit-before-close pattern |
+| v2.0 | 9 | 43 | Wave 0 Nyquist stubs enforced; offline tarball deploy model; OWASP security coverage |
 
 ### Cumulative Quality
 
-| Milestone | Tests | Snapshots | Test Files |
-|-----------|-------|-----------|------------|
-| v1.0 | ~280 | 25 | 17 |
-| v1.1 | 298 | 25 | 17 |
+| Milestone | Tests | Snapshots | Files Changed |
+|-----------|-------|-----------|---------------|
+| v1.0 | ~280 | 25 | 553 |
+| v1.1 | 298 | 25 | 46 |
+| v2.0 | 300+ | 25 | 292 |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. Additive schema changes prevent data loss and allow safe rollback — validated across both milestones
-2. Audit before closing milestones catches real gaps — v1.0 known gaps became v1.1 scope, v1.1 audit caught PARS-10 partial
+1. Additive schema changes prevent data loss and allow safe rollback — validated across all 3 milestones
+2. Audit before closing milestones catches real gaps — v1.0 known gaps became v1.1 scope
+3. Wave 0 test stubs are a forcing function for coverage — adopted in v2.0 and should be standard
+4. Reutilização de padrões internos (KEK/DEK, audit log, parentAssetId) amortize complexity across milestones — design investment pays off

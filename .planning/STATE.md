@@ -4,7 +4,7 @@ milestone: v2.0
 milestone_name: API Discovery & Security Assessment
 status: completed
 stopped_at: Completed 16-05-PLAN.md
-last_updated: "2026-04-20T22:18:59.580Z"
+last_updated: "2026-04-21T12:52:15.183Z"
 last_activity: "2026-04-20 — Plan 11-07 delivered POST /api/v1/apis/:id/discover route (RBAC+Zod+audit log) + CLI server/scripts/runApiDiscovery.ts + docs/operations/run-api-discovery.md; 8 route tests GREEN; human UAT confirmed 6 smoke tests passed on real target; Phase 11 complete"
 progress:
   total_phases: 9
@@ -18,10 +18,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-18)
+See: .planning/PROJECT.md (updated 2026-04-21)
 
 **Core value:** After running a security journey, the user must walk away with a prioritized, contextualized action plan — not a wall of raw findings.
-**Current focus:** v2.0 Phase 8 — Infrastructure & Install
+**Current focus:** v2.0 SHIPPED — Planning next milestone via `/gsd:new-milestone`
 
 ## Current Position
 
