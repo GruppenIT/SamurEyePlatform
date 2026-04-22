@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
 import JourneyForm from "@/components/forms/journey-form";
+import ApiSecurityWizard from "@/components/forms/api-security-wizard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -32,7 +39,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, Play, Route, Search as SearchIcon, Users, Worm, Globe, Eye } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Play, Route, Search as SearchIcon, Users, Worm, Globe, Eye, Code2, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { Journey } from "@shared/schema";
 import { JourneyFormData } from "@/types";
@@ -62,6 +69,7 @@ function DetectionBadge({ detected }: { detected: boolean | null }) {
 export default function Journeys() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showApiWizard, setShowApiWizard] = useState(false);
   const [editingJourney, setEditingJourney] = useState<Journey | null>(null);
   const [selectedJourneyId, setSelectedJourneyId] = useState<string | null>(null);
 
@@ -253,6 +261,8 @@ export default function Journeys() {
         return Worm;
       case 'web_application':
         return Globe;
+      case 'api_security':
+        return Code2;
       default:
         return Route;
     }
@@ -268,6 +278,8 @@ export default function Journeys() {
         return 'Teste EDR/AV';
       case 'web_application':
         return 'Web Application';
+      case 'api_security':
+        return 'API Security';
       default:
         return type;
     }
@@ -283,6 +295,8 @@ export default function Journeys() {
         return 'bg-chart-5/20 text-chart-5';
       case 'web_application':
         return 'bg-blue-500/20 text-blue-500';
+      case 'api_security':
+        return 'bg-emerald-500/20 text-emerald-600';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -293,19 +307,10 @@ export default function Journeys() {
       <Sidebar />
       
       <main className="flex-1 overflow-auto">
-        <TopBar 
+        <TopBar
           title="Gestão de Jornadas"
           subtitle="Configure e execute jornadas de validação de segurança"
           wsConnected={connected}
-          actions={
-            <Button
-              onClick={() => setShowCreateDialog(true)}
-              data-testid="button-create-journey"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Jornada
-            </Button>
-          }
         />
         
         <div className="p-6 space-y-6">
@@ -326,6 +331,25 @@ export default function Journeys() {
                 <Badge variant="secondary" data-testid="journeys-count">
                   {filteredJourneys.length} jornadas
                 </Badge>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button data-testid="button-create-journey">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Nova Jornada
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setShowCreateDialog(true)}>
+                      <Route className="mr-2 h-4 w-4" />
+                      Jornada de Segurança
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowApiWizard(true)}>
+                      <Code2 className="mr-2 h-4 w-4" />
+                      Jornada API Security
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardContent>
           </Card>
@@ -520,6 +544,9 @@ export default function Journeys() {
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* API Security Wizard */}
+      <ApiSecurityWizard open={showApiWizard} onOpenChange={setShowApiWizard} />
 
       {/* EDR Deployment Results Sheet */}
       <Sheet open={!!selectedJourneyId} onOpenChange={(open) => !open && setSelectedJourneyId(null)}>

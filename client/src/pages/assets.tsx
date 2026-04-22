@@ -352,15 +352,6 @@ export default function Assets() {
           title="Gestão de Alvos"
           subtitle="Configure e gerencie hosts e faixas de IP para monitoramento"
           wsConnected={connected}
-          actions={
-            <Button
-              onClick={() => setShowCreateDialog(true)}
-              data-testid="button-create-asset"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Alvo
-            </Button>
-          }
         />
 
         <div className="p-6 space-y-6">
@@ -397,6 +388,13 @@ export default function Assets() {
                 <Badge variant="secondary" data-testid="assets-count">
                   {filteredAssets.length} alvos
                 </Badge>
+                <Button
+                  onClick={() => setShowCreateDialog(true)}
+                  data-testid="button-create-asset"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Alvo
+                </Button>
               </div>
             </CardContent>
           </Card>

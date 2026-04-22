@@ -133,11 +133,6 @@ export default function ActionPlanPage() {
         <TopBar
           title="Planos de Ação"
           subtitle="Organize o trabalho de remediação em planos com responsáveis, status e comentários."
-          actions={
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Novo plano
-            </Button>
-          }
         />
         <main className="flex-1 overflow-y-auto p-6 space-y-4">
 
@@ -254,7 +249,11 @@ export default function ActionPlanPage() {
               Cancelados
             </label>
 
-            <div className="ml-auto inline-flex rounded-md border">
+            <div className="ml-auto flex items-center gap-2">
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Novo plano
+            </Button>
+            <div className="inline-flex rounded-md border">
               <Button
                 variant={view === "list" ? "secondary" : "ghost"}
                 size="sm"
@@ -273,6 +272,7 @@ export default function ActionPlanPage() {
               >
                 <LayoutGrid className="h-4 w-4" />
               </Button>
+            </div>
             </div>
           </div>
 

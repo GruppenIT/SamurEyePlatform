@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Plus } from "lucide-react";
 import { estimateRequests, type StageConfig } from "@shared/ui/estimateRequests";
 import type { Asset } from "@shared/schema";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -63,8 +63,48 @@ interface ApiSecurityWizardProps {
   onOpenChange: (open: boolean) => void;
 }
 
+type NewCredState = {
+  name: string;
+  authType: string;
+  secret: string;
+  apiKeyHeaderName: string;
+  apiKeyQueryParam: string;
+  basicUsername: string;
+  oauth2ClientId: string;
+  oauth2TokenUrl: string;
+  oauth2Scope: string;
+  oauth2Audience: string;
+  hmacKeyId: string;
+  hmacAlgorithm: string;
+  hmacSignatureHeader: string;
+  mtlsCert: string;
+  mtlsKey: string;
+  mtlsCa: string;
+};
+
+const defaultNewCred: NewCredState = {
+  name: "",
+  authType: "api_key_header",
+  secret: "",
+  apiKeyHeaderName: "X-API-Key",
+  apiKeyQueryParam: "api_key",
+  basicUsername: "",
+  oauth2ClientId: "",
+  oauth2TokenUrl: "",
+  oauth2Scope: "",
+  oauth2Audience: "",
+  hmacKeyId: "",
+  hmacAlgorithm: "HMAC-SHA256",
+  hmacSignatureHeader: "Authorization",
+  mtlsCert: "",
+  mtlsKey: "",
+  mtlsCa: "",
+};
+
 export default function ApiSecurityWizard({ open, onOpenChange }: ApiSecurityWizardProps) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [showNewCred, setShowNewCred] = useState(false);
+  const [newCred, setNewCred] = useState<NewCredState>(defaultNewCred);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -193,6 +233,66 @@ export default function ApiSecurityWizard({ open, onOpenChange }: ApiSecurityWiz
     },
   });
 
+  const createCredMutation = useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const res = await apiRequest("POST", "/api/v1/api-credentials", payload);
+      return await res.json();
+    },
+    onSuccess: (cred: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/api-credentials"] });
+      form.setValue("credentialId", cred.id);
+      setShowNewCred(false);
+      setNewCred(defaultNewCred);
+      toast({ title: "Credencial criada", description: `"${cred.name}" adicionada e selecionada.` });
+    },
+    onError: (err: any) => {
+      toast({ title: "Erro ao criar credencial", description: err?.message ?? "Falha ao salvar", variant: "destructive" });
+    },
+  });
+
+  const handleCreateCred = () => {
+    const { name, authType, secret, apiKeyHeaderName, apiKeyQueryParam, basicUsername,
+      oauth2ClientId, oauth2TokenUrl, oauth2Scope, oauth2Audience,
+      hmacKeyId, hmacAlgorithm, hmacSignatureHeader, mtlsCert, mtlsKey, mtlsCa } = newCred;
+
+    if (!name.trim()) {
+      toast({ title: "Campo obrigatório", description: "Informe um nome para a credencial.", variant: "destructive" });
+      return;
+    }
+
+    const base: Record<string, unknown> = { name, authType };
+
+    if (authType === "api_key_header") {
+      base.apiKeyHeaderName = apiKeyHeaderName;
+      base.secret = secret;
+    } else if (authType === "api_key_query") {
+      base.apiKeyQueryParam = apiKeyQueryParam;
+      base.secret = secret;
+    } else if (authType === "bearer_jwt") {
+      base.secret = secret;
+    } else if (authType === "basic") {
+      base.basicUsername = basicUsername;
+      base.secret = secret;
+    } else if (authType === "oauth2_client_credentials") {
+      base.oauth2ClientId = oauth2ClientId;
+      base.oauth2TokenUrl = oauth2TokenUrl;
+      if (oauth2Scope) base.oauth2Scope = oauth2Scope;
+      if (oauth2Audience) base.oauth2Audience = oauth2Audience;
+      base.secret = secret;
+    } else if (authType === "hmac") {
+      base.hmacKeyId = hmacKeyId;
+      base.hmacAlgorithm = hmacAlgorithm;
+      base.hmacSignatureHeader = hmacSignatureHeader || "Authorization";
+      base.secret = secret;
+    } else if (authType === "mtls") {
+      base.mtlsCert = mtlsCert;
+      base.mtlsKey = mtlsKey;
+      if (mtlsCa) base.mtlsCa = mtlsCa;
+    }
+
+    createCredMutation.mutate(base);
+  };
+
   const handleNext = async () => {
     if (step === 2) {
       const ok = await form.trigger("authorizationAck");
@@ -206,6 +306,7 @@ export default function ApiSecurityWizard({ open, onOpenChange }: ApiSecurityWiz
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="wizard-dialog">
         <DialogHeader>
@@ -337,16 +438,11 @@ export default function ApiSecurityWizard({ open, onOpenChange }: ApiSecurityWiz
                 <Button
                   variant="outline"
                   type="button"
-                  onClick={() =>
-                    toast({
-                      title: "Informação",
-                      description:
-                        "Abra /credentials em outra aba para criar uma nova credencial, então retorne ao wizard.",
-                    })
-                  }
+                  onClick={() => setShowNewCred(true)}
                   data-testid="button-new-credential"
                 >
-                  Criar nova credencial
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nova credencial API
                 </Button>
               </div>
               <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-md">
@@ -582,5 +678,245 @@ export default function ApiSecurityWizard({ open, onOpenChange }: ApiSecurityWiz
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {/* Inline dialog — create API credential */}
+    <Dialog open={showNewCred} onOpenChange={(o) => { setShowNewCred(o); if (!o) setNewCred(defaultNewCred); }}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Nova Credencial API</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div>
+            <Label>Nome *</Label>
+            <Input
+              value={newCred.name}
+              onChange={(e) => setNewCred((p) => ({ ...p, name: e.target.value }))}
+              placeholder="Ex: Prod API Key"
+            />
+          </div>
+
+          <div>
+            <Label>Tipo de autenticação *</Label>
+            <Select value={newCred.authType} onValueChange={(v) => setNewCred((p) => ({ ...p, authType: v }))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="api_key_header">API Key — Header</SelectItem>
+                <SelectItem value="api_key_query">API Key — Query Param</SelectItem>
+                <SelectItem value="bearer_jwt">Bearer / JWT</SelectItem>
+                <SelectItem value="basic">Basic (usuário + senha)</SelectItem>
+                <SelectItem value="oauth2_client_credentials">OAuth2 Client Credentials</SelectItem>
+                <SelectItem value="hmac">HMAC</SelectItem>
+                <SelectItem value="mtls">mTLS (certificado)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {newCred.authType === "api_key_header" && (
+            <>
+              <div>
+                <Label>Nome do header *</Label>
+                <Input
+                  value={newCred.apiKeyHeaderName}
+                  onChange={(e) => setNewCred((p) => ({ ...p, apiKeyHeaderName: e.target.value }))}
+                  placeholder="X-API-Key"
+                />
+              </div>
+              <div>
+                <Label>Valor da API Key *</Label>
+                <Input
+                  type="password"
+                  value={newCred.secret}
+                  onChange={(e) => setNewCred((p) => ({ ...p, secret: e.target.value }))}
+                  placeholder="sk-..."
+                />
+              </div>
+            </>
+          )}
+
+          {newCred.authType === "api_key_query" && (
+            <>
+              <div>
+                <Label>Parâmetro de query *</Label>
+                <Input
+                  value={newCred.apiKeyQueryParam}
+                  onChange={(e) => setNewCred((p) => ({ ...p, apiKeyQueryParam: e.target.value }))}
+                  placeholder="api_key"
+                />
+              </div>
+              <div>
+                <Label>Valor da API Key *</Label>
+                <Input
+                  type="password"
+                  value={newCred.secret}
+                  onChange={(e) => setNewCred((p) => ({ ...p, secret: e.target.value }))}
+                  placeholder="sk-..."
+                />
+              </div>
+            </>
+          )}
+
+          {newCred.authType === "bearer_jwt" && (
+            <div>
+              <Label>Token JWT *</Label>
+              <Textarea
+                value={newCred.secret}
+                onChange={(e) => setNewCred((p) => ({ ...p, secret: e.target.value }))}
+                placeholder="eyJ..."
+                rows={3}
+              />
+            </div>
+          )}
+
+          {newCred.authType === "basic" && (
+            <>
+              <div>
+                <Label>Usuário *</Label>
+                <Input
+                  value={newCred.basicUsername}
+                  onChange={(e) => setNewCred((p) => ({ ...p, basicUsername: e.target.value }))}
+                  placeholder="username"
+                />
+              </div>
+              <div>
+                <Label>Senha *</Label>
+                <Input
+                  type="password"
+                  value={newCred.secret}
+                  onChange={(e) => setNewCred((p) => ({ ...p, secret: e.target.value }))}
+                  placeholder="••••••••"
+                />
+              </div>
+            </>
+          )}
+
+          {newCred.authType === "oauth2_client_credentials" && (
+            <>
+              <div>
+                <Label>Client ID *</Label>
+                <Input
+                  value={newCred.oauth2ClientId}
+                  onChange={(e) => setNewCred((p) => ({ ...p, oauth2ClientId: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Token URL *</Label>
+                <Input
+                  value={newCred.oauth2TokenUrl}
+                  onChange={(e) => setNewCred((p) => ({ ...p, oauth2TokenUrl: e.target.value }))}
+                  placeholder="https://auth.example.com/token"
+                />
+              </div>
+              <div>
+                <Label>Client Secret *</Label>
+                <Input
+                  type="password"
+                  value={newCred.secret}
+                  onChange={(e) => setNewCred((p) => ({ ...p, secret: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Scope (opcional)</Label>
+                <Input
+                  value={newCred.oauth2Scope}
+                  onChange={(e) => setNewCred((p) => ({ ...p, oauth2Scope: e.target.value }))}
+                  placeholder="read:api write:api"
+                />
+              </div>
+              <div>
+                <Label>Audience (opcional)</Label>
+                <Input
+                  value={newCred.oauth2Audience}
+                  onChange={(e) => setNewCred((p) => ({ ...p, oauth2Audience: e.target.value }))}
+                />
+              </div>
+            </>
+          )}
+
+          {newCred.authType === "hmac" && (
+            <>
+              <div>
+                <Label>Key ID *</Label>
+                <Input
+                  value={newCred.hmacKeyId}
+                  onChange={(e) => setNewCred((p) => ({ ...p, hmacKeyId: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Algoritmo *</Label>
+                <Select value={newCred.hmacAlgorithm} onValueChange={(v) => setNewCred((p) => ({ ...p, hmacAlgorithm: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="HMAC-SHA1">HMAC-SHA1</SelectItem>
+                    <SelectItem value="HMAC-SHA256">HMAC-SHA256</SelectItem>
+                    <SelectItem value="HMAC-SHA512">HMAC-SHA512</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Header de assinatura</Label>
+                <Input
+                  value={newCred.hmacSignatureHeader}
+                  onChange={(e) => setNewCred((p) => ({ ...p, hmacSignatureHeader: e.target.value }))}
+                  placeholder="Authorization"
+                />
+              </div>
+              <div>
+                <Label>Secret key *</Label>
+                <Input
+                  type="password"
+                  value={newCred.secret}
+                  onChange={(e) => setNewCred((p) => ({ ...p, secret: e.target.value }))}
+                />
+              </div>
+            </>
+          )}
+
+          {newCred.authType === "mtls" && (
+            <>
+              <div>
+                <Label>Certificado (PEM) *</Label>
+                <Textarea
+                  value={newCred.mtlsCert}
+                  onChange={(e) => setNewCred((p) => ({ ...p, mtlsCert: e.target.value }))}
+                  placeholder="-----BEGIN CERTIFICATE-----"
+                  rows={4}
+                />
+              </div>
+              <div>
+                <Label>Chave privada (PEM) *</Label>
+                <Textarea
+                  value={newCred.mtlsKey}
+                  onChange={(e) => setNewCred((p) => ({ ...p, mtlsKey: e.target.value }))}
+                  placeholder="-----BEGIN PRIVATE KEY-----"
+                  rows={4}
+                />
+              </div>
+              <div>
+                <Label>CA (PEM, opcional)</Label>
+                <Textarea
+                  value={newCred.mtlsCa}
+                  onChange={(e) => setNewCred((p) => ({ ...p, mtlsCa: e.target.value }))}
+                  placeholder="-----BEGIN CERTIFICATE-----"
+                  rows={3}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => { setShowNewCred(false); setNewCred(defaultNewCred); }}>
+            Cancelar
+          </Button>
+          <Button onClick={handleCreateCred} disabled={createCredMutation.isPending}>
+            {createCredMutation.isPending ? "Salvando..." : "Criar Credencial"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

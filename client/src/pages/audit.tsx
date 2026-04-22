@@ -216,17 +216,6 @@ export default function Audit() {
           title="Log de Auditoria"
           subtitle="Acompanhe todas as ações administrativas do sistema"
           wsConnected={connected}
-          actions={
-            <Button
-              variant="outline"
-              onClick={handleExportCSV}
-              disabled={filteredAuditLog.length === 0}
-              data-testid="button-export-csv"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Exportar CSV
-            </Button>
-          }
         />
         
         <div className="p-6 space-y-6">
@@ -273,6 +262,15 @@ export default function Audit() {
                 <Badge variant="secondary" data-testid="audit-count">
                   {filteredAuditLog.length} entradas
                 </Badge>
+                <Button
+                  variant="outline"
+                  onClick={handleExportCSV}
+                  disabled={filteredAuditLog.length === 0}
+                  data-testid="button-export-csv"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Exportar CSV
+                </Button>
               </div>
             </CardContent>
           </Card>

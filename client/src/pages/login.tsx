@@ -66,7 +66,7 @@ export default function Login() {
     loginMutation.mutate(data);
   };
 
-  const logoSrc = resolvedTheme === 'dark' ? '/Logos_white.png' : '/logo.png';
+  const logoSrc = '/Logos_white.png';
 
   return (
     <div
@@ -80,7 +80,7 @@ export default function Login() {
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/40" />
 
-      <Card className="relative z-10 w-full max-w-md shadow-2xl bg-card/95 backdrop-blur-sm border-border">
+      <Card className="relative z-10 w-full max-w-md shadow-2xl bg-card backdrop-blur-sm border-border">
         <CardContent className="pt-8 pb-8 px-8">
           {/* Logo */}
           <div className="flex justify-center mb-8">
@@ -95,7 +95,7 @@ export default function Login() {
             />
           </div>
 
-          <h1 className="text-xl font-semibold text-foreground text-center mb-1">
+          <h1 className="text-xl font-bold text-card-foreground text-center mb-1">
             Bem-vindo de volta
           </h1>
           <p className="text-sm text-muted-foreground text-center mb-6">

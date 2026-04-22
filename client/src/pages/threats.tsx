@@ -1274,17 +1274,6 @@ export default function Threats() {
           title="Threat Intelligence"
           subtitle="Gerencie e analise ameacas identificadas pelo sistema"
           wsConnected={connected}
-          actions={
-            <Button
-              variant="outline"
-              onClick={handleExportCSV}
-              disabled={filteredThreats.length === 0}
-              data-testid="button-export-threats-csv"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Exportar CSV
-            </Button>
-          }
         />
 
         <div className="p-6 space-y-6">
@@ -1547,6 +1536,15 @@ export default function Threats() {
                 <Badge variant="secondary" data-testid="threats-count">
                   {filteredParents.length + filteredStandalone.length} grupos/ameacas
                 </Badge>
+                <Button
+                  variant="outline"
+                  onClick={handleExportCSV}
+                  disabled={filteredThreats.length === 0}
+                  data-testid="button-export-threats-csv"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Exportar CSV
+                </Button>
               </div>
             </CardContent>
           </Card>

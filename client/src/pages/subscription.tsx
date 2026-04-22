@@ -134,7 +134,6 @@ export default function Subscription() {
           title="Subscrição"
           subtitle="Gestão do plano e módulos habilitados"
           wsConnected={connected}
-          actions={<div />}
         />
 
         <main className="flex-1 overflow-auto p-8">

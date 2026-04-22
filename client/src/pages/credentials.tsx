@@ -200,19 +200,10 @@ export default function Credentials() {
       <Sidebar />
       
       <main className="flex-1 overflow-auto">
-        <TopBar 
+        <TopBar
           title="Gestão de Credenciais"
           subtitle="Configure credenciais para acesso seguro aos sistemas"
           wsConnected={connected}
-          actions={
-            <Button
-              onClick={() => setShowCreateDialog(true)}
-              data-testid="button-create-credential"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Credencial
-            </Button>
-          }
         />
         
         <div className="p-6 space-y-6">
@@ -233,6 +224,13 @@ export default function Credentials() {
                 <Badge variant="secondary" data-testid="credentials-count">
                   {filteredCredentials.length} credenciais
                 </Badge>
+                <Button
+                  onClick={() => setShowCreateDialog(true)}
+                  data-testid="button-create-credential"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nova Credencial
+                </Button>
               </div>
             </CardContent>
           </Card>

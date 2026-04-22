@@ -193,16 +193,6 @@ export default function Jobs() {
           title="Monitoramento de Jobs"
           subtitle="Acompanhe execucoes e resultados das jornadas"
           wsConnected={connected}
-          actions={
-            <Button
-              onClick={() => refetch()}
-              disabled={isLoading}
-              data-testid="button-refresh-jobs"
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              Atualizar
-            </Button>
-          }
         />
 
         <div className="p-6 space-y-6 overflow-auto h-[calc(100%-4rem)]">
@@ -234,6 +224,14 @@ export default function Jobs() {
             <Badge variant="secondary" data-testid="jobs-count">
               {filteredJobs.length} jobs
             </Badge>
+            <Button
+              onClick={() => refetch()}
+              disabled={isLoading}
+              data-testid="button-refresh-jobs"
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Atualizar
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

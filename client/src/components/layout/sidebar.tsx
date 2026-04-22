@@ -27,7 +27,6 @@ import {
   FileBarChart,
   CreditCard,
   ClipboardList,
-  Globe,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -63,7 +62,6 @@ const navGroups: NavGroup[] = [
     title: "Execução",
     items: [
       { href: "/journeys", label: "Jornadas", icon: Route },
-      { href: "/journeys/api", label: "API Discovery", icon: Globe },
       { href: "/schedules", label: "Agendamentos", icon: Clock },
       { href: "/jobs", label: "Jobs", icon: List },
     ],
@@ -144,7 +142,7 @@ export default function Sidebar() {
 
   const isAdmin = (user as any)?.role === "global_administrator";
 
-  const logoSrc = resolvedTheme === "dark" ? "/Logos_white.png" : "/logo.png";
+  const logoSrc = resolvedTheme === "dark" ? "/logo.png" : "/Logos_white.png";
 
   function NavLink({ item }: { item: NavItem }) {
     const isActive =

@@ -428,7 +428,10 @@ export default function Settings() {
           title="Configurações do Sistema"
           subtitle="Configure parâmetros globais e comportamentos do sistema"
           wsConnected={connected}
-          actions={
+        />
+        
+        <div className="p-6 space-y-6">
+          <div className="flex justify-end">
             <Button
               onClick={handleSave}
               disabled={updateSettingMutation.isPending}
@@ -437,10 +440,8 @@ export default function Settings() {
               <Save className="mr-2 h-4 w-4" />
               {updateSettingMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
-          }
-        />
-        
-        <div className="p-6 space-y-6">
+          </div>
+
           {isLoading ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
