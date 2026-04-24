@@ -20,6 +20,18 @@ import { preflightNuclei } from './journeys/nucleiPreflight';
 import { and, eq } from 'drizzle-orm';
 import { db } from '../db';
 
+// Phase 15 — api_security journey executor dependencies
+import { discoverApi } from './journeys/apiDiscovery';
+import { runApiPassiveTests } from './journeys/apiPassiveTests';
+import { runApiActiveTests } from './journeys/apiActiveTests';
+import { TokenBucketRateLimiter } from './rateLimiter';
+import { listApiCredentials, getApiCredential } from '../storage/apiCredentials';
+import type {
+  DiscoverApiOpts,
+  ApiPassiveTestOpts,
+  ApiActiveTestOpts,
+} from '@shared/schema';
+
 const log = createLogger('journey');
 const adScanner = new ADScanner();
 
@@ -97,6 +109,10 @@ class JourneyExecutorService {
         break;
       case 'web_application':
         await this.executeWebApplication(journey, jobId, onProgress);
+        break;
+      case 'api_security':
+        // Phase 15 JRNY-01 — wire api_security journey type
+        await this.executeApiSecurity(journey, jobId, onProgress);
         break;
       default:
         throw new Error(`Tipo de jornada não suportado: ${journey.type}`);
@@ -1565,6 +1581,300 @@ class JourneyExecutorService {
     }
     
     return ips;
+  }
+
+  /**
+   * Phase 15 — executeApiSecurity (JRNY-01, JRNY-02, JRNY-03, SAFE-03, SAFE-04, SAFE-06)
+   *
+   * Orchestrates the api_security journey by sequencing upstream phase outputs:
+   *   1. authorizationAck guard (JRNY-02) — throws on missing ack
+   *   2. audit log 'start' (SAFE-04) — with targets + credential UUIDs (no secrets)
+   *   3. discoverApi (Phase 11) — progress 20%
+   *   4. runApiPassiveTests (Phase 12) — progress 50%
+   *   5. destructive gate (SAFE-03) + runApiActiveTests (Phase 13) — progress 75%
+   *   6. audit log 'complete' (SAFE-04) — with outcome + findings + duration
+   *
+   * On error: audit log 'failed' + re-throw (executeJourney wrapper marks job failed).
+   *
+   * journey.params EXPECTED shape:
+   *   {
+   *     apiId: string (UUID of the API to scan),
+   *     discoveryOpts?: DiscoverApiOpts,
+   *     passiveOpts?: ApiPassiveTestOpts,
+   *     activeOpts?: ApiActiveTestOpts,
+   *     rateLimit?: number (default 10, clamped to MAX_API_RATE_LIMIT)
+   *   }
+   *
+   * SAFE-06 — This method NEVER logs: request bodies, credential values, JWT/API key
+   * tokens, authorization headers. Allowed log fields: jobId, apiId, endpointId, stage,
+   * duration, statusCode, findingId, severity, category, credentialIds (UUIDs only).
+   */
+  private async executeApiSecurity(
+    journey: Journey,
+    jobId: string,
+    onProgress: ProgressCallback
+  ): Promise<void> {
+    const startedAt = Date.now();
+    const params = journey.params ?? {};
+
+    // ─── JRNY-02 ─── authorizationAck guard — MUST run before any scan
+    if (journey.authorizationAck !== true) {
+      throw new Error('Jornada api_security requer acknowledgment de autorização de teste');
+    }
+
+    // ─── Resolve apiId — support both new format (params.apiId) and legacy wizard
+    // format (params.assetIds + params.targetBaseUrl without pre-registered API).
+    let resolvedApiId: string | undefined = params.apiId;
+    if (!resolvedApiId && params.targetBaseUrl && params.assetIds?.length > 0) {
+      const primaryAssetId = params.assetIds[0];
+      const existingApis = await storage.listApisByParent(primaryAssetId);
+      const existing = existingApis.find((a: any) => a.baseUrl === params.targetBaseUrl);
+      if (existing) {
+        resolvedApiId = existing.id;
+      } else {
+        const newApi = await storage.createApi(
+          { parentAssetId: primaryAssetId, baseUrl: params.targetBaseUrl, apiType: 'rest' } as any,
+          journey.createdBy,
+        );
+        resolvedApiId = newApi.id;
+      }
+    }
+
+    if (!resolvedApiId) {
+      throw new Error('Jornada api_security requer journey.params.apiId ou assetIds+targetBaseUrl');
+    }
+    const apiId = resolvedApiId;
+
+    // Verify API exists (fail-fast)
+    const api = await storage.getApi(apiId);
+    if (!api) {
+      throw new Error(`API não encontrada: ${apiId}`);
+    }
+
+    // ─── HIER-01 ─── Ensure the web_application parent asset is properly linked
+    // to a host asset. When a user registers an API manually (e.g. localhost:5000),
+    // no host may exist yet — this creates one on-demand so the asset tree is correct.
+    if (api.parentAssetId) {
+      await storage.ensureHostForWebApp(api.parentAssetId, journey.createdBy);
+    }
+
+    // ─── JRNY-03 ─── extract opts — support both new format (discoveryOpts/passiveOpts/activeOpts)
+    // and legacy apiSecurityConfig format from the wizard before Phase 15 fix.
+    let discoveryOpts: DiscoverApiOpts;
+    let passiveOpts: ApiPassiveTestOpts;
+    let rawActiveOpts: ApiActiveTestOpts;
+
+    if (params.discoveryOpts) {
+      discoveryOpts = params.discoveryOpts;
+      passiveOpts = params.passiveOpts ?? {};
+      rawActiveOpts = params.activeOpts ?? {};
+    } else if (params.apiSecurityConfig) {
+      const cfg = params.apiSecurityConfig;
+      discoveryOpts = {
+        stages: {
+          spec: cfg.discovery?.specFirst ?? true,
+          crawler: cfg.discovery?.crawler ?? true,
+          kiterunner: cfg.discovery?.kiterunner ?? false,
+          httpx: true,
+          arjun: false,
+        },
+        dryRun: cfg.dryRun ?? false,
+      } as DiscoverApiOpts;
+      passiveOpts = {
+        stages: {
+          nucleiPassive: cfg.testing?.misconfigs ?? true,
+          authFailure: cfg.testing?.auth ?? true,
+          api9Inventory: true,
+        },
+        dryRun: cfg.dryRun ?? false,
+      };
+      rawActiveOpts = {
+        stages: {
+          bola: cfg.testing?.bola ?? false,
+          bfla: cfg.testing?.bfla ?? false,
+          bopla: cfg.testing?.bopla ?? false,
+          rateLimit: cfg.testing?.rateLimit ?? false,
+          ssrf: cfg.testing?.ssrf ?? false,
+        },
+        destructiveEnabled: cfg.destructiveEnabled ?? false,
+        dryRun: cfg.dryRun ?? false,
+      };
+    } else {
+      discoveryOpts = { stages: {}, dryRun: false } as DiscoverApiOpts;
+      passiveOpts = {};
+      rawActiveOpts = {};
+    }
+    const dryRun: boolean = Boolean(discoveryOpts.dryRun || passiveOpts.dryRun || rawActiveOpts.dryRun);
+
+    // ─── SAFE-04 ─── audit start — credential UUIDs only (no secrets)
+    const creds = await listApiCredentials({ apiId });
+    // Also include the wizard-selected credential (params.credentialId) when it isn't
+    // already linked to this API via apiId. This supports the one-off selection in the
+    // ApiSecurityWizard UI without requiring a permanent credential↔API association.
+    if (params.credentialId && !creds.some((c: any) => c.id === params.credentialId)) {
+      const selectedCred = await getApiCredential(params.credentialId as string);
+      if (selectedCred) creds.push(selectedCred);
+    }
+    const credentialIds = creds.map((c: any) => c.id); // UUIDs from SAFE_FIELDS — guaranteed no secretEncrypted/dekEncrypted
+    const targets = [api.baseUrl];
+
+    await storage.logAudit({
+      actorId: journey.createdBy,
+      action: 'start',
+      objectType: 'api_security_journey',
+      objectId: jobId,
+      before: null,
+      after: {
+        apiId,
+        targets,
+        credentialIds,
+        authorizationAck: true,
+        stages: {
+          discovery: discoveryOpts.stages,
+          passive: passiveOpts.stages,
+          active: rawActiveOpts.stages,
+        },
+        dryRun,
+        destructiveEnabled: rawActiveOpts.destructiveEnabled === true,
+        timestamp: new Date().toISOString(),
+      },
+    });
+
+    log.info({ jobId, apiId, dryRun, credentialCount: credentialIds.length }, 'executeApiSecurity start');
+
+    onProgress({ status: 'running', progress: 10, currentTask: 'Preparando jornada api_security' });
+
+    // Instantiate rate limiter — passed implicitly via per-phase opts (Phase 11/12/13 orchestrators
+    // enforce their own rateLimit fields; Phase 15 owns the GLOBAL ceiling via MAX_API_RATE_LIMIT).
+    // The instance is created here so future scanner changes can receive it directly.
+    // SAFE-01/SAFE-02 enforcement lives inside rateLimiter.ts (clamp + backoff).
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _rateLimiter = new TokenBucketRateLimiter(params.rateLimit ?? 10);
+
+    let discoveryResult: Awaited<ReturnType<typeof discoverApi>> | null = null;
+    let passiveResult: Awaited<ReturnType<typeof runApiPassiveTests>> | null = null;
+    let activeResult: Awaited<ReturnType<typeof runApiActiveTests>> | null = null;
+
+    try {
+      // ─── STAGE 1: DISCOVERY (20%) ────────────────────────────────────────
+      if (this.isJobCancelled(jobId)) throw new Error('Job cancelado pelo usuário');
+      onProgress({ status: 'running', progress: 20, currentTask: 'Descobrindo endpoints da API' });
+      discoveryResult = await discoverApi(apiId, discoveryOpts, jobId);
+      log.info({ jobId, apiId, endpointsDiscovered: discoveryResult.endpointsDiscovered, stage: 'discovery' }, 'discovery complete');
+
+      // ─── NEW DISCOVERY ALERTS ─────────────────────────────────────────────
+      // Create ONE threat per API (Host-API grouping) listing all new endpoints.
+      // API9:2023 — Improper Inventory Management.
+      // Uses upsertThreat (correlationKey per-API) so re-runs update the same threat.
+      if (discoveryResult.newEndpointIds.length > 0) {
+        const allEps = await storage.listEndpointsByApi(apiId);
+        const epMap = new Map(allEps.map((e) => [e.id, e]));
+        const newEpDetails = discoveryResult.newEndpointIds
+          .map(id => epMap.get(id))
+          .filter(Boolean) as typeof allEps;
+
+        // Resolve host from web_application parent
+        const webAppAsset = api.parentAssetId ? await storage.getAsset(api.parentAssetId) : null;
+        const hostAsset = webAppAsset?.parentAssetId ? await storage.getAsset(webAppAsset.parentAssetId) : null;
+
+        const hasUnauth = newEpDetails.some(ep => ep.requiresAuth === false);
+        const severity = hasUnauth ? 'medium' : 'low';
+        const epList = newEpDetails.map(ep => `${ep.method} ${ep.path}`).join('\n• ');
+        const n = newEpDetails.length;
+
+        await storage.upsertThreat({
+          title: `${n} endpoint${n > 1 ? 's' : ''} descoberto${n > 1 ? 's' : ''} na API ${api.baseUrl}`,
+          description: `${n} endpoint${n > 1 ? 's' : ''} detectado${n > 1 ? 's' : ''} pela primeira vez na API ${api.baseUrl} durante jornada de API Security. Verifique se todos estão documentados e devidamente protegidos.\n\nEndpoints:\n• ${epList}`,
+          severity,
+          status: 'open',
+          source: 'journey',
+          category: 'api_security',
+          assetId: api.parentAssetId ?? null,
+          hostId: hostAsset?.id,
+          jobId,
+          correlationKey: `api_security:new_endpoints:${apiId}`,
+          evidence: {
+            apiId,
+            baseUrl: api.baseUrl,
+            newEndpoints: newEpDetails.map(ep => ({
+              endpointId: ep.id,
+              method: ep.method,
+              path: ep.path,
+              requiresAuth: ep.requiresAuth,
+            })),
+          },
+          lastSeenAt: new Date(),
+        });
+        log.info({ jobId, apiId, newEndpoints: n }, 'new endpoint discovery threat upserted (Host-API grouped)');
+      }
+
+      // ─── STAGE 2: PASSIVE TESTS (50%) ────────────────────────────────────
+      if (this.isJobCancelled(jobId)) throw new Error('Job cancelado pelo usuário');
+      onProgress({ status: 'running', progress: 50, currentTask: 'Executando testes passivos' });
+      passiveResult = await runApiPassiveTests(apiId, passiveOpts, jobId);
+      log.info({ jobId, apiId, findingsCreated: passiveResult.findingsCreated, stage: 'passive' }, 'passive tests complete');
+
+      // ─── STAGE 3: ACTIVE TESTS (75%) — with SAFE-03 destructive gate ────
+      if (this.isJobCancelled(jobId)) throw new Error('Job cancelado pelo usuário');
+      onProgress({ status: 'running', progress: 75, currentTask: 'Executando testes ativos' });
+
+      // SAFE-03 — when destructiveEnabled is not explicitly true, force false
+      // (Phase 13 orchestrator gates BOPLA entirely + BFLA method-based on this flag).
+      const activeOpts: ApiActiveTestOpts = {
+        ...rawActiveOpts,
+        destructiveEnabled: rawActiveOpts.destructiveEnabled === true,
+      };
+      activeResult = await runApiActiveTests(apiId, activeOpts, jobId);
+      log.info({ jobId, apiId, stage: 'active', destructiveEnabled: activeOpts.destructiveEnabled }, 'active tests complete');
+
+      // ─── STAGE 4: ANALYSIS (90%) ─────────────────────────────────────────
+      if (this.isJobCancelled(jobId)) throw new Error('Job cancelado pelo usuário');
+      onProgress({ status: 'running', progress: 90, currentTask: 'Analisando resultados' });
+
+      const totalFindings =
+        (passiveResult?.findingsCreated ?? 0) +
+        (activeResult?.findingsCreated ?? 0);
+
+      // ─── SAFE-04 ─── audit complete
+      await storage.logAudit({
+        actorId: journey.createdBy,
+        action: 'complete',
+        objectType: 'api_security_journey',
+        objectId: jobId,
+        before: null,
+        after: {
+          outcome: 'completed',
+          findingsCount: totalFindings,
+          endpointsDiscovered: discoveryResult?.endpointsDiscovered ?? 0,
+          durationMs: Date.now() - startedAt,
+          timestamp: new Date().toISOString(),
+        },
+      });
+
+      log.info({ jobId, apiId, totalFindings, durationMs: Date.now() - startedAt }, 'executeApiSecurity complete');
+    } catch (err: any) {
+      // SAFE-06 — sanitize error message: only first 500 chars, no credential leak possible
+      // (errors from our scanners are generic; external HTTP errors may contain URLs but
+      // never body content since scanners truncate at source per Phase 14 sanitization).
+      const errorMessage = String(err?.message ?? 'unknown error').substring(0, 500);
+
+      await storage.logAudit({
+        actorId: journey.createdBy,
+        action: 'failed',
+        objectType: 'api_security_journey',
+        objectId: jobId,
+        before: null,
+        after: {
+          outcome: 'failed',
+          error: errorMessage,
+          durationMs: Date.now() - startedAt,
+          timestamp: new Date().toISOString(),
+        },
+      });
+
+      log.error({ jobId, apiId, errorMessage }, 'executeApiSecurity failed');
+      throw err;
+    }
   }
 }
 

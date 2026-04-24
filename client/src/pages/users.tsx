@@ -7,6 +7,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -248,6 +249,7 @@ export default function Users() {
         />
         
         <div className="p-6 space-y-6">
+          <AdminBreadcrumb page="Usuários" />
           {/* Search and Filters */}
           <Card>
             <CardContent className="p-6">

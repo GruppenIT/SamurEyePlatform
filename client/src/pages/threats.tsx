@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -51,14 +51,28 @@ import {
   AlertCircle,
   ListChecks,
   ClipboardList,
+  Terminal,
+  ShieldOff,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AssociateToPlanDialog } from "@/components/action-plan/AssociateToPlanDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { usePlanLinks, type PlanLink } from "@/hooks/useActionPlans";
 import { Threat, Host } from "@shared/schema";
 import { ThreatStats } from "@/types";
+import { buildCurlCommand } from "@shared/ui/curlBuilder";
+import { getOwaspBadgeInfo } from "@shared/ui/owaspBadge";
 
 // -------------------------
 // Evidence label mapping (UIFN-02)
@@ -92,17 +106,17 @@ const EVIDENCE_LABELS: Record<string, string> = {
   category: "Categoria",
   target: "Dominio",
   command: "Comando",
-  remediation: "Remediacao",
-  recommendation: "Recomendacao",
+  remediation: "Remediação",
+  recommendation: "Recomendação",
 };
 
 // AD category labels
 const adCategoryLabels: Record<string, string> = {
-  users: "Usuarios",
+  users: "Usuários",
   groups: "Grupos",
   computers: "Computadores",
-  policies: "Politicas",
-  configuration: "Configuracao",
+  policies: "Políticas",
+  configuration: "Configuração",
   kerberos: "Kerberos",
   shares: "Compartilhamentos",
   inactive_accounts: "Contas Inativas",
@@ -142,7 +156,7 @@ function tryParseStdoutObjects(stdout: string | undefined): {
 
 function formatCellValue(value: any): string {
   if (value === null || value === undefined) return "\u2014";
-  if (typeof value === "boolean") return value ? "Sim" : "Nao";
+  if (typeof value === "boolean") return value ? "Sim" : "Não";
   if (Array.isArray(value)) return value.join(", ");
   if (typeof value === "object") return Object.entries(value).map(([k, v]) => `${k}: ${v}`).join(", ");
   return String(value);
@@ -151,7 +165,7 @@ function formatCellValue(value: any): string {
 // Render a single evidence value (no JSON.stringify)
 function renderEvidenceValue(value: any): React.ReactNode {
   if (value === null || value === undefined || value === "") return null;
-  if (typeof value === "boolean") return value ? "Sim" : "Nao";
+  if (typeof value === "boolean") return value ? "Sim" : "Não";
   if (Array.isArray(value)) {
     if (value.length === 0) return null;
     return (
@@ -183,7 +197,7 @@ function renderEvidenceValue(value: any): React.ReactNode {
 // Evidence table component (UIFN-02) — no JSON.stringify
 function EvidenceTable({ evidence }: { evidence: Record<string, any> }) {
   // Keys to skip from the generic table (handled separately or irrelevant raw)
-  const skipKeys = new Set(["stdout", "command"]);
+  const skipKeys = new Set(["stdout", "command", "testId"]);
   const entries = Object.entries(evidence).filter(([k, v]) => {
     if (skipKeys.has(k)) return false;
     if (v === null || v === undefined || v === "") return false;
@@ -261,6 +275,23 @@ function RemediationPreview({ threatId }: { threatId: string }) {
   );
 }
 
+// Inline OWASP badge component (UI-03)
+function OwaspBadge({ category, severity, severityColorFn }: { category: string | null; severity: string; severityColorFn: (s: string) => string }) {
+  const info = getOwaspBadgeInfo(category);
+  if (!info) {
+    return <Badge variant="secondary" className="bg-muted text-muted-foreground" data-testid="owasp-badge-na">N/A</Badge>;
+  }
+  return (
+    <Badge
+      className={severityColorFn(severity)}
+      title={info.titulo}
+      data-testid={`owasp-badge-${info.codigo}`}
+    >
+      {info.codigo}
+    </Badge>
+  );
+}
+
 export default function Threats() {
   const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
@@ -296,6 +327,12 @@ export default function Threats() {
     hibernatedUntil: "",
   });
 
+  // API Security source filter + UI-03/04/05 state
+  const [sourceFilter, setSourceFilter] = useState<"all" | "api_security">("all");
+  const [curlDialogThreat, setCurlDialogThreat] = useState<Threat | null>(null);
+  const [falsePositiveAlertThreat, setFalsePositiveAlertThreat] = useState<Threat | null>(null);
+  const [falsePositiveIds, setFalsePositiveIds] = useState<Set<string>>(new Set());
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { connected } = useWebSocket();
@@ -313,7 +350,13 @@ export default function Threats() {
   }, [location]);
 
   const { data: threats = [], isLoading } = useQuery<(Threat & { host?: Host })[]>({
-    queryKey: ["/api/threats"],
+    queryKey: ["/api/threats", { source: sourceFilter }],
+    queryFn: async () => {
+      const qs = sourceFilter !== "all" ? `?source=${encodeURIComponent(sourceFilter)}` : "";
+      const res = await fetch(`/api/threats${qs}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Falha ao buscar ameaças");
+      return res.json();
+    },
     refetchInterval: 30000,
   });
 
@@ -473,8 +516,8 @@ export default function Threats() {
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Nao autorizado",
-          description: "Voce foi desconectado. Fazendo login novamente...",
+          title: "Não autorizado",
+          description: "Você foi desconectado. Fazendo login novamente...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -484,7 +527,7 @@ export default function Threats() {
       }
       toast({
         title: "Erro",
-        description: "Falha ao atualizar ameaca",
+        description: "Falha ao atualizar ameaça",
         variant: "destructive",
       });
     },
@@ -511,7 +554,7 @@ export default function Threats() {
     onSuccess: () => {
       toast({
         title: "Sucesso",
-        description: "Status da ameaca atualizado com sucesso",
+        description: "Status da ameaça atualizado com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/threats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/threats/stats"] });
@@ -531,8 +574,8 @@ export default function Threats() {
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Nao autorizado",
-          description: "Voce foi desconectado. Fazendo login novamente...",
+          title: "Não autorizado",
+          description: "Você foi desconectado. Fazendo login novamente...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -542,9 +585,25 @@ export default function Threats() {
       }
       toast({
         title: "Erro",
-        description: "Falha ao alterar status da ameaca",
+        description: "Falha ao alterar status da ameaça",
         variant: "destructive",
       });
+    },
+  });
+
+  // UI-05 — False positive mutation
+  const falsePositiveMutation = useMutation({
+    mutationFn: async ({ findingId, threatId }: { findingId: string; threatId: string }) => {
+      const res = await apiRequest("PATCH", `/api/v1/api-findings/${findingId}`, { falsePositive: true });
+      return { res, threatId };
+    },
+    onSuccess: ({ threatId }) => {
+      setFalsePositiveIds((prev) => new Set(prev).add(threatId));
+      toast({ title: "Sucesso", description: "Finding marcado como falso positivo" });
+      queryClient.invalidateQueries({ queryKey: ["/api/threats"] });
+    },
+    onError: () => {
+      toast({ title: "Erro", description: "Falha ao marcar falso positivo", variant: "destructive" });
     },
   });
 
@@ -587,7 +646,7 @@ export default function Threats() {
       );
       toast({
         title: "Sucesso",
-        description: `${selectedIds.size} ameacas atualizadas`,
+        description: `${selectedIds.size} ameaças atualizadas`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/threats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/threats/stats"] });
@@ -601,7 +660,7 @@ export default function Threats() {
     } catch {
       toast({
         title: "Erro",
-        description: "Falha ao atualizar ameacas em lote",
+        description: "Falha ao atualizar ameaças em lote",
         variant: "destructive",
       });
     }
@@ -831,7 +890,7 @@ export default function Threats() {
       <TableRow
         key={threat.id}
         data-testid={`threat-row-${threat.id}`}
-        className={`${selectedIds.has(threat.id) ? "bg-primary/5" : ""} ${isChild ? "bg-muted/30" : ""}`}
+        className={`${selectedIds.has(threat.id) ? "bg-primary/5" : ""} ${isChild ? "bg-muted/30" : ""} ${falsePositiveIds.has(threat.id) ? "opacity-50" : ""}`}
       >
         <TableCell className={isChild ? "pl-10" : ""}>
           <Checkbox
@@ -945,7 +1004,44 @@ export default function Threats() {
             );
           })()}
         </TableCell>
+        {sourceFilter === "api_security" && (
+          <TableCell>
+            <OwaspBadge
+              category={(threat.evidence as any)?.owaspCategory ?? null}
+              severity={threat.severity}
+              severityColorFn={getSeverityColor}
+            />
+          </TableCell>
+        )}
         <TableCell className="text-right">
+          {sourceFilter === "api_security" && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurlDialogThreat(threat)}
+                data-testid={`button-reproduce-${threat.id}`}
+                title="Reproduzir"
+              >
+                <Terminal className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFalsePositiveAlertThreat(threat)}
+                data-testid={`button-false-positive-${threat.id}`}
+                title="Marcar como falso positivo"
+                disabled={falsePositiveIds.has(threat.id)}
+              >
+                <ShieldOff className="h-4 w-4" />
+              </Button>
+              {falsePositiveIds.has(threat.id) && (
+                <Badge variant="outline" className="ml-2 text-xs" data-testid={`badge-false-positive-${threat.id}`}>
+                  Falso Positivo
+                </Badge>
+              )}
+            </>
+          )}
           <Button
             variant="ghost"
             size="sm"
@@ -1107,7 +1203,44 @@ export default function Threats() {
                 );
               })()}
             </TableCell>
+            {sourceFilter === "api_security" && (
+              <TableCell>
+                <OwaspBadge
+                  category={(parent.evidence as any)?.owaspCategory ?? null}
+                  severity={parent.severity}
+                  severityColorFn={getSeverityColor}
+                />
+              </TableCell>
+            )}
             <TableCell className="text-right">
+              {sourceFilter === "api_security" && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurlDialogThreat(parent)}
+                    data-testid={`button-reproduce-${parent.id}`}
+                    title="Reproduzir"
+                  >
+                    <Terminal className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFalsePositiveAlertThreat(parent)}
+                    data-testid={`button-false-positive-${parent.id}`}
+                    title="Marcar como falso positivo"
+                    disabled={falsePositiveIds.has(parent.id)}
+                  >
+                    <ShieldOff className="h-4 w-4" />
+                  </Button>
+                  {falsePositiveIds.has(parent.id) && (
+                    <Badge variant="outline" className="ml-2 text-xs" data-testid={`badge-false-positive-${parent.id}`}>
+                      Falso Positivo
+                    </Badge>
+                  )}
+                </>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -1139,19 +1272,8 @@ export default function Threats() {
       <main className="flex-1 overflow-auto">
         <TopBar
           title="Threat Intelligence"
-          subtitle="Gerencie e analise ameacas identificadas pelo sistema"
+          subtitle="Gerencie e analise ameaças identificadas pelo sistema"
           wsConnected={connected}
-          actions={
-            <Button
-              variant="outline"
-              onClick={handleExportCSV}
-              disabled={filteredThreats.length === 0}
-              data-testid="button-export-threats-csv"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Exportar CSV
-            </Button>
-          }
         />
 
         <div className="p-6 space-y-6">
@@ -1185,7 +1307,7 @@ export default function Threats() {
                           className="text-sm font-medium"
                           style={{ color: "var(--severity-critical)" }}
                         >
-                          Criticas
+                          Críticas
                         </span>
                         <span
                           className="text-sm font-bold"
@@ -1347,7 +1469,7 @@ export default function Threats() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    placeholder="Buscar ameacas por titulo ou descricao..."
+                    placeholder="Buscar ameaças por título ou descrição..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -1402,9 +1524,27 @@ export default function Threats() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as "all" | "api_security")}>
+                  <SelectTrigger className="w-48" data-testid="select-source-filter">
+                    <SelectValue placeholder="Filtrar por fonte" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Fontes</SelectItem>
+                    <SelectItem value="api_security">API Security</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Badge variant="secondary" data-testid="threats-count">
-                  {filteredParents.length + filteredStandalone.length} grupos/ameacas
+                  {filteredParents.length + filteredStandalone.length} grupos/ameaças
                 </Badge>
+                <Button
+                  variant="outline"
+                  onClick={handleExportCSV}
+                  disabled={filteredThreats.length === 0}
+                  data-testid="button-export-threats-csv"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Exportar CSV
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -1439,15 +1579,15 @@ export default function Threats() {
                     {searchTerm ||
                     severityFilter !== "all" ||
                     statusFilter !== "all"
-                      ? "Nenhuma ameaca encontrada"
-                      : "Nenhuma ameaca identificada"}
+                      ? "Nenhuma ameaça encontrada"
+                      : "Nenhuma ameaça identificada"}
                   </h3>
                   <p className="text-muted-foreground">
                     {searchTerm ||
                     severityFilter !== "all" ||
                     statusFilter !== "all"
                       ? "Tente ajustar os filtros de busca"
-                      : "Execute jornadas para identificar ameacas"}
+                      : "Execute jornadas para identificar ameaças"}
                   </p>
                 </div>
               ) : (
@@ -1456,7 +1596,7 @@ export default function Threats() {
                   {selectedIds.size > 0 && (
                     <div className="flex items-center justify-between p-3 mb-4 bg-primary/10 border border-primary/20 rounded-lg">
                       <span className="text-sm font-medium">
-                        {selectedIds.size} ameaca(s) selecionada(s)
+                        {selectedIds.size} ameaça(s) selecionada(s)
                       </span>
                       <div className="flex items-center space-x-2">
                         <Select
@@ -1519,12 +1659,15 @@ export default function Threats() {
                             />
                           </TableHead>
                           <TableHead>Severidade</TableHead>
-                          <TableHead>Titulo / Remediacao</TableHead>
+                          <TableHead>Título / Remediação</TableHead>
                           <TableHead>Host</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Detectado em</TableHead>
                           <TableHead>Plano de Ação</TableHead>
-                          <TableHead className="text-right">Acoes</TableHead>
+                          {sourceFilter === "api_security" && (
+                            <TableHead data-testid="th-owasp">OWASP</TableHead>
+                          )}
+                          <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1605,7 +1748,7 @@ export default function Threats() {
                 </h4>
                 <p className="text-sm text-foreground/80 leading-relaxed">
                   {selectedRecommendation?.businessImpact ||
-                    "Impacto nao avaliado."}
+                    "Impacto não avaliado."}
                 </p>
               </div>
 
@@ -1677,7 +1820,7 @@ export default function Threats() {
               {/* Metadata */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium text-foreground mb-2">Informacoes</h4>
+                  <h4 className="font-medium text-foreground mb-2">Informações</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Fonte:</span>
@@ -1723,10 +1866,6 @@ export default function Threats() {
                           Teste AD Security
                         </h5>
                         <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                          <dt className="text-muted-foreground">Test ID:</dt>
-                          <dd className="font-mono text-xs">
-                            {selectedThreat.evidence.testId}
-                          </dd>
                           {selectedThreat.evidence.category && (
                             <>
                               <dt className="text-muted-foreground">
@@ -2001,7 +2140,7 @@ export default function Threats() {
                     data-testid="input-hibernated-until"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    A ameaca sera reativada automaticamente nesta data
+                    A ameaça será reativada automaticamente nesta data
                   </p>
                 </div>
               )}
@@ -2062,7 +2201,7 @@ export default function Threats() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Alterar <strong>{selectedIds.size}</strong> ameaca(s) para{" "}
+              Alterar <strong>{selectedIds.size}</strong> ameaça(s) para{" "}
               <Badge className={getStatusColor(bulkStatusModal.newStatus)}>
                 {getStatusLabel(bulkStatusModal.newStatus)}
               </Badge>
@@ -2158,6 +2297,83 @@ export default function Threats() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Reproduzir curl Dialog (UI-04) */}
+      <Dialog open={!!curlDialogThreat} onOpenChange={(open) => !open && setCurlDialogThreat(null)}>
+        <DialogContent className="max-w-2xl" data-testid="dialog-curl">
+          <DialogHeader>
+            <DialogTitle>Comando curl de reproducao</DialogTitle>
+          </DialogHeader>
+          {curlDialogThreat && (() => {
+            const curl = buildCurlCommand({ evidence: curlDialogThreat.evidence as any });
+            if (!curl) {
+              return (
+                <p className="text-muted-foreground text-sm" data-testid="curl-empty">
+                  Não foi possível gerar curl — dados de endpoint insuficientes.
+                </p>
+              );
+            }
+            // Defensive: never show *** redaction in UI
+            const safeCurl = curl.includes("***") ? curl.replace(/\*\*\*/g, "[redacted]") : curl;
+            return (
+              <>
+                <pre
+                  className="bg-muted p-4 rounded-md font-mono text-xs overflow-x-auto whitespace-pre"
+                  data-testid="curl-pre"
+                >{safeCurl}</pre>
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="outline" onClick={() => setCurlDialogThreat(null)}>
+                    Fechar
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(safeCurl);
+                      toast({ title: "Copiado", description: "Comando curl copiado para a area de transferencia." });
+                    }}
+                    data-testid="button-copy-curl"
+                  >
+                    Copiar
+                  </Button>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Falso Positivo AlertDialog (UI-05) */}
+      <AlertDialog
+        open={!!falsePositiveAlertThreat}
+        onOpenChange={(open) => !open && setFalsePositiveAlertThreat(null)}
+      >
+        <AlertDialogContent data-testid="alert-false-positive">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Marcar como falso positivo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação é registrada no audit log e remove a ameaça da lista ativa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              data-testid="button-confirm-false-positive"
+              onClick={() => {
+                if (!falsePositiveAlertThreat) return;
+                const evidence = falsePositiveAlertThreat.evidence as any;
+                const findingId = evidence?.findingIds?.[0];
+                if (!findingId) {
+                  toast({ title: "Erro", description: "ID de finding não encontrado no threat.", variant: "destructive" });
+                  return;
+                }
+                falsePositiveMutation.mutate({ findingId, threatId: falsePositiveAlertThreat.id });
+                setFalsePositiveAlertThreat(null);
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AssociateToPlanDialog
         open={associateDialogOpen}

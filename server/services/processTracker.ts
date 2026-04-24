@@ -6,7 +6,7 @@ const log = createLogger('processTracker');
 
 export interface ProcessInfo {
   pid: number;
-  name: 'nmap' | 'nuclei';
+  name: 'nmap' | 'nuclei' | 'katana' | 'httpx' | 'kiterunner' | 'arjun';
   startedAt: Date;
   lastHeartbeat: Date;
   stage: string;
@@ -16,7 +16,7 @@ export interface ProcessInfo {
 export interface ProcessUpdate {
   jobId: string;
   pid: number;
-  processName: 'nmap' | 'nuclei';
+  processName: 'nmap' | 'nuclei' | 'katana' | 'httpx' | 'kiterunner' | 'arjun';
   stage: string;
   isAlive: boolean;
 }
@@ -28,7 +28,7 @@ class ProcessTrackerService extends EventEmitter {
   /**
    * Registra um novo processo para monitoramento
    */
-  register(jobId: string, name: 'nmap' | 'nuclei', child: ChildProcess, stage: string): void {
+  register(jobId: string, name: 'nmap' | 'nuclei' | 'katana' | 'httpx' | 'kiterunner' | 'arjun', child: ChildProcess, stage: string): void {
     if (!child.pid) {
       throw new Error('Process PID not available');
     }

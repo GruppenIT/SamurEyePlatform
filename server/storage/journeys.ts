@@ -17,7 +17,7 @@ import {
   type InsertJourneyCredential,
   type Credential,
 } from "@shared/schema";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, getTableColumns } from "drizzle-orm";
 import { sanitizeString, sanitizeObject } from "./utils";
 import { createLogger } from '../lib/logger';
 
@@ -94,10 +94,20 @@ export async function getActiveSchedules(): Promise<Schedule[]> {
 }
 
 // Job operations
-export async function getJobs(limit = 50): Promise<Job[]> {
+export type JobWithJourney = Job & {
+  journeyName: string | null;
+  journeyType: string | null;
+};
+
+export async function getJobs(limit = 50): Promise<JobWithJourney[]> {
   return await db
-    .select()
+    .select({
+      ...getTableColumns(jobs),
+      journeyName: journeys.name,
+      journeyType: journeys.type,
+    })
     .from(jobs)
+    .leftJoin(journeys, eq(jobs.journeyId, journeys.id))
     .orderBy(desc(jobs.createdAt))
     .limit(limit);
 }

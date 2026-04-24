@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Globe, Shield, ShieldCheck, Code, CheckCircle, XCircle, Circle } from "lucide-react";
+import { Globe, Shield, ShieldCheck, Code, Lock, CheckCircle, XCircle, Circle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface CoverageItem {
@@ -11,10 +11,11 @@ interface CoverageItem {
 }
 
 const journeyLabels: Record<string, string> = {
-  attack_surface: "Superficie de Ataque",
-  ad_security: "Seguranca AD",
-  edr_av: "EDR/Antivirus",
-  web_application: "Aplicacao Web",
+  attack_surface: "Superfície de Ataque",
+  ad_security: "Segurança AD",
+  edr_av: "EDR/Antivírus",
+  web_application: "Aplicação Web",
+  api_security: "API Security",
 };
 
 const journeyIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -22,6 +23,7 @@ const journeyIcons: Record<string, React.ComponentType<{ className?: string }>> 
   ad_security: Shield,
   edr_av: ShieldCheck,
   web_application: Code,
+  api_security: Lock,
 };
 
 function StatusIcon({ status }: { status: CoverageItem["lastStatus"] }) {

@@ -260,6 +260,7 @@ class JobQueueService extends EventEmitter {
    * Starts the queue processor
    */
   private startQueueProcessor(): void {
+    if (process.env.DEMO_MODE === "true") return;
     // Check for pending jobs every 30 seconds
     setInterval(async () => {
       this.processNextJob();

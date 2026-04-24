@@ -1,0 +1,5 @@
+{"timestamp":"2026-04-20T00:00:01Z","request":{"method":"GET","endpoint":"https://target.example.com/api/users","source":"response-body"},"response":{"status_code":200,"content_type":"application/json","content_length":512}}
+{"timestamp":"2026-04-20T00:00:02Z","request":{"method":"POST","endpoint":"https://target.example.com/api/users","source":"form-field"},"response":{"status_code":201,"content_type":"application/json","content_length":256}}
+{"timestamp":"2026-04-20T00:00:03Z","request":{"method":"GET","endpoint":"https://target.example.com/api/admin/settings","source":"response-body"},"response":{"status_code":401,"content_type":"application/json","content_length":42}}
+{"timestamp":"2026-04-20T00:00:04Z","request":{"method":"GET","endpoint":"https://target.example.com/api/products","source":"xhr"},"response":{"status_code":200,"content_type":"application/json","content_length":1024}}
+{"timestamp":"2026-04-20T00:00:05Z","request":{"method":"POST","endpoint":"https://target.example.com/api/auth/login","source":"form-field"},"response":{"status_code":200,"content_type":"application/json","content_length":128}}

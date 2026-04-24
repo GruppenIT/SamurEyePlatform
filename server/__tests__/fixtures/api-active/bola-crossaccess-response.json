@@ -1,0 +1,12 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "x-request-id": "test-bola-crossaccess-001"
+  },
+  "body": "{\"id\":\"77e54321-aaaa-bbbb-cccc-ddddeeeeffff\",\"email\":\"victim@example.internal\",\"account_balance\":12500.00,\"orders\":[{\"id\":\"ord-abc123\",\"total\":450.00}]}",
+  "describedBy": "Response obtained by cred B accessing cred A's object ID — cross-identity BOLA positive",
+  "credentialBId": "mock-cred-b-uuid",
+  "objectIdHarvested": "77e54321-aaaa-bbbb-cccc-ddddeeeeffff",
+  "endpointPath": "/users/{id}"
+}

@@ -1,0 +1,28 @@
+{
+  "burstSize": 20,
+  "windowMs": 2000,
+  "endpointPath": "/users",
+  "responses": [
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"},
+    {"status": 200, "headers": {"content-type": "application/json"}, "body": "{\"ok\":true}"}
+  ],
+  "describedBy": "20 consecutive 200 responses with no throttle signals (no status 4xx-too-many, no back-off header, no rate headers) — rate-limit absence positive"
+}

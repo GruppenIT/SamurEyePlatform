@@ -135,9 +135,356 @@ export async function initializeDatabaseStructure(): Promise<void> {
       log.info('edr_deployments table created');
     }
 
+    // Phase 9: API Discovery tables (HIER-01, HIER-02, FIND-01)
+    await ensureApiTables();
+
+    // Phase 10: API Credentials table (CRED-01..04)
+    await ensureApiCredentialTables();
+
+    // Phase 11: httpx enrichment columns on api_endpoints (ENRH-01)
+    await ensureApiEndpointHttpxColumns();  // Phase 11 ENRH-01
+
+    // Phase 15: journey_type enum extension + authorizationAck column (JRNY-01, JRNY-02)
+    await ensureJourneyApiSecurityColumns();
+
   } catch (error) {
     log.error({ err: error }, 'database initialization error');
     // Don't throw - let the system continue with fallback mode
+  }
+}
+
+// Phase 9: API Discovery tables — HIER-01, HIER-02, FIND-01
+// Runtime idempotent guard. Replicates edr_deployments pattern exactly (lines 107-136 above).
+// Safe to re-run; safe to run after `db:push` has already created the objects.
+// Identifiers are quoted in CREATE statements AND in pg_indexes lookups (Pitfall 1 avoidance).
+export async function ensureApiTables(): Promise<void> {
+  try {
+    // ---- pgEnums ----
+    // api_type_enum
+    const apiTypeEnumCheck = await db.execute(sql`
+      SELECT typname FROM pg_type WHERE typname = 'api_type_enum'
+    `);
+    if ((apiTypeEnumCheck.rowCount ?? 0) === 0) {
+      log.info('creating api_type_enum');
+      await db.execute(sql`CREATE TYPE api_type_enum AS ENUM ('rest', 'graphql', 'soap')`);
+    } else {
+      log.info({ hasApiTypeEnum: true }, 'api_type_enum status');
+    }
+
+    // owasp_api_category
+    const owaspEnumCheck = await db.execute(sql`
+      SELECT typname FROM pg_type WHERE typname = 'owasp_api_category'
+    `);
+    if ((owaspEnumCheck.rowCount ?? 0) === 0) {
+      log.info('creating owasp_api_category enum');
+      await db.execute(sql`
+        CREATE TYPE owasp_api_category AS ENUM (
+          'api1_bola_2023','api2_broken_auth_2023','api3_bopla_2023',
+          'api4_rate_limit_2023','api5_bfla_2023','api6_business_flow_2023',
+          'api7_ssrf_2023','api8_misconfiguration_2023','api9_inventory_2023',
+          'api10_unsafe_consumption_2023'
+        )
+      `);
+    } else {
+      log.info({ hasOwaspEnum: true }, 'owasp_api_category status');
+    }
+
+    // api_finding_status
+    const findingStatusEnumCheck = await db.execute(sql`
+      SELECT typname FROM pg_type WHERE typname = 'api_finding_status'
+    `);
+    if ((findingStatusEnumCheck.rowCount ?? 0) === 0) {
+      log.info('creating api_finding_status enum');
+      await db.execute(sql`
+        CREATE TYPE api_finding_status AS ENUM ('open','triaged','false_positive','closed')
+      `);
+    } else {
+      log.info({ hasFindingStatusEnum: true }, 'api_finding_status status');
+    }
+
+    // ---- apis table ----
+    const apisCheck = await db.execute(sql`
+      SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename = 'apis'
+    `);
+    if ((apisCheck.rowCount ?? 0) === 0) {
+      log.info('creating apis table');
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS apis (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          parent_asset_id VARCHAR NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+          base_url TEXT NOT NULL,
+          api_type api_type_enum NOT NULL,
+          name TEXT,
+          description TEXT,
+          spec_url TEXT,
+          spec_hash TEXT,
+          spec_version TEXT,
+          spec_last_fetched_at TIMESTAMPTZ,
+          created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+          created_by VARCHAR NOT NULL REFERENCES users(id),
+          updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
+        )
+      `);
+      log.info('apis table created');
+    }
+
+    // apis indexes (quoted identifiers — Pitfall 1)
+    const apisUqCheck = await db.execute(sql`
+      SELECT indexname FROM pg_indexes WHERE tablename = 'apis' AND indexname = 'UQ_apis_parent_base_url'
+    `);
+    if ((apisUqCheck.rowCount ?? 0) === 0) {
+      await db.execute(sql`
+        CREATE UNIQUE INDEX "UQ_apis_parent_base_url" ON apis (parent_asset_id, base_url)
+      `);
+      log.info('UQ_apis_parent_base_url created');
+    }
+
+    const apisIdxCheck = await db.execute(sql`
+      SELECT indexname FROM pg_indexes WHERE tablename = 'apis' AND indexname = 'IDX_apis_parent_asset_id'
+    `);
+    if ((apisIdxCheck.rowCount ?? 0) === 0) {
+      await db.execute(sql`
+        CREATE INDEX "IDX_apis_parent_asset_id" ON apis (parent_asset_id)
+      `);
+      log.info('IDX_apis_parent_asset_id created');
+    }
+
+    // ---- api_endpoints table ----
+    const endpointsCheck = await db.execute(sql`
+      SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename = 'api_endpoints'
+    `);
+    if ((endpointsCheck.rowCount ?? 0) === 0) {
+      log.info('creating api_endpoints table');
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS api_endpoints (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          api_id VARCHAR NOT NULL REFERENCES apis(id) ON DELETE CASCADE,
+          method TEXT NOT NULL,
+          path TEXT NOT NULL,
+          path_params JSONB NOT NULL DEFAULT '[]'::jsonb,
+          query_params JSONB NOT NULL DEFAULT '[]'::jsonb,
+          header_params JSONB NOT NULL DEFAULT '[]'::jsonb,
+          request_schema JSONB,
+          response_schema JSONB,
+          requires_auth BOOLEAN,
+          discovery_sources TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
+          created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+          updated_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+          CONSTRAINT "CK_api_endpoints_method"
+            CHECK (method IN ('GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'))
+        )
+      `);
+      log.info('api_endpoints table created');
+    }
+
+    const endpointsUqCheck = await db.execute(sql`
+      SELECT indexname FROM pg_indexes WHERE tablename = 'api_endpoints' AND indexname = 'UQ_api_endpoints_api_method_path'
+    `);
+    if ((endpointsUqCheck.rowCount ?? 0) === 0) {
+      await db.execute(sql`
+        CREATE UNIQUE INDEX "UQ_api_endpoints_api_method_path" ON api_endpoints (api_id, method, path)
+      `);
+      log.info('UQ_api_endpoints_api_method_path created');
+    }
+
+    const endpointsIdxCheck = await db.execute(sql`
+      SELECT indexname FROM pg_indexes WHERE tablename = 'api_endpoints' AND indexname = 'IDX_api_endpoints_api_id'
+    `);
+    if ((endpointsIdxCheck.rowCount ?? 0) === 0) {
+      await db.execute(sql`CREATE INDEX "IDX_api_endpoints_api_id" ON api_endpoints (api_id)`);
+      log.info('IDX_api_endpoints_api_id created');
+    }
+
+    // ---- api_findings table ----
+    const findingsCheck = await db.execute(sql`
+      SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename = 'api_findings'
+    `);
+    if ((findingsCheck.rowCount ?? 0) === 0) {
+      log.info('creating api_findings table');
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS api_findings (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          api_endpoint_id VARCHAR NOT NULL REFERENCES api_endpoints(id) ON DELETE CASCADE,
+          job_id VARCHAR REFERENCES jobs(id),
+          owasp_category owasp_api_category NOT NULL,
+          severity threat_severity NOT NULL,
+          status api_finding_status NOT NULL DEFAULT 'open',
+          title TEXT NOT NULL,
+          description TEXT,
+          remediation TEXT,
+          risk_score REAL,
+          evidence JSONB NOT NULL DEFAULT '{}'::jsonb,
+          promoted_threat_id VARCHAR REFERENCES threats(id) ON DELETE SET NULL,
+          created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+          updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
+        )
+      `);
+      log.info('api_findings table created');
+    }
+
+    // api_findings indexes (5 total)
+    for (const [idxName, column] of [
+      ['IDX_api_findings_endpoint_id', 'api_endpoint_id'],
+      ['IDX_api_findings_job_id', 'job_id'],
+      ['IDX_api_findings_owasp_category', 'owasp_category'],
+      ['IDX_api_findings_severity', 'severity'],
+      ['IDX_api_findings_status', 'status'],
+    ] as const) {
+      const idxCheck = await db.execute(sql`
+        SELECT indexname FROM pg_indexes WHERE tablename = 'api_findings' AND indexname = ${idxName}
+      `);
+      if ((idxCheck.rowCount ?? 0) === 0) {
+        // sql.raw is required here because the identifiers must NOT be parameterized as values.
+        await db.execute(sql.raw(`CREATE INDEX "${idxName}" ON api_findings (${column})`));
+        log.info(`${idxName} created`);
+      }
+    }
+
+    log.info('ensureApiTables complete');
+  } catch (error) {
+    // Follow existing pattern: log but do not throw (app continues in fallback mode).
+    log.error({ err: error }, 'ensureApiTables error');
+  }
+}
+
+// Phase 10 — API Credentials table (CRED-01..04).
+// Runtime idempotent guard. Replicates ensureApiTables pattern exactly.
+// Safe to re-run; safe to run after `db:push` has already created the objects.
+// Identifiers are quoted in CREATE statements AND in pg_indexes lookups.
+export async function ensureApiCredentialTables(): Promise<void> {
+  try {
+    // ---- pgEnum api_auth_type ----
+    const enumCheck = await db.execute(sql`
+      SELECT typname FROM pg_type WHERE typname = 'api_auth_type'
+    `);
+    if ((enumCheck.rowCount ?? 0) === 0) {
+      log.info('creating api_auth_type enum');
+      await db.execute(sql`
+        CREATE TYPE api_auth_type AS ENUM (
+          'api_key_header',
+          'api_key_query',
+          'bearer_jwt',
+          'basic',
+          'oauth2_client_credentials',
+          'hmac',
+          'mtls'
+        )
+      `);
+    }
+
+    // ---- table api_credentials ----
+    const tableCheck = await db.execute(sql`
+      SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename = 'api_credentials'
+    `);
+    if ((tableCheck.rowCount ?? 0) === 0) {
+      log.info('creating api_credentials table');
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS api_credentials (
+          id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+          name TEXT NOT NULL,
+          description TEXT,
+          auth_type api_auth_type NOT NULL,
+          url_pattern TEXT NOT NULL DEFAULT '*',
+          priority INTEGER NOT NULL DEFAULT 100,
+          api_id VARCHAR REFERENCES apis(id) ON DELETE SET NULL,
+          secret_encrypted TEXT NOT NULL,
+          dek_encrypted TEXT NOT NULL,
+          api_key_header_name TEXT,
+          api_key_query_param TEXT,
+          basic_username TEXT,
+          bearer_expires_at TIMESTAMP,
+          oauth2_client_id TEXT,
+          oauth2_token_url TEXT,
+          oauth2_scope TEXT,
+          oauth2_audience TEXT,
+          hmac_key_id TEXT,
+          hmac_algorithm TEXT,
+          hmac_signature_header TEXT,
+          hmac_signed_headers TEXT[],
+          hmac_canonical_template TEXT,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          created_by VARCHAR NOT NULL REFERENCES users(id),
+          updated_by VARCHAR REFERENCES users(id)
+        )
+      `);
+    }
+
+    // ---- indexes ----
+    const INDEXES: Array<[string, string]> = [
+      [
+        'IDX_api_credentials_api_id',
+        `CREATE INDEX "IDX_api_credentials_api_id" ON api_credentials (api_id)`,
+      ],
+      [
+        'IDX_api_credentials_priority',
+        `CREATE INDEX "IDX_api_credentials_priority" ON api_credentials (priority)`,
+      ],
+      [
+        'UQ_api_credentials_name_created_by',
+        `CREATE UNIQUE INDEX "UQ_api_credentials_name_created_by" ON api_credentials (name, created_by)`,
+      ],
+    ];
+
+    for (const [idxName, ddl] of INDEXES) {
+      const idxCheck = await db.execute(sql`
+        SELECT indexname FROM pg_indexes
+        WHERE tablename = 'api_credentials' AND indexname = ${idxName}
+      `);
+      if ((idxCheck.rowCount ?? 0) === 0) {
+        log.info({ idxName }, 'creating api_credentials index');
+        await db.execute(sql.raw(ddl));
+      }
+    }
+
+    log.info('ensureApiCredentialTables complete');
+  } catch (error) {
+    // Follow existing pattern: log but do not throw (app continues in fallback mode).
+    log.error({ err: error }, 'ensureApiCredentialTables error');
+  }
+}
+
+// Phase 11 ENRH-01 — runtime idempotent guard for httpx enrichment columns on api_endpoints.
+// Replicates ensureApiTables pattern: ADD COLUMN IF NOT EXISTS against existing table.
+// Failures are logged but swallowed so app boot continues (matches ensureApiTables catch).
+export async function ensureApiEndpointHttpxColumns(): Promise<void> {
+  try {
+    await db.execute(sql`
+      ALTER TABLE api_endpoints
+        ADD COLUMN IF NOT EXISTS httpx_status INTEGER,
+        ADD COLUMN IF NOT EXISTS httpx_content_type TEXT,
+        ADD COLUMN IF NOT EXISTS httpx_tech TEXT[],
+        ADD COLUMN IF NOT EXISTS httpx_tls JSONB,
+        ADD COLUMN IF NOT EXISTS httpx_last_probed_at TIMESTAMP
+    `);
+    log.info('ensureApiEndpointHttpxColumns complete');
+  } catch (error) {
+    log.error({ err: error }, 'ensureApiEndpointHttpxColumns error');
+  }
+}
+
+// Phase 15 JRNY-01, JRNY-02 — runtime idempotent guard for journey_type enum extension +
+// journeys.authorization_ack column. Drizzle does NOT auto-generate ALTER TYPE ADD VALUE
+// migrations (RESEARCH.md §Pitfall 1), so this guard handles it at boot.
+// Pattern mirrors ensureApiEndpointHttpxColumns: try/catch with logged failure, no re-throw.
+// Safe to re-run; idempotent via IF NOT EXISTS clauses.
+export async function ensureJourneyApiSecurityColumns(): Promise<void> {
+  try {
+    // Extend journey_type enum with 'api_security' value (append-only per Postgres semantics).
+    await db.execute(sql`
+      ALTER TYPE journey_type ADD VALUE IF NOT EXISTS 'api_security'
+    `);
+
+    // Add authorization_ack boolean column with NOT NULL DEFAULT false.
+    // Default false keeps existing journeys unaffected (attack_surface/ad_security/edr_av/web_application).
+    await db.execute(sql`
+      ALTER TABLE journeys
+        ADD COLUMN IF NOT EXISTS authorization_ack boolean NOT NULL DEFAULT false
+    `);
+
+    log.info('ensureJourneyApiSecurityColumns complete');
+  } catch (error) {
+    log.error({ err: error }, 'ensureJourneyApiSecurityColumns error');
   }
 }
 

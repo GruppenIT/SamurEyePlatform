@@ -12,6 +12,7 @@ import {
   boolean,
   pgEnum,
   real,
+  check,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -37,7 +38,7 @@ export const assetTypeEnum = pgEnum('asset_type', ['host', 'range', 'web_applica
 export const credentialTypeEnum = pgEnum('credential_type', ['ssh', 'wmi', 'omi', 'ad']);
 
 // Journey types enum
-export const journeyTypeEnum = pgEnum('journey_type', ['attack_surface', 'ad_security', 'edr_av', 'web_application']);
+export const journeyTypeEnum = pgEnum('journey_type', ['attack_surface', 'ad_security', 'edr_av', 'web_application', 'api_security']);
 
 // Schedule kinds enum
 export const scheduleKindEnum = pgEnum('schedule_kind', ['on_demand', 'once', 'recurring']);
@@ -81,6 +82,44 @@ export const adSecurityTestStatusEnum = pgEnum('ad_security_test_status', ['pass
 // Host enrichment protocol enum
 export const enrichmentProtocolEnum = pgEnum('enrichment_protocol', ['wmi', 'ssh', 'snmp']);
 
+// Phase 9: API Discovery enums ---
+
+// API type — ROADMAP Phase 9 HIER-01
+export const apiTypeEnum = pgEnum('api_type_enum', ['rest', 'graphql', 'soap']);
+
+// OWASP API Top 10 2023 — ROADMAP Phase 9 FIND-01
+// NEVER mutate this enum (Postgres enum mutation requires ALTER TYPE).
+// For OWASP 2027, create a new enum `owasp_api_category_2027`.
+// Keys MUST match shared/owaspApiCategories.ts OWASP_API_CATEGORY_LABELS keys.
+export const owaspApiCategoryEnum = pgEnum('owasp_api_category', [
+  'api1_bola_2023',
+  'api2_broken_auth_2023',
+  'api3_bopla_2023',
+  'api4_rate_limit_2023',
+  'api5_bfla_2023',
+  'api6_business_flow_2023',
+  'api7_ssrf_2023',
+  'api8_misconfiguration_2023',
+  'api9_inventory_2023',
+  'api10_unsafe_consumption_2023',
+]);
+
+// api_findings lifecycle status — ROADMAP Phase 9 FIND-01, UI Phase 16 UI-05
+export const apiFindingStatusEnum = pgEnum('api_finding_status',
+  ['open', 'triaged', 'false_positive', 'closed']);
+
+// Phase 10 — API Credentials (CRED-01)
+// Ordem fixa — qualquer adição futura cria nova enum em vez de ALTER TYPE.
+export const apiAuthTypeEnum = pgEnum('api_auth_type', [
+  'api_key_header',
+  'api_key_query',
+  'bearer_jwt',
+  'basic',
+  'oauth2_client_credentials',
+  'hmac',
+  'mtls',
+]);
+
 // Users table
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -101,6 +140,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastLogin: timestamp("last_login"),
+  uiPreferences: jsonb("ui_preferences").$type<{ theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean }>(),
 });
 
 // Assets table
@@ -144,6 +184,9 @@ export const journeys = pgTable("journeys", {
   targetSelectionMode: targetSelectionModeEnum("target_selection_mode").default('individual').notNull(),
   selectedTags: jsonb("selected_tags").$type<string[]>().default([]).notNull(),
   enableCveDetection: boolean("enable_cve_detection").default(true).notNull(), // For attack_surface journey
+  // Phase 15 JRNY-02 — journey api_security requires explicit test-authorization ack.
+  // Default false keeps existing journeys (attack_surface/ad_security/edr_av/web_application) unaffected.
+  authorizationAck: boolean("authorization_ack").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: varchar("created_by").references(() => users.id).notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -1174,6 +1217,316 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
 
+// ============================================================================
+// Phase 9: API Discovery & Security Assessment — HIER-01, HIER-02, FIND-01
+// ============================================================================
+
+// Shape validated by apiFindingEvidenceSchema below — JSONB shape is:
+//   { request: {method, url, headers?, bodySnippet?},
+//     response: {status, headers?, bodySnippet?},
+//     extractedValues?, context? }
+// bodySnippet (not body) is defensive naming — Phase 14 will truncate to 8KB.
+export interface ApiFindingEvidence {
+  request: {
+    method: string;
+    url: string;
+    headers?: Record<string, string>;
+    bodySnippet?: string;
+  };
+  response: {
+    status: number;
+    headers?: Record<string, string>;
+    bodySnippet?: string;
+  };
+  extractedValues?: Record<string, unknown>;
+  context?: string;
+}
+
+// apis table — HIER-01, HIER-03. Parent is always type='web_application' (validated at route layer).
+export const apis = pgTable("apis", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  parentAssetId: varchar("parent_asset_id")
+    .references(() => assets.id, { onDelete: 'cascade' }).notNull(),
+  baseUrl: text("base_url").notNull(),
+  apiType: apiTypeEnum("api_type").notNull(),
+  name: text("name"),
+  description: text("description"),
+  specUrl: text("spec_url"),
+  specHash: text("spec_hash"),                // populated Phase 11 (DISC-06)
+  specVersion: text("spec_version"),          // populated Phase 11
+  specLastFetchedAt: timestamp("spec_last_fetched_at"), // populated Phase 11
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("UQ_apis_parent_base_url").on(table.parentAssetId, table.baseUrl),
+  index("IDX_apis_parent_asset_id").on(table.parentAssetId),
+]);
+
+export type Api = typeof apis.$inferSelect;
+export type InsertApi = typeof apis.$inferInsert;
+
+// api_endpoints table — HIER-02. CHECK on method; tri-valor requiresAuth; text[] discoverySources.
+export const apiEndpoints = pgTable("api_endpoints", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  apiId: varchar("api_id").references(() => apis.id, { onDelete: 'cascade' }).notNull(),
+  method: text("method").notNull(),
+  path: text("path").notNull(),
+  pathParams: jsonb("path_params")
+    .$type<Array<{ name: string; type?: string; required?: boolean; example?: unknown }>>()
+    .default([]).notNull(),
+  queryParams: jsonb("query_params")
+    .$type<Array<{ name: string; type?: string; required?: boolean; example?: unknown }>>()
+    .default([]).notNull(),
+  headerParams: jsonb("header_params")
+    .$type<Array<{ name: string; type?: string; required?: boolean; example?: unknown }>>()
+    .default([]).notNull(),
+  requestSchema: jsonb("request_schema").$type<Record<string, unknown>>(),   // populated Phase 11
+  responseSchema: jsonb("response_schema").$type<Record<string, unknown>>(), // populated Phase 11
+  // tri-valor: NULL=not probed, true=401/403, false=open (ENRH-02 populates in Phase 11).
+  requiresAuth: boolean("requires_auth"),
+  // Allowed values: 'spec' | 'crawler' | 'kiterunner' | 'manual' (see shared/owaspApiCategories.ts DISCOVERY_SOURCES).
+  discoverySources: text("discovery_sources").array()
+    .$type<Array<'spec' | 'crawler' | 'kiterunner' | 'manual'>>()
+    .notNull().default(sql`ARRAY[]::text[]`),
+  // Phase 11 ENRH-01 — httpx enrichment columns (additive, all nullable).
+  // Populated by httpx.ts scanner on every discovery run; NULL means unprobed.
+  httpxStatus: integer("httpx_status"),
+  httpxContentType: text("httpx_content_type"),
+  httpxTech: text("httpx_tech").array().$type<string[]>(),
+  httpxTls: jsonb("httpx_tls").$type<{
+    host?: string;
+    port?: number;
+    tls_version?: string;
+    cipher?: string;
+    not_after?: string;
+    not_before?: string;
+    subject_cn?: string;
+    subject_san?: string[];
+    issuer_cn?: string;
+  }>(),
+  httpxLastProbedAt: timestamp("httpx_last_probed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("UQ_api_endpoints_api_method_path").on(table.apiId, table.method, table.path),
+  index("IDX_api_endpoints_api_id").on(table.apiId),
+  check(
+    "CK_api_endpoints_method",
+    sql`${table.method} IN ('GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS')`,
+  ),
+]);
+
+export type ApiEndpoint = typeof apiEndpoints.$inferSelect;
+export type InsertApiEndpoint = typeof apiEndpoints.$inferInsert;
+
+// api_findings table — FIND-01. Reuses threatSeverityEnum; promotedThreatId populated by Phase 14 FIND-03.
+export const apiFindings = pgTable("api_findings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  apiEndpointId: varchar("api_endpoint_id")
+    .references(() => apiEndpoints.id, { onDelete: 'cascade' }).notNull(),
+  jobId: varchar("job_id").references(() => jobs.id), // nullable: manual findings have no job
+  owaspCategory: owaspApiCategoryEnum("owasp_category").notNull(),
+  severity: threatSeverityEnum("severity").notNull(),
+  status: apiFindingStatusEnum("status").default('open').notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  remediation: text("remediation"),
+  riskScore: real("risk_score"), // 0-100, null until Phase 12+ scoringEngine runs
+  evidence: jsonb("evidence").$type<ApiFindingEvidence>().default(sql`'{}'::jsonb`).notNull(),
+  // Phase 14 FIND-03 will populate; created now to avoid double migration.
+  promotedThreatId: varchar("promoted_threat_id")
+    .references(() => threats.id, { onDelete: 'set null' }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_api_findings_endpoint_id").on(table.apiEndpointId),
+  index("IDX_api_findings_job_id").on(table.jobId),
+  index("IDX_api_findings_owasp_category").on(table.owaspCategory),
+  index("IDX_api_findings_severity").on(table.severity),
+  index("IDX_api_findings_status").on(table.status),
+]);
+
+export type ApiFinding = typeof apiFindings.$inferSelect;
+export type InsertApiFinding = typeof apiFindings.$inferInsert;
+
+// Phase 10 — API Credentials (CRED-01..05)
+// Tabela isolada — NÃO estende `credentials` legada (ssh/wmi/omi/ad).
+// Secrets cifrados via encryptionService (KEK/DEK existente, AES-256-GCM).
+export const apiCredentials = pgTable("api_credentials", {
+  // --- identidade ---
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  authType: apiAuthTypeEnum("auth_type").notNull(),
+
+  // --- mapeamento (CRED-03, CRED-04) ---
+  urlPattern: text("url_pattern").notNull().default("*"),
+  priority: integer("priority").notNull().default(100),
+  apiId: varchar("api_id").references(() => apis.id, { onDelete: "set null" }),
+
+  // --- crypto (CRED-02) ---
+  secretEncrypted: text("secret_encrypted").notNull(),
+  dekEncrypted: text("dek_encrypted").notNull(),
+
+  // --- por auth type (nullable, validados via Zod discriminated union) ---
+  apiKeyHeaderName: text("api_key_header_name"),
+  apiKeyQueryParam: text("api_key_query_param"),
+  basicUsername: text("basic_username"),
+  bearerExpiresAt: timestamp("bearer_expires_at"),
+  oauth2ClientId: text("oauth2_client_id"),
+  oauth2TokenUrl: text("oauth2_token_url"),
+  oauth2Scope: text("oauth2_scope"),
+  oauth2Audience: text("oauth2_audience"),
+  hmacKeyId: text("hmac_key_id"),
+  hmacAlgorithm: text("hmac_algorithm"), // HMAC-SHA1 | HMAC-SHA256 | HMAC-SHA512
+  hmacSignatureHeader: text("hmac_signature_header"),
+  hmacSignedHeaders: text("hmac_signed_headers").array(),
+  hmacCanonicalTemplate: text("hmac_canonical_template"),
+
+  // --- auditoria ---
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  updatedBy: varchar("updated_by").references(() => users.id),
+}, (table) => [
+  index("IDX_api_credentials_api_id").on(table.apiId),
+  index("IDX_api_credentials_priority").on(table.priority),
+  uniqueIndex("UQ_api_credentials_name_created_by").on(table.name, table.createdBy),
+]);
+
+export const apiCredentialsRelations = relations(apiCredentials, ({ one }) => ({
+  api: one(apis, {
+    fields: [apiCredentials.apiId],
+    references: [apis.id],
+  }),
+  creator: one(users, {
+    fields: [apiCredentials.createdBy],
+    references: [users.id],
+    relationName: "apiCredentialCreator",
+  }),
+  updater: one(users, {
+    fields: [apiCredentials.updatedBy],
+    references: [users.id],
+    relationName: "apiCredentialUpdater",
+  }),
+}));
+
+// Phase 10 — Discriminated union para insert de api_credentials (CRED-01)
+// Armadilha 2 do RESEARCH: TODOS os campos por-tipo são omitidos do baseInsert
+// para que cada variante REJEITE campos de outros tipos.
+const baseInsertApiCredential = createInsertSchema(apiCredentials).omit({
+  id: true,
+  secretEncrypted: true,
+  dekEncrypted: true,
+  createdAt: true,
+  updatedAt: true,
+  createdBy: true,
+  updatedBy: true,
+  bearerExpiresAt: true, // derivado no backend a partir do JWT exp
+  // Campos por-tipo — omitir do base, adicionar SO na variante correta:
+  apiKeyHeaderName: true,
+  apiKeyQueryParam: true,
+  basicUsername: true,
+  oauth2ClientId: true,
+  oauth2TokenUrl: true,
+  oauth2Scope: true,
+  oauth2Audience: true,
+  hmacKeyId: true,
+  hmacAlgorithm: true,
+  hmacSignatureHeader: true,
+  hmacSignedHeaders: true,
+  hmacCanonicalTemplate: true,
+}).strict();
+
+// Regex PEM compartilhado (mTLS)
+const PEM_REGEX = /-----BEGIN [A-Z ]+-----[\s\S]+-----END [A-Z ]+-----/;
+
+export const insertApiCredentialSchema = z.discriminatedUnion("authType", [
+  baseInsertApiCredential.extend({
+    authType: z.literal("api_key_header"),
+    apiKeyHeaderName: z.string().min(1, "Nome do header é obrigatório"),
+    secret: z.string().min(1, "API key é obrigatória"),
+  }),
+  baseInsertApiCredential.extend({
+    authType: z.literal("api_key_query"),
+    apiKeyQueryParam: z.string().min(1, "Parâmetro de query é obrigatório"),
+    secret: z.string().min(1, "API key é obrigatória"),
+  }),
+  baseInsertApiCredential.extend({
+    authType: z.literal("bearer_jwt"),
+    secret: z.string().min(1, "JWT é obrigatório"),
+  }),
+  baseInsertApiCredential.extend({
+    authType: z.literal("basic"),
+    basicUsername: z.string().min(1, "Username é obrigatório"),
+    secret: z.string().min(1, "Senha é obrigatória"),
+  }),
+  baseInsertApiCredential.extend({
+    authType: z.literal("oauth2_client_credentials"),
+    oauth2ClientId: z.string().min(1, "Client ID é obrigatório"),
+    oauth2TokenUrl: z.string().url("Token URL inválida"),
+    oauth2Scope: z.string().optional(),
+    oauth2Audience: z.string().optional(),
+    secret: z.string().min(1, "Client secret é obrigatório"),
+  }),
+  baseInsertApiCredential.extend({
+    authType: z.literal("hmac"),
+    hmacKeyId: z.string().min(1, "Key ID é obrigatório"),
+    hmacAlgorithm: z.enum(["HMAC-SHA1", "HMAC-SHA256", "HMAC-SHA512"]),
+    hmacSignatureHeader: z.string().default("Authorization"),
+    hmacSignedHeaders: z.array(z.string()).default([]),
+    hmacCanonicalTemplate: z.string().nullable().optional(),
+    secret: z.string().min(1, "HMAC secret key é obrigatória"),
+  }),
+  baseInsertApiCredential.extend({
+    authType: z.literal("mtls"),
+    mtlsCert: z.string().regex(PEM_REGEX, "Certificado PEM inválido"),
+    mtlsKey: z.string().regex(PEM_REGEX, "Chave PEM inválida"),
+    mtlsCa: z.string().regex(PEM_REGEX, "CA PEM inválida").nullable().optional(),
+  }),
+]);
+
+// Schema de PATCH — flat com todos campos opcionais, exceto authType (imutável).
+// Ver Pergunta em Aberto #3 do RESEARCH: discriminated union .partial() não é nativo.
+export const patchApiCredentialSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().nullable().optional(),
+  urlPattern: z.string().min(1).optional(),
+  priority: z.number().int().optional(),
+  apiId: z.string().nullable().optional(),
+  // Campos por-tipo — todos opcionais; rota valida que não cruzam authType
+  apiKeyHeaderName: z.string().min(1).optional(),
+  apiKeyQueryParam: z.string().min(1).optional(),
+  basicUsername: z.string().min(1).optional(),
+  oauth2ClientId: z.string().min(1).optional(),
+  oauth2TokenUrl: z.string().url().optional(),
+  oauth2Scope: z.string().optional(),
+  oauth2Audience: z.string().optional(),
+  hmacKeyId: z.string().min(1).optional(),
+  hmacAlgorithm: z.enum(["HMAC-SHA1", "HMAC-SHA256", "HMAC-SHA512"]).optional(),
+  hmacSignatureHeader: z.string().optional(),
+  hmacSignedHeaders: z.array(z.string()).optional(),
+  hmacCanonicalTemplate: z.string().nullable().optional(),
+  // Re-encrypt do secret se passado
+  secret: z.string().min(1).optional(),
+  mtlsCert: z.string().regex(PEM_REGEX).optional(),
+  mtlsKey: z.string().regex(PEM_REGEX).optional(),
+  mtlsCa: z.string().regex(PEM_REGEX).nullable().optional(),
+});
+
+// Phase 10 — Tipos derivados de api_credentials
+export type ApiCredential = typeof apiCredentials.$inferSelect;
+export type InsertApiCredential = z.infer<typeof insertApiCredentialSchema>;
+export type PatchApiCredential = z.infer<typeof patchApiCredentialSchema>;
+export type ApiAuthType = ApiCredential["authType"];
+
+// Shape sanitizado retornado por listApiCredentials/getApiCredential (sem secret*/dek*)
+export type ApiCredentialSafe = Omit<ApiCredential, "secretEncrypted" | "dekEncrypted">;
+
+// Shape interno usado SO pelo executor (Phase 11+) via getApiCredentialWithSecret
+export type ApiCredentialWithSecret = ApiCredential;
+
 // API contract types for appliance ↔ console communication
 export const activateApplianceSchema = z.object({
   apiKey: z.string().min(1, "Chave de API é obrigatória"),
@@ -1188,6 +1541,52 @@ export const commandResultSchema = z.object({
   error: z.string().optional(),
   startedAt: z.string().datetime().optional(),
   finishedAt: z.string().datetime().optional(),
+});
+
+// Phase 9 Zod schemas --- HIER-03 + FIND-01
+
+// Evidence JSONB shape — Zod-validated, strict (rejects unknown keys).
+// Phase 14 FIND-02 will further sanitize (redact auth headers, PII, truncate to 8KB).
+export const apiFindingEvidenceSchema = z.object({
+  request: z.object({
+    method: z.string().min(1),
+    url: z.string().url(),
+    headers: z.record(z.string()).optional(),
+    bodySnippet: z.string().max(8192).optional(),
+  }),
+  response: z.object({
+    status: z.number().int().min(100).max(599),
+    headers: z.record(z.string()).optional(),
+    bodySnippet: z.string().max(8192).optional(),
+  }),
+  extractedValues: z.record(z.unknown()).optional(),
+  context: z.string().optional(),
+}).strict();
+
+export type ApiFindingEvidenceInput = z.infer<typeof apiFindingEvidenceSchema>;
+
+// POST /api/v1/apis body — HIER-03. parentAssetId/baseUrl shape validated here;
+// parent.type='web_application' check is in the route (Zod cannot cross-DB validate).
+export const insertApiSchema = createInsertSchema(apis).omit({
+  id: true, createdAt: true, createdBy: true, updatedAt: true,
+  specHash: true, specVersion: true, specLastFetchedAt: true,
+}).extend({
+  parentAssetId: z.string().uuid("ID de ativo pai inválido"),
+  baseUrl: z.string().url("URL base inválida"),
+  apiType: z.enum(['rest', 'graphql', 'soap']),
+});
+
+// Endpoint creation — used by Phase 11 discovery writers.
+export const insertApiEndpointSchema = createInsertSchema(apiEndpoints).omit({
+  id: true, createdAt: true, updatedAt: true,
+});
+
+// Finding creation — evidence is strictly Zod-validated.
+export const insertApiFindingSchema = createInsertSchema(apiFindings, {
+  evidence: apiFindingEvidenceSchema,
+}).omit({
+  id: true, createdAt: true, updatedAt: true,
+  promotedThreatId: true, riskScore: true,
 });
 
 export const heartbeatRequestSchema = z.object({
@@ -1454,3 +1853,225 @@ export const NormalizedFindingSchema = z.discriminatedUnion('type', [
 ]);
 
 export type NormalizedFinding = z.infer<typeof NormalizedFindingSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 11 DISC/ENRH — discoverApiOptsSchema
+// opts for discoverApi(apiId, opts, jobId?) + POST /api/v1/apis/:id/discover.
+// Zod schema; .strict() rejects unknown top-level fields. Defaults applied here
+// so the orchestrator never observes undefined stages.
+// ─────────────────────────────────────────────────────────────────────────────
+export const discoverApiOptsSchema = z.object({
+  stages: z.object({
+    spec: z.boolean().default(true),
+    crawler: z.boolean().default(true),
+    kiterunner: z.boolean().default(false),  // opt-in per DISC-05
+    httpx: z.boolean().default(true),
+    arjun: z.boolean().default(false),        // opt-in per ENRH-03
+  }).strict().default({}),
+  arjunEndpointIds: z.array(z.string().uuid()).min(1).optional(),
+  credentialIdOverride: z.string().uuid().optional(),
+  dryRun: z.boolean().default(false),
+  katana: z.object({
+    headless: z.boolean().optional(),
+    depth: z.number().int().min(1).max(10).optional(),
+  }).strict().optional(),
+  kiterunner: z.object({
+    rateLimit: z.number().int().min(1).max(50).optional(),
+  }).strict().optional(),
+}).strict().superRefine((data, ctx) => {
+  // Arjun stage requires arjunEndpointIds — enforced here because the field is
+  // optional at the schema level (undefined is valid when stages.arjun=false).
+  if (data.stages?.arjun === true && (!data.arjunEndpointIds || data.arjunEndpointIds.length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'arjunEndpointIds é obrigatório quando stages.arjun=true',
+      path: ['arjunEndpointIds'],
+    });
+  }
+});
+
+export type DiscoverApiOpts = z.infer<typeof discoverApiOptsSchema>;
+
+// ============================================================================
+// Phase 12: Security Testing — Passive — TEST-01, TEST-02
+// ============================================================================
+
+/**
+ * apiPassiveTestOptsSchema — input contract for runApiPassiveTests() and POST
+ * /api/v1/apis/:id/test/passive. Uses `.strict()` on root and stages sub-object
+ * to reject unknown fields (mirrors discoverApiOptsSchema Phase 11 decision).
+ */
+export const apiPassiveTestOptsSchema = z.object({
+  stages: z.object({
+    nucleiPassive: z.boolean().optional(),   // default true (applied at call site)
+    authFailure: z.boolean().optional(),     // default true
+    api9Inventory: z.boolean().optional(),   // default true
+  }).strict().optional(),
+  credentialIdOverride: z.string().uuid().optional(),
+  endpointIds: z.array(z.string().uuid()).optional(),
+  dryRun: z.boolean().optional(),            // default false
+  nuclei: z.object({
+    rateLimit: z.number().int().min(1).max(50).optional(),  // default 10 req/s
+    timeoutSec: z.number().int().min(1).max(120).optional(), // default 10s
+  }).strict().optional(),
+}).strict();
+
+export type ApiPassiveTestOpts = z.infer<typeof apiPassiveTestOptsSchema>;
+
+/**
+ * PassiveTestResult — public contract returned by runApiPassiveTests().
+ * Consumed by Phase 15 journey executor. Extend without breaking.
+ */
+export interface PassiveTestResult {
+  apiId: string;
+  stagesRun: Array<'nuclei_passive' | 'auth_failure' | 'api9_inventory'>;
+  stagesSkipped: Array<{ stage: string; reason: string }>;
+  findingsCreated: number;
+  findingsUpdated: number;
+  findingsByCategory: Record<string, number>;
+  findingsBySeverity: Record<string, number>;
+  cancelled: boolean;
+  dryRun: boolean;
+  durationMs: number;
+}
+
+// ============================================================================
+// Phase 13: Security Testing — Active — TEST-03, TEST-04, TEST-05, TEST-06, TEST-07
+// ============================================================================
+
+/**
+ * BOPLA_SENSITIVE_KEYS — lista curada de 10 chaves sensíveis injetadas em
+ * bodies de PUT/PATCH pelo scanner bopla.ts. Ordem é carry-forward de
+ * 13-CONTEXT.md §"BOPLA / Mass Assignment (TEST-05 / API3)".
+ *
+ * Severity mapping (aplicado pelo scanner bopla.ts):
+ *   - is_admin, role, superuser → critical
+ *   - isAdmin, admin, roles, permissions, owner, verified, email_verified → high
+ */
+export const BOPLA_SENSITIVE_KEYS = [
+  'is_admin',
+  'isAdmin',
+  'admin',
+  'role',
+  'roles',
+  'permissions',
+  'superuser',
+  'owner',
+  'verified',
+  'email_verified',
+] as const;
+
+export type BoplaSensitiveKey = typeof BOPLA_SENSITIVE_KEYS[number];
+
+/**
+ * apiActiveTestOptsSchema — input contract for runApiActiveTests() and POST
+ * /api/v1/apis/:id/test/active. Uses `.strict()` on root and every sub-object
+ * to reject unknown fields (mirrors apiPassiveTestOptsSchema Phase 12 decision).
+ *
+ * Defaults (applied at call site by orchestrator):
+ *   stages.bola=true, stages.bfla=true, stages.bopla=true (but gated by
+ *   destructiveEnabled), stages.rateLimit=false (OPT-IN), stages.ssrf=true.
+ *   destructiveEnabled=false (gate for BOPLA entire stage + BFLA method-based).
+ *   bola.maxCredentials=4 (max 6), bola.maxIdsPerEndpoint=3 (max 5).
+ *   rateLimit.burstSize=20 (max 50), rateLimit.windowMs=2000.
+ *   ssrf.interactshUrl=env INTERACTSH_URL || 'oast.me'.
+ */
+export const apiActiveTestOptsSchema = z.object({
+  stages: z.object({
+    bola: z.boolean().optional(),          // default true
+    bfla: z.boolean().optional(),          // default true
+    bopla: z.boolean().optional(),         // default true (gated by destructiveEnabled)
+    rateLimit: z.boolean().optional(),     // default false (opt-in)
+    ssrf: z.boolean().optional(),          // default true
+  }).strict().optional(),
+  destructiveEnabled: z.boolean().optional(),  // default false — gates BOPLA + BFLA method-based
+  credentialIds: z.array(z.string().uuid()).optional(),  // default = listApiCredentials({apiId})
+  endpointIds: z.array(z.string().uuid()).optional(),    // default = all endpoints for API
+  dryRun: z.boolean().optional(),                        // default false
+  rateLimit: z.object({
+    burstSize: z.number().int().min(1).max(50).optional(),  // default 20, max 50 (SAFE-01 ceiling Phase 15 owns global)
+    windowMs: z.number().int().min(100).optional(),         // default 2000
+    endpointIds: z.array(z.string().uuid()).max(5).optional(),  // default = 1 first GET+200 endpoint
+  }).strict().optional(),
+  ssrf: z.object({
+    interactshUrl: z.string().url().optional(),  // default = env INTERACTSH_URL || 'oast.me'
+  }).strict().optional(),
+  bola: z.object({
+    maxCredentials: z.number().int().min(2).max(6).optional(),        // default 4
+    maxIdsPerEndpoint: z.number().int().min(1).max(5).optional(),     // default 3
+  }).strict().optional(),
+}).strict();
+
+export type ApiActiveTestOpts = z.infer<typeof apiActiveTestOptsSchema>;
+
+/**
+ * ActiveTestResult — public contract returned by runApiActiveTests().
+ * Consumed by Phase 15 journey executor. Extend without breaking.
+ *
+ * stagesRun uses snake_case 'rate_limit' (not camelCase rateLimit) for
+ * consistency with Phase 12 PassiveTestResult stage-name convention.
+ */
+export interface ActiveTestResult {
+  apiId: string;
+  stagesRun: Array<'bola' | 'bfla' | 'bopla' | 'rate_limit' | 'ssrf'>;
+  stagesSkipped: Array<{ stage: string; reason: string }>;
+  findingsCreated: number;
+  findingsUpdated: number;       // dedupe upsert path
+  findingsByCategory: Record<string, number>;
+  findingsBySeverity: Record<string, number>;
+  cancelled: boolean;
+  dryRun: boolean;
+  durationMs: number;
+  credentialsUsed: number;       // how many creds participated (useful for telemetry)
+}
+
+// ============================================================================
+// Phase 14: Findings Runtime & Threat Integration — FIND-04 WebSocket events
+// ============================================================================
+
+/**
+ * jobEventSchema — Zod discriminated union for real-time job events pushed
+ * over WebSocket (`/api/v1/jobs/:jobId/ws`). 3 variants:
+ *
+ *   - stage_progress: per-stage completion event with count + duration
+ *   - findings_batch: batch of newly-discovered findings (max 20 per event)
+ *   - journey_complete: final event for the whole journey (jobId)
+ *
+ * Carry-forward from 14-CONTEXT.md §"WebSocket Events (FIND-04)":
+ *   - findings_batch.findings.max(20) — avoids massive JSON per event
+ *   - stage_progress.message.max(200) — pt-BR human-readable summary
+ *   - rate limit 10 events/sec/jobId — enforced by broadcaster (not schema)
+ */
+export const jobEventSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('stage_progress'),
+    stage: z.string(),
+    status: z.enum(['started', 'completed', 'failed']),
+    findingsDiscovered: z.number().int().min(0),
+    durationMs: z.number().int().min(0),
+    message: z.string().max(200),
+  }),
+  z.object({
+    type: z.literal('findings_batch'),
+    findings: z.array(z.object({
+      id: z.string(),
+      owaspCategory: z.string(),
+      severity: z.string(),
+      endpointPath: z.string(),
+      title: z.string(),
+    })).max(20),
+    batchNumber: z.number().int().min(1),
+    totalNewInBatch: z.number().int().min(0),
+  }),
+  z.object({
+    type: z.literal('journey_complete'),
+    jobId: z.string(),
+    apiId: z.string(),
+    totalFindings: z.number().int().min(0),
+    totalThreatsPromoted: z.number().int().min(0),
+    durationMs: z.number().int().min(0),
+    status: z.enum(['success', 'cancelled']),
+  }),
+]);
+
+export type JobEvent = z.infer<typeof jobEventSchema>;

@@ -1,0 +1,10 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "x-request-id": "test-kid-inject-001"
+  },
+  "body": "{\"data\":{\"access\":\"granted\",\"scope\":\"admin\"}}",
+  "describedBy": "Server accepted JWT with manipulated kid header (path traversal payload)",
+  "payloadUsed": "../../../../../../../dev/null"
+}

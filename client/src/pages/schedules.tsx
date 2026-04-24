@@ -255,19 +255,10 @@ export default function Schedules() {
       <Sidebar />
       
       <main className="flex-1 overflow-auto">
-        <TopBar 
+        <TopBar
           title="Gestão de Agendamentos"
           subtitle="Configure execuções automáticas e programadas das jornadas"
           wsConnected={connected}
-          actions={
-            <Button
-              onClick={() => setShowCreateDialog(true)}
-              data-testid="button-create-schedule"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Agendamento
-            </Button>
-          }
         />
         
         <div className="p-6 space-y-6">
@@ -288,6 +279,13 @@ export default function Schedules() {
                 <Badge variant="secondary" data-testid="schedules-count">
                   {filteredSchedules.length} agendamentos
                 </Badge>
+                <Button
+                  onClick={() => setShowCreateDialog(true)}
+                  data-testid="button-create-schedule"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Agendamento
+                </Button>
               </div>
             </CardContent>
           </Card>

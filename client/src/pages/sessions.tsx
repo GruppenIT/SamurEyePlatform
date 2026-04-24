@@ -6,6 +6,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -145,6 +146,7 @@ export default function Sessions() {
         
         <main className="flex-1 overflow-auto p-8">
           <div className="max-w-7xl mx-auto space-y-8">
+            <AdminBreadcrumb page="Sessões" />
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>

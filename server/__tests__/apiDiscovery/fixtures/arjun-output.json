@@ -1,0 +1,23 @@
+{
+  "https://target.example.com/api/search": {
+    "method": "GET",
+    "params": ["q", "limit", "offset", "sort"],
+    "headers": {
+      "User-Agent": "Arjun/2.2.7"
+    }
+  },
+  "https://target.example.com/api/products": {
+    "method": "GET",
+    "params": ["category", "minPrice", "maxPrice", "inStock", "page", "pageSize"],
+    "headers": {
+      "User-Agent": "Arjun/2.2.7"
+    }
+  },
+  "https://target.example.com/api/users": {
+    "method": "GET",
+    "params": ["email", "role", "active", "createdAfter"],
+    "headers": {
+      "User-Agent": "Arjun/2.2.7"
+    }
+  }
+}

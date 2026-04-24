@@ -10,6 +10,10 @@ import * as sessionOps from "./sessions";
 import * as subscriptionOps from "./subscription";
 import * as databaseInitOps from "./database-init";
 import * as edrDeploymentOps from "./edrDeployments";
+import * as apiOps from "./apis";
+import * as apiEndpointOps from "./apiEndpoints";
+import * as apiFindingOps from "./apiFindings";
+import * as apiCredentialOps from "./apiCredentials";
 import * as mfaOps from "./mfa";
 import * as passwordResetOps from "./password-reset";
 
@@ -30,6 +34,8 @@ export class DatabaseStorage implements IStorage {
   setUserMfa = userOps.setUserMfa;
   updateBackupCodes = userOps.updateBackupCodes;
   dismissMfaInvitation = userOps.dismissMfaInvitation;
+  updateUserPreferences = userOps.updateUserPreferences;
+  getUserPreferences = userOps.getUserPreferences;
 
   // Asset operations
   getAssets = assetOps.getAssets;
@@ -41,6 +47,7 @@ export class DatabaseStorage implements IStorage {
   createAsset = assetOps.createAsset;
   updateAsset = assetOps.updateAsset;
   deleteAsset = assetOps.deleteAsset;
+  ensureHostForWebApp = assetOps.ensureHostForWebApp;
 
   // Credential operations
   getCredentials = assetOps.getCredentials;
@@ -191,6 +198,39 @@ export class DatabaseStorage implements IStorage {
   insertEdrDeployment = edrDeploymentOps.insertEdrDeployment;
   getEdrDeploymentsByJourney = edrDeploymentOps.getEdrDeploymentsByJourney;
   getEdrDeploymentsByJourneyWithHost = edrDeploymentOps.getEdrDeploymentsByJourneyWithHost;
+
+  // API operations — Phase 9 HIER-01, HIER-02, HIER-03, HIER-04, FIND-01
+  getApi = apiOps.getApi;
+  listApis = apiOps.listApis;
+  listApisByParent = apiOps.listApisByParent;
+  listApisWithEndpointCount = apiOps.listApisWithEndpointCount;
+  createApi = apiOps.createApi;
+  promoteApiFromBackfill = apiOps.promoteApiFromBackfill;
+  updateApiSpecMetadata = apiOps.updateApiSpecMetadata;
+  listEndpointsByApi = apiEndpointOps.listEndpointsByApi;
+  createApiEndpoint = apiEndpointOps.createApiEndpoint;
+  upsertApiEndpoint = apiEndpointOps.upsertApiEndpoint;
+  upsertApiEndpoints = apiEndpointOps.upsertApiEndpoints;
+  mergeHttpxEnrichment = apiEndpointOps.mergeHttpxEnrichment;
+  appendQueryParams = apiEndpointOps.appendQueryParams;
+  markEndpointsStale = apiEndpointOps.markEndpointsStale;
+  listFindingsByEndpoint = apiFindingOps.listFindingsByEndpoint;
+  createApiFinding = apiFindingOps.createApiFinding;
+  upsertApiFindingByKey = apiFindingOps.upsertApiFindingByKey;
+  listApiFindings = apiFindingOps.listApiFindings;
+  patchApiFinding = apiFindingOps.patchApiFinding;
+  // Phase 14 FIND-03: Promotion support
+  listFindingsForPromotion = apiFindingOps.listFindingsForPromotion;
+  updateFindingPromotedThreatId = apiFindingOps.updateFindingPromotedThreatId;
+
+  // Phase 10 — API Credentials (CRED-01..04)
+  listApiCredentials = apiCredentialOps.listApiCredentials;
+  getApiCredential = apiCredentialOps.getApiCredential;
+  getApiCredentialWithSecret = apiCredentialOps.getApiCredentialWithSecret;
+  createApiCredential = apiCredentialOps.createApiCredential;
+  updateApiCredential = apiCredentialOps.updateApiCredential;
+  deleteApiCredential = apiCredentialOps.deleteApiCredential;
+  resolveApiCredential = apiCredentialOps.resolveApiCredential;
 
   // MFA email challenges
   createMfaEmailChallenge = mfaOps.createMfaEmailChallenge;

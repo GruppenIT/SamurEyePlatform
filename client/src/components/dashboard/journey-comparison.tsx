@@ -12,7 +12,7 @@ export default function JourneyComparison() {
   if (isLoading) {
     return (
       <div className="p-6 text-center text-muted-foreground text-sm">
-        Carregando comparacao...
+        Carregando comparação...
       </div>
     );
   }
@@ -20,7 +20,7 @@ export default function JourneyComparison() {
   if (snapshots.length < 2) {
     return (
       <div className="p-6 text-center text-muted-foreground text-sm">
-        Dados insuficientes para comparacao — execute pelo menos duas jornadas
+        Dados insuficientes para comparação — execute pelo menos duas jornadas
       </div>
     );
   }
@@ -51,10 +51,10 @@ export default function JourneyComparison() {
 
   const summary = () => {
     if (scoreDelta > 0)
-      return `Postura melhorou em ${scoreDelta.toFixed(1)} pontos desde a ultima execucao.`;
+      return `Postura melhorou em ${scoreDelta.toFixed(1)} pontos desde a última execução.`;
     if (scoreDelta < 0)
-      return `Postura piorou em ${Math.abs(scoreDelta).toFixed(1)} pontos — novas ameacas detectadas.`;
-    return "Postura estavel desde a ultima execucao.";
+      return `Postura piorou em ${Math.abs(scoreDelta).toFixed(1)} pontos — novas ameaças detectadas.`;
+    return "Postura estável desde a última execução.";
   };
 
   return (
@@ -84,7 +84,7 @@ export default function JourneyComparison() {
       <div className="grid grid-cols-3 gap-4 pt-2 border-t border-border">
         {/* Ameacas Abertas */}
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">Ameacas Abertas</p>
+          <p className="text-xs text-muted-foreground">Ameaças Abertas</p>
           <p className="text-sm font-medium">
             {previous.openThreatCount} &rarr; {current.openThreatCount}
           </p>
@@ -95,9 +95,9 @@ export default function JourneyComparison() {
           </p>
         </div>
 
-        {/* Criticas */}
+        {/* Críticas */}
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">Criticas</p>
+          <p className="text-xs text-muted-foreground">Críticas</p>
           <p className="text-sm font-medium">
             {previous.criticalCount} &rarr; {current.criticalCount}
           </p>

@@ -1,0 +1,9 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "x-request-id": "test-alg-none-001"
+  },
+  "body": "{\"user\":{\"id\":42,\"email\":\"admin@example.internal\",\"role\":\"admin\"}}",
+  "describedBy": "Server accepted JWT with alg=none and empty signature — critical auth bypass"
+}

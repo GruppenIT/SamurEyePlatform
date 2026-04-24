@@ -1,7 +1,14 @@
+import { useState, useEffect, Fragment } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
+import { useTheme } from "@/hooks/useTheme";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Shield,
   ShieldCheck,
@@ -11,15 +18,13 @@ import {
   Clock,
   AlertTriangle,
   List,
-  Users,
-  Settings,
-  History,
   Monitor,
-  Bell,
-  Smartphone,
   FileBarChart,
-  CreditCard,
   ClipboardList,
+  LayoutDashboard,
+  Rocket,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface NavItem {
@@ -42,7 +47,7 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Superfície",
+    title: "Inventário",
     items: [
       { href: "/assets", label: "Alvos", icon: Server },
       { href: "/hosts", label: "Hosts", icon: Monitor },
@@ -50,7 +55,7 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Operações",
+    title: "Execução",
     items: [
       { href: "/journeys", label: "Jornadas", icon: Route },
       { href: "/schedules", label: "Agendamentos", icon: Clock },
@@ -58,143 +63,254 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Inteligência",
+    title: "Análise",
     items: [
       { href: "/threats", label: "Ameaças", icon: AlertTriangle },
-      { href: "/action-plan", label: "Plano de Acao", icon: ClipboardList },
+      { href: "/action-plan", label: "Plano de Ação", icon: ClipboardList },
       { href: "/relatorios", label: "Relatórios", icon: FileBarChart },
     ],
   },
 ];
 
 const adminItems: NavItem[] = [
-  { href: "/users", label: "Usuários", icon: Users, adminOnly: true },
-  { href: "/sessions", label: "Sessões", icon: Smartphone, adminOnly: true },
-  { href: "/notification-policies", label: "Notificações", icon: Bell, adminOnly: true },
-  { href: "/subscription", label: "Subscrição", icon: CreditCard, adminOnly: true },
-  { href: "/settings", label: "Configurações", icon: Settings, adminOnly: true },
-  { href: "/audit", label: "Auditoria", icon: History, adminOnly: true },
+  { href: "/admin", label: "Administração", icon: LayoutDashboard, adminOnly: true },
 ];
+
+const STORAGE_KEY = "samureye.sidebar.collapsed";
+
+function readCollapsed(): boolean {
+  try { return localStorage.getItem(STORAGE_KEY) === "true"; } catch { return false; }
+}
+
+function saveCollapsed(v: boolean) {
+  try { localStorage.setItem(STORAGE_KEY, String(v)); } catch {}
+  fetch("/api/user/preferences", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sidebarCollapsed: v }),
+    credentials: "include",
+  }).catch(() => {});
+}
 
 export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
+  const { resolvedTheme } = useTheme();
+  const [collapsed, setCollapsed] = useState(readCollapsed);
 
-  // Buscar ameaças críticas abertas para o contador do menu
+  // Sync from backend on mount (fire-and-forget)
+  useEffect(() => {
+    fetch("/api/user/preferences", { credentials: "include" })
+      .then((r) => r.json())
+      .then((prefs) => {
+        if (typeof prefs?.sidebarCollapsed === "boolean") {
+          setCollapsed(prefs.sidebarCollapsed);
+          try { localStorage.setItem(STORAGE_KEY, String(prefs.sidebarCollapsed)); } catch {}
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const toggle = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    saveCollapsed(next);
+  };
+
   const { data: criticalThreats = [] } = useQuery({
-    queryKey: ['/api/threats', { severity: 'critical', status: 'open' }],
-    select: (data: any[]) => data?.filter((threat: any) => 
-      threat.severity === 'critical' && threat.status === 'open'
-    ) || []
+    queryKey: ["/api/threats", { severity: "critical", status: "open" }],
+    select: (data: any[]) =>
+      data?.filter((t: any) => t.severity === "critical" && t.status === "open") || [],
   });
-
   const criticalThreatCount = criticalThreats.length;
 
   const { data: healthData } = useQuery<{ version?: string }>({
-    queryKey: ['/api/health'],
-    refetchInterval: 60_000, // refresh once per minute
+    queryKey: ["/api/health"],
+    refetchInterval: 60_000,
     staleTime: 60_000,
   });
   const appVersion = healthData?.version;
 
-  const isAdmin = user?.role === 'global_administrator';
-  const canViewAdminItems = isAdmin;
+  const isAdmin = (user as any)?.role === "global_administrator";
+
+  const { data: gettingStartedStatus } = useQuery<{
+    steps: Array<{ id: string; completed: boolean; skipped: boolean }>;
+    dismissed: boolean;
+  }>({
+    queryKey: ["/api/getting-started/status"],
+    enabled: isAdmin,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+
+  const gettingStartedPendingCount =
+    gettingStartedStatus?.steps.filter((s) => !s.completed && !s.skipped).length ?? 0;
+
+  const showGettingStarted = isAdmin && !gettingStartedStatus?.dismissed;
+
+  const logoSrc = resolvedTheme === "dark" ? "/logo.png" : "/Logos_white.png";
+
+  function NavLink({ item }: { item: NavItem }) {
+    const isActive =
+      item.href === "/"
+        ? location === "/" || location === "/postura"
+        : location === item.href || location.startsWith(item.href + "/");
+    const showBadge =
+      (item.label === "Ameaças" && criticalThreatCount > 0) ||
+      (item.href === "/getting-started" && gettingStartedPendingCount > 0);
+    const badgeValue =
+      item.href === "/getting-started"
+        ? gettingStartedPendingCount
+        : item.label === "Ameaças"
+        ? criticalThreatCount
+        : (item.badge ?? 0);
+
+    const inner = (
+      <Link key={item.href} href={item.href}>
+        <div
+          className={cn(
+            "sidebar-item relative flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+            collapsed && "justify-center px-2",
+            isActive
+              ? "active text-sidebar-foreground"
+              : "text-muted-foreground hover:text-sidebar-foreground"
+          )}
+          data-testid={`nav-${item.label.toLowerCase()}`}
+        >
+          <item.icon className={cn("h-4 w-4 flex-shrink-0", !collapsed && "mr-3")} />
+          {!collapsed && (
+            <>
+              <span className="truncate">{item.label}</span>
+              {showBadge && (
+                <span
+                  className="ml-auto bg-destructive text-destructive-foreground text-xs px-2 py-0.5 rounded-full"
+                  data-testid={`badge-${item.label.toLowerCase()}`}
+                >
+                  {badgeValue}
+                </span>
+              )}
+            </>
+          )}
+          {collapsed && showBadge && (
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-destructive" />
+          )}
+        </div>
+      </Link>
+    );
+
+    if (collapsed) {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>{inner}</TooltipTrigger>
+          <TooltipContent side="right">{item.label}</TooltipContent>
+        </Tooltip>
+      );
+    }
+    return inner;
+  }
 
   return (
-    <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
-      {/* Logo and Brand */}
-      <div className="p-6 border-b border-sidebar-border">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-sidebar-primary rounded-lg flex items-center justify-center">
-            <Shield className="text-sidebar-primary-foreground text-xl" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-sidebar-foreground">SamurEye</h1>
-            <p className="text-xs text-muted-foreground">Validação de Exposição</p>
-          </div>
+    <aside
+      className={cn(
+        "bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-200",
+        collapsed ? "w-16" : "w-64"
+      )}
+    >
+      {/* Header: logo + toggle */}
+      <div className={cn(
+        "flex items-center border-b border-sidebar-border flex-shrink-0",
+        collapsed ? "px-3 py-4 justify-center" : "px-5 py-4 justify-between"
+      )}>
+        {!collapsed && (
+          <img
+            src={logoSrc}
+            alt="SamurEye"
+            className="h-8 object-contain"
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              img.style.display = "none";
+              img.nextElementSibling?.classList.remove("hidden");
+            }}
+          />
+        )}
+        {/* Fallback shield when image fails or collapsed */}
+        <div className={cn(
+          "w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center flex-shrink-0",
+          !collapsed && "hidden"
+        )}>
+          <Shield className="w-4 h-4 text-sidebar-primary-foreground" />
         </div>
-      </div>
-      
-      {/* Navigation Menu */}
-      <nav className="flex-1 py-4 overflow-y-auto">
-        {navGroups.map((group, groupIndex) => (
-          <div key={groupIndex} className={cn("px-3", groupIndex > 0 && "mt-4")}>
-            {group.title && (
-              <h3 className="px-3 mb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                {group.title}
-              </h3>
-            )}
-            <div className="space-y-1">
-              {group.items.map((item) => {
-                const isActive = item.href === '/'
-                  ? location === '/' || location === '/postura'
-                  : location === item.href || location.startsWith(item.href + '/');
-                const showBadge = item.label === "Ameaças" && criticalThreatCount > 0;
-                const badgeCount = item.label === "Ameaças" ? criticalThreatCount : item.badge;
 
-                return (
-                  <Link key={item.href} href={item.href}>
-                    <div
-                      className={cn(
-                        "sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
-                        isActive
-                          ? "active text-sidebar-foreground"
-                          : "text-muted-foreground hover:text-sidebar-foreground"
-                      )}
-                      data-testid={`nav-${item.label.toLowerCase()}`}
-                    >
-                      <item.icon className="mr-3 h-4 w-4" />
-                      {item.label}
-                      {(showBadge || item.badge) && (
-                        <span className="ml-auto bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded-full" data-testid={`badge-${item.label.toLowerCase()}`}>
-                          {badgeCount}
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
+        <button
+          onClick={toggle}
+          aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
+          className={cn(
+            "text-muted-foreground hover:text-sidebar-foreground transition-colors rounded p-1 hover:bg-sidebar-accent",
+            collapsed && "mt-0"
+          )}
+        >
+          {collapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 py-3 overflow-y-auto overflow-x-hidden">
+        {navGroups.map((group, gi) => (
+          <Fragment key={gi}>
+            <div className={cn("px-2", gi > 0 && "mt-3")}>
+              {group.title && !collapsed && (
+                <p className="px-3 mb-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                  {group.title}
+                </p>
+              )}
+              {group.title && collapsed && <div className="border-t border-sidebar-border my-2 mx-1" />}
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <NavLink key={item.href} item={item} />
+                ))}
+              </div>
             </div>
-          </div>
+            {gi === 0 && showGettingStarted && (
+              <div className="px-2">
+                <div className="border-t border-sidebar-border my-2 mx-1" />
+                <div className="space-y-0.5">
+                  <NavLink
+                    item={{
+                      href: "/getting-started",
+                      label: "Primeiros Passos",
+                      icon: Rocket,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </Fragment>
         ))}
 
-        {canViewAdminItems && (
-          <div className="px-3 mt-4">
-            <h3 className="px-3 mb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Administração
-            </h3>
-            <div className="space-y-1">
-              {adminItems.map((item) => {
-                const isActive = location === item.href || location.startsWith(item.href + '/');
-                return (
-                  <Link key={item.href} href={item.href}>
-                    <div
-                      className={cn(
-                        "sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
-                        isActive
-                          ? "active text-sidebar-foreground"
-                          : "text-muted-foreground hover:text-sidebar-foreground"
-                      )}
-                      data-testid={`nav-admin-${item.label.toLowerCase()}`}
-                    >
-                      <item.icon className="mr-3 h-4 w-4" />
-                      {item.label}
-                    </div>
-                  </Link>
-                );
-              })}
+        {isAdmin && (
+          <div className="px-2 mt-3">
+            <div className="border-t border-sidebar-border mb-2 mx-1" />
+            <div className="space-y-0.5">
+              {adminItems.map((item) => (
+                <NavLink key={item.href} item={item} />
+              ))}
             </div>
           </div>
         )}
       </nav>
-      
-      <div className="p-4 border-t border-sidebar-border">
-        {appVersion && (
-          <p className="text-[10px] text-muted-foreground/50 text-center select-all" title={`Build: ${appVersion}`}>
+
+      {/* Footer */}
+      {!collapsed && appVersion && (
+        <div className="px-4 py-3 border-t border-sidebar-border">
+          <p className="text-[10px] text-muted-foreground/50 text-center select-all">
             v{appVersion}
           </p>
-        )}
-      </div>
+        </div>
+      )}
     </aside>
   );
 }

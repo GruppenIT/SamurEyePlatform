@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/lib/websocket";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -230,6 +231,7 @@ export default function Audit() {
         />
         
         <div className="p-6 space-y-6">
+          <AdminBreadcrumb page="Auditoria" />
           {/* Search and Filters */}
           <Card>
             <CardContent className="p-6">
@@ -273,6 +275,15 @@ export default function Audit() {
                 <Badge variant="secondary" data-testid="audit-count">
                   {filteredAuditLog.length} entradas
                 </Badge>
+                <Button
+                  variant="outline"
+                  onClick={handleExportCSV}
+                  disabled={filteredAuditLog.length === 0}
+                  data-testid="button-export-csv"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Exportar CSV
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -517,9 +528,6 @@ export default function Audit() {
                           {selectedEntry.actorEmail}
                         </div>
                       )}
-                      <div className="text-xs text-muted-foreground font-mono mt-1">
-                        ID: {selectedEntry.actorId}
-                      </div>
                     </div>
                   </div>
                 </Card>

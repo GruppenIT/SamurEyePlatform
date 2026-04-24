@@ -4,6 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/lib/websocket";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { Button } from "@/components/ui/button";
+import { Search, Plus } from "lucide-react";
+import { Link } from "wouter";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
 import MetricsOverview from "@/components/dashboard/metrics-overview";
@@ -103,6 +106,22 @@ export default function Dashboard() {
         />
 
         <div className="p-6 space-y-6">
+          {/* Quick Actions */}
+          <div className="flex justify-end gap-3">
+            <Link href="/journeys">
+              <Button variant="secondary" data-testid="button-quick-scan">
+                <Search className="mr-2 h-4 w-4" />
+                Varredura Rápida
+              </Button>
+            </Link>
+            <Link href="/journeys">
+              <Button data-testid="button-new-journey">
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Jornada
+              </Button>
+            </Link>
+          </div>
+
           {/* Metrics Overview */}
           <MetricsOverview />
 

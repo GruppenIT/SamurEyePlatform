@@ -40,6 +40,17 @@ import {
   type ConsoleCommand,
   type EdrDeployment,
   type InsertEdrDeployment,
+  type Api,
+  type InsertApi,
+  type ApiEndpoint,
+  type InsertApiEndpoint,
+  type ApiFinding,
+  type InsertApiFinding,
+  type ApiCredentialSafe,
+  type ApiCredentialWithSecret,
+  type InsertApiCredential,
+  type PatchApiCredential,
+  type ApiAuthType,
   type MfaEmailChallenge,
   type InsertMfaEmailChallenge,
   type PasswordResetToken,
@@ -62,6 +73,8 @@ export interface IStorage {
   setUserMfa(id: string, data: { mfaEnabled: boolean; mfaSecretEncrypted: string | null; mfaSecretDek: string | null; mfaBackupCodes: string[] | null; mfaEnabledAt: Date | null }): Promise<void>;
   updateBackupCodes(id: string, codes: string[]): Promise<void>;
   dismissMfaInvitation(id: string): Promise<void>;
+  updateUserPreferences(id: string, prefs: { theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean }): Promise<void>;
+  getUserPreferences(id: string): Promise<{ theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean } | null>;
 
   // Asset operations
   getAssets(): Promise<Asset[]>;
@@ -96,7 +109,7 @@ export interface IStorage {
   getActiveSchedules(): Promise<Schedule[]>;
 
   // Job operations
-  getJobs(limit?: number): Promise<Job[]>;
+  getJobs(limit?: number): Promise<(Job & { journeyName: string | null; journeyType: string | null })[]>;
   getJob(id: string): Promise<Job | undefined>;
   createJob(job: InsertJob): Promise<Job>;
   updateJob(id: string, updates: Partial<Job>): Promise<Job>;
@@ -117,7 +130,7 @@ export interface IStorage {
 
   // Threat operations
   getThreats(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string }): Promise<Threat[]>;
-  getThreatsWithHosts(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string }): Promise<(Threat & { host?: Host })[]>;
+  getThreatsWithHosts(filters?: { severity?: string; status?: string; assetId?: string; hostId?: string; source?: string }): Promise<(Threat & { host?: Host })[]>;
   getThreat(id: string): Promise<Threat | undefined>;
   createThreat(threat: InsertThreat): Promise<Threat>;
   updateThreat(id: string, threat: Partial<Threat>): Promise<Threat>;
@@ -261,6 +274,54 @@ export interface IStorage {
   insertEdrDeployment(data: InsertEdrDeployment): Promise<EdrDeployment>;
   getEdrDeploymentsByJourney(journeyId: string): Promise<EdrDeployment[]>;
   getEdrDeploymentsByJourneyWithHost(journeyId: string): Promise<Array<EdrDeployment & { hostName: string | null; hostIps: string[]; hostOperatingSystem: string | null }>>;
+
+  // API operations — Phase 9 HIER-01, HIER-02, HIER-03, HIER-04, FIND-01
+  getApi(id: string): Promise<Api | undefined>;
+  listApis(): Promise<Api[]>;
+  listApisByParent(parentAssetId: string): Promise<Api[]>;
+  createApi(data: InsertApi, userId: string): Promise<Api>;
+  promoteApiFromBackfill(
+    parentAssetId: string,
+    baseUrl: string,
+    apiType: 'rest' | 'graphql' | 'soap',
+    opts: { specUrl?: string; systemUserId: string },
+  ): Promise<Api | null>;
+  listEndpointsByApi(apiId: string): Promise<ApiEndpoint[]>;
+  createApiEndpoint(data: InsertApiEndpoint): Promise<ApiEndpoint>;
+  upsertApiEndpoint(data: InsertApiEndpoint): Promise<ApiEndpoint>;
+  listFindingsByEndpoint(endpointId: string): Promise<ApiFinding[]>;
+  createApiFinding(data: InsertApiFinding): Promise<ApiFinding>;
+  // Phase 12 TEST-01/TEST-02:
+  upsertApiFindingByKey(
+    endpointId: string,
+    owaspCategory: InsertApiFinding['owaspCategory'],
+    title: string,
+    data: InsertApiFinding,
+  ): Promise<{ finding: ApiFinding; action: 'inserted' | 'updated' }>;
+  listApiFindings(filter: import('./apiFindings').ListApiFindingsFilter): Promise<ApiFinding[]>;
+  // Phase 14 FIND-03: Promotion support (tx parameter is internal detail — interface exposes public contract only)
+  listFindingsForPromotion(findingIds: string[]): Promise<ApiFinding[]>;
+  updateFindingPromotedThreatId(findingId: string, threatId: string | null): Promise<void>;
+  // Phase 16 UI-05: Patch api_finding (false positive toggle)
+  patchApiFinding(id: string, data: { falsePositive: boolean }): Promise<{ previous: ApiFinding; current: ApiFinding }>;
+  // Phase 16 UI-01: List APIs with computed endpoint count
+  listApisWithEndpointCount(): Promise<(Api & { endpointCount: number })[]>;
+
+  // Phase 11 Discovery & Enrichment extensions
+  upsertApiEndpoints(apiId: string, rows: InsertApiEndpoint[]): Promise<{ inserted: number; updated: number }>;
+  mergeHttpxEnrichment(endpointId: string, data: { status: number | null; contentType: string | null; tech: string[] | null; tls: Record<string, unknown> | null }): Promise<void>;
+  appendQueryParams(endpointId: string, params: Array<{ name: string; type?: string; required?: boolean; example?: unknown }>): Promise<void>;
+  markEndpointsStale(apiId: string, endpointIds: string[]): Promise<string[]>;
+  updateApiSpecMetadata(apiId: string, data: { specUrl: string; specVersion: string; specHash: string }): Promise<Api>;
+
+  // Phase 10 — API Credentials operations (CRED-01..04)
+  listApiCredentials(filter?: { apiId?: string; authType?: ApiAuthType }): Promise<ApiCredentialSafe[]>;
+  getApiCredential(id: string): Promise<ApiCredentialSafe | undefined>;
+  getApiCredentialWithSecret(id: string): Promise<ApiCredentialWithSecret | undefined>;
+  createApiCredential(input: InsertApiCredential, userId: string): Promise<ApiCredentialSafe>;
+  updateApiCredential(id: string, patch: PatchApiCredential, userId: string): Promise<ApiCredentialSafe>;
+  deleteApiCredential(id: string): Promise<void>;
+  resolveApiCredential(apiId: string, endpointUrl: string): Promise<ApiCredentialSafe | null>;
 
   // MFA email challenges
   createMfaEmailChallenge(data: InsertMfaEmailChallenge): Promise<MfaEmailChallenge>;

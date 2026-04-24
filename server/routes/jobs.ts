@@ -1,10 +1,24 @@
 import type { Express } from "express";
+import { z } from "zod";
 import { storage } from "../storage";
 import { isAuthenticatedWithPasswordCheck } from "../localAuth";
 import { requireOperator } from "./middleware";
 import { jobQueue } from "../services/jobQueue";
 import { processTracker } from "../services/processTracker";
 import { createLogger } from '../lib/logger';
+import { MAX_API_RATE_LIMIT } from '../services/rateLimiter';
+import type { DiscoverApiOpts, ApiPassiveTestOpts, ApiActiveTestOpts } from '@shared/schema';
+// Phase 14 FIND-04: WebSocket event broadcaster anchor.
+// TODO(14-04/Phase-15): Wire upgrade handler GET /api/v1/jobs/:jobId/ws
+//   wss.on('connection', (ws, req) => {
+//     const match = req.url?.match(/\/api\/v1\/jobs\/([^/]+)\/ws$/);
+//     if (!match) { ws.close(); return; }
+//     const jobId = match[1];
+//     jobEventBroadcaster.subscribe(jobId, ws);
+//     ws.on('close', () => jobEventBroadcaster.unsubscribe(jobId, ws));
+//     ws.on('error', () => jobEventBroadcaster.unsubscribe(jobId, ws));
+//   });
+import { jobEventBroadcaster } from '../services/jobEventBroadcaster';
 
 const log = createLogger('routes:jobs');
 
@@ -121,6 +135,248 @@ export function registerJobRoutes(app: Express) {
     } catch (error) {
       log.error({ err: error }, 'failed to cancel job');
       res.status(500).json({ message: "Falha ao cancelar job" });
+    }
+  });
+
+  /**
+   * Phase 16 UI-06 — POST /api/v1/jobs
+   *
+   * Creates an api_security journey + queues for execution.
+   * Validates authorizationAck=true (SAFE-04) and rateLimit ≤ MAX_API_RATE_LIMIT (SAFE-01).
+   *
+   * Body shape (type=api_security):
+   *   { type, name, description?, params: { assetIds, targetBaseUrl?, credentialId?,
+   *     authorizationAck, apiSecurityConfig: { discovery, testing, rateLimit, destructiveEnabled, dryRun } } }
+   *
+   * Response: 201 { id: string, journeyId: string }
+   */
+  const createApiSecurityJobSchema = z.object({
+    type: z.literal("api_security"),
+    name: z.string().min(1, "Nome é obrigatório"),
+    description: z.string().optional(),
+    params: z.object({
+      assetIds: z.array(z.string()).min(1, "Selecione ao menos um alvo"),
+      targetBaseUrl: z.string().optional(),
+      credentialId: z.string().optional(),
+      authorizationAck: z.boolean(),
+      apiSecurityConfig: z.object({
+        discovery: z.object({
+          specFirst: z.boolean(),
+          crawler: z.boolean(),
+          kiterunner: z.boolean(),
+        }),
+        testing: z.object({
+          misconfigs: z.boolean(),
+          auth: z.boolean(),
+          bola: z.boolean(),
+          bfla: z.boolean(),
+          bopla: z.boolean(),
+          rateLimit: z.boolean(),
+          ssrf: z.boolean(),
+        }),
+        rateLimit: z.number().int().min(1).max(MAX_API_RATE_LIMIT),
+        destructiveEnabled: z.boolean(),
+        dryRun: z.boolean(),
+      }),
+    }),
+  });
+
+  app.post('/api/v1/jobs', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+
+      const parsed = createApiSecurityJobSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          message: "Dados inválidos",
+          errors: parsed.error.flatten().fieldErrors,
+        });
+      }
+
+      const { name, description, params } = parsed.data;
+
+      // SAFE-04: authorizationAck must be true
+      if (params.authorizationAck !== true) {
+        return res.status(400).json({
+          message: "Autorização de teste é obrigatória (authorizationAck deve ser true)",
+        });
+      }
+
+      // SAFE-01: rateLimit ceiling
+      if (params.apiSecurityConfig.rateLimit > MAX_API_RATE_LIMIT) {
+        return res.status(400).json({
+          message: `Rate limit não pode exceder ${MAX_API_RATE_LIMIT} req/s`,
+        });
+      }
+
+      // Resolve apiId — find or auto-register API record for the primary asset + URL
+      const primaryAssetId = params.assetIds[0];
+      const targetUrl = params.targetBaseUrl;
+      let apiId: string;
+      if (targetUrl) {
+        const existingApis = await storage.listApisByParent(primaryAssetId);
+        const existing = existingApis.find(a => a.baseUrl === targetUrl);
+        if (existing) {
+          apiId = existing.id;
+        } else {
+          const newApi = await storage.createApi(
+            { parentAssetId: primaryAssetId, baseUrl: targetUrl, apiType: 'rest' } as any,
+            userId,
+          );
+          apiId = newApi.id;
+        }
+      } else {
+        const existingApis = await storage.listApisByParent(primaryAssetId);
+        if (existingApis.length === 0) {
+          return res.status(400).json({
+            message: 'Nenhuma API cadastrada para este ativo. Informe targetBaseUrl para registro automático.',
+          });
+        }
+        apiId = existingApis[0].id;
+      }
+
+      // Map apiSecurityConfig → executor opts
+      const cfg = params.apiSecurityConfig;
+      const discoveryOpts: DiscoverApiOpts = {
+        stages: {
+          spec: cfg.discovery.specFirst,
+          crawler: cfg.discovery.crawler,
+          kiterunner: cfg.discovery.kiterunner,
+          httpx: true,
+          arjun: false,
+        },
+        dryRun: cfg.dryRun,
+      };
+      const passiveOpts: ApiPassiveTestOpts = {
+        stages: {
+          nucleiPassive: cfg.testing.misconfigs,
+          authFailure: cfg.testing.auth,
+          api9Inventory: true,
+        },
+        dryRun: cfg.dryRun,
+      };
+      const activeOpts: ApiActiveTestOpts = {
+        stages: {
+          bola: cfg.testing.bola,
+          bfla: cfg.testing.bfla,
+          bopla: cfg.testing.bopla,
+          rateLimit: cfg.testing.rateLimit,
+          ssrf: cfg.testing.ssrf,
+        },
+        destructiveEnabled: cfg.destructiveEnabled,
+        dryRun: cfg.dryRun,
+      };
+
+      // Create journey record
+      const journey = await storage.createJourney(
+        {
+          name,
+          description: description || null,
+          type: "api_security",
+          authorizationAck: true,
+          params: {
+            apiId,
+            assetIds: params.assetIds,
+            targetBaseUrl: targetUrl,
+            credentialId: params.credentialId,
+            discoveryOpts,
+            passiveOpts,
+            activeOpts,
+            rateLimit: cfg.rateLimit,
+          },
+        } as any,
+        userId,
+      );
+
+      // Enqueue job
+      const job = await jobQueue.executeJobNow(journey.id);
+
+      await storage.logAudit({
+        actorId: userId,
+        action: 'create',
+        objectType: 'job',
+        objectId: job.id,
+        before: null,
+        after: { journeyId: journey.id, type: 'api_security', dryRun: params.apiSecurityConfig.dryRun },
+      });
+
+      log.info({ jobId: job.id, journeyId: journey.id, userId }, 'api_security job created');
+
+      return res.status(201).json({ id: job.id, journeyId: journey.id });
+    } catch (error) {
+      log.error({ err: error }, 'failed to create api_security job');
+      return res.status(500).json({ message: 'Falha ao criar jornada' });
+    }
+  });
+
+  /**
+   * Phase 15 JRNY-05 — POST /api/v1/jobs/:id/abort
+   *
+   * Aborta uma jornada em execução. Encapsula a mesma lógica de
+   * POST /api/jobs/:id/cancel-process (mantida para backward compat) mas
+   * com path canônico /api/v1/ e semântica de "abort" no audit log.
+   *
+   * Fluxo:
+   *   1. Valida existência do job (404 se não existir)
+   *   2. Valida status='running' (400 caso contrário)
+   *   3. jobQueue.markJobAsCancelled(id) — cooperative cancellation flag
+   *   4. processTracker.killAll(id) — SIGTERM+SIGKILL em todos os child processes
+   *   5. storage.updateJob(id, { status: 'failed', error, finishedAt })
+   *   6. jobQueue.emit('jobUpdate', ...) — WebSocket para UI
+   *   7. storage.logAudit(action='abort', objectType='job')
+   *
+   * Response: 200 { message: 'Jornada abortada', killedProcesses: N }
+   */
+  app.post('/api/v1/jobs/:id/abort', isAuthenticatedWithPasswordCheck, requireOperator, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+
+      const job = await storage.getJob(id);
+      if (!job) {
+        return res.status(404).json({ message: "Job não encontrado" });
+      }
+
+      if (job.status !== 'running') {
+        return res.status(400).json({ message: "Job não está em execução" });
+      }
+
+      // Phase 15 JRNY-05 — cooperative cancel + hard kill sequence
+      jobQueue.markJobAsCancelled(id);
+      const killedCount = processTracker.killAll(id);
+
+      await storage.updateJob(id, {
+        status: 'failed',
+        error: 'Jornada abortada pelo usuário',
+        finishedAt: new Date(),
+      });
+
+      jobQueue.emit('jobUpdate', {
+        jobId: id,
+        status: 'failed',
+        progress: job.progress,
+        currentTask: 'Jornada abortada pelo usuário',
+        error: 'Jornada abortada pelo usuário',
+      });
+
+      await storage.logAudit({
+        actorId: userId,
+        action: 'abort',
+        objectType: 'job',
+        objectId: id,
+        before: null,
+        after: { status: 'failed', error: 'Jornada abortada pelo usuário', killedProcesses: killedCount },
+      });
+
+      log.info({ jobId: id, userId, killedCount }, 'job aborted by user');
+
+      return res.json({
+        message: 'Jornada abortada',
+        killedProcesses: killedCount,
+      });
+    } catch (error) {
+      log.error({ err: error }, 'failed to abort job');
+      return res.status(500).json({ message: 'Falha ao abortar jornada' });
     }
   });
 }

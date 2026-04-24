@@ -1,0 +1,38 @@
+{
+  "$schema": "./binaries.schema.json",
+  "version": 1,
+  "binaries": {
+    "katana": {
+      "version": "1.5.0",
+      "url": "https://github.com/projectdiscovery/katana/releases/download/v1.5.0/katana_1.5.0_linux_amd64.zip",
+      "sha256": "592890e5febaf5706d0a962d96299512418d6eccce6388cf1600e1f078ed359d",
+      "format": "zip",
+      "binary_in_archive": "katana",
+      "install_to": "bin/katana"
+    },
+    "httpx": {
+      "version": "1.9.0",
+      "url": "https://github.com/projectdiscovery/httpx/releases/download/v1.9.0/httpx_1.9.0_linux_amd64.zip",
+      "sha256": "54c6c91d61d3b82ba79f93633df04bb547f0c954d9d9b0fb8bcedf158f85ff2f",
+      "format": "zip",
+      "binary_in_archive": "httpx",
+      "install_to": "bin/httpx"
+    },
+    "kiterunner": {
+      "version": "1.0.2",
+      "url": "https://github.com/assetnote/kiterunner/releases/download/v1.0.2/kiterunner_1.0.2_linux_amd64.tar.gz",
+      "sha256": "6f0b70aabf747de592445a690281897eebbc45927e9264185d34ffb11637613b",
+      "format": "tar.gz",
+      "binary_in_archive": "kr",
+      "install_to": "bin/kiterunner"
+    },
+    "arjun": {
+      "version": "2.2.7",
+      "url": "https://files.pythonhosted.org/packages/04/22/c5b969720d2802de2248c2aac0414ee5ae234887cfe150564d591c73fb23/arjun-2.2.7.tar.gz",
+      "sha256": "b193cdaf97bf7b0e8cd91a41da778639e01fd9738d5f666a8161377f475ce72e",
+      "format": "pip_source",
+      "install_into_venv": "venv-security",
+      "install_to": "bin/arjun"
+    }
+  }
+}

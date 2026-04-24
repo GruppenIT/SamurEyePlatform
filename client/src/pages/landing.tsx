@@ -75,7 +75,7 @@ export default function Landing() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Mapeamento contínuo da superfície de ataque com nmap e nuclei. 
+                  Mapeamento contínuo da superfície de ataque com agentes especializados de varredura e análise de vulnerabilidades.
                   Identifique portas abertas, serviços expostos e vulnerabilidades conhecidas.
                 </p>
               </CardContent>

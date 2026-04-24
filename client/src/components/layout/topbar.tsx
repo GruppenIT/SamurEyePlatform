@@ -3,6 +3,9 @@ import { Search, Plus } from "lucide-react";
 import { Link } from "wouter";
 import SystemStatusPopup from "@/components/system-status-popup";
 import { UserMenu } from "@/components/account/user-menu";
+import { ThemeToggle } from "@/components/theme-toggle";
+
+const IS_DEMO = import.meta.env.VITE_DEMO_MODE === "true";
 
 interface TopBarProps {
   title: string;
@@ -13,47 +16,54 @@ interface TopBarProps {
 
 export default function TopBar({ title, subtitle, wsConnected = false, actions }: TopBarProps) {
   return (
-    <header className="bg-card border-b border-border p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground" data-testid="topbar-title">
-            {title}
-          </h2>
-          <p className="text-muted-foreground" data-testid="topbar-subtitle">
-            {subtitle}
-          </p>
+    <>
+      {IS_DEMO && (
+        <div className="bg-amber-500 text-white text-center text-xs font-semibold py-1 px-4">
+          Ambiente de demonstração — dados fictícios, jornadas desabilitadas
         </div>
-        <div className="flex items-center space-x-4">
-          {/* System status popup (click to expand) */}
-          <SystemStatusPopup wsConnected={wsConnected} />
+      )}
+      <header className="bg-card border-b border-border p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground" data-testid="topbar-title">
+              {title}
+            </h2>
+            <p className="text-muted-foreground" data-testid="topbar-subtitle">
+              {subtitle}
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <SystemStatusPopup wsConnected={wsConnected} />
 
-          {/* Default actions or custom actions */}
-          {actions || (
-            <>
-              <Link href="/journeys">
-                <Button
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                  data-testid="button-quick-scan"
-                >
-                  <Search className="mr-2 h-4 w-4" />
-                  Varredura Rápida
-                </Button>
-              </Link>
+            {actions || (
+              <>
+                <Link href="/journeys">
+                  <Button
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                    data-testid="button-quick-scan"
+                  >
+                    <Search className="mr-2 h-4 w-4" />
+                    Varredura Rápida
+                  </Button>
+                </Link>
 
-              <Link href="/journeys">
-                <Button
-                  variant="secondary"
-                  data-testid="button-new-journey"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nova Jornada
-                </Button>
-              </Link>
-            </>
-          )}
-          <UserMenu />
+                <Link href="/journeys">
+                  <Button
+                    variant="secondary"
+                    data-testid="button-new-journey"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nova Jornada
+                  </Button>
+                </Link>
+              </>
+            )}
+
+            <ThemeToggle />
+            <UserMenu />
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 }

@@ -1,0 +1,10 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "x-request-id": "test-key-leakage-001"
+  },
+  "body": "{\"debug\":{\"authorization_header\":\"Bearer sk_test_abc123xyz456\",\"api_key\":\"sk_test_abc123xyz456\"},\"user\":\"bob\"}",
+  "describedBy": "Response body contains the caller's API key — severity high leakage",
+  "leakedKey": "sk_test_abc123xyz456"
+}

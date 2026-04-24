@@ -188,7 +188,7 @@ export function registerDashboardRoutes(app: Express) {
   // GET /api/posture/coverage — return last run + status + open threat count for each journey type
   app.get('/api/posture/coverage', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
-      const journeyTypes = ['attack_surface', 'ad_security', 'edr_av', 'web_application'];
+      const journeyTypes = ['attack_surface', 'ad_security', 'edr_av', 'web_application', 'api_security'];
       const results = await Promise.all(
         journeyTypes.map(async (jType) => {
           const lastJobRow = await db.execute(sql`

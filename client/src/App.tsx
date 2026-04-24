@@ -1,13 +1,13 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Router, Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Shield, AlertTriangle, RefreshCw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import NotFound from "@/pages/not-found";
-import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import ChangePassword from "@/pages/change-password";
 import ForgotPassword from "@/pages/forgot-password";
@@ -18,6 +18,7 @@ import Assets from "@/pages/assets";
 import Hosts from "@/pages/hosts";
 import Credentials from "@/pages/credentials";
 import Journeys from "@/pages/journeys";
+import ApiDiscovery from "@/pages/api-discovery";
 import Schedules from "@/pages/schedules";
 import Jobs from "@/pages/jobs";
 import Threats from "@/pages/threats";
@@ -25,10 +26,14 @@ import ActionPlan from "@/pages/action-plan";
 import ActionPlanDetail from "@/pages/action-plan-detail";
 import Users from "@/pages/users";
 import Sessions from "@/pages/sessions";
-import Settings from "@/pages/settings";
 import Audit from "@/pages/audit";
-import NotificationPolicies from "@/pages/notification-policies";
 import Subscription from "@/pages/subscription";
+import Admin from "@/pages/admin";
+import AdminConfiguracoes from "@/pages/admin-configuracoes";
+import AdminSeguranca from "@/pages/admin-seguranca";
+import AdminMensageria from "@/pages/admin-mensageria";
+import AdminNotificacoes from "@/pages/admin-notificacoes";
+import GettingStarted from "@/pages/getting-started";
 import SubscriptionBanner from "@/components/subscription-banner";
 import { SetupAdminBanner } from "@/components/layout/setup-admin-banner";
 import { MfaInvitationDialog } from "@/components/account/mfa-invitation-dialog";
@@ -93,7 +98,7 @@ function AdminRoute({ component: PageComponent }: { component: React.ComponentTy
   return <PageComponent />;
 }
 
-function Router() {
+function AppRouter() {
   const { isAuthenticated, mustChangePassword, isLoading, user } = useAuth();
 
   if (isLoading) {
@@ -112,11 +117,9 @@ function Router() {
   if (!isAuthenticated) {
     return (
       <Switch>
-        <Route path="/" component={Landing} />
         <Route path="/login" component={Login} />
         <Route path="/forgot-password" component={ForgotPassword} />
         <Route path="/reset-password" component={ResetPassword} />
-        {/* Redirect any other path to login */}
         <Route>{() => <Redirect to="/login" />}</Route>
       </Switch>
     );
@@ -145,7 +148,6 @@ function Router() {
     <>
       <SetupAdminBanner />
       <Switch>
-        {/* Landing */}
         <Route path="/" component={Postura} />
         <Route path="/postura" component={Postura} />
 
@@ -156,24 +158,37 @@ function Router() {
         <Route path="/hosts" component={Hosts} />
         <Route path="/credentials" component={Credentials} />
         <Route path="/journeys" component={Journeys} />
+        <Route path="/journeys/api" component={ApiDiscovery} />
         <Route path="/schedules" component={Schedules} />
         <Route path="/jobs" component={Jobs} />
         <Route path="/threats" component={Threats} />
         <Route path="/action-plan/:id" component={ActionPlanDetail} />
         <Route path="/action-plan" component={ActionPlan} />
-        <Route path="/sessions" component={Sessions} />
         <Route path="/account" component={AccountPage} />
         <Route path="/account/mfa" component={AccountMfaPage} />
         <Route path="/change-password" component={ChangePassword} />
         {/* After successful MFA verify the user may momentarily still be on /mfa-challenge — send them home. */}
         <Route path="/mfa-challenge">{() => <Redirect to="/" />}</Route>
 
-        {/* Admin-only routes */}
-        <Route path="/users">{() => <AdminRoute component={Users} />}</Route>
-        <Route path="/subscription">{() => <AdminRoute component={Subscription} />}</Route>
-        <Route path="/settings">{() => <AdminRoute component={Settings} />}</Route>
-        <Route path="/notification-policies">{() => <AdminRoute component={NotificationPolicies} />}</Route>
-        <Route path="/audit">{() => <AdminRoute component={Audit} />}</Route>
+        {/* Admin hub + sub-routes */}
+        <Route path="/admin">{() => <AdminRoute component={Admin} />}</Route>
+        <Route path="/admin/usuarios">{() => <AdminRoute component={Users} />}</Route>
+        <Route path="/admin/sessoes">{() => <AdminRoute component={Sessions} />}</Route>
+        <Route path="/admin/configuracoes">{() => <AdminRoute component={AdminConfiguracoes} />}</Route>
+        <Route path="/admin/seguranca">{() => <AdminRoute component={AdminSeguranca} />}</Route>
+        <Route path="/admin/mensageria">{() => <AdminRoute component={AdminMensageria} />}</Route>
+        <Route path="/admin/notificacoes">{() => <AdminRoute component={AdminNotificacoes} />}</Route>
+        <Route path="/admin/subscricao">{() => <AdminRoute component={Subscription} />}</Route>
+        <Route path="/admin/auditoria">{() => <AdminRoute component={Audit} />}</Route>
+        <Route path="/getting-started">{() => <AdminRoute component={GettingStarted} />}</Route>
+
+        {/* Legacy redirects — rotas antigas apontam para /admin/* */}
+        <Route path="/users">{() => <Redirect to="/admin/usuarios" />}</Route>
+        <Route path="/sessions">{() => <Redirect to="/admin/sessoes" />}</Route>
+        <Route path="/settings">{() => <Redirect to="/admin/configuracoes" />}</Route>
+        <Route path="/notification-policies">{() => <Redirect to="/admin/notificacoes" />}</Route>
+        <Route path="/subscription">{() => <Redirect to="/admin/subscricao" />}</Route>
+        <Route path="/audit">{() => <Redirect to="/admin/auditoria" />}</Route>
 
         <Route component={NotFound} />
       </Switch>
@@ -182,20 +197,26 @@ function Router() {
   );
 }
 
+const ROUTER_BASE = (import.meta.env.VITE_ROUTER_BASE as string) || "/";
+
 function App() {
   return (
     <ErrorBoundary>
+      <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <div className="min-h-screen bg-background text-foreground flex flex-col">
-            <SubscriptionBanner />
-            <Toaster />
-            <div className="flex-1">
-              <Router />
+          <Router base={ROUTER_BASE === "/" ? "" : ROUTER_BASE}>
+            <div className="min-h-screen bg-background text-foreground flex flex-col">
+              <SubscriptionBanner />
+              <Toaster />
+              <div className="flex-1">
+                <AppRouter />
+              </div>
             </div>
-          </div>
+          </Router>
         </TooltipProvider>
       </QueryClientProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

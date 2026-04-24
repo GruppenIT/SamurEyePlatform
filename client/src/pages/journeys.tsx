@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
 import JourneyForm from "@/components/forms/journey-form";
+import { JourneyCreatorModal } from "@/components/forms/journey-creator-modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, Play, Route, Search as SearchIcon, Users, Worm, Globe, Eye } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Play, Route, Search as SearchIcon, Users, Worm, Globe, Eye, Code2 } from "lucide-react";
 import { format } from "date-fns";
 import { Journey } from "@shared/schema";
 import { JourneyFormData } from "@/types";
@@ -55,13 +56,13 @@ type EdrDeploymentWithHost = {
 
 function DetectionBadge({ detected }: { detected: boolean | null }) {
   if (detected === true) return <Badge className="bg-green-500/20 text-green-500">Detectado</Badge>;
-  if (detected === false) return <Badge className="bg-red-500/20 text-red-500">Nao Detectado</Badge>;
+  if (detected === false) return <Badge className="bg-red-500/20 text-red-500">Não Detectado</Badge>;
   return <Badge className="bg-muted text-muted-foreground">N/A</Badge>;
 }
 
 export default function Journeys() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [journeyCreatorOpen, setJourneyCreatorOpen] = useState(false);
   const [editingJourney, setEditingJourney] = useState<Journey | null>(null);
   const [selectedJourneyId, setSelectedJourneyId] = useState<string | null>(null);
 
@@ -93,7 +94,7 @@ export default function Journeys() {
         description: "Jornada criada com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/journeys"] });
-      setShowCreateDialog(false);
+      setJourneyCreatorOpen(false);
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -253,6 +254,8 @@ export default function Journeys() {
         return Worm;
       case 'web_application':
         return Globe;
+      case 'api_security':
+        return Code2;
       default:
         return Route;
     }
@@ -268,6 +271,8 @@ export default function Journeys() {
         return 'Teste EDR/AV';
       case 'web_application':
         return 'Web Application';
+      case 'api_security':
+        return 'API Security';
       default:
         return type;
     }
@@ -283,6 +288,8 @@ export default function Journeys() {
         return 'bg-chart-5/20 text-chart-5';
       case 'web_application':
         return 'bg-blue-500/20 text-blue-500';
+      case 'api_security':
+        return 'bg-emerald-500/20 text-emerald-600';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -293,19 +300,10 @@ export default function Journeys() {
       <Sidebar />
       
       <main className="flex-1 overflow-auto">
-        <TopBar 
+        <TopBar
           title="Gestão de Jornadas"
           subtitle="Configure e execute jornadas de validação de segurança"
           wsConnected={connected}
-          actions={
-            <Button
-              onClick={() => setShowCreateDialog(true)}
-              data-testid="button-create-journey"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Jornada
-            </Button>
-          }
         />
         
         <div className="p-6 space-y-6">
@@ -326,6 +324,13 @@ export default function Journeys() {
                 <Badge variant="secondary" data-testid="journeys-count">
                   {filteredJourneys.length} jornadas
                 </Badge>
+                <Button
+                  data-testid="button-create-journey"
+                  onClick={() => setJourneyCreatorOpen(true)}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nova Jornada
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -354,7 +359,7 @@ export default function Journeys() {
                     }
                   </p>
                   {!searchTerm && (
-                    <Button onClick={() => setShowCreateDialog(true)}>
+                    <Button onClick={() => setJourneyCreatorOpen(true)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Criar Primeira Jornada
                     </Button>
@@ -460,19 +465,14 @@ export default function Journeys() {
         </div>
       </main>
 
-      {/* Create Journey Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Criar Nova Jornada</DialogTitle>
-          </DialogHeader>
-          <JourneyForm
-            onSubmit={handleCreateJourney}
-            onCancel={() => setShowCreateDialog(false)}
-            isLoading={createJourneyMutation.isPending}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Journey Creator Modal (type picker + form) */}
+      <JourneyCreatorModal
+        open={journeyCreatorOpen}
+        onOpenChange={setJourneyCreatorOpen}
+        onSubmit={handleCreateJourney}
+        isLoading={createJourneyMutation.isPending}
+        journeys={journeys}
+      />
 
       {/* Edit Journey Dialog */}
       <Dialog open={!!editingJourney} onOpenChange={() => setEditingJourney(null)}>
@@ -521,12 +521,13 @@ export default function Journeys() {
         </DialogContent>
       </Dialog>
 
+
       {/* EDR Deployment Results Sheet */}
       <Sheet open={!!selectedJourneyId} onOpenChange={(open) => !open && setSelectedJourneyId(null)}>
         <SheetContent side="right" className="w-[700px] sm:max-w-[700px] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Resultados EDR</SheetTitle>
-            <SheetDescription>Resultados de validacao EDR/AV por host</SheetDescription>
+            <SheetDescription>Resultados de validação EDR/AV por host</SheetDescription>
           </SheetHeader>
 
           <div className="mt-6 space-y-6">
@@ -539,7 +540,7 @@ export default function Journeys() {
                 <Eye className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium text-foreground mb-2">Nenhum resultado EDR</h3>
                 <p className="text-muted-foreground">
-                  Esta jornada ainda nao possui resultados de validacao EDR/AV.
+                  Esta jornada ainda não possui resultados de validação EDR/AV.
                 </p>
               </div>
             ) : (
@@ -555,13 +556,13 @@ export default function Journeys() {
                   <Card>
                     <CardContent className="p-4 text-center">
                       <div className="text-2xl font-bold">{edrDetectionRate}%</div>
-                      <div className="text-sm text-muted-foreground">Taxa de Deteccao</div>
+                      <div className="text-sm text-muted-foreground">Taxa de Detecção</div>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="p-4 text-center">
                       <div className="text-2xl font-bold">{edrAvgDuration}s</div>
-                      <div className="text-sm text-muted-foreground">Duracao Media</div>
+                      <div className="text-sm text-muted-foreground">Duração Média</div>
                     </CardContent>
                   </Card>
                 </div>
@@ -574,10 +575,10 @@ export default function Journeys() {
                         <TableRow>
                           <TableHead>Host</TableHead>
                           <TableHead>SO</TableHead>
-                          <TableHead>Deteccao</TableHead>
-                          <TableHead>Metodo</TableHead>
-                          <TableHead>Duracao</TableHead>
-                          <TableHead>Implantacao</TableHead>
+                          <TableHead>Detecção</TableHead>
+                          <TableHead>Método</TableHead>
+                          <TableHead>Duração</TableHead>
+                          <TableHead>Implantação</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>

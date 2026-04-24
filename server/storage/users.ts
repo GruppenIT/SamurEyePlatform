@@ -7,16 +7,19 @@ export async function getUser(id: string): Promise<User | undefined> {
   return user;
 }
 
+type UiPrefs = { theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean };
+
 export async function upsertUser(userData: UpsertUser): Promise<User> {
+  const safe = {
+    ...userData,
+    uiPreferences: (userData.uiPreferences as UiPrefs | null | undefined),
+  };
   const [user] = await db
     .insert(users)
-    .values(userData)
+    .values(safe)
     .onConflictDoUpdate({
       target: users.email,
-      set: {
-        ...userData,
-        updatedAt: new Date(),
-      },
+      set: { ...safe, updatedAt: new Date() },
     })
     .returning();
   return user;
@@ -133,4 +136,19 @@ export async function dismissMfaInvitation(id: string): Promise<void> {
     .update(users)
     .set({ mfaInvitationDismissed: true, updatedAt: new Date() })
     .where(eq(users.id, id));
+}
+
+export async function updateUserPreferences(
+  id: string,
+  prefs: { theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean },
+): Promise<void> {
+  const [current] = await db.select({ uiPreferences: users.uiPreferences }).from(users).where(eq(users.id, id));
+  type Prefs = { theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean };
+  const merged: Prefs = { ...(current?.uiPreferences as Prefs ?? {}), ...prefs };
+  await db.update(users).set({ uiPreferences: merged, updatedAt: new Date() }).where(eq(users.id, id));
+}
+
+export async function getUserPreferences(id: string): Promise<{ theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean } | null> {
+  const [row] = await db.select({ uiPreferences: users.uiPreferences }).from(users).where(eq(users.id, id));
+  return row?.uiPreferences ?? null;
 }
