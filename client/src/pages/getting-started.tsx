@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWebSocket } from "@/lib/websocket";
@@ -299,6 +300,7 @@ function StepCard({
 export default function GettingStarted() {
   const { connected } = useWebSocket();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const [skipTargetId, setSkipTargetId] = useState<string | null>(null);
 
@@ -310,24 +312,35 @@ export default function GettingStarted() {
   const skipMutation = useMutation({
     mutationFn: ({ stepId, reason }: { stepId: string; reason: string }) =>
       apiRequest("POST", "/api/getting-started/skip", { stepId, reason }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/getting-started/status"] }),
+    onSuccess: () => {
+      setSkipTargetId(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/getting-started/status"] });
+    },
+    onError: () => {
+      toast({ title: "Erro ao ignorar etapa", variant: "destructive" });
+    },
   });
 
   const unskipMutation = useMutation({
     mutationFn: (stepId: string) =>
       apiRequest("DELETE", `/api/getting-started/skip/${stepId}`, undefined),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/getting-started/status"] }),
+    onError: () => {
+      toast({ title: "Erro ao retomar etapa", variant: "destructive" });
+    },
   });
 
   const dismissMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/getting-started/dismiss", {}),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/getting-started/status"] }),
+    onError: () => {
+      toast({ title: "Erro ao fechar guia", variant: "destructive" });
+    },
   });
 
   const handleSkipConfirm = (reason: string) => {
     if (!skipTargetId) return;
     skipMutation.mutate({ stepId: skipTargetId, reason });
-    setSkipTargetId(null);
   };
 
   const progressValue = status
@@ -349,7 +362,7 @@ export default function GettingStarted() {
           subtitle="Configure o SamurEye para começar a operar"
           wsConnected={connected}
         />
-        <div className="p-6 space-y-8 max-w-3xl">
+        <div className="p-6 space-y-8 max-w-3xl mx-auto">
           <AdminBreadcrumb page="Primeiros Passos" />
 
           {/* Progress header */}
