@@ -303,15 +303,14 @@ build_backend() {
   info "Compilando backend TypeScript..."
   cd "${INSTALL_DIR}"
   npx esbuild server/index.ts \
-    --bundle \
     --platform=node \
-    --target=node20 \
-    --outfile=dist/index.js \
-    --external:bcrypt \
-    --external:pg-native \
-    --external:better-sqlite3 \
+    --packages=external \
+    --bundle \
+    --format=esm \
+    --outdir=dist \
     2>&1 | tail -5
-  success "Backend compilado em dist/index.js."
+  bash generate-version.sh 2>/dev/null || true
+  success "Backend compilado em dist/."
 }
 
 # ── Snippet nginx ─────────────────────────────────────────────────────────────
