@@ -74,7 +74,7 @@ async function computeCompletion(): Promise<Record<StepId, boolean>> {
     appliance_config:
       Boolean(settingsMap["applianceName"]) && Boolean(settingsMap["locationType"]),
     mensageria: Boolean(emailSettings?.smtpHost),
-    first_user: allUsers.some((u) => u.role !== "global_administrator"),
+    first_user: allUsers.some((u) => u.id !== "system" && u.email !== "admin@example.com"),
     journey_attack_surface: journeyTypes.has("attack_surface"),
     journey_ad_security: journeyTypes.has("ad_security"),
     journey_edr_av: journeyTypes.has("edr_av"),
