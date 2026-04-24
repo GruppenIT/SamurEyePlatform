@@ -240,13 +240,13 @@ create_admin() {
   # Usa o script de criação de admin do projeto, se existir
   if [[ -f scripts/create-admin.ts ]]; then
     ADMIN_EMAIL="demo@samureye.com.br" \
-    ADMIN_PASSWORD="Demo@2024!" \
+    ADMIN_PASSWORD="Demo@2026!" \
       npx tsx scripts/create-admin.ts 2>&1 | tail -5 || warn "Falha ao criar admin via script."
   else
     # Insere diretamente via bcrypt (fallback)
     BCRYPT_HASH=$(node -e "
       const bcrypt = require('bcrypt');
-      bcrypt.hash('Demo@2024!', 12).then(h => console.log(h));
+      bcrypt.hash('Demo@2026!', 12).then(h => console.log(h));
     " 2>/dev/null || echo "")
     if [[ -n "$BCRYPT_HASH" ]]; then
       sudo -u postgres psql -d "${DB_NAME}" -c "
@@ -256,7 +256,7 @@ create_admin() {
       " || true
     fi
   fi
-  success "Usuário admin: demo@samureye.com.br / Demo@2024!"
+  success "Usuário admin: demo@samureye.com.br / Demo@2026!"
 }
 
 # ── Seed de dados de demonstração ────────────────────────────────────────────
@@ -436,7 +436,7 @@ main_install() {
   echo -e "${GREEN}╠══════════════════════════════════════════════════╣${NC}"
   echo -e "${GREEN}║  URL:    http://localhost:${APP_PORT}                   ║${NC}"
   echo -e "${GREEN}║  Admin:  demo@samureye.com.br                    ║${NC}"
-  echo -e "${GREEN}║  Senha:  Demo@2024!                              ║${NC}"
+  echo -e "${GREEN}║  Senha:  Demo@2026!                              ║${NC}"
   echo -e "${GREEN}║                                                  ║${NC}"
   echo -e "${GREEN}║  Após configurar nginx:                          ║${NC}"
   echo -e "${GREEN}║  https://www.samureye.com.br/demo                ║${NC}"

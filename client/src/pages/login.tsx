@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
+import { IS_DEMO, DEMO_EMAIL, DEMO_PASSWORD } from "@/hooks/useDemo";
 import { Link, useLocation } from "wouter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -34,7 +35,9 @@ export default function Login() {
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: IS_DEMO
+      ? { email: DEMO_EMAIL, password: DEMO_PASSWORD }
+      : { email: "", password: "" },
   });
 
   const loginMutation = useMutation({
@@ -101,6 +104,31 @@ export default function Login() {
           <p className="text-sm text-muted-foreground text-center mb-6">
             Entre na sua conta para acessar a plataforma
           </p>
+
+          {IS_DEMO && (
+            <div className="mb-5 rounded-lg border border-amber-400/40 bg-amber-50 dark:bg-amber-950/30 p-4">
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-2 uppercase tracking-wide">
+                Acesso de demonstração
+              </p>
+              <div className="space-y-1 text-sm text-amber-900 dark:text-amber-300 font-mono">
+                <div><span className="text-amber-600 dark:text-amber-500">Usuário: </span>{DEMO_EMAIL}</div>
+                <div><span className="text-amber-600 dark:text-amber-500">Senha: </span>{DEMO_PASSWORD}</div>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="mt-3 w-full border-amber-400 text-amber-700 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-900/40 text-xs"
+                onClick={() => {
+                  form.setValue("email", DEMO_EMAIL);
+                  form.setValue("password", DEMO_PASSWORD);
+                }}
+              >
+                <LogIn className="mr-2 h-3 w-3" />
+                Usar credenciais de demonstração
+              </Button>
+            </div>
+          )}
 
           {error && (
             <Alert className="mb-4" variant="destructive">

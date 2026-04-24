@@ -82,7 +82,7 @@ https://www.samureye.com.br/demo
 | Campo | Valor |
 |---|---|
 | E-mail | `demo@samureye.com.br` |
-| Senha | `Demo@2024!` |
+| Senha | `Demo@2026!` |
 
 ---
 

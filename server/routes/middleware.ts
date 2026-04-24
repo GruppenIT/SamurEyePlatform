@@ -68,6 +68,20 @@ export function requireActiveSubscription(req: any, res: any, next: any) {
   next();
 }
 
+// Demo read-only guard — blocks all write operations when DEMO_MODE=true.
+// No-op in normal mode. Rotas de auth sempre permitidas para possibilitar login.
+const DEMO_AUTH_PATHS = ['/api/auth/', '/api/login', '/api/logout', '/api/change-password'];
+
+export function demoReadOnlyGuard(req: any, res: any, next: any) {
+  if (process.env.DEMO_MODE !== 'true') return next();
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+  if (DEMO_AUTH_PATHS.some(p => req.path.startsWith(p))) return next();
+  return res.status(403).json({
+    error: 'demo_readonly',
+    message: 'Instância de demonstração — operações de escrita estão desabilitadas.',
+  });
+}
+
 // Validation schemas for PATCH operations
 export const patchAssetSchema = z.object({
   type: z.enum(['host', 'range', 'web_application']).optional(),

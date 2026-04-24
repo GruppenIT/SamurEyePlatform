@@ -5,7 +5,7 @@ import { storage } from "../storage";
 import { setupAuth, isAuthenticatedWithPasswordCheck } from "../localAuth";
 import { jobQueue } from "../services/jobQueue";
 import { APP_VERSION } from "../version";
-import { parseCookies, requireActiveSubscription } from "./middleware";
+import { parseCookies, requireActiveSubscription, demoReadOnlyGuard } from "./middleware";
 import { registerDashboardRoutes } from "./dashboard";
 import { registerReportRoutes } from "./reports";
 import { registerAdminRoutes } from "./admin";
@@ -33,6 +33,9 @@ const log = createLogger('routes');
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+
+  // Demo read-only enforcement (no-op when DEMO_MODE is not set)
+  app.use('/api', demoReadOnlyGuard);
 
   // Subscription read-only enforcement (global, before all API routes)
   app.use('/api', requireActiveSubscription);
