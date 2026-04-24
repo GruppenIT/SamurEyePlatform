@@ -517,9 +517,6 @@ export default function Audit() {
                           {selectedEntry.actorEmail}
                         </div>
                       )}
-                      <div className="text-xs text-muted-foreground font-mono mt-1">
-                        ID: {selectedEntry.actorId}
-                      </div>
                     </div>
                   </div>
                 </Card>

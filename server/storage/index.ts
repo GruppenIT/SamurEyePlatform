@@ -47,6 +47,7 @@ export class DatabaseStorage implements IStorage {
   createAsset = assetOps.createAsset;
   updateAsset = assetOps.updateAsset;
   deleteAsset = assetOps.deleteAsset;
+  ensureHostForWebApp = assetOps.ensureHostForWebApp;
 
   // Credential operations
   getCredentials = assetOps.getCredentials;

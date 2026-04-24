@@ -32,7 +32,7 @@ import { Asset, Credential } from "@shared/schema";
 
 const journeySchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
-  type: z.enum(['attack_surface', 'ad_security', 'edr_av', 'web_application'], {
+  type: z.enum(['attack_surface', 'ad_security', 'edr_av', 'web_application', 'api_security'], {
     required_error: "Tipo de jornada é obrigatório",
   }),
   description: z.string().optional(),
@@ -46,9 +46,10 @@ interface JourneyFormProps {
   isLoading?: boolean;
   initialData?: Partial<JourneyFormData>;
   mode?: 'create' | 'edit';
+  typeOverride?: string;
 }
 
-export default function JourneyForm({ onSubmit, onCancel, isLoading = false, initialData, mode = 'create' }: JourneyFormProps) {
+export default function JourneyForm({ onSubmit, onCancel, isLoading = false, initialData, mode = 'create', typeOverride }: JourneyFormProps) {
   const { toast } = useToast();
   const [selectedAssets, setSelectedAssets] = useState<string[]>(
     initialData?.params?.assetIds || []
@@ -70,7 +71,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
     resolver: zodResolver(journeySchema),
     defaultValues: {
       name: initialData?.name || '',
-      type: initialData?.type || 'attack_surface',
+      type: (typeOverride as any) || initialData?.type || 'attack_surface',
       description: initialData?.description || '',
       params: {
         ...initialData?.params,
@@ -80,6 +81,47 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         timeout: initialData?.params?.timeout || 30,
         processTimeout: initialData?.params?.processTimeout || 60,
         vulnScriptTimeout: initialData?.params?.vulnScriptTimeout || 60,
+        // api_security flat fields — supports both new format (discoveryOpts/activeOpts) and legacy (apiSecurityConfig)
+        credentialId: initialData?.params?.credentialId || '',
+        specFirst: initialData?.params?.discoveryOpts?.stages?.spec
+          ?? initialData?.params?.apiSecurityConfig?.discovery?.specFirst
+          ?? true,
+        crawler: initialData?.params?.discoveryOpts?.stages?.crawler
+          ?? initialData?.params?.apiSecurityConfig?.discovery?.crawler
+          ?? true,
+        kiterunner: initialData?.params?.discoveryOpts?.stages?.kiterunner
+          ?? initialData?.params?.apiSecurityConfig?.discovery?.kiterunner
+          ?? false,
+        misconfigs: initialData?.params?.passiveOpts?.stages?.nucleiPassive
+          ?? initialData?.params?.apiSecurityConfig?.testing?.misconfigs
+          ?? true,
+        auth: initialData?.params?.passiveOpts?.stages?.authFailure
+          ?? initialData?.params?.apiSecurityConfig?.testing?.auth
+          ?? true,
+        bola: initialData?.params?.activeOpts?.stages?.bola
+          ?? initialData?.params?.apiSecurityConfig?.testing?.bola
+          ?? false,
+        bfla: initialData?.params?.activeOpts?.stages?.bfla
+          ?? initialData?.params?.apiSecurityConfig?.testing?.bfla
+          ?? false,
+        bopla: initialData?.params?.activeOpts?.stages?.bopla
+          ?? initialData?.params?.apiSecurityConfig?.testing?.bopla
+          ?? false,
+        rateLimitTest: initialData?.params?.activeOpts?.stages?.rateLimit
+          ?? initialData?.params?.apiSecurityConfig?.testing?.rateLimit
+          ?? true,
+        ssrf: initialData?.params?.activeOpts?.stages?.ssrf
+          ?? initialData?.params?.apiSecurityConfig?.testing?.ssrf
+          ?? false,
+        rateLimit: initialData?.params?.rateLimit
+          ?? initialData?.params?.apiSecurityConfig?.rateLimit
+          ?? 10,
+        destructiveEnabled: initialData?.params?.activeOpts?.destructiveEnabled
+          ?? initialData?.params?.apiSecurityConfig?.destructiveEnabled
+          ?? false,
+        dryRun: initialData?.params?.discoveryOpts?.dryRun
+          ?? initialData?.params?.apiSecurityConfig?.dryRun
+          ?? false,
       },
       enableCveDetection: initialData?.enableCveDetection !== false,
     },
@@ -114,6 +156,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
 
   const { data: credentials = [], isLoading: isLoadingCredentials } = useQuery<Credential[]>({
     queryKey: ["/api/credentials"],
+  });
+
+  const { data: apiCredentials = [] } = useQuery<any[]>({
+    queryKey: ["/api/v1/api-credentials"],
+    enabled: watchedType === 'api_security',
   });
 
   // Hydrate authentication state when initialData changes (e.g., when editing journey)
@@ -210,6 +257,37 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
         params.assetIds = selectedAssets;
         params.processTimeout = parseInt(form.getValues('params.processTimeout')) || 60;
         break;
+      case 'api_security': {
+        const orig = initialData?.params ?? {};
+        // Preserve immutable fields
+        params.assetIds = orig.assetIds;
+        params.targetBaseUrl = orig.targetBaseUrl;
+        params.authorizationAck = orig.authorizationAck;
+        params.apiId = orig.apiId;
+        const rawCred = form.getValues('params.credentialId' as any);
+        params.credentialId = (rawCred && rawCred !== '__none__') ? rawCred : (orig.credentialId || undefined);
+        // Build in apiSecurityConfig format (executor handles both formats)
+        params.apiSecurityConfig = {
+          discovery: {
+            specFirst: !!form.getValues('params.specFirst' as any),
+            crawler: !!form.getValues('params.crawler' as any),
+            kiterunner: !!form.getValues('params.kiterunner' as any),
+          },
+          testing: {
+            misconfigs: !!form.getValues('params.misconfigs' as any),
+            auth: !!form.getValues('params.auth' as any),
+            bola: !!form.getValues('params.bola' as any),
+            bfla: !!form.getValues('params.bfla' as any),
+            bopla: !!form.getValues('params.bopla' as any),
+            rateLimit: !!form.getValues('params.rateLimitTest' as any),
+            ssrf: !!form.getValues('params.ssrf' as any),
+          },
+          rateLimit: parseInt(String(form.getValues('params.rateLimit' as any))) || 10,
+          destructiveEnabled: !!form.getValues('params.destructiveEnabled' as any),
+          dryRun: !!form.getValues('params.dryRun' as any),
+        };
+        break;
+      }
     }
 
     onSubmit({
@@ -362,7 +440,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                     <div className="space-y-1 leading-none">
                       <FormLabel>Buscar CVEs Associados</FormLabel>
                       <FormDescription>
-                        Busca CVEs via NIST NVD e validação ativa com nmap vuln scripts
+                        Busca CVEs via NIST NVD e validação ativa com o Agente de Varredura
                       </FormDescription>
                     </div>
                   </FormItem>
@@ -370,7 +448,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
               />
 
               <div className="rounded-md border border-muted bg-muted/30 p-3 text-xs text-muted-foreground" data-testid="attack-surface-webscan-note">
-                Esta jornada apenas descobre web applications nos hosts escaneados. Para avaliá-las com Nuclei,
+                Esta jornada apenas descobre web applications nos hosts escaneados. Para avaliá-las com o Agente de Vulnerabilidades,
                 crie uma jornada do tipo <strong>Web Application</strong> apontando para os ativos descobertos.
               </div>
             </div>
@@ -1172,6 +1250,156 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
           </div>
         );
 
+      case 'api_security': {
+        const p = initialData?.params ?? {};
+        const targetUrl = p.targetBaseUrl || (Array.isArray(p.assetIds) ? p.assetIds[0] : '') || '—';
+        return (
+          <div className="space-y-6">
+            {/* Alvo — read-only */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">Alvo</h3>
+              <div className="rounded-md border bg-muted/30 p-3 text-sm">
+                <span className="text-muted-foreground">URL Base: </span>
+                <span className="font-mono">{String(targetUrl)}</span>
+              </div>
+            </div>
+
+            {/* Credencial */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">Credencial</h3>
+              <FormField
+                control={form.control}
+                name={"params.credentialId" as any}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Credencial de Autenticação</FormLabel>
+                    <Select
+                      onValueChange={(v) => field.onChange(v === '__none__' ? '' : v)}
+                      value={field.value || '__none__'}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sem credencial (acesso público)" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__none__">Sem credencial (acesso público)</SelectItem>
+                        {apiCredentials.map((c: any) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>Credencial usada para autenticar requisições na API</FormDescription>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Descoberta */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">Descoberta</h3>
+              <FormField control={form.control} name={"params.specFirst" as any} render={({ field }) => (
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormLabel className="font-normal">Análise de Spec (OpenAPI/Swagger)</FormLabel>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name={"params.crawler" as any} render={({ field }) => (
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormLabel className="font-normal">Agente de Rastreio</FormLabel>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name={"params.kiterunner" as any} render={({ field }) => (
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormLabel className="font-normal">Agente de Enumeração de Rotas</FormLabel>
+                </FormItem>
+              )} />
+            </div>
+
+            {/* Testes */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">Testes de Segurança</h3>
+              <FormField control={form.control} name={"params.misconfigs" as any} render={({ field }) => (
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormLabel className="font-normal">Agente de Configurações (Misconfigs)</FormLabel>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name={"params.auth" as any} render={({ field }) => (
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormLabel className="font-normal">Falhas de Autenticação</FormLabel>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name={"params.bola" as any} render={({ field }) => (
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormLabel className="font-normal">BOLA — Broken Object Level Auth (API1)</FormLabel>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name={"params.bfla" as any} render={({ field }) => (
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormLabel className="font-normal">BFLA — Broken Function Level Auth (API5)</FormLabel>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name={"params.bopla" as any} render={({ field }) => (
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormLabel className="font-normal">BOPLA — Broken Object Prop Level Auth (API3)</FormLabel>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name={"params.rateLimitTest" as any} render={({ field }) => (
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormLabel className="font-normal">Rate Limiting (API4)</FormLabel>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name={"params.ssrf" as any} render={({ field }) => (
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormLabel className="font-normal">SSRF (API7)</FormLabel>
+                </FormItem>
+              )} />
+            </div>
+
+            {/* Configurações */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">Configurações</h3>
+              <FormField control={form.control} name={"params.rateLimit" as any} render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Taxa de Requisições (req/s)</FormLabel>
+                  <FormControl>
+                    <Input type="number" min={1} max={50} value={field.value ?? 10} onChange={e => field.onChange(parseInt(e.target.value) || 10)} />
+                  </FormControl>
+                  <FormDescription>Máximo de requisições por segundo (1–50)</FormDescription>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name={"params.destructiveEnabled" as any} render={({ field }) => (
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <div>
+                    <FormLabel className="font-normal">Permitir métodos destrutivos (DELETE, PUT, PATCH)</FormLabel>
+                    <FormDescription>Ativa testes que modificam ou deletam dados</FormDescription>
+                  </div>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name={"params.dryRun" as any} render={({ field }) => (
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <div>
+                    <FormLabel className="font-normal">Modo Simulação (Dry Run)</FormLabel>
+                    <FormDescription>Executa sem enviar requisições reais</FormDescription>
+                  </div>
+                </FormItem>
+              )} />
+            </div>
+          </div>
+        );
+      }
+
       default:
         return null;
     }
@@ -1213,7 +1441,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
           )}
         />
 
-        {mode !== 'edit' && (
+        {mode !== 'edit' && !typeOverride && (
           <FormField
             control={form.control}
             name="type"
@@ -1231,6 +1459,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
                     <SelectItem value="ad_security">AD Security</SelectItem>
                     <SelectItem value="edr_av">Teste EDR/AV</SelectItem>
                     <SelectItem value="web_application">Web Application</SelectItem>
+                    <SelectItem value="api_security">API Security</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

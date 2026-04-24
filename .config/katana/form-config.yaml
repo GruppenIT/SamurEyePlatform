@@ -1,0 +1,13 @@
+# Katana form-fill configuration
+# Auto-fill values for common HTML form fields
+values:
+  - input: "text"
+    value: "test"
+  - input: "email"
+    value: "test@example.com"
+  - input: "password"
+    value: "password"
+  - input: "search"
+    value: "test"
+  - input: "tel"
+    value: "1234567890"

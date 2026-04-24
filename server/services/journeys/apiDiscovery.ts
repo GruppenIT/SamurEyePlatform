@@ -24,6 +24,7 @@ export interface DiscoveryResult {
   endpointsDiscovered: number;
   endpointsUpdated: number;
   endpointsStale: string[];
+  newEndpointIds: string[]; // IDs of endpoints inserted for the first time this run
   specFetched?: {
     url: string;
     version: string;
@@ -47,6 +48,7 @@ export async function discoverApi(
   const stagesSkipped: DiscoveryResult['stagesSkipped'] = [];
   let endpointsDiscovered = 0;
   let endpointsUpdated = 0;
+  const allNewEndpointIds: string[] = [];
   let specFetched: DiscoveryResult['specFetched'] | undefined;
   let cancelled = false;
 
@@ -80,6 +82,7 @@ export async function discoverApi(
         const counts = await storage.upsertApiEndpoints(apiId, specResult.endpoints);
         endpointsDiscovered += counts.inserted;
         endpointsUpdated += counts.updated;
+        allNewEndpointIds.push(...counts.newEndpointIds);
       } else {
         stagesSkipped.push({ stage: 'spec', reason: 'no spec found' });
       }
@@ -109,6 +112,7 @@ export async function discoverApi(
         const counts = await storage.upsertApiEndpoints(apiId, katanaResult.endpoints);
         endpointsDiscovered += counts.inserted;
         endpointsUpdated += counts.updated;
+        allNewEndpointIds.push(...counts.newEndpointIds);
       }
     } catch (err) {
       log.error({ err: String(err), apiId, stage: 'crawler' }, 'stage failed');
@@ -135,6 +139,7 @@ export async function discoverApi(
         const counts = await storage.upsertApiEndpoints(apiId, krResult.endpoints);
         endpointsDiscovered += counts.inserted;
         endpointsUpdated += counts.updated;
+        allNewEndpointIds.push(...counts.newEndpointIds);
       }
     } catch (err) {
       log.error({ err: String(err), apiId, stage: 'kiterunner' }, 'stage failed');
@@ -298,6 +303,7 @@ export async function discoverApi(
       endpointsDiscovered,
       endpointsUpdated,
       endpointsStale,
+      newEndpointIds: [...new Set(allNewEndpointIds)], // dedupe across stages
       specFetched,
       cancelled,
       durationMs: Date.now() - startedAt,

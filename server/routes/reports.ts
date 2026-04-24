@@ -273,11 +273,140 @@ export function registerReportRoutes(app: Express) {
     }
   });
 
+  // API security inventory: per-API endpoint counts, method distribution, recent discoveries
+  app.get('/api/reports/api-security/inventory', isAuthenticatedWithPasswordCheck, async (req, res) => {
+    try {
+      const periodDays = parseInt(req.query.period as string) || 30;
+      const since = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000);
+      const assetId = req.query.assetId as string | undefined;
+      // Build optional asset filter as a raw SQL fragment to avoid pg type-inference issues with null params
+      const assetFilter = assetId ? sql`AND ast.id = ${assetId}` : sql``;
+      const assetFilterW = assetId ? sql`WHERE ast.id = ${assetId}` : sql``;
+
+      const [apiRows, methodRows, recentRows, totalsRows, sourceRows] = await Promise.all([
+        db.execute(sql`
+          SELECT
+            a.id as api_id,
+            a.base_url,
+            a.api_type,
+            a.spec_url,
+            ast.id as asset_id,
+            ast.value as asset_name,
+            COUNT(DISTINCT ae.id)::int as endpoint_count,
+            COUNT(DISTINCT ae.id) FILTER (WHERE ae.requires_auth = false)::int as unauth_count,
+            COUNT(DISTINCT ae.id) FILTER (WHERE ae.requires_auth = true)::int as auth_count,
+            COUNT(DISTINCT ae.id) FILTER (WHERE ae.requires_auth IS NULL)::int as unknown_auth_count,
+            COUNT(DISTINCT ae.id) FILTER (WHERE ae.method = 'GET')::int as method_get,
+            COUNT(DISTINCT ae.id) FILTER (WHERE ae.method = 'POST')::int as method_post,
+            COUNT(DISTINCT ae.id) FILTER (WHERE ae.method = 'PUT')::int as method_put,
+            COUNT(DISTINCT ae.id) FILTER (WHERE ae.method = 'PATCH')::int as method_patch,
+            COUNT(DISTINCT ae.id) FILTER (WHERE ae.method = 'DELETE')::int as method_delete,
+            COUNT(DISTINCT ae.id) FILTER (WHERE ae.method NOT IN ('GET','POST','PUT','PATCH','DELETE'))::int as method_other,
+            MAX(j.finished_at) as last_scanned_at,
+            COUNT(DISTINCT af.id) FILTER (WHERE af.status != 'closed')::int as open_finding_count,
+            COUNT(DISTINCT af.id) FILTER (WHERE af.severity IN ('critical','high') AND af.status = 'open')::int as high_risk_count
+          FROM apis a
+          LEFT JOIN assets ast ON ast.id = a.parent_asset_id
+          LEFT JOIN api_endpoints ae ON ae.api_id = a.id
+          LEFT JOIN api_findings af ON af.api_endpoint_id = ae.id
+          LEFT JOIN jobs j ON j.id = af.job_id
+          WHERE 1=1 ${assetFilter}
+          GROUP BY a.id, a.base_url, a.api_type, a.spec_url, ast.id, ast.value
+          ORDER BY endpoint_count DESC, a.base_url
+        `),
+        db.execute(sql`
+          SELECT ae.method, COUNT(*)::int as count
+          FROM api_endpoints ae
+          JOIN apis a ON a.id = ae.api_id
+          LEFT JOIN assets ast ON ast.id = a.parent_asset_id
+          ${assetFilterW}
+          GROUP BY ae.method
+          ORDER BY count DESC
+        `),
+        db.execute(sql`
+          SELECT ae.method, ae.path, ae.created_at, a.base_url, a.id as api_id, ast.value as asset_name
+          FROM api_endpoints ae
+          JOIN apis a ON a.id = ae.api_id
+          LEFT JOIN assets ast ON ast.id = a.parent_asset_id
+          WHERE ae.created_at >= ${since} ${assetFilter}
+          ORDER BY ae.created_at DESC
+          LIMIT 25
+        `),
+        db.execute(sql`
+          SELECT
+            COUNT(DISTINCT a.id)::int as total_apis,
+            COUNT(DISTINCT ae.id)::int as total_endpoints,
+            COUNT(DISTINCT ae.id) FILTER (WHERE ae.requires_auth = false)::int as unauth_endpoints,
+            COUNT(DISTINCT ae.id) FILTER (WHERE ae.requires_auth = true)::int as auth_endpoints,
+            COUNT(DISTINCT ae.id) FILTER (WHERE ae.requires_auth IS NULL)::int as unknown_auth_endpoints
+          FROM apis a
+          LEFT JOIN api_endpoints ae ON ae.api_id = a.id
+          LEFT JOIN assets ast ON ast.id = a.parent_asset_id
+          WHERE 1=1 ${assetFilter}
+        `),
+        db.execute(sql`
+          SELECT
+            src as source,
+            COUNT(*)::int as count
+          FROM api_endpoints ae
+          JOIN apis a ON a.id = ae.api_id
+          LEFT JOIN assets ast ON ast.id = a.parent_asset_id
+          CROSS JOIN LATERAL unnest(COALESCE(ae.discovery_sources, '{}')) AS src
+          WHERE 1=1 ${assetFilter}
+          GROUP BY src
+          ORDER BY count DESC
+        `),
+      ]);
+
+      res.json({
+        apis: (apiRows.rows || []).map((r: any) => ({
+          apiId: r.api_id,
+          baseUrl: r.base_url,
+          apiType: r.api_type,
+          specUrl: r.spec_url,
+          assetId: r.asset_id,
+          assetName: r.asset_name,
+          endpointCount: r.endpoint_count,
+          unauthCount: r.unauth_count,
+          authCount: r.auth_count,
+          unknownAuthCount: r.unknown_auth_count,
+          methods: {
+            GET: r.method_get,
+            POST: r.method_post,
+            PUT: r.method_put,
+            PATCH: r.method_patch,
+            DELETE: r.method_delete,
+            OTHER: r.method_other,
+          },
+          lastScannedAt: r.last_scanned_at,
+          openFindingCount: r.open_finding_count,
+          highRiskCount: r.high_risk_count,
+        })),
+        methodTotals: Object.fromEntries((methodRows.rows || []).map((r: any) => [r.method, r.count])),
+        recentDiscoveries: (recentRows.rows || []).map((r: any) => ({
+          method: r.method,
+          path: r.path,
+          baseUrl: r.base_url,
+          apiId: r.api_id,
+          assetName: r.asset_name,
+          discoveredAt: r.created_at,
+        })),
+        totals: totalsRows.rows?.[0] ?? { total_apis: 0, total_endpoints: 0, unauth_endpoints: 0, auth_endpoints: 0, unknown_auth_endpoints: 0 },
+        sourceCounts: (sourceRows.rows || []).map((r: any) => ({ source: r.source, count: r.count })),
+      });
+    } catch (error) {
+      log.error({ err: error }, 'failed to fetch API security inventory');
+      res.status(500).json({ message: "Falha ao buscar inventário de APIs" });
+    }
+  });
+
   // API security stats: OWASP API Top 10 counts + severity trend
   app.get('/api/reports/api-security/stats', isAuthenticatedWithPasswordCheck, async (req, res) => {
     try {
       const periodDays = parseInt(req.query.period as string) || 30;
       const since = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000);
+      const apiId = req.query.apiId as string | undefined;
+      const apiFilter = apiId ? sql`AND ae.api_id = ${apiId}` : sql``;
 
       const [owaspRows, trendRows, summaryRows] = await Promise.all([
         db.execute(sql`
@@ -287,9 +416,11 @@ export function registerReportRoutes(app: Express) {
             af.status,
             COUNT(*)::int as count
           FROM api_findings af
+          JOIN api_endpoints ae ON ae.id = af.api_endpoint_id
           JOIN jobs j ON j.id = af.job_id
           JOIN journeys jy ON jy.id = j.journey_id
           WHERE jy.type = 'api_security' AND j.started_at >= ${since}
+            ${apiFilter}
           GROUP BY af.owasp_category, af.severity, af.status
         `),
         db.execute(sql`
@@ -298,9 +429,11 @@ export function registerReportRoutes(app: Express) {
             af.severity,
             COUNT(*)::int as count
           FROM api_findings af
+          JOIN api_endpoints ae ON ae.id = af.api_endpoint_id
           JOIN jobs j ON j.id = af.job_id
           JOIN journeys jy ON jy.id = j.journey_id
           WHERE jy.type = 'api_security' AND j.started_at >= ${since}
+            ${apiFilter}
           GROUP BY DATE(j.started_at), af.severity
           ORDER BY day ASC
         `),
@@ -311,9 +444,11 @@ export function registerReportRoutes(app: Express) {
             COUNT(*) FILTER (WHERE af.severity = 'high')::int as high,
             COUNT(*) FILTER (WHERE af.status = 'open')::int as open_count
           FROM api_findings af
+          JOIN api_endpoints ae ON ae.id = af.api_endpoint_id
           JOIN jobs j ON j.id = af.job_id
           JOIN journeys jy ON jy.id = j.journey_id
           WHERE jy.type = 'api_security' AND j.started_at >= ${since}
+            ${apiFilter}
         `),
       ]);
 

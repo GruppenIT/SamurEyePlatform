@@ -109,7 +109,7 @@ export interface IStorage {
   getActiveSchedules(): Promise<Schedule[]>;
 
   // Job operations
-  getJobs(limit?: number): Promise<Job[]>;
+  getJobs(limit?: number): Promise<(Job & { journeyName: string | null; journeyType: string | null })[]>;
   getJob(id: string): Promise<Job | undefined>;
   createJob(job: InsertJob): Promise<Job>;
   updateJob(id: string, updates: Partial<Job>): Promise<Job>;

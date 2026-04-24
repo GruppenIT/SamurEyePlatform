@@ -55,8 +55,8 @@ export async function upsertApiEndpoint(data: InsertApiEndpoint): Promise<ApiEnd
 export async function upsertApiEndpoints(
   apiId: string,
   rows: InsertApiEndpoint[],
-): Promise<{ inserted: number; updated: number }> {
-  if (rows.length === 0) return { inserted: 0, updated: 0 };
+): Promise<{ inserted: number; updated: number; newEndpointIds: string[] }> {
+  if (rows.length === 0) return { inserted: 0, updated: 0, newEndpointIds: [] };
 
   // Ensure every row has apiId set (defensive — callers pass per-api).
   const valuesWithApi = rows.map((r) => ({ ...r, apiId }));
@@ -80,19 +80,24 @@ export async function upsertApiEndpoints(
         updatedAt: new Date(),
       },
     })
-    .returning({ id: apiEndpoints.id, createdAt: apiEndpoints.createdAt, updatedAt: apiEndpoints.updatedAt });
+    .returning({ id: apiEndpoints.id, method: apiEndpoints.method, path: apiEndpoints.path, createdAt: apiEndpoints.createdAt, updatedAt: apiEndpoints.updatedAt });
 
   // Heuristic: row is an insert when createdAt === updatedAt (both set to now() on insert).
   // onConflictDoUpdate assigns updatedAt: new Date() on update, making it strictly
   // greater than createdAt for true updates.
   let inserted = 0;
   let updated = 0;
+  const newEndpointIds: string[] = [];
   for (const row of result) {
-    if (row.createdAt.getTime() === row.updatedAt.getTime()) inserted++;
-    else updated++;
+    if (row.createdAt.getTime() === row.updatedAt.getTime()) {
+      inserted++;
+      newEndpointIds.push(row.id);
+    } else {
+      updated++;
+    }
   }
   log.info({ apiId, total: rows.length, inserted, updated }, 'api endpoints bulk upserted');
-  return { inserted, updated };
+  return { inserted, updated, newEndpointIds };
 }
 
 /**

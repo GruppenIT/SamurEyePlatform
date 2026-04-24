@@ -1,5 +1,14 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+const API_PREFIX = (import.meta.env.VITE_API_PREFIX as string) || "";
+
+function prefixUrl(url: string): string {
+  if (API_PREFIX && url.startsWith("/api/")) {
+    return API_PREFIX + url;
+  }
+  return url;
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -12,7 +21,7 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  const res = await fetch(prefixUrl(url), {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
@@ -49,7 +58,7 @@ export const getQueryFn: <T>(options: {
       }
     }
     
-    const res = await fetch(url, {
+    const res = await fetch(prefixUrl(url), {
       credentials: "include",
     });
 

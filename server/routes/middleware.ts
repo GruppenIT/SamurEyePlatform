@@ -81,6 +81,7 @@ export const patchJourneySchema = z.object({
   params: z.record(z.any()).optional(),
   targetSelectionMode: z.enum(['individual', 'by_tag']).optional(),
   selectedTags: z.array(z.string()).optional(),
+  enableCveDetection: z.boolean().optional(),
   credentials: z.array(z.object({
     credentialId: z.string().uuid(),
     protocol: z.enum(['ssh', 'wmi', 'snmp']),

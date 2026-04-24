@@ -31,10 +31,24 @@ import { Search, Eye, RefreshCw, Clock, CheckCircle, XCircle, AlertCircle, X, Cp
 import { Job, JobResult } from "@shared/schema";
 import { JobUpdate } from "@/types";
 
+interface JobWithJourney extends Job {
+  journeyName?: string | null;
+  journeyType?: string | null;
+}
+
+const JOURNEY_TYPE_LABELS: Record<string, string> = {
+  attack_surface: "Attack Surface",
+  ad_security: "AD Security",
+  edr_av: "EDR/AV",
+  web_application: "Web Application",
+  api_security: "API Security",
+};
+
 export default function Jobs() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [journeyTypeFilter, setJourneyTypeFilter] = useState<string>("all");
+  const [selectedJob, setSelectedJob] = useState<JobWithJourney | null>(null);
   const [cancelJobId, setCancelJobId] = useState<string | null>(null);
 
   const { toast } = useToast();
@@ -42,7 +56,7 @@ export default function Jobs() {
   const { lastMessage, connected } = useWebSocket();
   const prevStatusRef = useRef<Map<string, string>>(new Map());
 
-  const { data: jobs = [], isLoading, refetch } = useQuery<Job[]>({
+  const { data: jobs = [], isLoading, refetch } = useQuery<JobWithJourney[]>({
     queryKey: ["/api/jobs"],
     refetchInterval: 5000,
   });
@@ -96,24 +110,27 @@ export default function Jobs() {
       await apiRequest('POST', `/api/jobs/${jobId}/cancel-process`);
       toast({
         title: "Job cancelado",
-        description: "Os processos em execucao serao interrompidos.",
+        description: "Os processos em execução serão interrompidos.",
       });
       refetch();
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/running-jobs"] });
     } catch (error) {
       toast({
         title: "Erro ao cancelar",
-        description: "Nao foi possivel cancelar o job.",
+        description: "Não foi possível cancelar o job.",
         variant: "destructive",
       });
     }
   };
 
   const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch =
+      (job.journeyName && job.journeyName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      job.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (job.currentTask && job.currentTask.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === "all" || job.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesType = journeyTypeFilter === "all" || job.journeyType === journeyTypeFilter;
+    return matchesSearch && matchesStatus && matchesType;
   });
 
   const getStatusIcon = (status: string) => {
@@ -142,7 +159,7 @@ export default function Jobs() {
     switch (status) {
       case 'pending': return 'Pendente';
       case 'running': return 'Executando';
-      case 'completed': return 'Concluido';
+      case 'completed': return 'Concluído';
       case 'failed': return 'Falhou';
       case 'timeout': return 'Timeout';
       default: return status;
@@ -172,7 +189,7 @@ export default function Jobs() {
     return null;
   };
 
-  const handleViewJob = (job: Job) => {
+  const handleViewJob = (job: JobWithJourney) => {
     setSelectedJob(job);
   };
 
@@ -191,7 +208,7 @@ export default function Jobs() {
       <main className="flex-1 overflow-hidden">
         <TopBar
           title="Monitoramento de Jobs"
-          subtitle="Acompanhe execucoes e resultados das jornadas"
+          subtitle="Acompanhe execuções e resultados das jornadas"
           wsConnected={connected}
         />
 
@@ -201,7 +218,7 @@ export default function Jobs() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Buscar jobs por ID ou tarefa..."
+                placeholder="Buscar por jornada ou tarefa..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -209,16 +226,29 @@ export default function Jobs() {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48" data-testid="select-status-filter">
+              <SelectTrigger className="w-44" data-testid="select-status-filter">
                 <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
                 <SelectItem value="running">Executando</SelectItem>
-                <SelectItem value="completed">Concluido</SelectItem>
+                <SelectItem value="completed">Concluído</SelectItem>
                 <SelectItem value="failed">Falhou</SelectItem>
                 <SelectItem value="timeout">Timeout</SelectItem>
                 <SelectItem value="pending">Pendente</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={journeyTypeFilter} onValueChange={setJourneyTypeFilter}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="Filtrar por tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Tipos</SelectItem>
+                <SelectItem value="attack_surface">Attack Surface</SelectItem>
+                <SelectItem value="ad_security">AD Security</SelectItem>
+                <SelectItem value="edr_av">EDR/AV</SelectItem>
+                <SelectItem value="web_application">Web Application</SelectItem>
+                <SelectItem value="api_security">API Security</SelectItem>
               </SelectContent>
             </Select>
             <Badge variant="secondary" data-testid="jobs-count">
@@ -268,16 +298,21 @@ export default function Jobs() {
                           onClick={() => handleViewJob(job)}
                           data-testid={`job-item-${job.id}`}
                         >
-                          {/* Header: status + ID + duration + cancel */}
+                          {/* Header: status + journey name/type + duration + cancel */}
                           <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-2">
-                              <StatusIcon className={`h-4 w-4 ${job.status === 'running' ? 'animate-spin text-primary' : 'text-muted-foreground'}`} />
-                              <Badge className={getStatusColor(job.status)}>
+                            <div className="flex items-center gap-2 min-w-0">
+                              <StatusIcon className={`h-4 w-4 flex-shrink-0 ${job.status === 'running' ? 'animate-spin text-primary' : 'text-muted-foreground'}`} />
+                              <Badge className={`flex-shrink-0 ${getStatusColor(job.status)}`}>
                                 {getStatusLabel(job.status)}
                               </Badge>
-                              <span className="text-xs text-muted-foreground font-mono">
-                                {job.id.slice(0, 8)}
+                              <span className="text-xs font-medium truncate">
+                                {job.journeyName ?? job.journeyId.slice(0, 8)}
                               </span>
+                              {job.journeyType && (
+                                <Badge variant="outline" className="flex-shrink-0 text-xs py-0">
+                                  {JOURNEY_TYPE_LABELS[job.journeyType] ?? job.journeyType}
+                                </Badge>
+                              )}
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-muted-foreground">
@@ -311,7 +346,7 @@ export default function Jobs() {
                                 <div className="flex items-center gap-1.5 mt-1.5">
                                   <Cpu className="h-3 w-3 text-muted-foreground" />
                                   <span className="text-[10px] font-mono text-muted-foreground">
-                                    {pidInfo.processName} pid {pidInfo.pid}
+                                    {({ nmap: 'Agente de Varredura', nuclei: 'Agente de Vulnerabilidades' } as Record<string,string>)[pidInfo.processName] ?? pidInfo.processName} · pid {pidInfo.pid}
                                   </span>
                                 </div>
                               )}
@@ -383,16 +418,18 @@ export default function Jobs() {
                           {getStatusLabel(selectedJob.status)}
                         </Badge>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">ID</span>
-                        <span className="font-mono text-xs">{selectedJob.id}</span>
+                      <div className="flex justify-between items-start gap-2">
+                        <span className="text-muted-foreground flex-shrink-0">Jornada</span>
+                        <span className="text-xs text-right">{selectedJob.journeyName ?? selectedJob.journeyId.slice(0, 8)}</span>
                       </div>
+                      {selectedJob.journeyType && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Tipo</span>
+                          <span className="text-xs">{JOURNEY_TYPE_LABELS[selectedJob.journeyType] ?? selectedJob.journeyType}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Jornada</span>
-                        <span className="font-mono text-xs">{selectedJob.journeyId.slice(0, 8)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Duracao</span>
+                        <span className="text-muted-foreground">Duração</span>
                         <span>{formatDuration(selectedJob.startedAt, selectedJob.finishedAt)}</span>
                       </div>
                       <div className="flex justify-between">
@@ -502,7 +539,7 @@ export default function Jobs() {
                                   )}
                                   {jobResult.artifacts.summary.webScanEnabled && (
                                     <div>
-                                      <span className="text-muted-foreground">Nuclei:</span>
+                                      <span className="text-muted-foreground">Análise de Vulnerabilidades:</span>
                                       <span className="ml-1 font-medium text-primary">Habilitado</span>
                                     </div>
                                   )}
@@ -543,7 +580,7 @@ export default function Jobs() {
           <AlertDialogHeader>
             <AlertDialogTitle>Cancelar Job</AlertDialogTitle>
             <AlertDialogDescription>
-              Os processos em execucao (nmap, nuclei, etc.) serao interrompidos e os resultados parciais descartados.
+              Os agentes em execução serão interrompidos e os resultados parciais descartados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

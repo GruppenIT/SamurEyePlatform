@@ -35,15 +35,15 @@ export default function Postura() {
       <Sidebar />
       <main className="flex-1 overflow-hidden">
         <TopBar
-          title="Postura de Seguranca"
-          subtitle="Visao consolidada da exposicao e riscos"
+          title="Postura de Segurança"
+          subtitle="Visão consolidada da exposição e riscos"
           wsConnected={connected}
         />
         <div className="p-6 space-y-6 overflow-auto h-[calc(100%-4rem)]">
           {/* Posture Hero — score, delta, sparkline */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Pontuacao de Postura</CardTitle>
+              <CardTitle className="text-base">Pontuação de Postura</CardTitle>
               <CardDescription>
                 Baseado em snapshots de postura das jornadas executadas
               </CardDescription>
@@ -56,9 +56,9 @@ export default function Postura() {
           {/* Top 3 Priority Actions */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Acoes Prioritarias</CardTitle>
+              <CardTitle className="text-base">Ações Prioritárias</CardTitle>
               <CardDescription>
-                As 3 acoes com maior impacto na postura
+                As 3 ações com maior impacto na postura
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
@@ -71,7 +71,7 @@ export default function Postura() {
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Cobertura de Jornadas</CardTitle>
               <CardDescription>
-                Status das ultimas execucoes por tipo de jornada
+                Status das últimas execuções por tipo de jornada
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
@@ -82,9 +82,9 @@ export default function Postura() {
           {/* Journey Comparison — delta between current and previous run */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Comparacao entre Execucoes</CardTitle>
+              <CardTitle className="text-base">Comparação entre Execuções</CardTitle>
               <CardDescription>
-                Delta entre a execucao atual e a anterior
+                Delta entre a execução atual e a anterior
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">

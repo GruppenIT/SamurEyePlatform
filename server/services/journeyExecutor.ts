@@ -25,7 +25,7 @@ import { discoverApi } from './journeys/apiDiscovery';
 import { runApiPassiveTests } from './journeys/apiPassiveTests';
 import { runApiActiveTests } from './journeys/apiActiveTests';
 import { TokenBucketRateLimiter } from './rateLimiter';
-import { listApiCredentials } from '../storage/apiCredentials';
+import { listApiCredentials, getApiCredential } from '../storage/apiCredentials';
 import type {
   DiscoverApiOpts,
   ApiPassiveTestOpts,
@@ -1651,6 +1651,13 @@ class JourneyExecutorService {
       throw new Error(`API não encontrada: ${apiId}`);
     }
 
+    // ─── HIER-01 ─── Ensure the web_application parent asset is properly linked
+    // to a host asset. When a user registers an API manually (e.g. localhost:5000),
+    // no host may exist yet — this creates one on-demand so the asset tree is correct.
+    if (api.parentAssetId) {
+      await storage.ensureHostForWebApp(api.parentAssetId, journey.createdBy);
+    }
+
     // ─── JRNY-03 ─── extract opts — support both new format (discoveryOpts/passiveOpts/activeOpts)
     // and legacy apiSecurityConfig format from the wizard before Phase 15 fix.
     let discoveryOpts: DiscoverApiOpts;
@@ -1701,7 +1708,14 @@ class JourneyExecutorService {
 
     // ─── SAFE-04 ─── audit start — credential UUIDs only (no secrets)
     const creds = await listApiCredentials({ apiId });
-    const credentialIds = creds.map(c => c.id); // UUIDs from SAFE_FIELDS — guaranteed no secretEncrypted/dekEncrypted
+    // Also include the wizard-selected credential (params.credentialId) when it isn't
+    // already linked to this API via apiId. This supports the one-off selection in the
+    // ApiSecurityWizard UI without requiring a permanent credential↔API association.
+    if (params.credentialId && !creds.some((c: any) => c.id === params.credentialId)) {
+      const selectedCred = await getApiCredential(params.credentialId as string);
+      if (selectedCred) creds.push(selectedCred);
+    }
+    const credentialIds = creds.map((c: any) => c.id); // UUIDs from SAFE_FIELDS — guaranteed no secretEncrypted/dekEncrypted
     const targets = [api.baseUrl];
 
     await storage.logAudit({
@@ -1747,6 +1761,52 @@ class JourneyExecutorService {
       onProgress({ status: 'running', progress: 20, currentTask: 'Descobrindo endpoints da API' });
       discoveryResult = await discoverApi(apiId, discoveryOpts, jobId);
       log.info({ jobId, apiId, endpointsDiscovered: discoveryResult.endpointsDiscovered, stage: 'discovery' }, 'discovery complete');
+
+      // ─── NEW DISCOVERY ALERTS ─────────────────────────────────────────────
+      // Create ONE threat per API (Host-API grouping) listing all new endpoints.
+      // API9:2023 — Improper Inventory Management.
+      // Uses upsertThreat (correlationKey per-API) so re-runs update the same threat.
+      if (discoveryResult.newEndpointIds.length > 0) {
+        const allEps = await storage.listEndpointsByApi(apiId);
+        const epMap = new Map(allEps.map((e) => [e.id, e]));
+        const newEpDetails = discoveryResult.newEndpointIds
+          .map(id => epMap.get(id))
+          .filter(Boolean) as typeof allEps;
+
+        // Resolve host from web_application parent
+        const webAppAsset = api.parentAssetId ? await storage.getAsset(api.parentAssetId) : null;
+        const hostAsset = webAppAsset?.parentAssetId ? await storage.getAsset(webAppAsset.parentAssetId) : null;
+
+        const hasUnauth = newEpDetails.some(ep => ep.requiresAuth === false);
+        const severity = hasUnauth ? 'medium' : 'low';
+        const epList = newEpDetails.map(ep => `${ep.method} ${ep.path}`).join('\n• ');
+        const n = newEpDetails.length;
+
+        await storage.upsertThreat({
+          title: `${n} endpoint${n > 1 ? 's' : ''} descoberto${n > 1 ? 's' : ''} na API ${api.baseUrl}`,
+          description: `${n} endpoint${n > 1 ? 's' : ''} detectado${n > 1 ? 's' : ''} pela primeira vez na API ${api.baseUrl} durante jornada de API Security. Verifique se todos estão documentados e devidamente protegidos.\n\nEndpoints:\n• ${epList}`,
+          severity,
+          status: 'open',
+          source: 'journey',
+          category: 'api_security',
+          assetId: api.parentAssetId ?? null,
+          hostId: hostAsset?.id,
+          jobId,
+          correlationKey: `api_security:new_endpoints:${apiId}`,
+          evidence: {
+            apiId,
+            baseUrl: api.baseUrl,
+            newEndpoints: newEpDetails.map(ep => ({
+              endpointId: ep.id,
+              method: ep.method,
+              path: ep.path,
+              requiresAuth: ep.requiresAuth,
+            })),
+          },
+          lastSeenAt: new Date(),
+        });
+        log.info({ jobId, apiId, newEndpoints: n }, 'new endpoint discovery threat upserted (Host-API grouped)');
+      }
 
       // ─── STAGE 2: PASSIVE TESTS (50%) ────────────────────────────────────
       if (this.isJobCancelled(jobId)) throw new Error('Job cancelado pelo usuário');

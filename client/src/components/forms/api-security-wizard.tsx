@@ -478,8 +478,8 @@ export default function ApiSecurityWizard({ open, onOpenChange }: ApiSecurityWiz
                 <div className="space-y-2 mt-2">
                   {[
                     { key: "specFirst", label: "Spec-first (OpenAPI/Swagger)" },
-                    { key: "crawler", label: "Crawler (Katana)" },
-                    { key: "kiterunner", label: "Kiterunner (brute-force)" },
+                    { key: "crawler", label: "Agente de Rastreio" },
+                    { key: "kiterunner", label: "Agente de Enumeração de Rotas" },
                   ].map(({ key, label }) => (
                     <div key={key} className="flex items-center gap-2">
                       <Controller
@@ -502,7 +502,7 @@ export default function ApiSecurityWizard({ open, onOpenChange }: ApiSecurityWiz
                 <Label className="text-base font-semibold">Testing</Label>
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   {[
-                    { key: "misconfigs", label: "Misconfigs (Nuclei)" },
+                    { key: "misconfigs", label: "Agente de Configurações" },
                     { key: "auth", label: "Auth failures (JWT/API key)" },
                     { key: "bola", label: "BOLA (API1)" },
                     { key: "bfla", label: "BFLA (API5)" },
@@ -601,9 +601,9 @@ export default function ApiSecurityWizard({ open, onOpenChange }: ApiSecurityWiz
                   <dt className="text-muted-foreground">Discovery ativo:</dt>
                   <dd>
                     {[
-                      watchedAll.specFirst && "spec",
-                      watchedAll.crawler && "crawler",
-                      watchedAll.kiterunner && "kiterunner",
+                      watchedAll.specFirst && "Especificação OAS",
+                      watchedAll.crawler && "Agente de Rastreio",
+                      watchedAll.kiterunner && "Agente de Enumeração",
                     ]
                       .filter(Boolean)
                       .join(", ") || "nenhum"}
@@ -611,13 +611,13 @@ export default function ApiSecurityWizard({ open, onOpenChange }: ApiSecurityWiz
                   <dt className="text-muted-foreground">Testing ativo:</dt>
                   <dd>
                     {[
-                      watchedAll.misconfigs && "misconfigs",
-                      watchedAll.auth && "auth",
-                      watchedAll.bola && "bola",
-                      watchedAll.bfla && "bfla",
-                      watchedAll.bopla && "bopla",
-                      watchedAll.rateLimitTest && "rate-limit",
-                      watchedAll.ssrf && "ssrf",
+                      watchedAll.misconfigs && "Agente de Configurações",
+                      watchedAll.auth && "Falhas de Auth",
+                      watchedAll.bola && "BOLA",
+                      watchedAll.bfla && "BFLA",
+                      watchedAll.bopla && "BOPLA",
+                      watchedAll.rateLimitTest && "Rate Limit",
+                      watchedAll.ssrf && "SSRF",
                     ]
                       .filter(Boolean)
                       .join(", ") || "nenhum"}

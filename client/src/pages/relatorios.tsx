@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useWebSocket } from "@/lib/websocket";
 import Sidebar from "@/components/layout/sidebar";
@@ -111,6 +111,31 @@ interface ApiSecurityStats {
   byCategory: { category: string; severity: string; status: string; count: number }[];
   trend: ThreatTrendDay[];
   summary: { total: number; critical: number; high: number; open_count: number };
+}
+
+interface ApiInventoryEntry {
+  apiId: string;
+  baseUrl: string;
+  apiType: string;
+  specUrl: string | null;
+  assetId: string | null;
+  assetName: string | null;
+  endpointCount: number;
+  unauthCount: number;
+  authCount: number;
+  unknownAuthCount: number;
+  methods: { GET: number; POST: number; PUT: number; PATCH: number; DELETE: number; OTHER: number };
+  lastScannedAt: string | null;
+  openFindingCount: number;
+  highRiskCount: number;
+}
+
+interface ApiInventory {
+  apis: ApiInventoryEntry[];
+  methodTotals: Record<string, number>;
+  recentDiscoveries: { method: string; path: string; baseUrl: string; apiId: string; assetName: string | null; discoveredAt: string }[];
+  totals: { total_apis: number; total_endpoints: number; unauth_endpoints: number; auth_endpoints: number; unknown_auth_endpoints: number };
+  sourceCounts: { source: string; count: number }[];
 }
 
 interface JourneyHistoryEntry {
@@ -344,6 +369,7 @@ function SevTooltip({ active, payload, label }: any) {
 
 export default function Relatorios() {
   const [period, setPeriod] = useState("30");
+  const [selectedApiId, setSelectedApiId] = useState<string>("all");
   const { connected } = useWebSocket();
 
   // ── Shared queries ───────────────────────────────────────────────────────
@@ -403,10 +429,21 @@ export default function Relatorios() {
     },
   });
 
+  const apiStatsApiId = selectedApiId !== "all" ? selectedApiId : undefined;
   const { data: apiStats } = useQuery<ApiSecurityStats>({
-    queryKey: ["/api/reports/api-security/stats", period],
+    queryKey: ["/api/reports/api-security/stats", period, apiStatsApiId],
     queryFn: async () => {
-      const r = await fetch(`/api/reports/api-security/stats?period=${period}`, { credentials: "include" });
+      const params = new URLSearchParams({ period });
+      if (apiStatsApiId) params.set("apiId", apiStatsApiId);
+      const r = await fetch(`/api/reports/api-security/stats?${params}`, { credentials: "include" });
+      return r.json();
+    },
+  });
+
+  const { data: apiInventory } = useQuery<ApiInventory>({
+    queryKey: ["/api/reports/api-security/inventory", period],
+    queryFn: async () => {
+      const r = await fetch(`/api/reports/api-security/inventory?period=${period}`, { credentials: "include" });
       return r.json();
     },
   });
@@ -537,6 +574,30 @@ export default function Relatorios() {
 
   const uniqueApiCategories = new Set(apiByCategory.filter((b) => b.count > 0).map((b) => b.category)).size;
 
+  // ── Computed: API Inventory ──────────────────────────────────────────────
+  const inventoryApis = apiInventory?.apis ?? [];
+  const inventoryTotals = apiInventory?.totals ?? { total_apis: 0, total_endpoints: 0, unauth_endpoints: 0, auth_endpoints: 0, unknown_auth_endpoints: 0 };
+  const recentDiscoveries = apiInventory?.recentDiscoveries ?? [];
+  const methodTotalsData = useMemo(() => {
+    const mt = apiInventory?.methodTotals ?? {};
+    return Object.entries(mt).map(([method, count]) => ({ method, count })).sort((a, b) => b.count - a.count);
+  }, [apiInventory]);
+
+  const authCoveragePie = useMemo(() => {
+    const t = inventoryTotals;
+    const data = [
+      { name: "autenticados", value: t.auth_endpoints },
+      { name: "sem_auth", value: t.unauth_endpoints },
+      { name: "desconhecido", value: t.unknown_auth_endpoints },
+    ].filter((x) => x.value > 0);
+    return data;
+  }, [inventoryTotals]);
+
+  const sourceLabels: Record<string, string> = { spec: "Especificação OAS", crawler: "Agente de Rastreio", kiterunner: "Agente de Enumeração", httpx: "Agente HTTP" };
+  const SOURCE_COLORS: Record<string, string> = { spec: "#3b82f6", crawler: "#8b5cf6", kiterunner: "#f59e0b", httpx: "#22c55e" };
+  const AUTH_COLORS: Record<string, string> = { autenticados: "#22c55e", sem_auth: "#ef4444", desconhecido: "#6b7280" };
+  const AUTH_PT: Record<string, string> = { autenticados: "Autenticados", sem_auth: "Sem Auth", desconhecido: "Desconhecido" };
+
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -557,7 +618,8 @@ export default function Relatorios() {
                 <TabsTrigger value="ad_security">AD Security</TabsTrigger>
                 <TabsTrigger value="edr_av">EDR/AV</TabsTrigger>
                 <TabsTrigger value="web_application">Web Application</TabsTrigger>
-                <TabsTrigger value="api_security">API Security</TabsTrigger>
+                <TabsTrigger value="api_discovery">Descoberta de APIs</TabsTrigger>
+                <TabsTrigger value="api_security">Segurança de APIs</TabsTrigger>
               </TabsList>
               <PeriodSelector value={period} onChange={setPeriod} />
             </div>
@@ -1310,9 +1372,242 @@ export default function Relatorios() {
             </TabsContent>
 
             {/* ════════════════════════════════════════════════════════════ */}
-            {/* TAB: API SECURITY                                            */}
+            {/* TAB: DESCOBERTA DE APIs                                       */}
+            {/* ════════════════════════════════════════════════════════════ */}
+            <TabsContent value="api_discovery" className="space-y-6">
+
+              {/* ── Métricas de inventário ── */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <MetricCard label="APIs Mapeadas" value={inventoryTotals.total_apis} icon={Globe} color="text-primary" />
+                <MetricCard label="Endpoints Totais" value={inventoryTotals.total_endpoints} icon={Activity} color="text-primary" />
+                <MetricCard label="Sem Autenticação" value={inventoryTotals.unauth_endpoints} icon={XCircle} color={inventoryTotals.unauth_endpoints > 0 ? "text-orange-400" : "text-muted-foreground"} sub="endpoints expostos" />
+                <MetricCard label="Novos no Período" value={recentDiscoveries.length} icon={Zap} color={recentDiscoveries.length > 0 ? "text-yellow-500" : "text-muted-foreground"} sub="endpoints descobertos" />
+              </div>
+
+              {/* ── Inventário de APIs + Métodos HTTP ── */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <Card className="lg:col-span-2">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Inventário de APIs</CardTitle>
+                    {inventoryApis.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-0.5">Clique em uma linha para filtrar os achados de segurança</p>
+                    )}
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {inventoryApis.length === 0 ? (
+                      <div className="px-6 py-8"><Empty msg="Nenhuma API mapeada. Execute uma jornada de Descoberta de APIs para começar." /></div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>API / Ativo</TableHead>
+                            <TableHead className="text-right w-20">Endpoints</TableHead>
+                            <TableHead className="text-right w-20">Auth</TableHead>
+                            <TableHead className="text-right w-20">Sem Auth</TableHead>
+                            <TableHead className="text-right w-20">Achados</TableHead>
+                            <TableHead className="w-32">Métodos</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {inventoryApis.map((api) => (
+                            <TableRow key={api.apiId} className={`cursor-pointer transition-colors ${selectedApiId === api.apiId ? "bg-primary/10 border-l-2 border-l-primary" : "hover:bg-muted/20"}`} onClick={() => setSelectedApiId(selectedApiId === api.apiId ? "all" : api.apiId)}>
+                              <TableCell>
+                                <div className="font-mono text-xs truncate max-w-[180px]" title={api.baseUrl}>{api.baseUrl}</div>
+                                {api.assetName && <div className="text-xs text-muted-foreground">{api.assetName}</div>}
+                              </TableCell>
+                              <TableCell className="text-right font-semibold">{api.endpointCount}</TableCell>
+                              <TableCell className="text-right">
+                                {api.authCount > 0 ? <span className="text-green-500">{api.authCount}</span> : <span className="text-muted-foreground">—</span>}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {api.unauthCount > 0 ? <span className="text-orange-400 font-semibold">{api.unauthCount}</span> : <span className="text-muted-foreground">—</span>}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {api.highRiskCount > 0 ? <span className="text-destructive font-semibold">{api.highRiskCount}</span> : api.openFindingCount > 0 ? <span className="text-orange-400">{api.openFindingCount}</span> : <span className="text-muted-foreground">—</span>}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-0.5 flex-wrap">
+                                  {(["GET","POST","PUT","PATCH","DELETE"] as const).map((m) => api.methods[m] > 0 && (
+                                    <span key={m} className="text-[10px] font-mono px-1 py-0.5 rounded" style={{ backgroundColor: `${["GET","POST","PUT","PATCH","DELETE"].indexOf(m) < 5 ? ["#22c55e20","#3b82f620","#f59e0b20","#8b5cf620","#ef444420"][["GET","POST","PUT","PATCH","DELETE"].indexOf(m)] : "#88888820"}`, color: ["#22c55e","#3b82f6","#f59e0b","#8b5cf6","#ef4444"][["GET","POST","PUT","PATCH","DELETE"].indexOf(m)] }}>
+                                      {m} {api.methods[m]}
+                                    </span>
+                                  ))}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </CardContent>
+                  {selectedApiId !== "all" && (
+                    <div className="px-4 pb-3 flex items-center gap-2">
+                      <span className="text-xs text-primary font-medium">Filtro ativo:</span>
+                      <span className="text-xs font-mono text-muted-foreground">{inventoryApis.find(a => a.apiId === selectedApiId)?.baseUrl ?? selectedApiId}</span>
+                      <button onClick={() => setSelectedApiId("all")} className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-auto">✕ Limpar</button>
+                    </div>
+                  )}
+                </Card>
+
+                <div className="flex flex-col gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">Métodos HTTP</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {methodTotalsData.length === 0 ? (
+                        <Empty />
+                      ) : (
+                        <ResponsiveContainer width="100%" height={160}>
+                          <BarChart data={methodTotalsData} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                            <XAxis type="number" tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
+                            <YAxis dataKey="method" type="category" tick={{ fontSize: 11, fontFamily: "monospace" }} stroke="var(--muted-foreground)" width={52} />
+                            <Tooltip formatter={(v) => [v, "endpoints"]} />
+                            <Bar dataKey="count" radius={[0, 3, 3, 0]}>
+                              {methodTotalsData.map((entry) => (
+                                <Cell key={entry.method} fill={{"GET":"#22c55e","POST":"#3b82f6","PUT":"#f59e0b","PATCH":"#8b5cf6","DELETE":"#ef4444","HEAD":"#64748b","OPTIONS":"#64748b"}[entry.method] ?? "#6b7280"} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">Cobertura de Autenticação</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {authCoveragePie.length === 0 ? (
+                        <Empty />
+                      ) : (
+                        <ResponsiveContainer width="100%" height={150}>
+                          <PieChart>
+                            <Pie data={authCoveragePie} cx="50%" cy="50%" innerRadius={36} outerRadius={58} paddingAngle={3} dataKey="value">
+                              {authCoveragePie.map((e, i) => (
+                                <Cell key={i} fill={AUTH_COLORS[e.name] ?? "#888"} />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(v, n) => [v, AUTH_PT[n as string] ?? n]} />
+                            <Legend iconSize={8} wrapperStyle={{ fontSize: 10 }} formatter={(n) => AUTH_PT[n] ?? n} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* ── Fonte de Descoberta + Descobertas Recentes ── */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Fonte de Descoberta</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(apiInventory?.sourceCounts ?? []).length === 0 ? (
+                      <Empty msg="Nenhum dado de fonte disponível" />
+                    ) : (
+                      <ResponsiveContainer width="100%" height={180}>
+                        <BarChart data={apiInventory!.sourceCounts} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                          <XAxis type="number" tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
+                          <YAxis dataKey="source" type="category" tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" width={70}
+                            tickFormatter={(v) => sourceLabels[v] ?? v}
+                          />
+                          <Tooltip formatter={(v, _, props) => [v, sourceLabels[props.payload?.source] ?? props.payload?.source]} />
+                          <Bar dataKey="count" radius={[0, 3, 3, 0]}>
+                            {(apiInventory?.sourceCounts ?? []).map((entry) => (
+                              <Cell key={entry.source} fill={SOURCE_COLORS[entry.source] ?? "#6b7280"} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="lg:col-span-2">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Descobertas Recentes — Últimos {period} dias</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {recentDiscoveries.length === 0 ? (
+                      <div className="px-6 py-8"><Empty msg="Nenhum endpoint descoberto no período" /></div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-20">Método</TableHead>
+                            <TableHead>Caminho</TableHead>
+                            <TableHead>API</TableHead>
+                            <TableHead className="w-36">Descoberto em</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {recentDiscoveries.slice(0, 15).map((d, i) => (
+                            <TableRow key={i}>
+                              <TableCell>
+                                <span className="text-xs font-mono px-1.5 py-0.5 rounded" style={{ backgroundColor: `${{"GET":"#22c55e","POST":"#3b82f6","PUT":"#f59e0b","PATCH":"#8b5cf6","DELETE":"#ef4444"}[d.method] ?? "#6b7280"}20`, color: {"GET":"#22c55e","POST":"#3b82f6","PUT":"#f59e0b","PATCH":"#8b5cf6","DELETE":"#ef4444"}[d.method] ?? "#6b7280" }}>
+                                  {d.method}
+                                </span>
+                              </TableCell>
+                              <TableCell className="font-mono text-xs">{d.path}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground truncate max-w-[160px]" title={d.baseUrl}>{d.baseUrl}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground">{new Date(d.discoveredAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* ── Histórico de execuções ── */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Histórico de Execuções</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <JourneyHistory history={histApi} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* ════════════════════════════════════════════════════════════ */}
+            {/* TAB: SEGURANÇA DE APIs                                       */}
             {/* ════════════════════════════════════════════════════════════ */}
             <TabsContent value="api_security" className="space-y-6">
+
+              {/* ── Filtro por API ── */}
+              {inventoryApis.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground shrink-0">Filtrar por API:</span>
+                  <Select value={selectedApiId} onValueChange={setSelectedApiId}>
+                    <SelectTrigger className="w-64">
+                      <SelectValue placeholder="Todas as APIs" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as APIs</SelectItem>
+                      {inventoryApis.map((api) => (
+                        <SelectItem key={api.apiId} value={api.apiId}>
+                          <span className="font-mono text-xs">{api.baseUrl}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedApiId !== "all" && (
+                    <button onClick={() => setSelectedApiId("all")} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                      ✕ Limpar filtro
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* ── Métricas de achados ── */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard label="Total de Achados" value={apiSummary.total} icon={Shield} color="text-muted-foreground" />
                 <MetricCard label="Críticos" value={apiSummary.critical} icon={AlertTriangle} color={apiSummary.critical > 0 ? "text-destructive" : "text-muted-foreground"} />
@@ -1320,14 +1615,14 @@ export default function Relatorios() {
                 <MetricCard label="Categorias OWASP" value={uniqueApiCategories} icon={Zap} color="text-primary" sub="categorias com achados" />
               </div>
 
-              {/* OWASP API Top 10 horizontal bar chart */}
+              {/* ── OWASP API Top 10 ── */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">OWASP API Security Top 10 — 2023</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {apiOwaspFiltered.length === 0 ? (
-                    <Empty msg="Nenhum achado API Security no período" />
+                    <Empty msg="Nenhum achado de segurança de API no período" />
                   ) : (
                     <div className="space-y-2">
                       {OWASP_API_KEYS.map((key) => {
@@ -1340,30 +1635,10 @@ export default function Relatorios() {
                             <div className="flex-1 min-w-0">
                               <div className="text-xs text-muted-foreground truncate mb-0.5">{info.titulo}</div>
                               <div className="flex h-4 w-full rounded overflow-hidden bg-muted/30">
-                                {item.critical > 0 && (
-                                  <div
-                                    style={{ width: `${(item.critical / maxTotal) * 100}%`, backgroundColor: SEV_COLORS.critical }}
-                                    title={`Crítico: ${item.critical}`}
-                                  />
-                                )}
-                                {item.high > 0 && (
-                                  <div
-                                    style={{ width: `${(item.high / maxTotal) * 100}%`, backgroundColor: SEV_COLORS.high }}
-                                    title={`Alto: ${item.high}`}
-                                  />
-                                )}
-                                {item.medium > 0 && (
-                                  <div
-                                    style={{ width: `${(item.medium / maxTotal) * 100}%`, backgroundColor: SEV_COLORS.medium }}
-                                    title={`Médio: ${item.medium}`}
-                                  />
-                                )}
-                                {item.low > 0 && (
-                                  <div
-                                    style={{ width: `${(item.low / maxTotal) * 100}%`, backgroundColor: SEV_COLORS.low }}
-                                    title={`Baixo: ${item.low}`}
-                                  />
-                                )}
+                                {item.critical > 0 && <div style={{ width: `${(item.critical / maxTotal) * 100}%`, backgroundColor: SEV_COLORS.critical }} title={`Crítico: ${item.critical}`} />}
+                                {item.high > 0 && <div style={{ width: `${(item.high / maxTotal) * 100}%`, backgroundColor: SEV_COLORS.high }} title={`Alto: ${item.high}`} />}
+                                {item.medium > 0 && <div style={{ width: `${(item.medium / maxTotal) * 100}%`, backgroundColor: SEV_COLORS.medium }} title={`Médio: ${item.medium}`} />}
+                                {item.low > 0 && <div style={{ width: `${(item.low / maxTotal) * 100}%`, backgroundColor: SEV_COLORS.low }} title={`Baixo: ${item.low}`} />}
                               </div>
                             </div>
                             <div className="text-xs font-semibold w-8 text-right shrink-0">
@@ -1385,11 +1660,11 @@ export default function Relatorios() {
                 </CardContent>
               </Card>
 
+              {/* ── Tendência + Donut de severidade ── */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* API trend */}
                 <Card className="lg:col-span-2">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Tendência de Achados API</CardTitle>
+                    <CardTitle className="text-base">Tendência de Achados</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {(apiStats?.trend ?? []).length === 0 ? (
@@ -1418,7 +1693,6 @@ export default function Relatorios() {
                   </CardContent>
                 </Card>
 
-                {/* Severity donut */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base">Distribuição por Severidade</CardTitle>
@@ -1443,7 +1717,7 @@ export default function Relatorios() {
                 </Card>
               </div>
 
-              {/* API OWASP heatmap: category × severity */}
+              {/* ── Mapa de calor OWASP × Severidade ── */}
               {apiOwaspFiltered.length > 0 && (
                 <Card>
                   <CardHeader className="pb-2">
@@ -1454,10 +1728,7 @@ export default function Relatorios() {
                       rowLabels={apiOwaspFiltered.map((x) => x.code)}
                       colLabels={["critical", "high", "medium", "low"]}
                       data={Object.fromEntries(
-                        apiOwaspFiltered.map((x) => [
-                          x.code,
-                          { critical: x.critical, high: x.high, medium: x.medium, low: x.low },
-                        ]),
+                        apiOwaspFiltered.map((x) => [x.code, { critical: x.critical, high: x.high, medium: x.medium, low: x.low }]),
                       )}
                       getColor={(col, intensity) => {
                         const base = SEV_COLORS[col as keyof typeof SEV_COLORS] ?? "#888";
@@ -1473,7 +1744,7 @@ export default function Relatorios() {
                 </Card>
               )}
 
-              {/* Journey history */}
+              {/* ── Histórico de execuções ── */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Histórico de Execuções</CardTitle>

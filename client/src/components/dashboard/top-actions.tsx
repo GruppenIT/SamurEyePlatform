@@ -32,7 +32,7 @@ export default function TopActions() {
   if (isLoading) {
     return (
       <div className="p-4 text-center text-muted-foreground text-sm">
-        Carregando acoes...
+        Carregando ações...
       </div>
     );
   }
@@ -40,7 +40,7 @@ export default function TopActions() {
   if (topThree.length === 0) {
     return (
       <div className="p-4 text-center text-muted-foreground text-sm">
-        Nenhuma acao prioritaria
+        Nenhuma ação prioritária
       </div>
     );
   }

@@ -1,4 +1,4 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Router, Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -98,7 +98,7 @@ function AdminRoute({ component: PageComponent }: { component: React.ComponentTy
   return <PageComponent />;
 }
 
-function Router() {
+function AppRouter() {
   const { isAuthenticated, mustChangePassword, isLoading, user } = useAuth();
 
   if (isLoading) {
@@ -197,19 +197,23 @@ function Router() {
   );
 }
 
+const ROUTER_BASE = (import.meta.env.VITE_ROUTER_BASE as string) || "/";
+
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <div className="min-h-screen bg-background text-foreground flex flex-col">
-            <SubscriptionBanner />
-            <Toaster />
-            <div className="flex-1">
-              <Router />
+          <Router base={ROUTER_BASE === "/" ? "" : ROUTER_BASE}>
+            <div className="min-h-screen bg-background text-foreground flex flex-col">
+              <SubscriptionBanner />
+              <Toaster />
+              <div className="flex-1">
+                <AppRouter />
+              </div>
             </div>
-          </div>
+          </Router>
         </TooltipProvider>
       </QueryClientProvider>
       </ThemeProvider>

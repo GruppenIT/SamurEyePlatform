@@ -418,8 +418,8 @@ export async function upsertThreat(threat: InsertThreat & { correlationKey: stri
             status: sql`'open'`,
             lastSeenAt: threat.lastSeenAt || new Date(),
             updatedAt: new Date(),
-            jobId: threat.jobId || sql`job_id`, // Keep existing if not provided
-            hostId: threat.hostId !== undefined ? threat.hostId : sql`host_id`, // Keep existing if not provided
+            jobId: threat.jobId || sql`threats.job_id`, // Keep existing if not provided
+            hostId: threat.hostId !== undefined ? threat.hostId : sql`threats.host_id`, // Keep existing if not provided
             evidence: threat.evidence,
             hibernatedUntil: null,
             statusChangedAt: new Date(),

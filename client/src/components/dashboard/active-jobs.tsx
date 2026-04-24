@@ -190,7 +190,7 @@ export default function ActiveJobs() {
                       {pidInfo && (
                         <div className="flex items-center space-x-2 text-sm text-muted-foreground bg-background/50 px-2 py-1 rounded">
                           <Cpu className="h-3 w-3" />
-                          <span className="font-mono">{pidInfo.processName}</span>
+                          <span className="font-mono">{({ nmap: 'Agente de Varredura', nuclei: 'Agente de Vulnerabilidades' } as Record<string,string>)[pidInfo.processName] ?? pidInfo.processName}</span>
                           <Badge variant="secondary" className="text-xs px-1.5 py-0">
                             PID {pidInfo.pid}
                           </Badge>
@@ -224,7 +224,7 @@ export default function ActiveJobs() {
           <AlertDialogHeader>
             <AlertDialogTitle>Cancelar Job</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja cancelar este job? Os processos em execução (nmap, nuclei, etc.) serão interrompidos e os resultados parciais serão descartados.
+              Tem certeza que deseja cancelar este job? Os agentes em execução serão interrompidos e os resultados parciais serão descartados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

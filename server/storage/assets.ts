@@ -176,6 +176,48 @@ export async function deleteAsset(id: string): Promise<void> {
   await db.delete(assets).where(eq(assets.id, id));
 }
 
+/**
+ * Ensures a web_application asset is properly linked to a host asset.
+ * If the web_application already has a parentAssetId, this is a no-op.
+ * Otherwise, finds or creates a host asset for the web app's hostname and
+ * links the web_application to it.
+ */
+export async function ensureHostForWebApp(webAppAssetId: string, userId: string): Promise<void> {
+  const webApp = await getAsset(webAppAssetId);
+  if (!webApp || webApp.type !== 'web_application') return;
+  if (webApp.parentAssetId) return; // Already linked
+
+  let hostname: string;
+  try {
+    hostname = new URL(webApp.value).hostname;
+  } catch {
+    return;
+  }
+  if (!hostname) return;
+
+  // Find or create host asset
+  const [existingHost] = await db
+    .select()
+    .from(assets)
+    .where(and(eq(assets.type, 'host' as any), eq(assets.value, hostname)))
+    .limit(1);
+
+  let hostId: string;
+  if (existingHost) {
+    hostId = existingHost.id;
+  } else {
+    const [newHost] = await db
+      .insert(assets)
+      .values({ type: 'host' as any, value: hostname, tags: ['auto-discovered'], createdBy: userId } as any)
+      .returning();
+    hostId = newHost.id;
+    log.info({ hostname, assetId: newHost.id }, 'auto-created host asset for web_application hierarchy');
+  }
+
+  await db.update(assets).set({ parentAssetId: hostId } as any).where(eq(assets.id, webAppAssetId));
+  log.info({ webAppAssetId, hostId, hostname }, 'linked web_application to host asset');
+}
+
 // Credential operations
 export async function getCredentials(): Promise<Omit<Credential, 'secretEncrypted' | 'dekEncrypted'>[]> {
   const results = await db
