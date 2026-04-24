@@ -159,13 +159,17 @@ export default function Sidebar() {
       (item.label === "Ameaças" && criticalThreatCount > 0) ||
       (item.href === "/getting-started" && gettingStartedPendingCount > 0);
     const badgeValue =
-      item.href === "/getting-started" ? gettingStartedPendingCount : criticalThreatCount;
+      item.href === "/getting-started"
+        ? gettingStartedPendingCount
+        : item.label === "Ameaças"
+        ? criticalThreatCount
+        : (item.badge ?? 0);
 
     const inner = (
       <Link key={item.href} href={item.href}>
         <div
           className={cn(
-            "sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+            "sidebar-item relative flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
             collapsed && "justify-center px-2",
             isActive
               ? "active text-sidebar-foreground"

@@ -124,11 +124,12 @@ export default function Admin() {
     ? gsStatus.completedCount + gsStatus.skippedCount >= gsStatus.totalSteps
     : false;
 
-  const gsProgress = gsStatus
-    ? Math.round(
-        ((gsStatus.completedCount + gsStatus.skippedCount) / gsStatus.totalSteps) * 100
-      )
-    : 0;
+  const gsProgress =
+    gsStatus && gsStatus.totalSteps > 0
+      ? Math.round(
+          ((gsStatus.completedCount + gsStatus.skippedCount) / gsStatus.totalSteps) * 100
+        )
+      : 0;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
