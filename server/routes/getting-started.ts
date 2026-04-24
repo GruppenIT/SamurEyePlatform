@@ -1,4 +1,3 @@
-// server/routes/getting-started.ts
 import type { Express } from "express";
 import { storage } from "../storage";
 import { db } from "../db";
@@ -82,7 +81,7 @@ export function registerGettingStartedRoutes(app: Express) {
     "/api/getting-started/status",
     isAuthenticatedWithPasswordCheck,
     requireAdmin,
-    async (req: any, res) => {
+    async (_req, res) => {
       try {
         const [completion, skippedSetting, dismissedSetting] = await Promise.all([
           computeCompletion(),
@@ -90,10 +89,12 @@ export function registerGettingStartedRoutes(app: Express) {
           storage.getSetting("gettingStarted.dismissed"),
         ]);
 
-        const skipped = (skippedSetting?.value ?? {}) as Record<
-          string,
-          { at: string; reason: string }
-        >;
+        const rawSkipped = skippedSetting?.value;
+        const skipped = (
+          rawSkipped && typeof rawSkipped === "object" && !Array.isArray(rawSkipped)
+            ? rawSkipped
+            : {}
+        ) as Record<string, { at: string; reason: string }>;
         const dismissed = Boolean(dismissedSetting?.value);
 
         const steps: StepStatus[] = STEP_IDS.map((id) => {
