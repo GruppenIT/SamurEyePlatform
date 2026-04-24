@@ -125,4 +125,96 @@ export function registerGettingStartedRoutes(app: Express) {
       }
     }
   );
+
+  app.post(
+    "/api/getting-started/skip",
+    isAuthenticatedWithPasswordCheck,
+    requireAdmin,
+    async (req: any, res) => {
+      try {
+        const { stepId, reason = "" } = req.body ?? {};
+        if (!(STEP_IDS as readonly string[]).includes(stepId)) {
+          return res.status(400).json({ message: "Step ID inválido" });
+        }
+        if (!SKIPPABLE.has(stepId as StepId)) {
+          return res.status(400).json({ message: "Esta etapa não pode ser ignorada" });
+        }
+        const existing = await storage.getSetting("gettingStarted.skipped");
+        const rawExisting = existing?.value;
+        const map = (
+          rawExisting && typeof rawExisting === "object" && !Array.isArray(rawExisting)
+            ? rawExisting
+            : {}
+        ) as Record<string, any>;
+        map[stepId] = { at: new Date().toISOString(), reason: String(reason) };
+        await storage.setSetting("gettingStarted.skipped", map, req.user.id);
+        res.json({ ok: true });
+      } catch (error) {
+        log.error({ err: error }, "failed to skip step");
+        res.status(500).json({ message: "Falha ao ignorar etapa" });
+      }
+    }
+  );
+
+  app.delete(
+    "/api/getting-started/skip/:stepId",
+    isAuthenticatedWithPasswordCheck,
+    requireAdmin,
+    async (req: any, res) => {
+      try {
+        const { stepId } = req.params;
+        if (!(STEP_IDS as readonly string[]).includes(stepId)) {
+          return res.status(400).json({ message: "Step ID inválido" });
+        }
+        const existing = await storage.getSetting("gettingStarted.skipped");
+        const rawExisting = existing?.value;
+        const map = (
+          rawExisting && typeof rawExisting === "object" && !Array.isArray(rawExisting)
+            ? rawExisting
+            : {}
+        ) as Record<string, any>;
+        delete map[stepId];
+        await storage.setSetting("gettingStarted.skipped", map, req.user.id);
+        res.json({ ok: true });
+      } catch (error) {
+        log.error({ err: error }, "failed to unskip step");
+        res.status(500).json({ message: "Falha ao retomar etapa" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/getting-started/dismiss",
+    isAuthenticatedWithPasswordCheck,
+    requireAdmin,
+    async (req: any, res) => {
+      try {
+        const [completion, skippedSetting] = await Promise.all([
+          computeCompletion(),
+          storage.getSetting("gettingStarted.skipped"),
+        ]);
+        const rawSkipped = skippedSetting?.value;
+        const skipped = (
+          rawSkipped && typeof rawSkipped === "object" && !Array.isArray(rawSkipped)
+            ? rawSkipped
+            : {}
+        ) as Record<string, any>;
+        const allDone = STEP_IDS.every((id) => completion[id] || Boolean(skipped[id]));
+        if (!allDone) {
+          return res
+            .status(400)
+            .json({ message: "Há etapas pendentes — conclua ou ignore-as antes de fechar" });
+        }
+        await storage.setSetting(
+          "gettingStarted.dismissed",
+          { at: new Date().toISOString() },
+          req.user.id
+        );
+        res.json({ ok: true });
+      } catch (error) {
+        log.error({ err: error }, "failed to dismiss getting-started");
+        res.status(500).json({ message: "Falha ao fechar guia" });
+      }
+    }
+  );
 }
