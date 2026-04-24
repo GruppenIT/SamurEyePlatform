@@ -38,9 +38,9 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-info()    { echo -e "${BLUE}[INFO]${NC}  $*"; }
-success() { echo -e "${GREEN}[OK]${NC}    $*"; }
-warn()    { echo -e "${YELLOW}[WARN]${NC}  $*"; }
+info()    { echo -e "${BLUE}[INFO]${NC}  $*" >&2; }
+success() { echo -e "${GREEN}[OK]${NC}    $*" >&2; }
+warn()    { echo -e "${YELLOW}[WARN]${NC}  $*" >&2; }
 error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 die()     { error "$*"; exit 1; }
 
