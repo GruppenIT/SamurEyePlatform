@@ -101,6 +101,11 @@ const STEP_META: Record<string, { label: string; description: string; href: stri
     description: "Configure alertas e destinatários para eventos de segurança",
     href: "/admin/notificacoes",
   },
+  journey_schedule: {
+    label: "Agendamento de Jornada",
+    description: "Crie um agendamento recorrente ou pontual para execução automática",
+    href: "/schedules",
+  },
   action_plan: {
     label: "Plano de Ação",
     description: "Crie um plano de remediação para ameaças identificadas",
@@ -128,7 +133,7 @@ const GROUPS = [
   {
     label: "OPERAÇÃO",
     subtitle: undefined as string | undefined,
-    stepIds: ["notification_policy", "action_plan"],
+    stepIds: ["notification_policy", "journey_schedule", "action_plan"],
   },
 ];
 

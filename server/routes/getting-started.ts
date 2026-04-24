@@ -6,6 +6,7 @@ import {
   users,
   notificationPolicies,
   actionPlans,
+  schedules,
 } from "@shared/schema";
 import { count } from "drizzle-orm";
 import { isAuthenticatedWithPasswordCheck } from "../localAuth";
@@ -33,6 +34,7 @@ const STEP_IDS = [
   "journey_web_application",
   "journey_api_security",
   "notification_policy",
+  "journey_schedule",
   "action_plan",
 ] as const;
 
@@ -45,6 +47,7 @@ const SKIPPABLE = new Set<StepId>([
   "journey_web_application",
   "journey_api_security",
   "notification_policy",
+  "journey_schedule",
 ]);
 
 interface StepStatus {
@@ -57,13 +60,14 @@ interface StepStatus {
 }
 
 async function computeCompletion(): Promise<Record<StepId, boolean>> {
-  const [allSettings, emailSettings, allUsers, journeyRows, policyCount, planCount] =
+  const [allSettings, emailSettings, allUsers, journeyRows, policyCount, scheduleCount, planCount] =
     await Promise.all([
       storage.getAllSettings(),
       storage.getEmailSettings(),
       storage.getAllUsers(),
       db.select({ type: journeys.type }).from(journeys),
       db.select({ count: count() }).from(notificationPolicies),
+      db.select({ count: count() }).from(schedules),
       db.select({ count: count() }).from(actionPlans),
     ]);
 
@@ -81,6 +85,7 @@ async function computeCompletion(): Promise<Record<StepId, boolean>> {
     journey_web_application: journeyTypes.has("web_application"),
     journey_api_security: journeyTypes.has("api_security"),
     notification_policy: Number(policyCount[0].count) > 0,
+    journey_schedule: Number(scheduleCount[0].count) > 0,
     action_plan: Number(planCount[0].count) > 0,
   };
 }
