@@ -1,7 +1,7 @@
 # SamurEye - Plataforma de Validacao Adversarial de Exposicao
 
-**Versao do Documento:** 2.0
-**Data:** Marco 2026
+**Versao do Documento:** 3.0
+**Data:** Abril 2026
 **Classificacao:** Confidencial - Somente uso interno
 
 ---
@@ -151,10 +151,12 @@ Database:     PostgreSQL 16 (Drizzle ORM + drizzle-zod para validacao)
 Sessoes:      express-session + connect-pg-simple (store PostgreSQL)
 Job Queue:    In-process scheduler (60s polling) + WebSocket real-time
 Logging:      Pino (structured JSON logging com modulos nomeados)
-Security:     bcryptjs (12 rounds), AES-256-GCM (KEK/DEK), Passport.js
-Scanners:     nmap (port scan + vuln scripts), Nuclei (web app scan)
+Security:     bcryptjs (12 rounds), AES-256-GCM (KEK/DEK), Passport.js, TOTP MFA
+Scanners:     nmap (rede/vuln), Nuclei (web + API), Katana (crawler),
+              Kiterunner (fuzzing de API), httpx (enrich HTTP), Arjun (parametros)
 Collectors:   WMI/WinRM (Windows), SSH2 (Linux), PowerShell (AD)
-Integracao:   NIST NVD API v2.0 (CVE detection), LDAP (AD discovery)
+Integracao:   NIST NVD API v2.0 (CVE detection), LDAP (AD discovery),
+              OpenAPI/Swagger parsing, GraphQL introspection
 Email:        Nodemailer + OAuth2 (Gmail/Microsoft 365)
 Build:        Vite 6 (frontend) + esbuild (backend bundle)
 Testes:       Vitest 4
@@ -162,45 +164,64 @@ Testes:       Vitest 4
 
 ### 3.3 Modelo de Dados (PostgreSQL)
 
-O banco de dados e composto por **24 tabelas** organizadas em dominios funcionais, todas gerenciadas via Drizzle ORM com migracao automatica (`drizzle-kit push`).
+O banco de dados e composto por **38+ tabelas** organizadas em dominios funcionais, todas gerenciadas via Drizzle ORM com migracao automatica (`drizzle-kit push`).
 
 #### Dominio: Identidade e Acesso
 | Tabela | Descricao |
 |--------|-----------|
-| `users` | Usuarios com roles (global_administrator, operator, read_only), hash bcrypt, flag mustChangePassword |
+| `users` | Usuarios com roles (global_administrator, operator, read_only), hash bcrypt, flag mustChangePassword, preferencias de UI (tema, sidebar) |
 | `sessions` | Sessoes express-session persistidas em PostgreSQL (connect-pg-simple) |
 | `active_sessions` | Rastreamento de sessoes ativas por dispositivo com versionamento global para revogacao em massa |
 | `login_attempts` | Rate limiting persistente com bloqueio temporario apos tentativas falhas |
-| `session_version` | Controle de versao global para invalidacao de todas as sessoes |
+| `mfa_email_challenges` | Desafios MFA por email (OTP) com hash e expiracao |
+| `password_reset_tokens` | Tokens de reset de senha com hash e expiracao |
 
 #### Dominio: Superficie de Ataque
 | Tabela | Descricao |
 |--------|-----------|
 | `assets` | Alvos de scan: hosts individuais (FQDN/IP), ranges CIDR, web applications. Suportam tags para agrupamento |
 | `credentials` | Credenciais criptografadas (AES-256-GCM KEK/DEK) para scan autenticado: SSH, WMI, OMI, AD |
+| `api_credentials` | Credenciais para scan autenticado de APIs com 7 tipos: api_key_header, api_key_query, bearer_jwt, basic, oauth2_client_credentials, hmac, mtls. URL pattern matching com prioridade |
 | `hosts` | Hosts descobertos com IPs, aliases, OS, tipo (server/desktop/firewall/switch/router), familia (linux/windows_server/windows_desktop/fortios/network_os), risk score (0-100) e raw score |
 | `host_enrichments` | Dados coletados via scan autenticado: OS build exato, apps instalados, patches KB, servicos com status e tipo de startup |
+| `host_risk_history` | Historico temporal de risk score por host (trending de criticidade) |
+| `apis` | APIs descobertas como entidade filha de assets web_application: baseUrl, apiType (rest/graphql/soap), metadados de spec |
+| `api_endpoints` | Endpoints individuais de APIs com metodo, path, parametros, enriquecimento httpx (status/TLS/tech), flag tri-valor requiresAuth, discoverySources (spec/crawler/kiterunner/manual) |
 
 #### Dominio: Operacoes de Scan
 | Tabela | Descricao |
 |--------|-----------|
-| `journeys` | Configuracoes de assessment: tipo (attack_surface, ad_security, edr_av, web_application), alvos (individual ou por tag), parametros, credenciais associadas |
+| `journeys` | Configuracoes de assessment: tipo (attack_surface, ad_security, edr_av, web_application, api_security), alvos (individual ou por tag), parametros, credenciais associadas, authorizationAck para testes ativos de API |
 | `journey_credentials` | Tabela de juncao que vincula credenciais a journeys com prioridade de tentativa |
 | `schedules` | Agendamentos flexiveis: on_demand, once, recurring (daily/weekly/monthly) com hora/minuto/dia, ou intervalo customizado (a cada X horas/dias) |
 | `jobs` | Execucoes de journeys com status (pending/running/completed/failed/timeout), progresso (0-100), task atual |
 | `job_results` | Artefatos de execucao: stdout, stderr, findings serializados em JSON |
+| `edr_deployments` | Metadados de deployment de testes EDR por host: timestamp de deploy/deteccao, duracao do teste |
 
 #### Dominio: Inteligencia de Ameacas
 | Tabela | Descricao |
 |--------|-----------|
-| `threats` | Ameacas com lifecycle completo: severity (low/medium/high/critical), status (open/investigating/mitigated/closed/hibernated/accepted_risk), correlationKey para deduplicacao, lastSeenAt, atribuicao a usuario |
+| `threats` | Ameacas com lifecycle completo: severity (low/medium/high/critical), status (open/investigating/mitigated/closed/hibernated/accepted_risk), correlationKey para deduplicacao, lastSeenAt, atribuicao a usuario, contextualScore (0-100), scoreBreakdown, projectedScoreAfterFix |
 | `threat_status_history` | Auditoria completa de mudancas de status com justificativa, usuario e timestamp |
 | `ad_security_test_results` | Resultados granulares de testes AD: 28 testes com status (pass/fail/error/skipped), evidencia, comando executado |
+| `api_findings` | Achados de seguranca de API mapeados para OWASP API Top 10 2023. Status (open/triaged/false_positive/closed), evidencia com request/response, link para threats promovidas |
+| `posture_snapshots` | Snapshot de posture score ao final de cada job (com contadores por severidade) para trending historico |
+| `recommendations` | Recomendacoes de remediacao geradas a partir de regras por ruleId, com passos em PT-BR, esforco, role necessaria |
+
+#### Dominio: Planos de Acao
+| Tabela | Descricao |
+|--------|-----------|
+| `action_plans` | Planos de remediacao com code unico, status (pending/in_progress/blocked/done/cancelled), prioridade (low/medium/high/critical), responsavel |
+| `action_plan_threats` | Vinculo N:N entre planos de acao e ameacas |
+| `action_plan_comments` | Comentarios em planos com autor e timestamp |
+| `action_plan_comment_threats` | Mencoes de ameacas em comentarios |
+| `action_plan_history` | Trilha de auditoria para mudancas em planos (status, atribuicao, titulo/descricao) |
 
 #### Dominio: Configuracao e Auditoria
 | Tabela | Descricao |
 |--------|-----------|
-| `settings` | Configuracoes chave-valor: timeout de nmap, fuso horario, perfil de scan, configuracoes de email (com OAuth2) |
+| `settings` | Configuracoes chave-valor: timeout de nmap, fuso horario, perfil de scan |
+| `email_settings` | Configuracoes de email SMTP/OAuth2 Gmail/Microsoft 365 com segredos criptografados e timestamp de ultimo teste |
 | `audit_log` | Log completo de acoes: ator, acao, objeto, estado before/after em JSON |
 | `notification_policies` | Regras de notificacao por email baseadas em severidade e status de ameaca |
 | `notification_log` | Historico de notificacoes enviadas/falhas |
@@ -209,19 +230,21 @@ O banco de dados e composto por **24 tabelas** organizadas em dominios funcionai
 | Tabela | Descricao |
 |--------|-----------|
 | `appliance_subscription` | Estado da subscricao: API key (criptografada), console URL, tier, status (not_configured/active/expired/grace_period/unreachable), ultimo heartbeat |
+| `appliance_commands` | Comandos recebidos da console cloud (system_update, restart_service). Status pending/running/completed/failed com result/error |
 
 ### 3.4 Servicos Backend (server/services/)
 
-O backend e composto por **18 servicos** especializados que orquestram toda a logica de negocio:
+O backend e composto por **27+ servicos** especializados que orquestram toda a logica de negocio:
 
 #### Orquestracao
 | Servico | Arquivo | Funcao |
 |---------|---------|--------|
-| **JourneyExecutor** | `journeyExecutor.ts` | Orquestra execucao completa de assessments. Resolve alvos (individual ou por tag via LDAP), coordena fases de scan (discovery -> enrichment -> CVE -> validation -> threats), gerencia progresso via callback |
-| **JobQueue** | `jobQueue.ts` | Fila de execucao com EventEmitter para broadcasts WebSocket. Gerencia ciclo de vida de jobs (pending -> running -> completed/failed) |
+| **JourneyExecutor** | `journeyExecutor.ts` | Orquestra execucao completa dos 5 tipos de journey. Resolve alvos (individual ou por tag via LDAP), coordena fases de scan (discovery -> enrichment -> CVE -> validation -> threats), gerencia progresso via callback. Inclui `executeApiSecurity()` para journeys de API |
+| **JobQueue** | `jobQueue.ts` | Fila de execucao com EventEmitter para broadcasts WebSocket. Gerencia ciclo de vida de jobs (pending -> running -> completed/failed). Suporta aborto de job em execucao |
+| **JobEventBroadcaster** | `jobEventBroadcaster.ts` | Broadcast WebSocket de eventos de job com filtros por tipo e cleanup de listeners |
 | **Scheduler** | `scheduler.ts` | Polling a cada 60s para agendamentos ativos. Suporta recorrencia daily/weekly/monthly e intervalos customizados (a cada X horas/dias). Timezone configuravel (padrao: America/Sao_Paulo) |
 
-#### Scanners
+#### Scanners Tradicionais
 | Servico | Arquivo | Funcao |
 |---------|---------|--------|
 | **NetworkScanner** | `scanners/networkScanner.ts` | Wrapper de nmap com perfis (fast/thorough/stealth). Detecta portas abertas, servicos, versoes, OS. Cria processos rastreados com timeout configuravel. Suporta host discovery (ping sweep) para ranges |
@@ -229,13 +252,44 @@ O backend e composto por **18 servicos** especializados que orquestram toda a lo
 | **ADScanner** | `scanners/adScanner.ts` | 28+ testes PowerShell via WinRM contra Active Directory: password policy, account security, privileged groups, Kerberos delegation, trust relationships. Decodifica flags UAC (UserAccountControl) com descricoes de risco. Failover automatico entre DCs |
 | **EDR/AV Scanner** | `scanners/edrAvScanner.ts` | Testes de eficacia de EDR/AV via SMB shares. Credenciais temporarias em tmpfs (/dev/shm) com cleanup seguro (overwrite antes de delete). Usa smbclient para deploy de payloads de teste |
 
+#### Scanners de API (scanners/api/)
+| Servico | Arquivo | Funcao |
+|---------|---------|--------|
+| **OpenAPI Parser** | `scanners/api/openapi.ts` | Parsing de specs OpenAPI/Swagger. Extracao de endpoints, metodos, parametros. Versionamento e hashing de spec |
+| **Katana Crawler** | `scanners/api/katana.ts` | Crawling web com renderizacao JavaScript. Suporte a cookies/headers/credenciais para descobrir endpoints via navegacao |
+| **Kiterunner** | `scanners/api/kiterunner.ts` | Fuzzing de paths de API baseado em wordlist. Descobre endpoints ocultos/nao documentados |
+| **HTTPx Probe** | `scanners/api/httpx.ts` | Enrichment de endpoints com status, TLS, tecnologias detectadas |
+| **Arjun** | `scanners/api/arjun.ts` | Descoberta de parametros (query/header/body) via wordlist PT-BR+EN |
+| **GraphQL Prober** | `scanners/api/graphql.ts` | Detecao de endpoints GraphQL e introspection de schema |
+| **Nuclei API** | `scanners/api/nucleiApi.ts` | Templates Nuclei para API: passivos (OWASP API Top 10) e ativos (exploracao) |
+| **API9 Inventory** | `scanners/api/api9Inventory.ts` | Deteccao de API9 (Improper Inventory): spec publicamente exposta, schemas ausentes, endpoints deprecados |
+| **Auth Failure** | `scanners/api/authFailure.ts` | Testes de autenticacao quebrada: JWT alg=none, JWT KID injection, reuso de token, vazamento de API key |
+| **BOLA Scanner** | `scanners/api/bola.ts` | Broken Object Level Authorization: teste de pares de credenciais, cross-access, harvesting de IDs de objeto |
+| **BFLA Scanner** | `scanners/api/bfla.ts` | Broken Function Level Authorization: identificacao de credenciais de baixo privilegio, matching de endpoints admin, escalacao |
+| **BOPLA Scanner** | `scanners/api/bopla.ts` | Broken Object Property Level Authorization: reflexao de propriedades JSON, deteccao de campos sensiveis (passwords, tokens, SSNs) |
+| **Rate Limit Scanner** | `scanners/api/rateLimit.ts` | Deteccao de ausencia de rate limit: geracao de rajadas, timing de resposta |
+| **SSRF Nuclei** | `scanners/api/ssrfNuclei.ts` | Testes SSRF com templates Nuclei e deteccao out-of-band |
+| **Preflight** | `scanners/api/preflight.ts` | Validacao de conectividade e acessibilidade de alvo antes dos testes |
+| **Spec Hash** | `scanners/api/specHash.ts` | Deteccao de drift via hash de spec entre execucoes |
+
+#### Jornadas de API (services/journeys/)
+| Servico | Arquivo | Funcao |
+|---------|---------|--------|
+| **API Discovery** | `journeys/apiDiscovery.ts` | Fase de descoberta: parsing de spec, crawling com Katana, fuzzing com Kiterunner, enrichment com httpx, Arjun para parametros |
+| **API Passive Tests** | `journeys/apiPassiveTests.ts` | Testes passivos sem impacto: API9 Inventory, Nuclei passivo, auth failures (JWT) |
+| **API Active Tests** | `journeys/apiActiveTests.ts` | Testes ativos (requerem authorizationAck): BOLA, BFLA, BOPLA, Rate Limit, SSRF |
+
 #### Inteligencia
 | Servico | Arquivo | Funcao |
 |---------|---------|--------|
 | **ThreatEngine** | `threatEngine.ts` | Motor de regras para classificacao de ameacas. Categoriza servicos (admin/database/sharing/web/email/infrastructure) com severidade baseada em categoria. Deduplicacao por correlationKey, reativacao de ameacas hibernadas, monitor de hibernacao |
+| **ScoringEngine** | `scoringEngine.ts` | Score contextual (0-100) alem da severidade binaria. Breakdown por fatores (base severity, criticality, exposure, controls, exploitability). Projected score apos fix |
 | **CVEService** | `cveService.ts` | Integracao com NIST NVD API v2.0. CPE matching com ranges de versao (versionStart/End Including/Excluding). Rate limiting de 6s entre requests. Filtragem de CVEs por patches KB instalados. Traducao de descricoes para PT-BR |
 | **HostService** | `hostService.ts` | CRUD de hosts com calculo de risk score (0-100 baseado em intervalos CVSS), deduplicacao por IP/hostname, merge de aliases |
 | **HostEnricher** | `hostEnricher.ts` | Orquestra coleta autenticada com collectors registrados (WMI, SSH). Prioridade configuravel, stop-on-success por protocolo, fail-safe (falhas nunca bloqueiam scan) |
+| **RecommendationEngine** | `recommendationEngine.ts` | Gera recomendacoes de remediacao a partir de templates PT-BR por ruleId, vinculadas a ameacas |
+| **ThreatPromotion** | `threatPromotion.ts` | Promove achados de API (api_findings) para ameacas (threats) com deduplicacao e vinculacao |
+| **ActionPlanService** | `actionPlanService.ts` | CRUD e lifecycle de planos de acao: transicoes de status validadas, comentarios, vinculo com ameacas, historico de auditoria |
 
 #### Collectors
 | Servico | Arquivo | Funcao |
@@ -243,19 +297,28 @@ O backend e composto por **18 servicos** especializados que orquestram toda a lo
 | **WMICollector** | `collectors/wmiCollector.ts` | Coleta de dados Windows via WinRM/WMI: OS build completo, aplicacoes instaladas, patches KB, servicos com status e startup type |
 | **SSHCollector** | `collectors/sshCollector.ts` | Coleta de dados Linux via SSH2: OS/kernel, pacotes dpkg/rpm, servicos systemctl. Validacao TOFU de fingerprint SSH (FND-009) |
 
-#### Infraestrutura
+#### Seguranca e Identidade
 | Servico | Arquivo | Funcao |
 |---------|---------|--------|
 | **EncryptionService** | `encryption.ts` | Criptografia KEK/DEK com AES-256-GCM. KEK via variavel de ambiente (ENCRYPTION_KEK). IV de 96 bits, auth tag de 128 bits, AAD (Additional Authenticated Data) para contexto |
+| **MfaService** | `mfaService.ts` | Multi-factor authentication: TOTP via apps (Google Authenticator/Authy), OTP por email como fallback, backup codes para recuperacao |
+| **PasswordResetService** | `passwordResetService.ts` | Fluxo seguro de reset de senha: geracao de token, validacao com expiracao, entrega por email |
+| **RateLimiter** | `rateLimiter.ts` | Rate limiting com token bucket, usado por testes ativos de API |
+
+#### Infraestrutura
+| Servico | Arquivo | Funcao |
+|---------|---------|--------|
 | **SubscriptionService** | `subscriptionService.ts` | Heartbeat para console cloud: telemetria a cada 5min (ativo) ou 30min (standby). Validacao HTTPS obrigatoria (anti-MITM). Whitelist de comandos remotos (system_update, restart_service). Grace period de 72h. Retry com backoff exponencial (10s, 20s, 40s, 80s) |
 | **TelemetryService** | `telemetryService.ts` | Coleta metricas do appliance: CPU, memoria, disco, rede, uptime, servicos. Agrega contadores do banco (threats, hosts, jobs, usuarios). Nunca envia dados sensiveis |
-| **NotificationService** | `notificationService.ts` | Notificacoes por email baseadas em politicas. Match de severidade e status contra policies configuradas. Suporta OAuth2 (Gmail/Microsoft 365) |
+| **SystemUpdateService** | `systemUpdateService.ts` | Gerencia atualizacoes recebidas da console cloud via `appliance_commands` |
+| **EmailService** | `emailService.ts` | Envio de email via SMTP ou OAuth2 (Gmail/Microsoft 365) com templates HTML |
+| **NotificationService** | `notificationService.ts` | Notificacoes por email baseadas em politicas. Match de severidade e status contra policies configuradas |
 | **SettingsService** | `settingsService.ts` | Gerenciamento de configuracoes com valores padrao: timeout de nmap, perfil de scan, fuso horario do sistema |
-| **ProcessTracker** | `processTracker.ts` | Rastreamento de processos filhos (nmap, nuclei) com timeout e cleanup em caso de kill do job |
+| **ProcessTracker** | `processTracker.ts` | Rastreamento de processos filhos (nmap, nuclei, katana, kiterunner) com timeout e cleanup em caso de kill do job |
 
 ### 3.5 API REST (server/routes/)
 
-A API e organizada em **12 modulos de rotas** com autenticacao obrigatoria (exceto login/health):
+A API e organizada em **21 modulos de rotas** com autenticacao obrigatoria (exceto login/health):
 
 | Modulo | Prefixo | Operacoes Principais |
 |--------|---------|---------------------|
@@ -263,12 +326,22 @@ A API e organizada em **12 modulos de rotas** com autenticacao obrigatoria (exce
 | **Assets** | `/api/assets` | CRUD de alvos (host/range/web_application) com tags, validacao Zod |
 | **Hosts** | `/api/hosts` | Listagem com filtros, detalhes com enrichments e threats vinculadas |
 | **Credentials** | `/api/credentials` | CRUD com criptografia automatica KEK/DEK, validacao de tipo (ssh/wmi/omi/ad) |
-| **Journeys** | `/api/journeys` | CRUD com credenciais associadas, execucao sob demanda |
+| **API Credentials** | `/api/v1/api-credentials` | CRUD de credenciais de API (7 tipos de auth), URL pattern matching |
+| **APIs** | `/api/v1/apis` | CRUD de APIs descobertas, listagem de endpoints por API |
+| **API Endpoints** | `/api/v1/apis/:id/endpoints` | Listagem com filtros de endpoints de API e dados de enriquecimento |
+| **API Findings** | `/api/v1/api-findings` | Listagem com filtros OWASP, mudanca de status (triaged/false_positive/closed), bulk ops |
+| **Journeys** | `/api/journeys` | CRUD com credenciais associadas, execucao sob demanda, aborto |
 | **Schedules** | `/api/schedules` | Agendamentos com recorrencia flexivel |
 | **Jobs** | `/api/jobs` | Execucao, listagem, cancelamento, resultados com artefatos |
 | **Threats** | `/api/threats` | Listagem com filtros, mudanca de status com justificativa e auditoria, bulk operations |
+| **Recommendations** | `/api/v1/recommendations` | Recomendacoes de remediacao vinculadas a ameacas |
+| **Action Plans** | `/api/action-plans` | CRUD de planos de acao, vinculo com ameacas, comentarios, historico |
+| **EDR Deployments** | `/api/v1/edr-deployments` | Listagem de deployments de testes EDR, timeline de deteccao |
 | **Users** | `/api/users` | CRUD de usuarios (admin only), reset de senha com flag mustChangePassword |
-| **Reports** | `/api/reports/*` | Trend de ameacas, resumo por journey, historico AD, export CSV |
+| **Auth MFA** | `/api/auth/mfa/*` | Setup TOTP, verificacao de codigo, OTP por email, desabilitacao |
+| **Auth Password Reset** | `/api/auth/password-reset/*` | Request/verify/confirm de reset de senha |
+| **Getting Started** | `/api/getting-started/*` | Status de onboarding, skip/unskip de passos, dismiss de banner |
+| **Reports** | `/api/reports/*` | Trend de ameacas, resumo por journey, historico AD, distribuicao, export CSV |
 | **Admin** | `/api/admin/*` | Configuracoes do sistema, email settings (SMTP/OAuth2), audit log, gestao de sessoes |
 | **Subscription** | `/api/subscription/*` | Ativacao/desativacao de API key, status da subscricao |
 
@@ -367,6 +440,92 @@ O servidor WebSocket (path `/ws`) fornece updates em tempo real para a UI:
 +--------------------------------------------------------------+
 ```
 
+### 3.8 Fluxo de Dados - Execucao de Journey (API Security)
+
+A journey `api_security` introduz um pipeline em tres etapas dedicado a descoberta e validacao de seguranca de APIs REST, GraphQL e SOAP:
+
+```
++--------------------------------------------------------------+
+| 1. USUARIO CRIA JOURNEY DE API SECURITY                       |
+|    - Seleciona asset web_application como alvo               |
+|    - Opcional: URL de spec OpenAPI/Swagger                    |
+|    - Associa api_credentials (7 tipos de auth suportados)     |
+|    - Seleciona modo: Discovery / Passive / Active             |
+|    - Active exige authorizationAck = true (auditado)          |
++----------------------------+---------------------------------+
+                             |
+                             v
++--------------------------------------------------------------+
+| 2. FASE DE DISCOVERY (journeys/apiDiscovery.ts)               |
+|                                                               |
+|  +-----------------------------------------------------------+|
+|  | a. Preflight: verifica acessibilidade do alvo             ||
+|  | b. OpenAPI Parser: extrai endpoints da spec (se fornecida)||
+|  | c. Katana: crawling com renderizacao JS                   ||
+|  | d. Kiterunner: fuzzing de paths com wordlist              ||
+|  | e. GraphQL: detecta e introspecta schemas                 ||
+|  | f. httpx: enrich de endpoints (status, TLS, tech)          ||
+|  | g. Arjun: descoberta de parametros (query/header/body)    ||
+|  +-----------------------------+----------------------------+|
+|                                |                             |
+|  Resultado: populacao das tabelas apis + api_endpoints com   |
+|  discoverySources (spec/crawler/kiterunner/manual) e         |
+|  flag tri-valor requiresAuth                                 |
++----------------------------+---------------------------------+
+                             |
+                             v
++--------------------------------------------------------------+
+| 3. FASE PASSIVA (journeys/apiPassiveTests.ts)                 |
+|                                                               |
+|  +-----------------------------------------------------------+|
+|  | a. API9 Inventory: spec exposta, schemas ausentes,        ||
+|  |    endpoints deprecados                                   ||
+|  | b. Nuclei Passive: templates passivos OWASP API Top 10    ||
+|  | c. Auth Failure: JWT alg=none, KID injection, reuso       ||
+|  |    de token, vazamento de API key                         ||
+|  +----------------------------------------------------------+|
++----------------------------+---------------------------------+
+                             |
+                             v
++--------------------------------------------------------------+
+| 4. FASE ATIVA (journeys/apiActiveTests.ts)                    |
+|    PRE-REQ: authorizationAck = true                           |
+|                                                               |
+|  +-----------------------------------------------------------+|
+|  | a. BOLA: cross-access entre pares de credenciais          ||
+|  |    (API1 - Broken Object Level Authorization)             ||
+|  | b. BFLA: endpoints admin acessados com baixo privilegio   ||
+|  |    (API5 - Broken Function Level Authorization)           ||
+|  | c. BOPLA: reflexao de propriedades sensiveis              ||
+|  |    (API3 - Broken Object Property Level Authorization)    ||
+|  | d. Rate Limit: rajadas + timing analysis                  ||
+|  |    (API4 - Unrestricted Resource Consumption)             ||
+|  | e. SSRF: templates Nuclei + callbacks out-of-band         ||
+|  |    (API7 - Server Side Request Forgery)                   ||
+|  +----------------------------------------------------------+|
++----------------------------+---------------------------------+
+                             |
+                             v
++--------------------------------------------------------------+
+| 5. PROMOCAO PARA AMEACAS (threatPromotion.ts)                 |
+|    - api_findings classificados por OWASP API category        |
+|    - Status lifecycle: open/triaged/false_positive/closed     |
+|    - Promocao automatica para threats com vinculo bidireci-   |
+|      onal (promotedThreatId)                                  |
+|    - Recomendacoes de remediacao em PT-BR                     |
++--------------------------------------------------------------+
+```
+
+**Credenciais de API suportadas** (tabela `api_credentials`):
+- `api_key_header` / `api_key_query` - Chave de API em header ou query string
+- `bearer_jwt` - Bearer token JWT
+- `basic` - HTTP Basic Auth
+- `oauth2_client_credentials` - OAuth2 client credentials flow
+- `hmac` - HMAC signature
+- `mtls` - Mutual TLS (certificado cliente)
+
+Cada credencial suporta URL pattern matching com prioridade, permitindo associacao granular a endpoints especificos.
+
 ---
 
 ## 4. Interface do Usuario (UI)
@@ -390,15 +549,19 @@ A interface e construida como uma **Single-Page Application (SPA)** com React 18
 
 A aplicacao usa um layout com **sidebar fixa lateral** + **topbar** para todas as paginas autenticadas:
 
-**Sidebar - Grupos de Navegacao:**
+**Sidebar - Grupos de Navegacao (UI v2.1):**
 
 | Grupo | Itens | Acesso |
 |-------|-------|--------|
+| **Primeiros Passos** | Getting Started (onboarding) | Todos |
 | **Principal** | Postura (dashboard de seguranca) | Todos |
-| **Superficie** | Alvos, Hosts, Credenciais | Todos (escrita: operator+) |
+| **Superficie** | Alvos, Hosts, Credenciais, API Discovery | Todos (escrita: operator+) |
 | **Operacoes** | Jornadas, Agendamentos, Jobs | Todos (escrita: operator+) |
-| **Inteligencia** | Ameacas, Relatorios | Todos |
-| **Administracao** | Usuarios, Sessoes, Notificacoes, Subscricao, Configuracoes, Auditoria | Apenas global_administrator |
+| **Inteligencia** | Ameacas, Planos de Acao, Relatorios | Todos |
+| **Conta** | Perfil, MFA | Todos |
+| **Administracao** | Hub Admin (Configuracoes, Mensageria, Notificacoes, Seguranca), Usuarios, Sessoes, Subscricao, Auditoria | Apenas global_administrator |
+
+A sidebar e colapsavel (persistido em preferencia de usuario) e suporta tema claro/escuro.
 
 ### 4.3 Paginas da Aplicacao
 
@@ -438,13 +601,27 @@ Gestao segura de credenciais para scan autenticado:
 
 #### 4.3.5 Jornadas (`/journeys`)
 
-Configuracao de assessments de seguranca:
+Configuracao de assessments de seguranca. Cinco tipos de jornada suportados:
 - **Attack Surface:** Scan de portas + CVE detection + validacao ativa
 - **AD Security:** 28 testes PowerShell contra Active Directory
 - **EDR/AV:** Testes de eficacia de endpoint protection
 - **Web Application:** Scan OWASP Top 10 com Nuclei
+- **API Security (NOVO):** Descoberta e validacao de seguranca de APIs REST/GraphQL/SOAP com wizard dedicado. Passos:
+  1. Selecao de asset web_application alvo e spec opcional (OpenAPI/Swagger)
+  2. Associacao de credenciais de API (7 tipos de auth)
+  3. Escolha de modo: Discovery (descoberta), Passive (testes sem impacto), Active (exploracao - requer aceite de autorizacao)
+  4. Revisao de escopo e execucao
 - **Selecao de alvos:** Individual (selecao direta) ou por Tag (dinamica)
 - **Credenciais:** Associacao com prioridade para scan autenticado
+
+#### 4.3.5a API Discovery (`/api-discovery`)
+
+Pagina dedicada para visualizacao e gestao de APIs descobertas:
+- **Lista de APIs:** Agrupadas por asset pai, com apiType (rest/graphql/soap), baseUrl, total de endpoints
+- **Lista de endpoints:** Metodo HTTP, path, parametros, `requiresAuth` (tri-valor), badges de discovery source (spec/crawler/kiterunner/manual)
+- **Enriquecimento httpx:** Status code, content-type, tecnologias detectadas, dados TLS
+- **Integracao com findings:** Click em endpoint exibe achados de seguranca vinculados
+- **Promocao para threats:** Findings podem ser promovidos para ameacas com um clique
 
 #### 4.3.6 Agendamentos (`/schedules`)
 
@@ -469,8 +646,19 @@ Central de gestao de ameacas detectadas:
 - **Status lifecycle:** open -> investigating -> mitigated/closed/hibernated/accepted_risk
 - **Mudanca de status:** Requer justificativa obrigatoria (auditada)
 - **Detalhes:** Evidencia tecnica, CVEs associados, dados de scan PowerShell renderizados como tabela
+- **Score contextual:** Display de contextualScore (0-100) alem da severidade, breakdown de fatores e score projetado pos-fix
+- **Recomendacoes:** Painel lateral com passos de remediacao em PT-BR (gerados pelo RecommendationEngine)
 - **Bulk operations:** Selecao multipla para acoes em lote
+- **Vinculacao com Plano de Acao:** Criar ou adicionar a plano existente diretamente da tela
 - **Export:** Download de dados para analise externa
+
+#### 4.3.8a Planos de Acao (`/action-plans`)
+
+Sistema completo de gestao de remediacao:
+- **Listagem:** Filtros por status (pending/in_progress/blocked/done/cancelled), prioridade (low/medium/high/critical), responsavel
+- **Criacao:** Codigo unico auto-gerado, vinculo multiplo com ameacas
+- **Detalhe (`/action-plans/:id`):** Ameacas vinculadas, comentarios com mencao de threats, historico completo de auditoria (mudancas de status, atribuicoes, edicoes)
+- **Workflow:** Transicoes de status validadas pelo backend
 
 #### 4.3.9 Relatorios (`/relatorios`)
 
@@ -480,20 +668,34 @@ Dashboards analiticos com abas:
 - **Historico AD:** Timeline de resultados de testes AD com pass/fail rates
 - **Distribuicao:** Graficos de pizza e barra com ameacas por status, severidade, categoria
 
-#### 4.3.10 Paginas Administrativas (global_administrator)
+#### 4.3.10 Hub Administrativo (UI v2.1) - `global_administrator`
 
+Interface consolidada em `/admin` com grupos de tiles para navegacao rapida:
+
+- **Admin Hub (`/admin`):** Portal centralizado com tiles agrupados por dominio e breadcrumb de navegacao
+- **Configuracoes do Appliance (`/admin/configuracoes`):** Timeout de nmap, perfil de scan, fuso horario, atualizacao do sistema
+- **Mensageria (`/admin/mensageria`):** Configuracoes de email (SMTP, OAuth2 Gmail, OAuth2 Microsoft 365), teste de envio
+- **Notificacoes (`/admin/notificacoes`):** Politicas de email baseadas em severidade/status de ameacas
+- **Seguranca (`/admin/seguranca`):** Politicas de seguranca, MFA obrigatorio, configuracoes de sessao
 - **Usuarios (`/users`):** CRUD completo com roles (global_administrator, operator, read_only), reset de senha, flag mustChangePassword
 - **Sessoes (`/sessions`):** Visualizacao de sessoes ativas por dispositivo, revogacao individual ou em massa
-- **Notificacoes (`/notification-policies`):** Politicas de email baseadas em severidade/status de ameacas
 - **Subscricao (`/subscription`):** Ativacao com API key, status da console cloud, tier da licenca
-- **Configuracoes (`/settings`):** Timeout de nmap, perfil de scan, fuso horario, configuracoes de email (SMTP, OAuth2 Gmail/Microsoft)
 - **Auditoria (`/audit`):** Log completo de acoes com ator, acao, objeto, estado before/after
 
-#### 4.3.11 Outras Paginas
+#### 4.3.11 Conta de Usuario
 
-- **Login (`/login`):** Autenticacao local com email/senha
-- **Landing (`/`):** Pagina de apresentacao para usuarios nao autenticados
+- **Perfil (`/account`):** Edicao de dados pessoais, imagem de perfil, preferencias de UI (tema claro/escuro, estado da sidebar)
+- **MFA (`/account/mfa`):** Setup de TOTP (QR code), OTP por email, geracao de backup codes, desabilitacao
+
+#### 4.3.12 Onboarding e Autenticacao
+
+- **Getting Started (`/getting-started`):** Checklist interativo de onboarding com 11 passos (appliance config, mensageria, primeiro usuario, primeira jornada, notificacoes, agendamentos, planos de acao etc.). Passos skippable e banner dismissable
+- **Login (`/login`):** Autenticacao local com email/senha. Redireciona para `/mfa-challenge` se MFA ativo
+- **MFA Challenge (`/mfa-challenge`):** Entrada de codigo TOTP ou OTP por email durante login
+- **Forgot Password (`/forgot-password`):** Formulario de solicitacao de reset de senha
+- **Reset Password (`/reset-password`):** Confirmacao de nova senha via token recebido por email
 - **Change Password (`/change-password`):** Forcada quando flag mustChangePassword esta ativa
+- **Landing (`/`):** Pagina de apresentacao para usuarios nao autenticados
 - **Not Found:** Pagina 404 customizada
 
 ### 4.4 Experiencia do Usuario
@@ -525,6 +727,28 @@ Dashboards analiticos com abas:
 | **Revogacao** | Revogacao individual ou em massa via tabela `active_sessions`; sessoes nao rastreadas sao bloqueadas |
 | **Primeiro acesso** | Flag `mustChangePassword` forca troca de senha antes de qualquer acesso |
 | **Bootstrap dev** | Admin padrao criado automaticamente em desenvolvimento (desabilitavel) |
+
+### 5.1a Multi-Factor Authentication (MFA)
+
+Sistema MFA opcional (configuravel por usuario) ou obrigatorio (politica global):
+
+| Metodo | Implementacao |
+|--------|---------------|
+| **TOTP (Time-based OTP)** | Compativel com Google Authenticator, Authy, Microsoft Authenticator, 1Password. Setup via QR code e chave compartilhada, verificacao de codigos de 6 digitos com janela de drift |
+| **Email OTP** | Codigos enviados por email como metodo alternativo ou fallback. Tabela `mfa_email_challenges` com hash do codigo e expiracao curta |
+| **Backup Codes** | Lista de codigos de recuperacao unica-uso gerados durante o setup, para uso em caso de perda do dispositivo |
+| **Desafio no login** | Apos autenticacao primaria, pagina `/mfa-challenge` solicita codigo antes de criar sessao |
+| **Gestao pelo usuario** | Pagina `/account/mfa` permite setup/rotacao/desabilitacao |
+
+### 5.1b Reset de Senha
+
+Fluxo seguro de recuperacao sem expor informacao sensivel:
+
+1. Usuario solicita reset em `/forgot-password` informando email
+2. Sistema gera token aleatorio, armazena hash em `password_reset_tokens` com TTL curto
+3. Email enviado com link contendo token
+4. Usuario acessa `/reset-password?token=...`, valida e define nova senha
+5. Token e invalidado apos uso (single-use) e todas as sessoes existentes sao revogadas
 
 ### 5.2 Autorizacao (RBAC)
 
@@ -589,6 +813,9 @@ Fluxo de Descriptografia:
 |------|----------|
 | **Senhas de usuario** | bcrypt 12 rounds (nunca armazenadas em texto claro) |
 | **Credenciais de scan** | AES-256-GCM com KEK/DEK (nunca retornadas em API responses) |
+| **Credenciais de API** | Tabela `api_credentials` separada, com AES-256-GCM para os 7 tipos de auth (api_key_header/query, bearer_jwt, basic, oauth2_client_credentials, hmac, mtls) |
+| **Tokens de reset** | Apenas hash armazenado em `password_reset_tokens`, single-use, TTL curto |
+| **Secrets MFA** | TOTP secret criptografado no banco; backup codes hasheados |
 | **Arquivos temporarios de auth** | Criados em tmpfs (/dev/shm), nomes imprevisíveis (crypto.randomBytes), permissao 0o600, overwrite com zeros antes de delete |
 | **Dados de scan** | Permanecem no appliance (nunca enviados para cloud) |
 | **Telemetria** | Apenas contadores agregados (nao PII): total de threats, hosts, jobs, metricas de performance |
@@ -660,6 +887,35 @@ Scripts de verificacao em categorias: Authentication Bypass, Credential Exposure
 - Verificacao de headers HTTP, directory listing, SSL/TLS, credenciais default
 - Assets web_application criados automaticamente quando HTTP/HTTPS detectado
 
+### 6.6a API Discovery & Security (OWASP API Top 10 2023)
+
+Jornada dedicada `api_security` para descoberta e validacao de seguranca de APIs REST, GraphQL e SOAP:
+
+**Descoberta (Discovery):**
+- Parsing de specs OpenAPI/Swagger fornecidas
+- Crawling com Katana (renderizacao JS, cookies, credenciais)
+- Fuzzing de paths com Kiterunner e wordlists
+- Deteccao e introspection de GraphQL schemas
+- Enrichment com httpx (status, TLS, stack tecnologico)
+- Descoberta de parametros ocultos com Arjun (wordlist PT-BR+EN)
+
+**Testes Passivos (nao intrusivos):**
+- **API9 - Improper Inventory Management:** spec exposta, schemas ausentes, endpoints deprecados
+- **API2 - Broken Authentication:** JWT alg=none, JWT KID injection, reuso de tokens, vazamento de API key
+- **Nuclei passive templates:** validacao contra OWASP API Top 10
+
+**Testes Ativos (exigem `authorizationAck = true`):**
+- **API1 - BOLA (Broken Object Level Authorization):** cross-access entre pares de credenciais
+- **API3 - BOPLA (Broken Object Property Level Authorization):** reflexao de propriedades sensiveis (passwords, tokens, SSNs)
+- **API4 - Unrestricted Resource Consumption:** deteccao de ausencia de rate limit via rajadas
+- **API5 - BFLA (Broken Function Level Authorization):** acesso a endpoints admin com credenciais de baixo privilegio
+- **API7 - Server Side Request Forgery:** templates Nuclei + callbacks out-of-band
+
+**Gestao de findings:**
+- Status lifecycle: open -> triaged -> false_positive / closed
+- Promocao automatica para `threats` com vinculacao bidirecional
+- Recomendacoes de remediacao em PT-BR por categoria OWASP
+
 ### 6.7 Authenticated Scanning
 
 - **Windows (WMI/WinRM):** OS build completo, apps instalados, patches KB, servicos
@@ -686,7 +942,62 @@ Scripts de verificacao em categorias: Authentication Bypass, Credential Exposure
 - Heartbeat periodico para console central
 - Grace period de 72h para desconexao
 - Modo read-only quando expirado (preserva dados)
-- Atualizacao remota via comandos whitelisted
+- Atualizacao remota via comandos whitelisted (`appliance_commands`)
+
+### 6.11 Planos de Acao (Action Plans)
+
+Workflow completo de remediacao integrado a inteligencia de ameacas:
+- Criacao de planos com codigo unico, titulo, descricao, prioridade (low/medium/high/critical)
+- Vinculo N:N entre planos e ameacas (uma ameaca pode estar em multiplos planos)
+- Sistema de comentarios com mencao de threats dentro do corpo
+- Historico completo de auditoria (mudancas de status, atribuicoes, edicoes)
+- Transicoes de status validadas: pending -> in_progress -> blocked/done/cancelled
+
+### 6.12 Contextual Threat Scoring
+
+Score contextual (0-100) que complementa a severidade binaria tradicional:
+- **Breakdown de fatores:** severidade base, criticidade do host, exposicao (interno/externo), controles compensatorios, exploitabilidade
+- **Projected Score:** score estimado apos aplicacao da remediacao recomendada
+- **Posture Snapshots:** captura historica de posture score e contagens por severidade ao final de cada job, habilitando trending temporal
+
+### 6.13 Recomendacoes de Remediacao
+
+Motor baseado em templates (PT-BR) que gera recomendacoes acionaveis para cada ameaca:
+- Passos de correcao ordenados
+- Estimativa de esforco
+- Role requerida (sysadmin, netadmin, devops etc.)
+- Links cruzados com planos de acao para facilitar o workflow de remediacao
+
+### 6.14 Onboarding (Getting Started)
+
+Checklist interativo de 11 passos para acelerar o time-to-value de novos clientes:
+1. Configuracao do appliance
+2. Configuracao de mensageria (email)
+3. Criacao de primeiro usuario adicional
+4. Registro do primeiro alvo
+5. Criacao de credencial
+6. Execucao da primeira jornada
+7. Revisao das primeiras ameacas
+8. Configuracao de politicas de notificacao
+9. Criacao do primeiro agendamento
+10. Criacao do primeiro plano de acao
+11. Finalizacao
+
+Cada passo pode ser pulado (skip/unskip) e o banner e dismissable, com progresso persistido por usuario.
+
+### 6.15 Multi-Factor Authentication (MFA)
+
+- TOTP via apps de autenticacao padrao (Google Authenticator, Authy, Microsoft Authenticator, 1Password)
+- OTP por email como metodo alternativo ou fallback
+- Backup codes unica-uso para recuperacao
+- Habilitacao por usuario ou obrigatoria via politica global
+
+### 6.16 Gestao de Conta do Usuario
+
+- Perfil com imagem, nome, email
+- Preferencias de UI: tema (claro/escuro) e estado da sidebar (persistido)
+- Setup e rotacao de MFA
+- Reset de senha autogerenciado via token por email
 
 ---
 
@@ -699,12 +1010,15 @@ Scripts de verificacao em categorias: Authentication Bypass, Credential Exposure
 | **Preco Anual** | R$ 15.000 | R$ 36.000 | R$ 60.000+ |
 | **Max Hosts** | 100 | 500 | Ilimitado |
 | **Max Usuarios** | 3 | 10 | Ilimitado |
+| **MFA (TOTP + Email)** | Sim | Sim | Sim |
 | **Attack Surface** | Sim | Sim | Sim |
 | **CVE Detection** | Sim | Sim | Sim |
 | **Authenticated Scan** | Nao | Sim | Sim |
 | **AD Security** | Nao | Sim | Sim |
 | **Web App Security** | Nao | Sim | Sim |
+| **API Discovery & Security (OWASP API Top 10)** | Nao | Sim | Sim |
 | **EDR/AV Testing** | Nao | Nao | Sim |
+| **Planos de Acao + Contextual Scoring** | Sim | Sim | Sim |
 | **API Access** | Nao | Sim | Sim |
 | **Multi-Site Dashboard** | Nao | Nao | Sim |
 | **SLA** | Best-effort | 8x5 | 24x7 |
@@ -733,13 +1047,16 @@ Scripts de verificacao em categorias: Authentication Bypass, Credential Exposure
 
 ## 8. Formatos de Deploy
 
+O SamurEye e entregue exclusivamente em dois formatos de appliance, garantindo isolamento total dos dados do cliente e simplicidade operacional. **Nao ha modalidade de deploy em container (Docker/Kubernetes)** -- a plataforma opera como appliance dedicado.
+
 | Formato | Especificacoes Minimas | Casos de Uso |
 |---------|------------------------|--------------|
-| **Virtual Appliance (OVA/VMDK)** | 4 vCPU, 8GB RAM, 100GB SSD | SMB - deployment em VMware/Hyper-V |
-| **Docker Container** | 4 CPU cores, 8GB RAM, 100GB storage | DevOps teams, Kubernetes |
-| **Hardware Appliance** | Intel i5, 16GB RAM, 256GB SSD | Enterprise plug-and-play |
+| **Virtual Appliance (OVA/VMDK)** | 4 vCPU, 8GB RAM, 100GB SSD | SMB e Enterprise - deployment em VMware ESXi/vCenter, Microsoft Hyper-V, Proxmox, Nutanix AHV |
+| **Hardware Appliance (Fisico)** | Intel i5 ou superior, 16GB RAM, 256GB SSD | Enterprise plug-and-play, ambientes sem virtualizacao |
 
-**Instalacao automatizada:** Script `install.sh` (45KB) com provisionamento completo: PostgreSQL, Node.js, nmap, Nuclei, PowerShell, dependencias, systemd service, SSL, UFW firewall.
+**Instalacao automatizada:** Script `install.sh` com provisionamento completo do appliance: PostgreSQL 16, Node.js 20, nmap, Nuclei, Katana, Kiterunner, httpx, Arjun, PowerShell, dependencias, systemd service, SSL/TLS, UFW firewall.
+
+**Atualizacoes:** Realizadas remotamente via `appliance_commands` emitidos pela console cloud (comando whitelisted `system_update`), mantendo o appliance sempre atualizado sem intervencao manual do cliente.
 
 ---
 
@@ -747,26 +1064,39 @@ Scripts de verificacao em categorias: Authentication Bypass, Credential Exposure
 
 | Termo | Descricao |
 |-------|-----------|
+| **Arjun** | Ferramenta open-source de descoberta de parametros em APIs |
 | **Attack Surface** | Soma de todos os pontos de entrada exploraveis |
+| **BOLA** | Broken Object Level Authorization (OWASP API1) - falha ao verificar autorizacao de acesso a objetos por ID |
+| **BFLA** | Broken Function Level Authorization (OWASP API5) - falha ao restringir funcoes privilegiadas |
+| **BOPLA** | Broken Object Property Level Authorization (OWASP API3) - exposicao indevida de propriedades sensiveis |
 | **CVE** | Common Vulnerabilities and Exposures - ID padronizado para falhas |
 | **CPE** | Common Platform Enumeration - nomenclatura de produtos IT |
 | **CVSS** | Common Vulnerability Scoring System - escala 0-10 de gravidade |
 | **EDR** | Endpoint Detection and Response |
+| **GraphQL Introspection** | Feature que expoe o schema da API, util para descoberta mas pode ser risco de seguranca |
+| **httpx** | Ferramenta open-source para probing HTTP em massa com enriquecimento |
 | **Journey** | Configuracao de assessment de seguranca no SamurEye |
+| **Katana** | Crawler web open-source com suporte a renderizacao JavaScript |
 | **KEK/DEK** | Key Encryption Key / Data Encryption Key - padrao de criptografia em camadas |
+| **Kiterunner** | Fuzzer open-source especializado em descoberta de rotas de API |
+| **MFA** | Multi-Factor Authentication - autenticacao em multiplos fatores |
 | **Nmap** | Network Mapper - scanner de rede open-source |
-| **Nuclei** | Engine de scan de vulnerabilidades web open-source |
+| **Nuclei** | Engine de scan de vulnerabilidades (web + API) open-source |
+| **OpenAPI/Swagger** | Padrao de documentacao de APIs REST baseado em JSON/YAML |
+| **OWASP API Top 10** | Lista das 10 vulnerabilidades mais criticas em APIs (2023) |
 | **OWASP Top 10** | Lista das 10 vulnerabilidades web mais criticas |
 | **Pentest** | Teste de penetracao - simulacao de ataque |
 | **RBAC** | Role-Based Access Control |
 | **SMBv1** | Protocolo antigo de compartilhamento Windows (vulneravel a WannaCry) |
+| **SSRF** | Server-Side Request Forgery (OWASP API7) - ataque que forca o servidor a fazer requisicoes em nome do atacante |
 | **TOFU** | Trust On First Use - validacao de fingerprint SSH |
+| **TOTP** | Time-based One-Time Password - codigo MFA baseado em tempo (RFC 6238) |
 | **UAC** | User Account Control flags do Active Directory |
 | **WinRM/WMI** | Windows Remote Management / Windows Management Instrumentation |
 
 ---
 
-**Versao do Documento:** 2.0
-**Ultima Atualizacao:** Marco 2026
+**Versao do Documento:** 3.0
+**Ultima Atualizacao:** Abril 2026
 **Preparado para:** Consultoria de Go-to-Market e Referencia Interna
 **Classificacao:** Confidencial - Somente uso interno
