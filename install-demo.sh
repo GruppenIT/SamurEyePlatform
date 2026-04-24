@@ -214,8 +214,9 @@ build_frontend() {
 run_migrations() {
   info "Executando migrations..."
   cd "${INSTALL_DIR}"
-  # Carrega DATABASE_URL do .env
-  export $(grep -E '^DATABASE_URL=' .env | xargs)
+  # Carrega DATABASE_URL do .env (sem xargs — evita split em espaços)
+  DATABASE_URL=$(grep -E '^DATABASE_URL=' .env | head -1 | cut -d= -f2-)
+  export DATABASE_URL
   npx drizzle-kit migrate 2>&1 | tail -5 || \
     npx tsx server/migrate.ts 2>&1 | tail -5 || \
     warn "Migration pode não ter rodado — verifique manualmente."
@@ -226,7 +227,8 @@ run_migrations() {
 create_admin() {
   info "Criando usuário admin de demonstração..."
   cd "${INSTALL_DIR}"
-  export $(grep -E '^DATABASE_URL=' .env | xargs)
+  DATABASE_URL=$(grep -E '^DATABASE_URL=' .env | head -1 | cut -d= -f2-)
+  export DATABASE_URL
 
   # Verifica se já existe
   ADMIN_EXISTS=$(sudo -u postgres psql -d "${DB_NAME}" -tc \
@@ -263,7 +265,8 @@ create_admin() {
 run_demo_seed() {
   info "Populando banco com dados de demonstração..."
   cd "${INSTALL_DIR}"
-  export $(grep -E '^DATABASE_URL=' .env | xargs)
+  DATABASE_URL=$(grep -E '^DATABASE_URL=' .env | head -1 | cut -d= -f2-)
+  export DATABASE_URL
   npx tsx scripts/demo-seed.ts
   success "Dados de demonstração inseridos."
 }
@@ -450,8 +453,10 @@ main_update() {
   systemctl stop "${SERVICE_NAME}" 2>/dev/null || true
   fetch_code
 
-  # Recarrega DB_PASS do .env existente
-  export $(grep -E '^(DATABASE_URL|DB_PASS|SESSION_SECRET|ENCRYPTION_KEY|MASTER_KEY)=' "${INSTALL_DIR}/.env" | xargs)
+  # Recarrega variáveis do .env existente (sem xargs — evita split em espaços)
+  DATABASE_URL=$(grep -E '^DATABASE_URL=' "${INSTALL_DIR}/.env" | head -1 | cut -d= -f2-)
+  DB_PASS=$(grep -E '^DB_PASS=' "${INSTALL_DIR}/.env" | head -1 | cut -d= -f2-)
+  export DATABASE_URL DB_PASS
   DB_PASS="${DB_PASS:-}"
 
   install_deps
