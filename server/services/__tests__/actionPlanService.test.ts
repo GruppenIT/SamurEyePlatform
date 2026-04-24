@@ -10,8 +10,6 @@ import { validateStatusTransition, getAllowedTransitions } from '../actionPlanSe
 //   1. DATABASE_URL is set AND
 //   2. ALLOW_DESTRUCTIVE_DB_TESTS=1 is explicitly set AND
 //   3. NODE_ENV is not 'production'
-// Running them against a shared DB will delete all action_plans data.
-// Use a dedicated test DB via TEST_DATABASE_URL override in a future iteration.
 const ALLOW_DESTRUCTIVE = process.env.ALLOW_DESTRUCTIVE_DB_TESTS === '1';
 const hasDb = !!process.env.DATABASE_URL && ALLOW_DESTRUCTIVE;
 

@@ -84,6 +84,7 @@ export class SettingsService {
       };
     } catch (error) {
       log.error({ err: error }, 'erro ao obter configurações AD');
+      // Retornar valores padrão em caso de erro
       return {
         adPasswordAgeLimitDays:   journeyParams?.passwordAgeLimitDays   ?? 90,
         adInactiveUserLimitDays:  journeyParams?.inactiveUserLimitDays  ?? 180,

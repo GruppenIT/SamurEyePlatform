@@ -26,7 +26,7 @@ export function registerThreatRoutes(app: Express) {
       res.json(threats);
     } catch (error) {
       log.error({ err: error }, 'failed to fetch threats');
-      res.status(500).json({ message: "Falha a buscar ameaças" });
+      res.status(500).json({ message: "Falha ao buscar ameaças" });
     }
   });
 

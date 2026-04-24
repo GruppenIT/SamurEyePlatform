@@ -4,7 +4,6 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
-!tests/install/fixtures/*.tar.gz
 .version
 
 # Secrets and local-only state

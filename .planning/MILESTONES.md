@@ -1,29 +1,5 @@
 # Milestones
 
-## v2.0 API Discovery & Security Assessment (Shipped: 2026-04-21)
-
-**Phases:** 8-16 | **Plans:** 43 | **Timeline:** 2026-04-18 → 2026-04-20 (3 dias)
-**Files changed:** 292 | **Lines TypeScript:** 51.624
-
-### Key Accomplishments
-
-1. **Infraestrutura offline-first** — `install.sh` safe hard-reset updater + release tarball (124MB) com 4 binários pinados (Katana/Kiterunner/httpx/Arjun) verificados por SHA-256; 54 bats + 55 vitest passando
-2. **Modelo de dados API completo** — tabelas `apis`, `api_endpoints`, `api_findings` com hierarquia `parentAssetId`; backfill automático de `web_application`; credential store KEK/DEK para 7 tipos de auth
-3. **Pipeline de discovery end-to-end** — spec-first (OpenAPI 2/3/GraphQL) + Katana crawler + opt-in Kiterunner brute-force + httpx enrichment + Arjun parameter discovery
-4. **OWASP API Top 10 completo** — Nuclei passivo (misconfigs/CORS/JWT) + testes ativos TypeScript stateful (BOLA/BFLA/BOPLA/rate-limit/SSRF) — cobrindo todos os 10 vetores
-5. **Journey orchestration com guard-rails** — `authorizationAck` obrigatório, rate cap 10-50 req/s, gating de métodos destrutivos, audit log, abort via AbortController, dry-run target
-6. **UI end-to-end** — página `/journeys/api` com drill-down, filtros OWASP, wizard 4-steps (Alvos→Autenticação→Configuração→Confirmação), botão "Reproduzir" com curl placeholders
-
-### Tech Debt Carried Forward
-
-- Business-flow abuse (API6) documentado como limitação manual na UI — automação requer modelagem por domínio (FLOW-01 deferred)
-- Auto-update service (`update.sh` deprecated mas substituto completo fora de escopo — AUTOUP-01/02 deferred)
-- Visualização Stoplight-style do mapa de APIs (VIZ-01 deferred)
-
-**Archive:** `.planning/milestones/v2.0-ROADMAP.md`, `.planning/milestones/v2.0-REQUIREMENTS.md`
-
----
-
 ## v1.1 Close Known Gaps (Shipped: 2026-03-23)
 
 **Phases:** 3 | **Plans:** 5
