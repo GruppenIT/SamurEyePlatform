@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +22,7 @@ import {
   FileBarChart,
   ClipboardList,
   LayoutDashboard,
+  Rocket,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -132,6 +133,21 @@ export default function Sidebar() {
 
   const isAdmin = (user as any)?.role === "global_administrator";
 
+  const { data: gettingStartedStatus } = useQuery<{
+    steps: Array<{ id: string; completed: boolean; skipped: boolean }>;
+    dismissed: boolean;
+  }>({
+    queryKey: ["/api/getting-started/status"],
+    enabled: isAdmin,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+
+  const gettingStartedPendingCount =
+    gettingStartedStatus?.steps.filter((s) => !s.completed && !s.skipped).length ?? 0;
+
+  const showGettingStarted = isAdmin && !gettingStartedStatus?.dismissed;
+
   const logoSrc = resolvedTheme === "dark" ? "/logo.png" : "/Logos_white.png";
 
   function NavLink({ item }: { item: NavItem }) {
@@ -139,7 +155,11 @@ export default function Sidebar() {
       item.href === "/"
         ? location === "/" || location === "/postura"
         : location === item.href || location.startsWith(item.href + "/");
-    const showBadge = item.label === "Ameaças" && criticalThreatCount > 0;
+    const showBadge =
+      (item.label === "Ameaças" && criticalThreatCount > 0) ||
+      (item.href === "/getting-started" && gettingStartedPendingCount > 0);
+    const badgeValue =
+      item.href === "/getting-started" ? gettingStartedPendingCount : criticalThreatCount;
 
     const inner = (
       <Link key={item.href} href={item.href}>
@@ -162,7 +182,7 @@ export default function Sidebar() {
                   className="ml-auto bg-destructive text-destructive-foreground text-xs px-2 py-0.5 rounded-full"
                   data-testid={`badge-${item.label.toLowerCase()}`}
                 >
-                  {criticalThreatCount}
+                  {badgeValue}
                 </span>
               )}
             </>
@@ -236,19 +256,35 @@ export default function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 py-3 overflow-y-auto overflow-x-hidden">
         {navGroups.map((group, gi) => (
-          <div key={gi} className={cn("px-2", gi > 0 && "mt-3")}>
-            {group.title && !collapsed && (
-              <p className="px-3 mb-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                {group.title}
-              </p>
-            )}
-            {group.title && collapsed && <div className="border-t border-sidebar-border my-2 mx-1" />}
-            <div className="space-y-0.5">
-              {group.items.map((item) => (
-                <NavLink key={item.href} item={item} />
-              ))}
+          <Fragment key={gi}>
+            <div className={cn("px-2", gi > 0 && "mt-3")}>
+              {group.title && !collapsed && (
+                <p className="px-3 mb-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                  {group.title}
+                </p>
+              )}
+              {group.title && collapsed && <div className="border-t border-sidebar-border my-2 mx-1" />}
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <NavLink key={item.href} item={item} />
+                ))}
+              </div>
             </div>
-          </div>
+            {gi === 0 && showGettingStarted && (
+              <div className="px-2">
+                <div className="border-t border-sidebar-border my-2 mx-1" />
+                <div className="space-y-0.5">
+                  <NavLink
+                    item={{
+                      href: "/getting-started",
+                      label: "Primeiros Passos",
+                      icon: Rocket,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </Fragment>
         ))}
 
         {isAdmin && (

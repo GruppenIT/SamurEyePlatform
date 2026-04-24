@@ -33,6 +33,7 @@ import AdminConfiguracoes from "@/pages/admin-configuracoes";
 import AdminSeguranca from "@/pages/admin-seguranca";
 import AdminMensageria from "@/pages/admin-mensageria";
 import AdminNotificacoes from "@/pages/admin-notificacoes";
+import GettingStarted from "@/pages/getting-started";
 import SubscriptionBanner from "@/components/subscription-banner";
 import { SetupAdminBanner } from "@/components/layout/setup-admin-banner";
 import { MfaInvitationDialog } from "@/components/account/mfa-invitation-dialog";
@@ -179,6 +180,7 @@ function Router() {
         <Route path="/admin/notificacoes">{() => <AdminRoute component={AdminNotificacoes} />}</Route>
         <Route path="/admin/subscricao">{() => <AdminRoute component={Subscription} />}</Route>
         <Route path="/admin/auditoria">{() => <AdminRoute component={Audit} />}</Route>
+        <Route path="/getting-started">{() => <AdminRoute component={GettingStarted} />}</Route>
 
         {/* Legacy redirects — rotas antigas apontam para /admin/* */}
         <Route path="/users">{() => <Redirect to="/admin/usuarios" />}</Route>

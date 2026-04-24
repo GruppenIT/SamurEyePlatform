@@ -1,5 +1,5 @@
-// client/src/pages/admin.tsx
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import {
   Bell,
   CreditCard,
   History,
+  Rocket,
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -109,6 +110,26 @@ const groups: TileGroup[] = [
 ];
 
 export default function Admin() {
+  const { data: gsStatus } = useQuery<{
+    completedCount: number;
+    skippedCount: number;
+    totalSteps: number;
+    dismissed: boolean;
+  }>({
+    queryKey: ["/api/getting-started/status"],
+    staleTime: 30_000,
+  });
+
+  const gsDone = gsStatus
+    ? gsStatus.completedCount + gsStatus.skippedCount >= gsStatus.totalSteps
+    : false;
+
+  const gsProgress = gsStatus
+    ? Math.round(
+        ((gsStatus.completedCount + gsStatus.skippedCount) / gsStatus.totalSteps) * 100
+      )
+    : 0;
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
@@ -142,6 +163,39 @@ export default function Admin() {
                     </Card>
                   </Link>
                 ))}
+                {group.label === "Plataforma" && (
+                  <Link href="/getting-started">
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow hover:border-border/80">
+                      <CardContent className="flex items-center gap-4 p-5">
+                        <div className="flex-shrink-0 text-amber-600">
+                          <Rocket className="h-8 w-8" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm">Primeiros Passos</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {gsDone
+                              ? "Configuração concluída"
+                              : gsStatus
+                              ? `${gsStatus.completedCount} de ${gsStatus.totalSteps} etapas concluídas`
+                              : "Guia de configuração inicial"}
+                          </p>
+                          {gsStatus && (
+                            <div className="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all",
+                                  gsDone ? "bg-green-500" : "bg-primary"
+                                )}
+                                style={{ width: `${gsProgress}%` }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      </CardContent>
+                    </Card>
+                  </Link>
+                )}
               </div>
             </div>
           ))}
