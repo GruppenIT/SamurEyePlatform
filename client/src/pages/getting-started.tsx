@@ -32,7 +32,6 @@ import {
   Circle,
   MinusCircle,
   PartyPopper,
-  Rocket,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -283,22 +282,14 @@ function StepCard({
                 Ignorar
               </Button>
             )}
-            <Link href={meta.href}>
-              <Button
-                variant={isCompleted ? "outline" : "default"}
-                size="sm"
-              >
-                {isCompleted ? "Revisar" : "Configurar"} →
-              </Button>
-            </Link>
+            {(isCompleted || isPending) && (
+              <Link href={meta.href}>
+                <Button variant={isCompleted ? "outline" : "default"} size="sm">
+                  {isCompleted ? "Revisar" : "Configurar"} →
+                </Button>
+              </Link>
+            )}
           </div>
-        )}
-        {dismissed && (
-          <Link href={meta.href}>
-            <Button variant="outline" size="sm">
-              Revisar →
-            </Button>
-          </Link>
         )}
       </CardContent>
     </Card>
