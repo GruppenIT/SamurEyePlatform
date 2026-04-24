@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { storage } from "../storage";
 import { db } from "../db";
 import {
@@ -13,6 +13,15 @@ import { requireAdmin } from "./middleware";
 import { createLogger } from "../lib/logger";
 
 const log = createLogger("routes:getting-started");
+
+interface AuthenticatedRequest extends Request {
+  user: { id: string };
+}
+
+interface SkipEntry {
+  at: string;
+  reason: string;
+}
 
 const STEP_IDS = [
   "appliance_config",
@@ -94,7 +103,7 @@ export function registerGettingStartedRoutes(app: Express) {
           rawSkipped && typeof rawSkipped === "object" && !Array.isArray(rawSkipped)
             ? rawSkipped
             : {}
-        ) as Record<string, { at: string; reason: string }>;
+        ) as Record<string, SkipEntry>;
         const dismissed = Boolean(dismissedSetting?.value);
 
         const steps: StepStatus[] = STEP_IDS.map((id) => {
@@ -130,7 +139,7 @@ export function registerGettingStartedRoutes(app: Express) {
     "/api/getting-started/skip",
     isAuthenticatedWithPasswordCheck,
     requireAdmin,
-    async (req: any, res) => {
+    async (req, res) => {
       try {
         const { stepId, reason = "" } = req.body ?? {};
         if (!(STEP_IDS as readonly string[]).includes(stepId)) {
@@ -139,15 +148,16 @@ export function registerGettingStartedRoutes(app: Express) {
         if (!SKIPPABLE.has(stepId as StepId)) {
           return res.status(400).json({ message: "Esta etapa não pode ser ignorada" });
         }
+        // Read-modify-write: low-concurrency admin path, no lock needed
         const existing = await storage.getSetting("gettingStarted.skipped");
         const rawExisting = existing?.value;
         const map = (
           rawExisting && typeof rawExisting === "object" && !Array.isArray(rawExisting)
             ? rawExisting
             : {}
-        ) as Record<string, any>;
+        ) as Record<string, SkipEntry>;
         map[stepId] = { at: new Date().toISOString(), reason: String(reason) };
-        await storage.setSetting("gettingStarted.skipped", map, req.user.id);
+        await storage.setSetting("gettingStarted.skipped", map, (req as AuthenticatedRequest).user.id);
         res.json({ ok: true });
       } catch (error) {
         log.error({ err: error }, "failed to skip step");
@@ -160,21 +170,22 @@ export function registerGettingStartedRoutes(app: Express) {
     "/api/getting-started/skip/:stepId",
     isAuthenticatedWithPasswordCheck,
     requireAdmin,
-    async (req: any, res) => {
+    async (req, res) => {
       try {
         const { stepId } = req.params;
         if (!(STEP_IDS as readonly string[]).includes(stepId)) {
           return res.status(400).json({ message: "Step ID inválido" });
         }
+        // Read-modify-write: low-concurrency admin path, no lock needed
         const existing = await storage.getSetting("gettingStarted.skipped");
         const rawExisting = existing?.value;
         const map = (
           rawExisting && typeof rawExisting === "object" && !Array.isArray(rawExisting)
             ? rawExisting
             : {}
-        ) as Record<string, any>;
+        ) as Record<string, SkipEntry>;
         delete map[stepId];
-        await storage.setSetting("gettingStarted.skipped", map, req.user.id);
+        await storage.setSetting("gettingStarted.skipped", map, (req as AuthenticatedRequest).user.id);
         res.json({ ok: true });
       } catch (error) {
         log.error({ err: error }, "failed to unskip step");
@@ -187,7 +198,7 @@ export function registerGettingStartedRoutes(app: Express) {
     "/api/getting-started/dismiss",
     isAuthenticatedWithPasswordCheck,
     requireAdmin,
-    async (req: any, res) => {
+    async (req, res) => {
       try {
         const [completion, skippedSetting] = await Promise.all([
           computeCompletion(),
@@ -198,7 +209,7 @@ export function registerGettingStartedRoutes(app: Express) {
           rawSkipped && typeof rawSkipped === "object" && !Array.isArray(rawSkipped)
             ? rawSkipped
             : {}
-        ) as Record<string, any>;
+        ) as Record<string, SkipEntry>;
         const allDone = STEP_IDS.every((id) => completion[id] || Boolean(skipped[id]));
         if (!allDone) {
           return res
@@ -208,7 +219,7 @@ export function registerGettingStartedRoutes(app: Express) {
         await storage.setSetting(
           "gettingStarted.dismissed",
           { at: new Date().toISOString() },
-          req.user.id
+          (req as AuthenticatedRequest).user.id
         );
         res.json({ ok: true });
       } catch (error) {
