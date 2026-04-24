@@ -26,10 +26,13 @@ import ActionPlan from "@/pages/action-plan";
 import ActionPlanDetail from "@/pages/action-plan-detail";
 import Users from "@/pages/users";
 import Sessions from "@/pages/sessions";
-import Settings from "@/pages/settings";
 import Audit from "@/pages/audit";
-import NotificationPolicies from "@/pages/notification-policies";
 import Subscription from "@/pages/subscription";
+import Admin from "@/pages/admin";
+import AdminConfiguracoes from "@/pages/admin-configuracoes";
+import AdminSeguranca from "@/pages/admin-seguranca";
+import AdminMensageria from "@/pages/admin-mensageria";
+import AdminNotificacoes from "@/pages/admin-notificacoes";
 import SubscriptionBanner from "@/components/subscription-banner";
 import { SetupAdminBanner } from "@/components/layout/setup-admin-banner";
 import { MfaInvitationDialog } from "@/components/account/mfa-invitation-dialog";
@@ -160,19 +163,30 @@ function Router() {
         <Route path="/threats" component={Threats} />
         <Route path="/action-plan/:id" component={ActionPlanDetail} />
         <Route path="/action-plan" component={ActionPlan} />
-        <Route path="/sessions" component={Sessions} />
         <Route path="/account" component={AccountPage} />
         <Route path="/account/mfa" component={AccountMfaPage} />
         <Route path="/change-password" component={ChangePassword} />
         {/* After successful MFA verify the user may momentarily still be on /mfa-challenge — send them home. */}
         <Route path="/mfa-challenge">{() => <Redirect to="/" />}</Route>
 
-        {/* Admin-only routes */}
-        <Route path="/users">{() => <AdminRoute component={Users} />}</Route>
-        <Route path="/subscription">{() => <AdminRoute component={Subscription} />}</Route>
-        <Route path="/settings">{() => <AdminRoute component={Settings} />}</Route>
-        <Route path="/notification-policies">{() => <AdminRoute component={NotificationPolicies} />}</Route>
-        <Route path="/audit">{() => <AdminRoute component={Audit} />}</Route>
+        {/* Admin hub + sub-routes */}
+        <Route path="/admin">{() => <AdminRoute component={Admin} />}</Route>
+        <Route path="/admin/usuarios">{() => <AdminRoute component={Users} />}</Route>
+        <Route path="/admin/sessoes">{() => <AdminRoute component={Sessions} />}</Route>
+        <Route path="/admin/configuracoes">{() => <AdminRoute component={AdminConfiguracoes} />}</Route>
+        <Route path="/admin/seguranca">{() => <AdminRoute component={AdminSeguranca} />}</Route>
+        <Route path="/admin/mensageria">{() => <AdminRoute component={AdminMensageria} />}</Route>
+        <Route path="/admin/notificacoes">{() => <AdminRoute component={AdminNotificacoes} />}</Route>
+        <Route path="/admin/subscricao">{() => <AdminRoute component={Subscription} />}</Route>
+        <Route path="/admin/auditoria">{() => <AdminRoute component={Audit} />}</Route>
+
+        {/* Legacy redirects — rotas antigas apontam para /admin/* */}
+        <Route path="/users">{() => <Redirect to="/admin/usuarios" />}</Route>
+        <Route path="/sessions">{() => <Redirect to="/admin/sessoes" />}</Route>
+        <Route path="/settings">{() => <Redirect to="/admin/configuracoes" />}</Route>
+        <Route path="/notification-policies">{() => <Redirect to="/admin/notificacoes" />}</Route>
+        <Route path="/subscription">{() => <Redirect to="/admin/subscricao" />}</Route>
+        <Route path="/audit">{() => <Redirect to="/admin/auditoria" />}</Route>
 
         <Route component={NotFound} />
       </Switch>

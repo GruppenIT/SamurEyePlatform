@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/lib/websocket";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -219,6 +220,7 @@ export default function Audit() {
         />
         
         <div className="p-6 space-y-6">
+          <AdminBreadcrumb page="Auditoria" />
           {/* Search and Filters */}
           <Card>
             <CardContent className="p-6">

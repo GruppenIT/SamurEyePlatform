@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useWebSocket } from "@/lib/websocket";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -138,6 +139,7 @@ export default function Subscription() {
 
         <main className="flex-1 overflow-auto p-8">
           <div className="max-w-5xl mx-auto space-y-6">
+            <AdminBreadcrumb page="Subscrição" />
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

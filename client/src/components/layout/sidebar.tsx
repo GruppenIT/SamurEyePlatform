@@ -18,15 +18,10 @@ import {
   Clock,
   AlertTriangle,
   List,
-  Users,
-  Settings,
-  History,
   Monitor,
-  Bell,
-  Smartphone,
   FileBarChart,
-  CreditCard,
   ClipboardList,
+  LayoutDashboard,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -77,12 +72,7 @@ const navGroups: NavGroup[] = [
 ];
 
 const adminItems: NavItem[] = [
-  { href: "/users", label: "Usuários", icon: Users, adminOnly: true },
-  { href: "/sessions", label: "Sessões", icon: Smartphone, adminOnly: true },
-  { href: "/notification-policies", label: "Notificações", icon: Bell, adminOnly: true },
-  { href: "/subscription", label: "Subscrição", icon: CreditCard, adminOnly: true },
-  { href: "/settings", label: "Configurações", icon: Settings, adminOnly: true },
-  { href: "/audit", label: "Auditoria", icon: History, adminOnly: true },
+  { href: "/admin", label: "Administração", icon: LayoutDashboard, adminOnly: true },
 ];
 
 const STORAGE_KEY = "samureye.sidebar.collapsed";
@@ -263,13 +253,7 @@ export default function Sidebar() {
 
         {isAdmin && (
           <div className="px-2 mt-3">
-            {!collapsed ? (
-              <p className="px-3 mb-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                Administração
-              </p>
-            ) : (
-              <div className="border-t border-sidebar-border my-2 mx-1" />
-            )}
+            <div className="border-t border-sidebar-border mb-2 mx-1" />
             <div className="space-y-0.5">
               {adminItems.map((item) => (
                 <NavLink key={item.href} item={item} />
