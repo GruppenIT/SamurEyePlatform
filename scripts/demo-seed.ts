@@ -41,6 +41,14 @@ async function demoSeed() {
     await client.query(`DELETE FROM host_risk_history`);
     await client.query(`DELETE FROM hosts`);
     await client.query(`DELETE FROM assets`);
+    // Nullify FK references to demo users before deleting them
+    await client.query(
+      `UPDATE settings SET updated_by = NULL
+       WHERE updated_by IN (
+         SELECT id FROM users WHERE email = ANY($1::text[])
+       )`,
+      [["admin2@empresa.local", "op.silva@empresa.local", "op.santos@empresa.local"]]
+    );
     await client.query(
       `DELETE FROM users WHERE email = ANY($1::text[])`,
       [["admin2@empresa.local", "op.silva@empresa.local", "op.santos@empresa.local"]]
