@@ -88,15 +88,15 @@ setup_postgresql() {
     success "PostgreSQL em execução — reutilizando instância existente."
   elif command -v pg_isready &>/dev/null; then
     info "PostgreSQL instalado mas não rodando — iniciando..."
-    systemctl start postgresql || service postgresql start
+    systemctl start postgresql >&2 || service postgresql start >&2
     sleep 2
     pg_isready -q || die "PostgreSQL não respondeu após inicialização."
     success "PostgreSQL iniciado."
   else
     info "PostgreSQL não encontrado. Instalando..."
-    apt-get install -y postgresql postgresql-contrib
-    systemctl enable postgresql
-    systemctl start postgresql
+    apt-get install -y postgresql postgresql-contrib >&2
+    systemctl enable postgresql >&2
+    systemctl start postgresql >&2
     sleep 3
     pg_isready -q || die "PostgreSQL não respondeu após instalação."
     success "PostgreSQL instalado e iniciado."
@@ -109,6 +109,8 @@ setup_postgresql() {
   # (evita reutilizar senha corrompida de .env de runs anteriores)
   DB_PASS=$(openssl rand -base64 24 | tr -d '=/+' | head -c 32)
 
+  # Todos os comandos psql redirecionam stdout para stderr para não
+  # contaminar DB_PASS=$(setup_postgresql) com saídas como "DO" ou "ALTER ROLE"
   sudo -u postgres psql -c "
     DO \$\$
     BEGIN
@@ -119,10 +121,10 @@ setup_postgresql() {
       END IF;
     END
     \$\$;
-  " || die "Falha ao criar usuário do banco."
+  " >&2 || die "Falha ao criar usuário do banco."
 
-  sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}'" | grep -q 1 || \
-    sudo -u postgres createdb -O "${DB_USER}" "${DB_NAME}"
+  sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}'" 2>/dev/null | grep -q 1 || \
+    sudo -u postgres createdb -O "${DB_USER}" "${DB_NAME}" >&2
 
   # Extensão uuid-ossp
   sudo -u postgres psql -d "${DB_NAME}" -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";" &>/dev/null || true
