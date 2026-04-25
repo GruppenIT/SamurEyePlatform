@@ -84,7 +84,7 @@ export function registerReportRoutes(app: Express) {
           COUNT(*)::int as total_tests,
           COUNT(*) FILTER (WHERE r.status = 'pass')::int as passed,
           COUNT(*) FILTER (WHERE r.status = 'fail')::int as failed,
-          COUNT(*) FILTER (WHERE r.severity = 'critical' AND r.status = 'fail')::int as critical_failures
+          COUNT(*) FILTER (WHERE r.severity_hint = 'critical' AND r.status = 'fail')::int as critical_failures
         FROM ad_security_test_results r
         JOIN jobs j ON j.id = r.job_id
         GROUP BY r.job_id, j.started_at

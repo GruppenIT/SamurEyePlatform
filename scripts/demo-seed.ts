@@ -33,6 +33,7 @@ async function demoSeed() {
     await client.query(`DELETE FROM ad_security_test_results`);
     await client.query(`DELETE FROM job_results`);
     await client.query(`DELETE FROM threats`);
+    await client.query(`DELETE FROM api_findings`);
     await client.query(`DELETE FROM api_endpoints`);
     await client.query(`DELETE FROM jobs`);
     await client.query(`DELETE FROM schedules`);
@@ -178,12 +179,14 @@ async function demoSeed() {
       { method: "POST",   path: "/api/v2/upload",               requiresAuth: true,  httpxStatus: 200 },
       { method: "GET",    path: "/api/v1/internal/metrics",     requiresAuth: false, httpxStatus: 200 },
     ];
+    const endpointIds: string[] = [];
     for (const ep of endpointDefs) {
-      await client.query(
+      const r = await client.query(
         `INSERT INTO api_endpoints (id, api_id, method, path, requires_auth, httpx_status, discovery_sources)
-         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, ARRAY['kiterunner']::text[])`,
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, ARRAY['kiterunner']::text[]) RETURNING id`,
         [apiId, ep.method, ep.path, ep.requiresAuth, ep.httpxStatus]
       );
+      endpointIds.push(r.rows[0].id);
     }
 
     // ── Jobs (2 per journey: 3 and 14 days ago) ───────────────────────────────
@@ -256,6 +259,36 @@ async function demoSeed() {
            test.statuses[run], JSON.stringify({ testId: test.id })]
         );
       }
+    }
+
+    // ── API findings (ji=4 → api_security jobs[8,9]) ─────────────────────────
+    // endpointIds: 0-4=v1/users*, 5-6=v1/products*, 7-9=v1/orders*, 10=reports,
+    //              11=health, 12=admin/config, 13-14=auth/*, 15-16=v2/users*,
+    //              17=v2/products/search, 18=v2/upload, 19=internal/metrics
+    const apiJobIdxes = [8, 9];
+    type ApiFindingDef = {
+      epIdx: number; owasp: string; severity: string; title: string; status: string; daysAgo: number;
+    };
+    const apiFindingDefs: ApiFindingDef[] = [
+      { epIdx: 12, owasp: "api8_misconfiguration_2023", severity: "critical", title: "Endpoint admin/config acessível sem autenticação", status: "open", daysAgo: 3 },
+      { epIdx: 19, owasp: "api8_misconfiguration_2023", severity: "high",     title: "Métricas internas expostas publicamente", status: "open", daysAgo: 3 },
+      { epIdx: 16, owasp: "api1_bola_2023",             severity: "high",     title: "Perfil de usuário acessível sem autenticação (BOLA)", status: "open", daysAgo: 3 },
+      { epIdx: 17, owasp: "api9_inventory_2023",        severity: "medium",   title: "Endpoint de busca sem controle de acesso", status: "open", daysAgo: 3 },
+      { epIdx: 4,  owasp: "api5_bfla_2023",             severity: "high",     title: "DELETE de usuário sem verificação de nível de função", status: "open", daysAgo: 3 },
+      { epIdx: 14, owasp: "api2_broken_auth_2023",      severity: "medium",   title: "Reset de senha sem limite de taxa (rate limiting)", status: "open", daysAgo: 3 },
+      { epIdx: 12, owasp: "api8_misconfiguration_2023", severity: "critical", title: "Endpoint admin/config acessível sem autenticação", status: "open", daysAgo: 14 },
+      { epIdx: 19, owasp: "api8_misconfiguration_2023", severity: "high",     title: "Métricas internas expostas publicamente", status: "open", daysAgo: 14 },
+      { epIdx: 16, owasp: "api1_bola_2023",             severity: "high",     title: "Perfil de usuário acessível sem autenticação (BOLA)", status: "mitigated", daysAgo: 14 },
+    ];
+    for (const f of apiFindingDefs) {
+      const apiJobId = jobIds[apiJobIdxes[f.daysAgo === 3 ? 0 : 1]];
+      await client.query(
+        `INSERT INTO api_findings
+           (id, api_endpoint_id, job_id, owasp_category, severity, status, title, evidence, created_at, updated_at)
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, '{}'::jsonb,
+                 NOW() - interval '${f.daysAgo} days', NOW() - interval '${f.daysAgo} days')`,
+        [endpointIds[f.epIdx], apiJobId, f.owasp, f.severity, f.status, f.title]
+      );
     }
 
     // ── Posture snapshots ─────────────────────────────────────────────────────
