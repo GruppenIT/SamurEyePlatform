@@ -21,8 +21,8 @@ try {
 
   const hash = await bcrypt.hash(password, 12);
   await client.query(
-    `INSERT INTO users (id, email, name, role, password_hash, created_at)
-     VALUES (gen_random_uuid(), $1, 'Demo Admin', 'global_administrator', $2, NOW())`,
+    `INSERT INTO users (email, first_name, last_name, role, password_hash)
+     VALUES ($1, 'Demo', 'Admin', 'global_administrator', $2)`,
     [email, hash],
   );
   console.log(`Admin ${email} criado.`);
