@@ -177,7 +177,8 @@ DEMO_MODE=true
 # Segredo de sessão (regenerado a cada reinstalação)
 SESSION_SECRET=$(openssl rand -hex 32)
 
-# Criptografia de credenciais (não usada no demo, mas obrigatória)
+# Criptografia de credenciais (obrigatória em NODE_ENV=production)
+ENCRYPTION_KEK=$(openssl rand -hex 32)
 ENCRYPTION_KEY=$(openssl rand -hex 32)
 MASTER_KEY=$(openssl rand -hex 32)
 
