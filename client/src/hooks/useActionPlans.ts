@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, apiFetch } from "@/lib/queryClient";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -188,7 +188,7 @@ export function useActionPlanThreats(id: string) {
   return useQuery<ActionPlanThreatItem[]>({
     queryKey: AP_KEYS.threats(id),
     queryFn: async () => {
-      const res = await fetch(`/api/v1/action-plans/${id}/threats`, {
+      const res = await apiFetch(`/api/v1/action-plans/${id}/threats`, {
         credentials: "include",
       });
       if (!res.ok) {
@@ -235,7 +235,7 @@ export function useActionPlanHistory(id: string) {
   return useQuery<ActionPlanHistoryEntry[]>({
     queryKey: AP_KEYS.history(id),
     queryFn: async () => {
-      const res = await fetch(`/api/v1/action-plans/${id}/history`, {
+      const res = await apiFetch(`/api/v1/action-plans/${id}/history`, {
         credentials: "include",
       });
       if (!res.ok) {
@@ -505,7 +505,7 @@ export function usePlanLinks(threatIds: string[], opts?: { excludeTerminal?: boo
     queryKey: ['action-plans', 'plan-links', stableIds, excludeTerminal],
     enabled: threatIds.length > 0,
     queryFn: async () => {
-      const res = await fetch('/api/v1/action-plans/plan-links', {
+      const res = await apiFetch('/api/v1/action-plans/plan-links', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

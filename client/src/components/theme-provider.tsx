@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/queryClient";
 import { createContext, useCallback, useEffect, useState, type ReactNode } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
@@ -52,7 +53,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setResolvedTheme(resolved);
     applyTheme(resolved);
     // Fire-and-forget backend sync
-    fetch('/api/user/preferences', {
+    apiFetch('/api/user/preferences', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ theme: next }),

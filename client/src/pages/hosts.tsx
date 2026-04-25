@@ -5,7 +5,7 @@ import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/lib/websocket";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, apiFetch } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
 import { Button } from "@/components/ui/button";
@@ -135,7 +135,7 @@ function RiskHistoryChart({ hostId }: { hostId: string }) {
   const { data: history = [], isLoading } = useQuery<HostRiskHistory[]>({
     queryKey: ['/api/hosts', hostId, 'risk-history'],
     queryFn: async () => {
-      const res = await fetch(`/api/hosts/${hostId}/risk-history?limit=30`);
+      const res = await apiFetch(`/api/hosts/${hostId}/risk-history?limit=30`);
       if (!res.ok) throw new Error('Failed to fetch risk history');
       return res.json();
     },
@@ -287,7 +287,7 @@ function ADSecurityScorecard({ hostId }: { hostId: string }) {
   const { data: scorecard, isLoading } = useQuery<ADScorecard | null>({
     queryKey: ['/api/hosts', hostId, 'ad-scorecard'],
     queryFn: async () => {
-      const res = await fetch(`/api/hosts/${hostId}/ad-scorecard`);
+      const res = await apiFetch(`/api/hosts/${hostId}/ad-scorecard`);
       if (!res.ok) throw new Error('Failed to fetch scorecard');
       return res.json();
     },
@@ -440,7 +440,7 @@ function ADSecurityTests({ hostId }: { hostId: string }) {
   const { data: testResults = [], isLoading } = useQuery<AdSecurityTestResult[]>({
     queryKey: ['/api/hosts', hostId, 'ad-tests'],
     queryFn: async () => {
-      const res = await fetch(`/api/hosts/${hostId}/ad-tests`);
+      const res = await apiFetch(`/api/hosts/${hostId}/ad-tests`);
       if (!res.ok) throw new Error('Failed to fetch AD test results');
       return res.json();
     },
@@ -728,7 +728,7 @@ function HostEnrichmentTabs({ hostId }: { hostId: string }) {
   const { data: enrichment, isLoading } = useQuery<HostEnrichment | null>({
     queryKey: ['/api/hosts', hostId, 'enrichments'],
     queryFn: async () => {
-      const res = await fetch(`/api/hosts/${hostId}/enrichments`);
+      const res = await apiFetch(`/api/hosts/${hostId}/enrichments`);
       if (!res.ok) throw new Error('Failed to fetch enrichment data');
       return res.json();
     },
