@@ -558,9 +558,9 @@ async function demoSeed() {
     ];
     for (const s of schedDefs) {
       await client.query(
-        `INSERT INTO schedules (id, journey_id, name, kind, recurrence_type, hour, minute, day_of_week, day_of_month)
-         VALUES (gen_random_uuid(), $1, $2, 'recurring', $3, $4, 0, $5, $6)`,
-        [journeyIds[s.ji], s.name, s.recurrenceType, s.hour, s.dayOfWeek ?? null, s.dayOfMonth ?? null]
+        `INSERT INTO schedules (id, journey_id, name, kind, recurrence_type, hour, minute, day_of_week, day_of_month, created_by)
+         VALUES (gen_random_uuid(), $1, $2, 'recurring', $3, $4, 0, $5, $6, $7)`,
+        [journeyIds[s.ji], s.name, s.recurrenceType, s.hour, s.dayOfWeek ?? null, s.dayOfMonth ?? null, adminId]
       );
     }
 
