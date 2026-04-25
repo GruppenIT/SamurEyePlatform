@@ -25,6 +25,7 @@ async function demoSeed() {
     if (!adminId) throw new Error("Admin user not found. Start the server once to bootstrap the admin.");
 
     // ── Clear existing demo data (order respects FK constraints) ──────────────
+    // Ordem respeita FKs: tabelas filhas antes das pais
     await client.query(`DELETE FROM recommendations`);
     await client.query(`DELETE FROM posture_snapshots`);
     await client.query(`DELETE FROM threats`);
@@ -33,9 +34,9 @@ async function demoSeed() {
     await client.query(`DELETE FROM schedules`);
     await client.query(`DELETE FROM journeys`);
     await client.query(`DELETE FROM apis`);
-    await client.query(`DELETE FROM assets`);
-    await client.query(`DELETE FROM hosts`);
     await client.query(`DELETE FROM host_risk_history`);
+    await client.query(`DELETE FROM hosts`);
+    await client.query(`DELETE FROM assets`);
 
     console.log("Cleared existing demo data.");
 
