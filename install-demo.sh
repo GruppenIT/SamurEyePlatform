@@ -212,15 +212,15 @@ build_frontend() {
 
 # ── Migrations ────────────────────────────────────────────────────────────────
 run_migrations() {
-  info "Executando migrations..."
+  info "Executando drizzle-kit push (cria/atualiza schema)..."
   cd "${INSTALL_DIR}"
-  # Carrega DATABASE_URL do .env (sem xargs — evita split em espaços)
   DATABASE_URL=$(grep -E '^DATABASE_URL=' .env | head -1 | cut -d= -f2-)
   export DATABASE_URL
-  npx drizzle-kit migrate 2>&1 | tail -5 || \
-    npx tsx server/migrate.ts 2>&1 | tail -5 || \
-    warn "Migration pode não ter rodado — verifique manualmente."
-  success "Migrations concluídas."
+  # Usa 'push' — o projeto não tem migration files, usa push direto
+  # 'yes' responde automaticamente a qualquer prompt de confirmação
+  yes | npx drizzle-kit push 2>&1 | tail -10 || \
+    die "Falha no drizzle-kit push — verifique a DATABASE_URL no .env"
+  success "Schema criado/atualizado."
 }
 
 # ── Admin inicial ─────────────────────────────────────────────────────────────
@@ -229,35 +229,10 @@ create_admin() {
   cd "${INSTALL_DIR}"
   DATABASE_URL=$(grep -E '^DATABASE_URL=' .env | head -1 | cut -d= -f2-)
   export DATABASE_URL
-
-  # Verifica se já existe
-  ADMIN_EXISTS=$(sudo -u postgres psql -d "${DB_NAME}" -tc \
-    "SELECT count(*) FROM users WHERE role='global_administrator'" 2>/dev/null | tr -d ' ')
-
-  if [[ "${ADMIN_EXISTS:-0}" -gt 0 ]]; then
-    success "Usuário admin já existe."
-    return
-  fi
-
-  # Usa o script de criação de admin do projeto, se existir
-  if [[ -f scripts/create-admin.ts ]]; then
-    ADMIN_EMAIL="demo@samureye.com.br" \
-    ADMIN_PASSWORD="Demo@2026!" \
-      npx tsx scripts/create-admin.ts 2>&1 | tail -5 || warn "Falha ao criar admin via script."
-  else
-    # Insere diretamente via bcrypt (fallback)
-    BCRYPT_HASH=$(node -e "
-      const bcrypt = require('bcrypt');
-      bcrypt.hash('Demo@2026!', 12).then(h => console.log(h));
-    " 2>/dev/null || echo "")
-    if [[ -n "$BCRYPT_HASH" ]]; then
-      sudo -u postgres psql -d "${DB_NAME}" -c "
-        INSERT INTO users (id, email, name, role, password_hash, created_at)
-        VALUES (gen_random_uuid(), 'demo@samureye.com.br', 'Demo Admin', 'global_administrator', '${BCRYPT_HASH}', NOW())
-        ON CONFLICT (email) DO NOTHING;
-      " || true
-    fi
-  fi
+  ADMIN_EMAIL="demo@samureye.com.br" \
+  ADMIN_PASSWORD="Demo@2026!" \
+    npx tsx scripts/create-demo-admin.ts 2>&1 | tail -5 || \
+    warn "Falha ao criar admin — verifique manualmente."
   success "Usuário admin: demo@samureye.com.br / Demo@2026!"
 }
 
