@@ -145,6 +145,9 @@ setup_user_and_dirs() {
 
 # ── Clone / atualização do repositório ───────────────────────────────────────
 fetch_code() {
+  # Permite que root opere em repositório pertencente a outro usuário
+  git config --global --add safe.directory "${INSTALL_DIR}" 2>/dev/null || true
+
   if [[ -d "${INSTALL_DIR}/.git" ]]; then
     info "Repositório existente encontrado. Atualizando para branch '${BRANCH}'..."
     git -C "${INSTALL_DIR}" fetch origin
