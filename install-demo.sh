@@ -217,8 +217,7 @@ run_migrations() {
   DATABASE_URL=$(grep -E '^DATABASE_URL=' .env | head -1 | cut -d= -f2-)
   export DATABASE_URL
   # Usa 'push' — o projeto não tem migration files, usa push direto
-  # 'yes' responde automaticamente a qualquer prompt de confirmação
-  yes | npx drizzle-kit push 2>&1 | tail -10 || \
+  npx drizzle-kit push --force 2>&1 || \
     die "Falha no drizzle-kit push — verifique a DATABASE_URL no .env"
   success "Schema criado/atualizado."
 }
