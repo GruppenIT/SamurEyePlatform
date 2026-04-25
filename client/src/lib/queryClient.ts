@@ -2,11 +2,15 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 const API_PREFIX = (import.meta.env.VITE_API_PREFIX as string) || "";
 
-function prefixUrl(url: string): string {
+export function prefixUrl(url: string): string {
   if (API_PREFIX && url.startsWith("/api/")) {
     return API_PREFIX + url;
   }
   return url;
+}
+
+export function apiFetch(url: string, init?: RequestInit): Promise<Response> {
+  return fetch(prefixUrl(url), init);
 }
 
 async function throwIfResNotOk(res: Response) {

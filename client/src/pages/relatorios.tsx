@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/queryClient";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useWebSocket } from "@/lib/websocket";
@@ -376,7 +377,7 @@ export default function Relatorios() {
   const { data: trend = [] } = useQuery<ThreatTrendDay[]>({
     queryKey: ["/api/reports/threat-trend", period],
     queryFn: async () => {
-      const r = await fetch(`/api/reports/threat-trend?period=${period}`, { credentials: "include" });
+      const r = await apiFetch(`/api/reports/threat-trend?period=${period}`, { credentials: "include" });
       return r.json();
     },
   });
@@ -384,7 +385,7 @@ export default function Relatorios() {
   const { data: summary = [] } = useQuery<JourneySummary[]>({
     queryKey: ["/api/reports/summary-by-journey", period],
     queryFn: async () => {
-      const r = await fetch(`/api/reports/summary-by-journey?period=${period}`, { credentials: "include" });
+      const r = await apiFetch(`/api/reports/summary-by-journey?period=${period}`, { credentials: "include" });
       return r.json();
     },
   });
@@ -400,7 +401,7 @@ export default function Relatorios() {
   const { data: asStats } = useQuery<AttackSurfaceStats>({
     queryKey: ["/api/reports/attack-surface/stats", period],
     queryFn: async () => {
-      const r = await fetch(`/api/reports/attack-surface/stats?period=${period}`, { credentials: "include" });
+      const r = await apiFetch(`/api/reports/attack-surface/stats?period=${period}`, { credentials: "include" });
       return r.json();
     },
   });
@@ -408,7 +409,7 @@ export default function Relatorios() {
   const { data: asTrend = [] } = useQuery<ThreatTrendDay[]>({
     queryKey: ["/api/reports/category-trend/attack_surface", period],
     queryFn: async () => {
-      const r = await fetch(`/api/reports/category-trend?category=attack_surface&period=${period}`, { credentials: "include" });
+      const r = await apiFetch(`/api/reports/category-trend?category=attack_surface&period=${period}`, { credentials: "include" });
       return r.json();
     },
   });
@@ -416,7 +417,7 @@ export default function Relatorios() {
   const { data: webStats } = useQuery<WebAppStats>({
     queryKey: ["/api/reports/web-application/stats", period],
     queryFn: async () => {
-      const r = await fetch(`/api/reports/web-application/stats?period=${period}`, { credentials: "include" });
+      const r = await apiFetch(`/api/reports/web-application/stats?period=${period}`, { credentials: "include" });
       return r.json();
     },
   });
@@ -424,7 +425,7 @@ export default function Relatorios() {
   const { data: webTrend = [] } = useQuery<ThreatTrendDay[]>({
     queryKey: ["/api/reports/category-trend/web_application", period],
     queryFn: async () => {
-      const r = await fetch(`/api/reports/category-trend?category=web_application&period=${period}`, { credentials: "include" });
+      const r = await apiFetch(`/api/reports/category-trend?category=web_application&period=${period}`, { credentials: "include" });
       return r.json();
     },
   });
@@ -435,7 +436,7 @@ export default function Relatorios() {
     queryFn: async () => {
       const params = new URLSearchParams({ period });
       if (apiStatsApiId) params.set("apiId", apiStatsApiId);
-      const r = await fetch(`/api/reports/api-security/stats?${params}`, { credentials: "include" });
+      const r = await apiFetch(`/api/reports/api-security/stats?${params}`, { credentials: "include" });
       return r.json();
     },
   });
@@ -443,7 +444,7 @@ export default function Relatorios() {
   const { data: apiInventory } = useQuery<ApiInventory>({
     queryKey: ["/api/reports/api-security/inventory", period],
     queryFn: async () => {
-      const r = await fetch(`/api/reports/api-security/inventory?period=${period}`, { credentials: "include" });
+      const r = await apiFetch(`/api/reports/api-security/inventory?period=${period}`, { credentials: "include" });
       return r.json();
     },
   });
@@ -451,7 +452,7 @@ export default function Relatorios() {
   const { data: histAS = [] } = useQuery<JourneyHistoryEntry[]>({
     queryKey: ["/api/reports/journey-history/attack_surface", period],
     queryFn: async () => {
-      const r = await fetch(`/api/reports/journey-history?type=attack_surface&period=${period}`, { credentials: "include" });
+      const r = await apiFetch(`/api/reports/journey-history?type=attack_surface&period=${period}`, { credentials: "include" });
       return r.json();
     },
   });
@@ -459,7 +460,7 @@ export default function Relatorios() {
   const { data: histWeb = [] } = useQuery<JourneyHistoryEntry[]>({
     queryKey: ["/api/reports/journey-history/web_application", period],
     queryFn: async () => {
-      const r = await fetch(`/api/reports/journey-history?type=web_application&period=${period}`, { credentials: "include" });
+      const r = await apiFetch(`/api/reports/journey-history?type=web_application&period=${period}`, { credentials: "include" });
       return r.json();
     },
   });
@@ -467,7 +468,7 @@ export default function Relatorios() {
   const { data: histApi = [] } = useQuery<JourneyHistoryEntry[]>({
     queryKey: ["/api/reports/journey-history/api_security", period],
     queryFn: async () => {
-      const r = await fetch(`/api/reports/journey-history?type=api_security&period=${period}`, { credentials: "include" });
+      const r = await apiFetch(`/api/reports/journey-history?type=api_security&period=${period}`, { credentials: "include" });
       return r.json();
     },
   });

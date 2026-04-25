@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/lib/websocket";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, apiFetch } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
 import { Button } from "@/components/ui/button";
@@ -233,7 +233,7 @@ function RemediationPreview({ threatId }: { threatId: string }) {
   const { data: rec } = useQuery<any>({
     queryKey: ["/api/threats", threatId, "recommendation"],
     queryFn: () =>
-      fetch(`/api/threats/${threatId}/recommendation`).then((r) => {
+      apiFetch(`/api/threats/${threatId}/recommendation`).then((r) => {
         if (!r.ok) return null;
         return r.json();
       }),
@@ -353,7 +353,7 @@ export default function Threats() {
     queryKey: ["/api/threats", { source: sourceFilter }],
     queryFn: async () => {
       const qs = sourceFilter !== "all" ? `?source=${encodeURIComponent(sourceFilter)}` : "";
-      const res = await fetch(`/api/threats${qs}`, { credentials: "include" });
+      const res = await apiFetch(`/api/threats${qs}`, { credentials: "include" });
       if (!res.ok) throw new Error("Falha ao buscar ameaças");
       return res.json();
     },
@@ -369,7 +369,7 @@ export default function Threats() {
   const { data: selectedRecommendation } = useQuery<any>({
     queryKey: ["/api/threats", selectedThreat?.id, "recommendation"],
     queryFn: () =>
-      fetch(`/api/threats/${selectedThreat!.id}/recommendation`).then((r) => {
+      apiFetch(`/api/threats/${selectedThreat!.id}/recommendation`).then((r) => {
         if (!r.ok) return null;
         return r.json();
       }),
