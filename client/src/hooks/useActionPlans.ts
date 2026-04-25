@@ -125,7 +125,7 @@ export function useActionPlans(filters?: ActionPlanFilters) {
   return useQuery<ActionPlanListResponse>({
     queryKey: AP_KEYS.list(filters),
     queryFn: async () => {
-      const res = await fetch(url, { credentials: "include" });
+      const res = await apiFetch(url, { credentials: "include" });
       if (!res.ok) {
         const text = (await res.text()) || res.statusText;
         throw new Error(`${res.status}: ${text}`);
@@ -147,7 +147,7 @@ export function useActionPlan(id: string, includes?: string) {
   return useQuery<ActionPlanDetail>({
     queryKey: AP_KEYS.detail(id),
     queryFn: async () => {
-      const res = await fetch(url, { credentials: "include" });
+      const res = await apiFetch(url, { credentials: "include" });
       if (!res.ok) {
         const text = (await res.text()) || res.statusText;
         throw new Error(`${res.status}: ${text}`);
@@ -166,7 +166,7 @@ export function useActionPlanAssignees() {
   return useQuery<ActionPlanAssignee[]>({
     queryKey: AP_KEYS.assignees(),
     queryFn: async () => {
-      const res = await fetch("/api/v1/action-plans/assignees", {
+      const res = await apiFetch("/api/v1/action-plans/assignees", {
         credentials: "include",
       });
       if (!res.ok) {
@@ -214,7 +214,7 @@ export function useActionPlanComments(id: string, threatId?: string) {
   return useQuery<ActionPlanComment[]>({
     queryKey: AP_KEYS.comments(id, threatId),
     queryFn: async () => {
-      const res = await fetch(url, { credentials: "include" });
+      const res = await apiFetch(url, { credentials: "include" });
       if (!res.ok) {
         const text = (await res.text()) || res.statusText;
         throw new Error(`${res.status}: ${text}`);
@@ -528,7 +528,7 @@ export async function uploadActionPlanImage(
 ): Promise<{ url: string }> {
   const fd = new FormData();
   fd.append("image", file);
-  const res = await fetch("/api/v1/action-plans/upload-image", {
+  const res = await apiFetch("/api/v1/action-plans/upload-image", {
     method: "POST",
     credentials: "include",
     body: fd,

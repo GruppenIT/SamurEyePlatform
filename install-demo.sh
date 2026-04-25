@@ -337,6 +337,7 @@ location /demo/ws {
 # Frontend do demo (SPA) — strip do prefixo /demo/
 location /demo/ {
     proxy_pass         http://127.0.0.1:5005/;
+    proxy_redirect     / /demo/;
     proxy_http_version 1.1;
     proxy_set_header   Host $host;
     proxy_set_header   X-Real-IP $remote_addr;

@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/queryClient";
 import { useTheme } from "@/hooks/useTheme";
 import {
   Tooltip,
@@ -84,7 +85,7 @@ function readCollapsed(): boolean {
 
 function saveCollapsed(v: boolean) {
   try { localStorage.setItem(STORAGE_KEY, String(v)); } catch {}
-  fetch("/api/user/preferences", {
+  apiFetch("/api/user/preferences", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sidebarCollapsed: v }),
@@ -100,7 +101,7 @@ export default function Sidebar() {
 
   // Sync from backend on mount (fire-and-forget)
   useEffect(() => {
-    fetch("/api/user/preferences", { credentials: "include" })
+    apiFetch("/api/user/preferences", { credentials: "include" })
       .then((r) => r.json())
       .then((prefs) => {
         if (typeof prefs?.sidebarCollapsed === "boolean") {
