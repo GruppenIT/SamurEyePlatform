@@ -278,7 +278,7 @@ async function demoSeed() {
       { epIdx: 14, owasp: "api2_broken_auth_2023",      severity: "medium",   title: "Reset de senha sem limite de taxa (rate limiting)", status: "open", daysAgo: 3 },
       { epIdx: 12, owasp: "api8_misconfiguration_2023", severity: "critical", title: "Endpoint admin/config acessível sem autenticação", status: "open", daysAgo: 14 },
       { epIdx: 19, owasp: "api8_misconfiguration_2023", severity: "high",     title: "Métricas internas expostas publicamente", status: "open", daysAgo: 14 },
-      { epIdx: 16, owasp: "api1_bola_2023",             severity: "high",     title: "Perfil de usuário acessível sem autenticação (BOLA)", status: "mitigated", daysAgo: 14 },
+      { epIdx: 16, owasp: "api1_bola_2023",             severity: "high",     title: "Perfil de usuário acessível sem autenticação (BOLA)", status: "closed",    daysAgo: 14 },
     ];
     for (const f of apiFindingDefs) {
       const apiJobId = jobIds[apiJobIdxes[f.daysAgo === 3 ? 0 : 1]];
