@@ -148,7 +148,8 @@ export default function Sidebar() {
 
   const showGettingStarted = isAdmin && !gettingStartedStatus?.dismissed;
 
-  const logoSrc = resolvedTheme === "dark" ? "/logo.png" : "/Logos_white.png";
+  const base = import.meta.env.BASE_URL;
+  const logoSrc = resolvedTheme === "dark" ? `${base}logo.png` : `${base}Logos_white.png`;
 
   function NavLink({ item }: { item: NavItem }) {
     const isActive =
