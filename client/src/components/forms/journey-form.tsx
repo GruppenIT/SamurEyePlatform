@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -142,7 +143,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
   const { data: allAssets = [] } = useQuery<Asset[]>({
     queryKey: ["/api/assets?flat=1"],
     queryFn: async () => {
-      const r = await fetch("/api/assets?flat=1", { credentials: "include" });
+      const r = await apiFetch("/api/assets?flat=1", { credentials: "include" });
       if (!r.ok) throw new Error("Failed to fetch assets");
       return r.json();
     },

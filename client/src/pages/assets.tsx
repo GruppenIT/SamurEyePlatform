@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/lib/websocket";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, apiFetch } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
 import AssetForm from "@/components/forms/asset-form";
@@ -193,7 +193,7 @@ export default function Assets() {
     queryKey: ["/api/assets", viewMode],
     queryFn: async () => {
       const url = viewMode === "flat" ? "/api/assets?flat=1" : "/api/assets";
-      const res = await fetch(url, { credentials: "include" });
+      const res = await apiFetch(url, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch assets");
       return res.json();
     },
