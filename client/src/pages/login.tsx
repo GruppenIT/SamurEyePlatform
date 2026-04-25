@@ -69,13 +69,14 @@ export default function Login() {
     loginMutation.mutate(data);
   };
 
-  const logoSrc = '/Logos_white.png';
+  const base = import.meta.env.BASE_URL;
+  const logoSrc = `${base}Logos_white.png`;
 
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4"
       style={{
-        backgroundImage: "url('/Logon_bg.png')",
+        backgroundImage: `url('${base}Logon_bg.png')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
