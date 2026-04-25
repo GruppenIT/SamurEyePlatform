@@ -105,12 +105,9 @@ setup_postgresql() {
   # Cria banco e usuário se não existirem
   info "Configurando banco de dados '${DB_NAME}'..."
 
-  # Gera senha aleatória se não tiver .pgpass configurado
-  if [[ ! -f "${INSTALL_DIR}/.env" ]]; then
-    DB_PASS=$(openssl rand -base64 24 | tr -d '=/+' | head -c 32)
-  else
-    DB_PASS=$(grep ^DB_PASS= "${INSTALL_DIR}/.env" 2>/dev/null | cut -d= -f2- || openssl rand -base64 24 | tr -d '=/+' | head -c 32)
-  fi
+  # Gera sempre uma senha nova no --install para garantir consistência
+  # (evita reutilizar senha corrompida de .env de runs anteriores)
+  DB_PASS=$(openssl rand -base64 24 | tr -d '=/+' | head -c 32)
 
   sudo -u postgres psql -c "
     DO \$\$
@@ -216,6 +213,16 @@ run_migrations() {
   cd "${INSTALL_DIR}"
   DATABASE_URL=$(grep -E '^DATABASE_URL=' .env | head -1 | cut -d= -f2-)
   export DATABASE_URL
+
+  # Testa conectividade antes de rodar drizzle-kit (diagnóstico precoce)
+  node --input-type=module <<'PGTEST' || die "Falha na conexão ao banco — verifique DATABASE_URL no .env"
+import pg from 'pg';
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 5000 });
+const client = await pool.connect();
+client.release();
+await pool.end();
+PGTEST
+
   # Usa 'push' — o projeto não tem migration files, usa push direto
   npx drizzle-kit push --force 2>&1 || \
     die "Falha no drizzle-kit push — verifique a DATABASE_URL no .env"
