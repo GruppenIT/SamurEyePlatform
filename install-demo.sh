@@ -69,11 +69,11 @@ detect_distro() {
 install_nodejs() {
   if command -v node &>/dev/null; then
     NODE_VER=$(node --version | sed 's/v//' | cut -d. -f1)
-    if [[ $NODE_VER -ge 20 ]]; then
+    if [[ $NODE_VER -ge 22 ]]; then
       success "Node.js $(node --version) já instalado."
       return
     fi
-    warn "Node.js muito antigo (v${NODE_VER}). Atualizando para v22..."
+    warn "Node.js $(node --version) instalado mas precisa de v22+ (import.meta.dirname). Atualizando..."
   fi
   info "Instalando Node.js 22 LTS..."
   curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
