@@ -51,12 +51,12 @@ export function requireActiveSubscription(req: any, res: any, next: any) {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
 
   // Always allow auth routes (login, logout, password change, password reset)
-  if (req.path.startsWith('/api/login') || req.path.startsWith('/api/logout') || req.path.startsWith('/api/change-password')) return next();
-  if (req.path.startsWith('/api/auth/password-reset/')) return next();
+  if (req.originalUrl.startsWith('/api/login') || req.originalUrl.startsWith('/api/logout') || req.originalUrl.startsWith('/api/change-password')) return next();
+  if (req.originalUrl.startsWith('/api/auth/password-reset/')) return next();
 
   // Always allow subscription management (so admin can fix it)
-  if (req.path.startsWith('/api/subscription')) return next();
-  if (req.path.startsWith('/api/demo/')) return next();
+  if (req.originalUrl.startsWith('/api/subscription')) return next();
+  if (req.originalUrl.startsWith('/api/demo/')) return next();
 
   // Check if read-only mode is active
   if (subscriptionService.isReadOnly()) {
@@ -76,7 +76,7 @@ const DEMO_AUTH_PATHS = ['/api/auth/', '/api/login', '/api/logout', '/api/change
 export function demoReadOnlyGuard(req: any, res: any, next: any) {
   if (process.env.DEMO_MODE !== 'true') return next();
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
-  if (DEMO_AUTH_PATHS.some(p => req.path.startsWith(p))) return next();
+  if (DEMO_AUTH_PATHS.some(p => req.originalUrl.startsWith(p))) return next();
   return res.status(403).json({
     error: 'demo_readonly',
     message: 'Instância de demonstração — operações de escrita estão desabilitadas.',
