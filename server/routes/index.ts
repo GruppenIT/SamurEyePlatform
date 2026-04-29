@@ -26,6 +26,7 @@ import { registerApiRoutes } from "./apis";
 import { registerApiCredentialsRoutes } from "./apiCredentials";
 import { registerApiFindingsRoutes } from "./apiFindings";
 import { registerGettingStartedRoutes } from "./getting-started";
+import { registerDemoRoutes } from "./demo";
 import { createLogger } from '../lib/logger';
 
 const log = createLogger('routes');
@@ -78,6 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerAuthPasswordResetRoutes(app);
   registerActionPlanRoutes(app);
   registerGettingStartedRoutes(app);
+  registerDemoRoutes(app);
   registerApiRoutes(app);
   registerApiCredentialsRoutes(app);
   registerApiFindingsRoutes(app);
