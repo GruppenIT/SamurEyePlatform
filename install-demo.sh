@@ -458,6 +458,7 @@ main_update() {
   build_backend
   run_migrations
   set_permissions
+  create_admin
 
   systemctl start "${SERVICE_NAME}"
   sleep 3
