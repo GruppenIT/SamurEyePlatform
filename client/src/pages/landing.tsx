@@ -107,7 +107,7 @@ export default function Landing() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Validação da eficácia de soluções EDR e antivírus usando 
+                  Testa a eficácia de soluções EDR e antivírus usando
                   arquivos EICAR em ambiente controlado e seguro.
                 </p>
               </CardContent>
