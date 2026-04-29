@@ -38,37 +38,37 @@ export function registerDemoRoutes(app: Express) {
     const { name, company, cnpj, email } = req.body;
 
     // Basic validation
-    if (!name || typeof name !== 'string' || name.trim().length < 2) {
+    if (!name || typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 120) {
       return res.status(400).json({ message: 'Nome inválido.' });
     }
-    if (!company || typeof company !== 'string' || company.trim().length < 2) {
+    if (!company || typeof company !== 'string' || company.trim().length < 2 || company.trim().length > 120) {
       return res.status(400).json({ message: 'Empresa inválida.' });
     }
-    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email || typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ message: 'Email inválido.' });
     }
     if (!cnpj || !validateCnpj(cnpj)) {
       return res.status(400).json({ message: 'CNPJ inválido.' });
     }
 
-    // Check duplicate
-    const existing = await storage.getUserByEmail(email.toLowerCase().trim());
-    if (existing) {
-      return res.status(409).json({
-        error: 'already_registered',
-        message: 'Este e-mail já está cadastrado. Para mais informações, entre em contato com comercial@gruppen.com.br',
-      });
-    }
-
-    const nameParts = name.trim().split(/\s+/);
-    const firstName = nameParts[0];
-    const lastName = nameParts.slice(1).join(' ') || '-';
-
-    const password = generateDemoPassword();
-    const passwordHash = await bcrypt.hash(password, 12);
-    const demoExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
     try {
+      // Check duplicate
+      const existing = await storage.getUserByEmail(email.toLowerCase().trim());
+      if (existing) {
+        return res.status(409).json({
+          error: 'already_registered',
+          message: 'Este e-mail já está cadastrado. Para mais informações, entre em contato com comercial@gruppen.com.br',
+        });
+      }
+
+      const nameParts = name.trim().split(/\s+/);
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(' ') || '-';
+
+      const password = generateDemoPassword();
+      const passwordHash = await bcrypt.hash(password, 12);
+      const demoExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
       await storage.createDemoLead({
         email: email.toLowerCase().trim(),
         passwordHash,
@@ -79,7 +79,7 @@ export function registerDemoRoutes(app: Express) {
         demoExpiresAt,
       });
 
-      log.info({ email, company }, 'demo lead registered');
+      log.info({ email, company: company.trim().slice(0, 120) }, 'demo lead registered');
 
       res.json({
         email: email.toLowerCase().trim(),
