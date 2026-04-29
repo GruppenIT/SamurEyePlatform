@@ -106,7 +106,10 @@ export function registerUserRoutes(app: Express) {
       await storage.deleteUser(id);
       log.info({ actorId: req.user.id, deletedUserId: id, deletedEmail: target.email }, 'user deleted');
       res.status(204).end();
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.code === '23503') {
+        return res.status(409).json({ message: 'Não é possível excluir este usuário pois ele possui dados associados no sistema.' });
+      }
       log.error({ err }, 'failed to delete user');
       res.status(500).json({ message: 'Erro ao excluir usuário.' });
     }

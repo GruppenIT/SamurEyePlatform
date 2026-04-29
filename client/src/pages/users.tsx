@@ -142,7 +142,13 @@ export default function Users() {
       setDeleteTarget(null);
     },
     onError: (error: any) => {
-      toast({ title: "Erro", description: error.message || "Falha ao excluir usuário.", variant: "destructive" });
+      let msg = "Falha ao excluir usuário.";
+      try {
+        const m = error.message?.match(/^\d+: (.+)$/s);
+        if (m) msg = JSON.parse(m[1])?.message ?? msg;
+      } catch {}
+      toast({ title: "Erro", description: msg, variant: "destructive" });
+      setDeleteTarget(null);
     },
   });
 
