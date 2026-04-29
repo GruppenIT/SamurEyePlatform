@@ -141,6 +141,11 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastLogin: timestamp("last_login"),
   uiPreferences: jsonb("ui_preferences").$type<{ theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean }>(),
+  // Demo lead fields — null in normal installations
+  company: varchar("company"),
+  cnpj: varchar("cnpj"),
+  isDemoLead: boolean("is_demo_lead").default(false).notNull(),
+  demoExpiresAt: timestamp("demo_expires_at"),
 });
 
 // Assets table
