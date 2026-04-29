@@ -305,7 +305,7 @@ export default function Sidebar() {
             </div>
           </div>
         )}
-        {IS_DEMO && (user as any)?.email === 'admin@samureye.local' && (
+        {IS_DEMO && isAdmin && (
           <div className="px-2 mt-1">
             <div className="space-y-0.5">
               <NavLink item={{ href: "/admin/leads", label: "Leads Demo", icon: Users }} />

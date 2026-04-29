@@ -36,7 +36,6 @@ export default function DemoLeads() {
     queryKey: ["/api/demo/leads"],
     queryFn: async () => {
       const res = await apiRequest('GET', '/api/demo/leads');
-      if (!res.ok) throw new Error('Acesso negado');
       return res.json();
     },
   });
