@@ -40,6 +40,8 @@ import { MfaInvitationDialog } from "@/components/account/mfa-invitation-dialog"
 import AccountPage from "@/pages/account";
 import AccountMfaPage from "@/pages/account-mfa";
 import MfaChallengePage from "@/pages/mfa-challenge";
+import { IS_DEMO } from "@/hooks/useDemo";
+import DemoLeads from "@/pages/demo-leads";
 
 // Error Boundary to prevent full white screen on render errors
 interface ErrorBoundaryState {
@@ -180,6 +182,9 @@ function AppRouter() {
         <Route path="/admin/notificacoes">{() => <AdminRoute component={AdminNotificacoes} />}</Route>
         <Route path="/admin/subscricao">{() => <AdminRoute component={Subscription} />}</Route>
         <Route path="/admin/auditoria">{() => <AdminRoute component={Audit} />}</Route>
+        {IS_DEMO && (
+          <Route path="/admin/leads">{() => <AdminRoute component={DemoLeads} />}</Route>
+        )}
         <Route path="/getting-started">{() => <AdminRoute component={GettingStarted} />}</Route>
 
         {/* Legacy redirects — rotas antigas apontam para /admin/* */}

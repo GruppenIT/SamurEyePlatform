@@ -26,7 +26,9 @@ import {
   Rocket,
   ChevronLeft,
   ChevronRight,
+  Users,
 } from "lucide-react";
+import { IS_DEMO } from "@/hooks/useDemo";
 
 interface NavItem {
   href: string;
@@ -300,6 +302,13 @@ export default function Sidebar() {
               {adminItems.map((item) => (
                 <NavLink key={item.href} item={item} />
               ))}
+            </div>
+          </div>
+        )}
+        {IS_DEMO && (user as any)?.email === 'admin@samureye.local' && (
+          <div className="px-2 mt-1">
+            <div className="space-y-0.5">
+              <NavLink item={{ href: "/admin/leads", label: "Leads Demo", icon: Users }} />
             </div>
           </div>
         )}
