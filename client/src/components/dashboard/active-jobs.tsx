@@ -164,7 +164,7 @@ export default function ActiveJobs() {
                       </div>
                       <div>
                         <p className="font-medium text-foreground">
-                          {pidInfo?.stage || job.currentTask || 'Executando jornada'}
+                          {pidInfo?.stage || job.currentTask || 'Executando teste de jornada'}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           <span>{job.progress || 0}%</span> completo

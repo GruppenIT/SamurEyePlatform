@@ -157,7 +157,7 @@ export default function PostureHero() {
 
       {snapshots.length === 0 && (
         <p className="text-sm text-muted-foreground">
-          Nenhum snapshot de postura disponivel. Execute uma jornada primeiro.
+          Nenhum snapshot de postura disponível. Execute uma jornada de teste primeiro.
         </p>
       )}
     </div>

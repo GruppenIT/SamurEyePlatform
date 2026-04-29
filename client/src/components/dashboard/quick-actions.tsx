@@ -74,7 +74,7 @@ export default function QuickActions() {
     },
     {
       title: "Teste EDR/AV",
-      description: "Validação com EICAR",
+      description: "Teste com EICAR",
       icon: Worm,
       iconBg: "bg-chart-5/20",
       iconColor: "text-chart-5",
@@ -92,7 +92,7 @@ export default function QuickActions() {
     <Card className="bg-card border-border">
       <CardHeader className="border-b border-border">
         <CardTitle className="text-lg font-semibold text-foreground">
-          Jornadas Rápidas
+          Testes Rápidos
         </CardTitle>
         <p className="text-sm text-muted-foreground">Executar verificações comuns</p>
       </CardHeader>

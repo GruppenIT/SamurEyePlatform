@@ -20,7 +20,7 @@ export default function JourneyComparison() {
   if (snapshots.length < 2) {
     return (
       <div className="p-6 text-center text-muted-foreground text-sm">
-        Dados insuficientes para comparação — execute pelo menos duas jornadas
+        Dados insuficientes para comparação — execute pelo menos dois testes de jornada
       </div>
     );
   }

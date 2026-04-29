@@ -117,7 +117,7 @@ export default function Dashboard() {
             <Link href="/journeys">
               <Button data-testid="button-new-journey">
                 <Plus className="mr-2 h-4 w-4" />
-                Nova Jornada
+                Nova Jornada de Teste
               </Button>
             </Link>
           </div>
