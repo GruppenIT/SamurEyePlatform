@@ -73,27 +73,27 @@ const STEP_META: Record<string, { label: string; description: string; href: stri
   },
   journey_attack_surface: {
     label: "Jornada: Attack Surface",
-    description: "Configure uma jornada de mapeamento de superfície de ataque",
+    description: "Configure e inicie um teste de mapeamento de superfície de ataque",
     href: "/journeys",
   },
   journey_ad_security: {
     label: "Jornada: AD Security",
-    description: "Configure uma jornada de segurança do Active Directory",
+    description: "Configure e inicie um teste de segurança do Active Directory",
     href: "/journeys",
   },
   journey_edr_av: {
     label: "Jornada: EDR/AV",
-    description: "Configure uma jornada de detecção e resposta de endpoint",
+    description: "Configure e inicie um teste de cobertura EDR/AV",
     href: "/journeys",
   },
   journey_web_application: {
     label: "Jornada: Web Application",
-    description: "Configure uma jornada de varredura de aplicações web",
+    description: "Configure e inicie um teste de aplicações web",
     href: "/journeys",
   },
   journey_api_security: {
     label: "Jornada: API Security",
-    description: "Configure uma jornada de segurança de APIs",
+    description: "Configure e inicie um teste de segurança de APIs",
     href: "/journeys",
   },
   notification_policy: {
@@ -102,7 +102,7 @@ const STEP_META: Record<string, { label: string; description: string; href: stri
     href: "/admin/notificacoes",
   },
   journey_schedule: {
-    label: "Agendamento de Jornada",
+    label: "Agendamento de Testes",
     description: "Crie um agendamento recorrente ou pontual para execução automática",
     href: "/schedules",
   },

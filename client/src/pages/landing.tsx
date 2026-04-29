@@ -30,7 +30,7 @@ export default function Landing() {
             </p>
             
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Valide continuamente sua postura de segurança com verificações automatizadas 
+              Teste continuamente sua postura de segurança com verificações automatizadas
               de superfície de ataque, higiene de Active Directory e eficácia de EDR/AV.
             </p>
             
@@ -247,7 +247,7 @@ export default function Landing() {
             Pronto para Fortalecer sua Segurança?
           </h2>
           <p className="text-xl text-muted-foreground mb-8">
-            Comece a validar sua postura de segurança de forma contínua e automatizada.
+            Comece a testar sua postura de segurança de forma contínua e automatizada.
           </p>
           <div className="flex gap-4 justify-center">
             <Button 
