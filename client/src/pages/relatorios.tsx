@@ -606,7 +606,7 @@ export default function Relatorios() {
       <main className="flex-1 overflow-hidden">
         <TopBar
           title="Relatórios"
-          subtitle="Análise histórica e métricas por tipo de jornada"
+          subtitle="Análise histórica e métricas de testes por tipo de jornada"
           wsConnected={connected}
         />
         <div className="p-6 overflow-auto h-[calc(100%-4rem)]">
@@ -687,7 +687,7 @@ export default function Relatorios() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <Card className="lg:col-span-2">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Ameaças por Tipo de Jornada</CardTitle>
+                    <CardTitle className="text-base">Ameaças por Tipo de Teste</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {summaryBarData.length === 0 ? (
@@ -736,7 +736,7 @@ export default function Relatorios() {
               {/* Summary table */}
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Comparativo por Jornada</CardTitle>
+                  <CardTitle className="text-base">Comparativo por Tipo de Teste</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -1396,7 +1396,7 @@ export default function Relatorios() {
                   </CardHeader>
                   <CardContent className="p-0">
                     {inventoryApis.length === 0 ? (
-                      <div className="px-6 py-8"><Empty msg="Nenhuma API mapeada. Execute uma jornada de Descoberta de APIs para começar." /></div>
+                      <div className="px-6 py-8"><Empty msg="Nenhuma API mapeada. Execute um teste de API Security para começar." /></div>
                     ) : (
                       <Table>
                         <TableHeader>
