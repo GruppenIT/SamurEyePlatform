@@ -36,6 +36,7 @@ export class DatabaseStorage implements IStorage {
   dismissMfaInvitation = userOps.dismissMfaInvitation;
   updateUserPreferences = userOps.updateUserPreferences;
   getUserPreferences = userOps.getUserPreferences;
+  createDemoLead = userOps.createDemoLead;
 
   // Asset operations
   getAssets = assetOps.getAssets;
