@@ -189,11 +189,11 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
     // Validação de alvos selecionados
     if (data.type === 'attack_surface' || (data.type === 'edr_av' && form.getValues('params.edrAvType') === 'network_based')) {
       if (targetSelectionMode === 'individual' && selectedAssets.length === 0) {
-        toast({ title: "Validação", description: "Por favor, selecione pelo menos um alvo", variant: "destructive" });
+        toast({ title: "Campo obrigatório", description: "Por favor, selecione pelo menos um alvo", variant: "destructive" });
         return;
       }
       if (targetSelectionMode === 'by_tag' && selectedTags.length === 0) {
-        toast({ title: "Validação", description: "Por favor, selecione pelo menos uma TAG", variant: "destructive" });
+        toast({ title: "Campo obrigatório", description: "Por favor, selecione pelo menos uma TAG", variant: "destructive" });
         return;
       }
     }
@@ -449,7 +449,7 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
               />
 
               <div className="rounded-md border border-muted bg-muted/30 p-3 text-xs text-muted-foreground" data-testid="attack-surface-webscan-note">
-                Esta jornada apenas descobre web applications nos hosts escaneados. Para avaliá-las com o Agente de Vulnerabilidades,
+                Esta jornada descobre web applications nos hosts escaneados. Para testá-las com o Agente de Vulnerabilidades,
                 crie uma jornada do tipo <strong>Web Application</strong> apontando para os ativos descobertos.
               </div>
             </div>
@@ -857,10 +857,10 @@ export default function JourneyForm({ onSubmit, onCancel, isLoading = false, ini
               </div>
             </div>
 
-            {/* Seção: Parâmetros de Validação */}
+            {/* Seção: Parâmetros de Teste */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider border-b border-border pb-2">
-                Parâmetros de Validação
+                Parâmetros de Teste
               </h3>
               <p className="text-xs text-muted-foreground">
                 Thresholds usados para classificar achados nesta jornada. Deixe em branco para usar os valores globais.

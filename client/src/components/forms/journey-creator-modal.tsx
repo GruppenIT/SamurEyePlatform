@@ -40,7 +40,7 @@ const JOURNEY_TYPES: JourneyType[] = [
     type: "attack_surface",
     name: "Attack Surface",
     description:
-      "Varredura de portas, serviços e CVEs em hosts e ranges de rede. Identifica exposições e vulnerabilidades conhecidas.",
+      "Testa o que está exposto na sua rede. Varre portas, identifica serviços ativos e correlaciona resultados com CVEs conhecidos.",
     Icon: Search,
     colorClass: "text-primary",
     bgClass: "bg-primary/10",
@@ -49,7 +49,7 @@ const JOURNEY_TYPES: JourneyType[] = [
     type: "ad_security",
     name: "AD Security",
     description:
-      "Auditoria completa do Active Directory — políticas de senha, GPOs, contas privilegiadas e configurações críticas.",
+      "Testa a segurança do Active Directory contra mais de 30 controles adversariais — contas privilegiadas, GPOs, Kerberos e trusts.",
     Icon: Users,
     colorClass: "text-violet-500",
     bgClass: "bg-violet-500/10",
@@ -59,7 +59,7 @@ const JOURNEY_TYPES: JourneyType[] = [
     type: "edr_av",
     name: "Teste EDR/AV",
     description:
-      "Valida a eficácia das soluções de proteção de endpoints simulando ameaças reais na rede.",
+      "Testa a eficácia das soluções de proteção de endpoints simulando ameaças reais na rede.",
     Icon: Worm,
     colorClass: "text-orange-500",
     bgClass: "bg-orange-500/10",
@@ -68,7 +68,7 @@ const JOURNEY_TYPES: JourneyType[] = [
     type: "web_application",
     name: "Web Application",
     description:
-      "Descoberta e análise de vulnerabilidades em aplicações web — injeções, exposições e configurações incorretas.",
+      "Testa suas aplicações web contra o OWASP Top 10: injeções, XSS, exposição de dados e configurações incorretas.",
     Icon: Globe,
     colorClass: "text-blue-500",
     bgClass: "bg-blue-500/10",
@@ -77,7 +77,7 @@ const JOURNEY_TYPES: JourneyType[] = [
     type: "api_security",
     name: "API Security",
     description:
-      "Descoberta de endpoints e testes OWASP API Top 10 em APIs REST e GraphQL, com suporte a spec OpenAPI.",
+      "Testa suas APIs REST e GraphQL contra o OWASP API Top 10: BOLA, BFLA, BOPLA e mais. Suporta spec OpenAPI.",
     Icon: Code2,
     colorClass: "text-emerald-500",
     bgClass: "bg-emerald-500/10",
