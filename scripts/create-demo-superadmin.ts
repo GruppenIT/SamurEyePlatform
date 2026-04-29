@@ -1,3 +1,8 @@
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL não definida. Execute com DATABASE_URL=... npx tsx scripts/create-demo-superadmin.ts");
+  process.exit(1);
+}
+
 /**
  * Creates admin@samureye.local — demo superadmin who can see all leads.
  * Run: DATABASE_URL=... npx tsx scripts/create-demo-superadmin.ts
@@ -22,8 +27,8 @@ try {
 
   const hash = await bcrypt.hash(password, 12);
   await client.query(
-    `INSERT INTO users (email, first_name, last_name, role, password_hash)
-     VALUES ($1, 'Demo', 'Superadmin', 'global_administrator', $2)`,
+    `INSERT INTO users (email, first_name, last_name, role, password_hash, must_change_password)
+     VALUES ($1, 'Demo', 'Superadmin', 'global_administrator', $2, true)`,
     [email, hash],
   );
   console.log(`Superadmin ${email} criado com senha: ${password}`);

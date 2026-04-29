@@ -7,6 +7,18 @@ import { randomBytes } from "crypto";
 
 const log = createLogger('routes:demo');
 
+// Simple in-memory rate limiter for demo registration (5 req/IP/hour)
+const registerAttempts = new Map<string, number[]>();
+function isDemoRegisterRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const windowMs = 60 * 60 * 1000; // 1 hour
+  const maxAttempts = 5;
+  const attempts = (registerAttempts.get(ip) ?? []).filter(t => now - t < windowMs);
+  if (attempts.length >= maxAttempts) return true;
+  registerAttempts.set(ip, [...attempts, now]);
+  return false;
+}
+
 function generateDemoPassword(): string {
   // Memorable format: Samu-XXXX (no ambiguous chars: I, O, 0, 1)
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -35,6 +47,11 @@ export function registerDemoRoutes(app: Express) {
       return res.status(404).json({ message: 'Not found' });
     }
 
+    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+    if (isDemoRegisterRateLimited(clientIP)) {
+      return res.status(429).json({ message: 'Muitas solicitações. Tente novamente em 1 hora.' });
+    }
+
     const { name, company, cnpj, email } = req.body;
 
     // Basic validation
@@ -58,6 +75,16 @@ export function registerDemoRoutes(app: Express) {
         return res.status(409).json({
           error: 'already_registered',
           message: 'Este e-mail já está cadastrado. Para mais informações, entre em contato com comercial@gruppen.com.br',
+        });
+      }
+
+      const cnpjDigits = cnpj.replace(/\D/g, '');
+      const allUsers = await storage.getAllUsers();
+      const cnpjTaken = allUsers.some(u => u.cnpj === cnpjDigits && u.isDemoLead);
+      if (cnpjTaken) {
+        return res.status(409).json({
+          error: 'cnpj_already_registered',
+          message: 'Este CNPJ já está cadastrado. Para mais informações, entre em contato com comercial@gruppen.com.br',
         });
       }
 

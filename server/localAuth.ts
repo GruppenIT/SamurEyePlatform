@@ -398,6 +398,10 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser(async (id: string, done) => {
     try {
       const user = await storage.getUser(id);
+      // Block expired demo leads on every request (not just login)
+      if (user?.demoExpiresAt && new Date() > user.demoExpiresAt) {
+        return done(null, false);
+      }
       done(null, user);
     } catch (error) {
       done(error);
