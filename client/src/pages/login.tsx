@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +57,12 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+const REGISTER_DRAFT_KEY = "demo.register.draft";
+
+function readDraft(): Partial<RegisterForm> {
+  try { return JSON.parse(sessionStorage.getItem(REGISTER_DRAFT_KEY) ?? "{}"); } catch { return {}; }
+}
+
 type DemoView = 'register' | 'credentials' | 'login';
 
 interface GeneratedCredentials {
@@ -86,11 +92,18 @@ export default function Login() {
     defaultValues: { email: "", password: "" },
   });
 
-  // Register form
+  // Register form — restores draft from sessionStorage on mount
+  const _draft = readDraft();
   const registerForm = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", company: "", cnpj: "", email: "" },
+    defaultValues: { name: _draft.name ?? "", company: _draft.company ?? "", cnpj: _draft.cnpj ?? "", email: _draft.email ?? "" },
   });
+
+  // Persist draft while user fills the form
+  const watchedRegister = registerForm.watch();
+  useEffect(() => {
+    try { sessionStorage.setItem(REGISTER_DRAFT_KEY, JSON.stringify(watchedRegister)); } catch {}
+  }, [watchedRegister]);
 
   // Login mutation
   const loginMutation = useMutation({
@@ -128,6 +141,7 @@ export default function Login() {
       return await response.json() as GeneratedCredentials;
     },
     onSuccess: (data) => {
+      try { sessionStorage.removeItem(REGISTER_DRAFT_KEY); } catch {}
       setCredentials(data);
       setDemoView('credentials');
     },
