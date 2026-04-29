@@ -79,14 +79,6 @@ export function registerDemoRoutes(app: Express) {
       }
 
       const cnpjDigits = cnpj.replace(/\D/g, '');
-      const allUsers = await storage.getAllUsers();
-      const cnpjTaken = allUsers.some(u => u.cnpj === cnpjDigits && u.isDemoLead);
-      if (cnpjTaken) {
-        return res.status(409).json({
-          error: 'cnpj_already_registered',
-          message: 'Este CNPJ já está cadastrado. Para mais informações, entre em contato com comercial@gruppen.com.br',
-        });
-      }
 
       const nameParts = name.trim().split(/\s+/);
       const firstName = nameParts[0];
