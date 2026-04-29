@@ -94,6 +94,24 @@ export function registerUserRoutes(app: Express) {
     }
   });
 
+  app.delete('/api/users/:id', isAuthenticatedWithPasswordCheck, requireAdmin, async (req: any, res) => {
+    const { id } = req.params;
+    if (id === req.user?.id) {
+      return res.status(400).json({ message: 'Não é possível excluir sua própria conta.' });
+    }
+    try {
+      const target = await storage.getUser(id);
+      if (!target) return res.status(404).json({ message: 'Usuário não encontrado.' });
+      await storage.deleteActiveSessionsByUserId(id);
+      await storage.deleteUser(id);
+      log.info({ actorId: req.user.id, deletedUserId: id, deletedEmail: target.email }, 'user deleted');
+      res.status(204).end();
+    } catch (err) {
+      log.error({ err }, 'failed to delete user');
+      res.status(500).json({ message: 'Erro ao excluir usuário.' });
+    }
+  });
+
   app.patch('/api/users/:id/role', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
     try {
       const actorRole = req.user.role || 'read_only';

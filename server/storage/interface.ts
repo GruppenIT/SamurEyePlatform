@@ -76,6 +76,7 @@ export interface IStorage {
   updateUserPreferences(id: string, prefs: { theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean }): Promise<void>;
   getUserPreferences(id: string): Promise<{ theme?: 'light' | 'dark' | 'system'; sidebarCollapsed?: boolean } | null>;
   createDemoLead(data: { email: string; passwordHash: string; firstName: string; lastName: string; company: string; cnpj: string; demoExpiresAt: Date }): Promise<User>;
+  deleteUser(id: string): Promise<void>;
 
   // Asset operations
   getAssets(): Promise<Asset[]>;

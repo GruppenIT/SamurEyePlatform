@@ -77,6 +77,8 @@ export function demoReadOnlyGuard(req: any, res: any, next: any) {
   if (process.env.DEMO_MODE !== 'true') return next();
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
   if (DEMO_AUTH_PATHS.some(p => req.originalUrl.startsWith(p))) return next();
+  // Allow admins to delete users in demo mode
+  if (req.method === 'DELETE' && /^\/api\/users\/[^/]+$/.test(req.originalUrl.split('?')[0])) return next();
   return res.status(403).json({
     error: 'demo_readonly',
     message: 'Instância de demonstração — operações de escrita estão desabilitadas.',

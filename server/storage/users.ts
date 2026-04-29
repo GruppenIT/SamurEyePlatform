@@ -178,3 +178,7 @@ export async function createDemoLead(data: {
     .returning();
   return user;
 }
+
+export async function deleteUser(id: string): Promise<void> {
+  await db.delete(users).where(eq(users.id, id));
+}

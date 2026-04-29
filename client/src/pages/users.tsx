@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Users as UsersIcon, Shield, User as UserIcon, Crown, Plus } from "lucide-react";
+import { Search, Users as UsersIcon, Shield, User as UserIcon, Crown, Plus, Trash2 } from "lucide-react";
 import type { User, RegisterUser } from "@shared/schema";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
@@ -63,6 +63,7 @@ export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [roleChangeTarget, setRoleChangeTarget] = useState<{ user: User; newRole: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
@@ -129,6 +130,20 @@ export default function Users() {
   const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
     enabled: (currentUser as any)?.role === 'global_administrator',
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest('DELETE', `/api/users/${id}`);
+    },
+    onSuccess: () => {
+      toast({ title: "Usuário excluído", description: "Usuário removido com sucesso." });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setDeleteTarget(null);
+    },
+    onError: (error: any) => {
+      toast({ title: "Erro", description: error.message || "Falha ao excluir usuário.", variant: "destructive" });
+    },
   });
 
   const updateUserRoleMutation = useMutation({
@@ -480,22 +495,35 @@ export default function Users() {
                             {new Date(user.createdAt).toLocaleDateString('pt-BR')}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Select
-                              value={user.role}
-                              onValueChange={(value) => handleRoleChange(user, value)}
-                              disabled={updateUserRoleMutation.isPending}
-                            >
-                              <SelectTrigger className="w-48" data-testid={`select-role-${user.id}`}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="read_only">Somente Leitura</SelectItem>
-                                <SelectItem value="operator">Operador</SelectItem>
-                                <SelectItem value="global_administrator">
-                                  Administrador Global
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <div className="flex items-center justify-end gap-2">
+                              <Select
+                                value={user.role}
+                                onValueChange={(value) => handleRoleChange(user, value)}
+                                disabled={updateUserRoleMutation.isPending}
+                              >
+                                <SelectTrigger className="w-48" data-testid={`select-role-${user.id}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="read_only">Somente Leitura</SelectItem>
+                                  <SelectItem value="operator">Operador</SelectItem>
+                                  <SelectItem value="global_administrator">
+                                    Administrador Global
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {user.id !== (currentUser as any)?.id && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-muted-foreground hover:text-destructive"
+                                  onClick={() => setDeleteTarget(user)}
+                                  data-testid={`button-delete-${user.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -508,6 +536,27 @@ export default function Users() {
           </Card>
         </div>
       </main>
+
+      {/* Delete User Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir usuário</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget && `Tem certeza que deseja excluir o usuário ${deleteTarget.email}? Esta ação não pode ser desfeita.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteTarget && deleteUserMutation.mutate(deleteTarget.id)}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Role Change Confirmation */}
       <AlertDialog open={!!roleChangeTarget} onOpenChange={(open) => !open && setRoleChangeTarget(null)}>
