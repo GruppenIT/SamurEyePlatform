@@ -18,9 +18,12 @@ export function registerUserRoutes(app: Express) {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
-      const users = await storage.getAllUsers();
-      // Strip sensitive data before sending to client
-      const sanitizedUsers = users.map(({ passwordHash, ...user }) => user);
+      const allUsers = await storage.getAllUsers();
+      // In demo mode, only admin@samureye.local sees demo leads
+      const visibleUsers = (process.env.DEMO_MODE === 'true' && req.user?.email !== 'admin@samureye.local')
+        ? allUsers.filter(u => !u.isDemoLead)
+        : allUsers;
+      const sanitizedUsers = visibleUsers.map(({ passwordHash, ...user }) => user);
       res.json(sanitizedUsers);
     } catch (error) {
       log.error({ err: error }, 'failed to fetch users');
