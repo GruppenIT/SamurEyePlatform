@@ -246,6 +246,11 @@ create_admin() {
     npx tsx scripts/create-demo-admin.ts 2>&1 | tail -5 || \
     warn "Falha ao criar admin — verifique manualmente."
   success "Usuário admin: demo@samureye.com.br / Demo@2026!"
+  info "Criando superadmin de demonstração (visualização de leads)..."
+  cd "$INSTALL_DIR" && \
+    npx tsx scripts/create-demo-superadmin.ts 2>&1 | tail -3 || \
+    warn "Falha ao criar superadmin (pode já existir)"
+  success "Superadmin: admin@samureye.local / Admin@Demo2026!"
 }
 
 # ── Seed de dados de demonstração ────────────────────────────────────────────
@@ -427,6 +432,7 @@ main_install() {
   echo -e "${GREEN}║  URL:    http://localhost:${APP_PORT}                   ║${NC}"
   echo -e "${GREEN}║  Admin:  demo@samureye.com.br                    ║${NC}"
   echo -e "${GREEN}║  Senha:  Demo@2026!                              ║${NC}"
+echo "  Superadmin (leads): admin@samureye.local / Admin@Demo2026!"
   echo -e "${GREEN}║                                                  ║${NC}"
   echo -e "${GREEN}║  Após configurar nginx:                          ║${NC}"
   echo -e "${GREEN}║  https://www.samureye.com.br/demo                ║${NC}"
