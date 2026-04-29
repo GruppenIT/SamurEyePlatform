@@ -432,7 +432,7 @@ main_install() {
   echo -e "${GREEN}║  URL:    http://localhost:${APP_PORT}                   ║${NC}"
   echo -e "${GREEN}║  Admin:  demo@samureye.com.br                    ║${NC}"
   echo -e "${GREEN}║  Senha:  Demo@2026!                              ║${NC}"
-echo "  Superadmin (leads): admin@samureye.local / Admin@Demo2026!"
+  echo -e "${GREEN}║  Super: admin@samureye.local / Admin@Demo2026!   ║${NC}"
   echo -e "${GREEN}║                                                  ║${NC}"
   echo -e "${GREEN}║  Após configurar nginx:                          ║${NC}"
   echo -e "${GREEN}║  https://www.samureye.com.br/demo                ║${NC}"
