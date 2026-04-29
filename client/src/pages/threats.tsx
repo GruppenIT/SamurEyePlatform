@@ -1587,7 +1587,7 @@ export default function Threats() {
                     severityFilter !== "all" ||
                     statusFilter !== "all"
                       ? "Tente ajustar os filtros de busca"
-                      : "Execute jornadas para identificar ameaças"}
+                      : "Execute testes de segurança para identificar ameaças"}
                   </p>
                 </div>
               ) : (

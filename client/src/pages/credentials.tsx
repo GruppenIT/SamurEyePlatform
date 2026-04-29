@@ -385,7 +385,7 @@ export default function Credentials() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Credencial</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir esta credencial? Jornadas que a utilizam perderão o acesso a ela.
+              Tem certeza que deseja excluir esta credencial? Testes de segurança que a utilizam perderão o acesso a ela.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

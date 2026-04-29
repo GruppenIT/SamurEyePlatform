@@ -392,7 +392,7 @@ export default function Users() {
                   </h3>
                   <div className="text-sm text-muted-foreground space-y-1">
                     <p><strong>Administrador Global:</strong> Acesso total ao sistema, gerencia usuários e configurações</p>
-                    <p><strong>Operador:</strong> Cria e executa jornadas, gerencia ameaças e monitora jobs</p>
+                    <p><strong>Operador:</strong> Cria e executa testes de segurança (jornadas), gerencia ameaças e monitora jobs</p>
                     <p><strong>Somente Leitura:</strong> Visualização de dashboards e relatórios, ideal para TVs</p>
                   </div>
                 </div>

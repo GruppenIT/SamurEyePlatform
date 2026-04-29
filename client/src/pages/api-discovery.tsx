@@ -182,7 +182,7 @@ export default function ApiDiscovery() {
     <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <TopBar title="API Discovery" subtitle="APIs descobertas nas jornadas api_security" />
+        <TopBar title="API Discovery" subtitle="APIs descobertas nos testes de API Security" />
         <main
           className="flex-1 overflow-y-auto p-6"
           data-testid="api-discovery-page"
@@ -191,7 +191,7 @@ export default function ApiDiscovery() {
             <div>
               <h1 className="text-2xl font-bold">API Discovery</h1>
               <p className="text-muted-foreground text-sm mt-1">
-                APIs descobertas nas jornadas <code>api_security</code>.
+                APIs descobertas durante testes de API Security.
               </p>
             </div>
 
@@ -199,7 +199,7 @@ export default function ApiDiscovery() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>APIs</CardTitle>
                 <Button onClick={() => setWizardOpen(true)} data-testid="button-new-journey">
-                  <Plus className="h-4 w-4 mr-1" /> Nova Jornada API
+                  <Plus className="h-4 w-4 mr-1" /> Nova Jornada de Teste API
                 </Button>
               </CardHeader>
               <CardContent>
@@ -229,8 +229,7 @@ export default function ApiDiscovery() {
                       Nenhuma API descoberta ainda
                     </h3>
                     <p className="text-muted-foreground text-sm">
-                      Execute uma jornada{" "}
-                      <code>api_security</code> para descobrir APIs.
+                      Execute um teste de <code>api_security</code> para descobrir APIs.
                     </p>
                   </div>
                 ) : (

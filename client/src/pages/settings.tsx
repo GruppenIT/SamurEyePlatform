@@ -672,7 +672,7 @@ export default function Settings() {
                       <AlertTriangle className="h-4 w-4" />
                       <AlertDescription>
                         Estes valores são os <strong>defaults globais</strong>. Para configurar por jornada, use a seção
-                        {" "}<strong>Parâmetros de Validação</strong> no formulário de criação/edição de cada jornada AD Security.
+                        {" "}<strong>Parâmetros de Teste</strong> no formulário de criação/edição de cada jornada AD Security.
                         Os valores da jornada têm prioridade sobre estes defaults.
                       </AlertDescription>
                     </Alert>
