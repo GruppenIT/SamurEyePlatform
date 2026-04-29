@@ -374,6 +374,13 @@ export async function setupAuth(app: Express) {
           return done(null, false, { message: 'Email ou senha inválidos' });
         }
 
+        // Demo expiry check (no-op in normal mode)
+        if (user.demoExpiresAt && new Date() > user.demoExpiresAt) {
+          return done(null, false, {
+            message: 'Seu acesso de demonstração expirou. Entre em contato com comercial@gruppen.com.br para continuar.',
+          });
+        }
+
         // Update last login
         await storage.updateUserLastLogin(user.id);
 
