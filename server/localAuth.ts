@@ -374,6 +374,13 @@ export async function setupAuth(app: Express) {
           return done(null, false, { message: 'Email ou senha inválidos' });
         }
 
+        // Demo expiry check (no-op in normal mode)
+        if (user.demoExpiresAt && new Date() > user.demoExpiresAt) {
+          return done(null, false, {
+            message: 'Seu acesso de demonstração expirou. Entre em contato com comercial@gruppen.com.br para continuar.',
+          });
+        }
+
         // Update last login
         await storage.updateUserLastLogin(user.id);
 
@@ -391,6 +398,10 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser(async (id: string, done) => {
     try {
       const user = await storage.getUser(id);
+      // Block expired demo leads on every request (not just login)
+      if (user?.demoExpiresAt && new Date() > user.demoExpiresAt) {
+        return done(null, false);
+      }
       done(null, user);
     } catch (error) {
       done(error);

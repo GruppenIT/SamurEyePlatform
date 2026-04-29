@@ -152,3 +152,29 @@ export async function getUserPreferences(id: string): Promise<{ theme?: 'light' 
   const [row] = await db.select({ uiPreferences: users.uiPreferences }).from(users).where(eq(users.id, id));
   return row?.uiPreferences ?? null;
 }
+
+export async function createDemoLead(data: {
+  email: string;
+  passwordHash: string;
+  firstName: string;
+  lastName: string;
+  company: string;
+  cnpj: string;
+  demoExpiresAt: Date;
+}): Promise<User> {
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: data.email,
+      passwordHash: data.passwordHash,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      company: data.company,
+      cnpj: data.cnpj,
+      isDemoLead: true,
+      demoExpiresAt: data.demoExpiresAt,
+      role: 'read_only',
+    })
+    .returning();
+  return user;
+}

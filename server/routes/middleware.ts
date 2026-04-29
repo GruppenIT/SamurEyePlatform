@@ -56,6 +56,7 @@ export function requireActiveSubscription(req: any, res: any, next: any) {
 
   // Always allow subscription management (so admin can fix it)
   if (req.path.startsWith('/api/subscription')) return next();
+  if (req.path.startsWith('/api/demo/')) return next();
 
   // Check if read-only mode is active
   if (subscriptionService.isReadOnly()) {
@@ -70,7 +71,7 @@ export function requireActiveSubscription(req: any, res: any, next: any) {
 
 // Demo read-only guard — blocks all write operations when DEMO_MODE=true.
 // No-op in normal mode. Rotas de auth sempre permitidas para possibilitar login.
-const DEMO_AUTH_PATHS = ['/api/auth/', '/api/login', '/api/logout', '/api/change-password'];
+const DEMO_AUTH_PATHS = ['/api/auth/', '/api/login', '/api/logout', '/api/change-password', '/api/demo/register'];
 
 export function demoReadOnlyGuard(req: any, res: any, next: any) {
   if (process.env.DEMO_MODE !== 'true') return next();
