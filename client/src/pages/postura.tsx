@@ -45,7 +45,7 @@ export default function Postura() {
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Pontuação de Postura</CardTitle>
               <CardDescription>
-                Baseado em snapshots de postura das jornadas executadas
+                Baseado em snapshots de postura dos testes executados
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
@@ -69,9 +69,9 @@ export default function Postura() {
           {/* Journey Coverage Grid */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Cobertura de Jornadas</CardTitle>
+              <CardTitle className="text-base">Cobertura de Jornadas de Teste</CardTitle>
               <CardDescription>
-                Status das últimas execuções por tipo de jornada
+                Status dos últimos testes por tipo de jornada
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">

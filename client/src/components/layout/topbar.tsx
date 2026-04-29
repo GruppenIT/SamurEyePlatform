@@ -19,7 +19,7 @@ export default function TopBar({ title, subtitle, wsConnected = false, actions }
     <>
       {IS_DEMO && (
         <div className="bg-amber-500 text-white text-center text-xs font-semibold py-1 px-4">
-          Ambiente de demonstração — dados fictícios, jornadas desabilitadas
+          Ambiente de demonstração — dados fictícios, execução de testes desabilitada
         </div>
       )}
       <header className="bg-card border-b border-border p-6">
@@ -53,7 +53,7 @@ export default function TopBar({ title, subtitle, wsConnected = false, actions }
                     data-testid="button-new-journey"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Nova Jornada
+                    Nova Jornada de Teste
                   </Button>
                 </Link>
               </>

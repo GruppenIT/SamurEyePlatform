@@ -302,7 +302,7 @@ export default function Journeys() {
       <main className="flex-1 overflow-auto">
         <TopBar
           title="Gestão de Jornadas"
-          subtitle="Configure e execute jornadas de validação de segurança"
+          subtitle="Configure e execute jornadas de teste de segurança"
           wsConnected={connected}
         />
         
@@ -355,7 +355,7 @@ export default function Journeys() {
                   <p className="text-muted-foreground mb-4">
                     {searchTerm 
                       ? 'Tente ajustar os termos de busca'
-                      : 'Comece criando jornadas para automatizar validações de segurança'
+                      : 'Comece criando jornadas de teste para automatizar sua segurança'
                     }
                   </p>
                   {!searchTerm && (
@@ -527,7 +527,7 @@ export default function Journeys() {
         <SheetContent side="right" className="w-[700px] sm:max-w-[700px] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Resultados EDR</SheetTitle>
-            <SheetDescription>Resultados de validação EDR/AV por host</SheetDescription>
+            <SheetDescription>Resultados dos testes EDR/AV por host</SheetDescription>
           </SheetHeader>
 
           <div className="mt-6 space-y-6">
@@ -540,7 +540,7 @@ export default function Journeys() {
                 <Eye className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium text-foreground mb-2">Nenhum resultado EDR</h3>
                 <p className="text-muted-foreground">
-                  Esta jornada ainda não possui resultados de validação EDR/AV.
+                  Esta jornada ainda não possui resultados de testes EDR/AV.
                 </p>
               </div>
             ) : (

@@ -71,7 +71,7 @@ export default function JourneyCoverage() {
             <div className="text-xs text-muted-foreground">
               {item.lastRunAt
                 ? format(new Date(item.lastRunAt), "dd/MM/yyyy HH:mm")
-                : "Nunca executada"}
+                : "Nenhum teste executado"}
             </div>
             <div>
               <Badge variant="secondary" className="text-xs">
