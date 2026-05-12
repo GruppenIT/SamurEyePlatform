@@ -41,7 +41,7 @@ function validateCnpj(cnpj: string): boolean {
 }
 
 export function registerDemoRoutes(app: Express) {
-  // POST /api/demo/register — creates a demo lead user with 24h access
+  // POST /api/demo/register — creates a demo lead user with 72h access
   app.post('/api/demo/register', async (req, res) => {
     if (process.env.DEMO_MODE !== 'true') {
       return res.status(404).json({ message: 'Not found' });
@@ -86,7 +86,7 @@ export function registerDemoRoutes(app: Express) {
 
       const password = generateDemoPassword();
       const passwordHash = await bcrypt.hash(password, 12);
-      const demoExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const demoExpiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000);
 
       await storage.createDemoLead({
         email: email.toLowerCase().trim(),
@@ -126,5 +126,27 @@ export function registerDemoRoutes(app: Express) {
       .map(({ passwordHash, mfaSecretEncrypted, mfaSecretDek, mfaBackupCodes, ...u }) => u);
 
     res.json(leads);
+  });
+
+  // POST /api/demo/leads/:id/extend — extends demo access by 72h (admin only)
+  app.post('/api/demo/leads/:id/extend', isAuthenticatedWithPasswordCheck, async (req: any, res) => {
+    if (process.env.DEMO_MODE !== 'true') {
+      return res.status(404).json({ message: 'Not found' });
+    }
+    if (req.user?.email !== 'admin@samureye.local') {
+      return res.status(403).json({ message: 'Acesso negado.' });
+    }
+
+    const { id } = req.params;
+    try {
+      const user = await storage.extendDemoLead(id);
+      const { passwordHash, mfaSecretEncrypted, mfaSecretDek, mfaBackupCodes, ...safeUser } = user as any;
+      log.info({ id, demoExpiresAt: user.demoExpiresAt }, 'demo lead extended');
+      res.json(safeUser);
+    } catch (err: any) {
+      if (err.message === 'NOT_FOUND') return res.status(404).json({ message: 'Lead não encontrado.' });
+      log.error({ err, id }, 'failed to extend demo lead');
+      res.status(500).json({ message: 'Erro ao prorrogar acesso.' });
+    }
   });
 }

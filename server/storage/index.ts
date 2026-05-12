@@ -37,6 +37,7 @@ export class DatabaseStorage implements IStorage {
   updateUserPreferences = userOps.updateUserPreferences;
   getUserPreferences = userOps.getUserPreferences;
   createDemoLead = userOps.createDemoLead;
+  extendDemoLead = userOps.extendDemoLead;
   deleteUser = userOps.deleteUser;
 
   // Asset operations

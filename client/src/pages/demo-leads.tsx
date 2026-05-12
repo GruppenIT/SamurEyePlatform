@@ -1,8 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, ClockArrowUp } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface DemoLead {
   id: string;
@@ -32,11 +34,34 @@ function LeadStatus({ expiresAt }: { expiresAt: string | null }) {
 }
 
 export default function DemoLeads() {
+  const queryClient = useQueryClient();
+
   const { data: leads = [], isLoading, error } = useQuery<DemoLead[]>({
     queryKey: ["/api/demo/leads"],
     queryFn: async () => {
       const res = await apiRequest('GET', '/api/demo/leads');
       return res.json();
+    },
+  });
+
+  const extendMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest('POST', `/api/demo/leads/${id}/extend`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message ?? 'Erro ao prorrogar.');
+      }
+      return res.json();
+    },
+    onSuccess: (updated: DemoLead) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/demo/leads"] });
+      const newExpiry = updated.demoExpiresAt
+        ? new Date(updated.demoExpiresAt).toLocaleString('pt-BR')
+        : '-';
+      toast({ title: 'Acesso prorrogado', description: `Novo vencimento: ${newExpiry}` });
+    },
+    onError: (err: Error) => {
+      toast({ title: 'Erro', description: err.message, variant: 'destructive' });
     },
   });
 
@@ -80,12 +105,13 @@ export default function DemoLeads() {
                 <TableHead>Cadastro</TableHead>
                 <TableHead>Expira em</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {leads.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Nenhum lead registrado ainda.
                   </TableCell>
                 </TableRow>
@@ -108,6 +134,19 @@ export default function DemoLeads() {
                   </TableCell>
                   <TableCell>
                     <LeadStatus expiresAt={lead.demoExpiresAt} />
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1.5 text-muted-foreground hover:text-foreground"
+                      disabled={extendMutation.isPending}
+                      onClick={() => extendMutation.mutate(lead.id)}
+                      title="Prorrogar 72h"
+                    >
+                      <ClockArrowUp className="w-4 h-4" />
+                      Prorrogar
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

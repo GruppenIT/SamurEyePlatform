@@ -179,6 +179,21 @@ export async function createDemoLead(data: {
   return user;
 }
 
+export async function extendDemoLead(id: string): Promise<User> {
+  const [existing] = await db.select().from(users).where(eq(users.id, id));
+  if (!existing || !existing.isDemoLead) throw new Error('NOT_FOUND');
+  const base = existing.demoExpiresAt && new Date() < new Date(existing.demoExpiresAt)
+    ? new Date(existing.demoExpiresAt)
+    : new Date();
+  const newExpiry = new Date(base.getTime() + 72 * 60 * 60 * 1000);
+  const [updated] = await db
+    .update(users)
+    .set({ demoExpiresAt: newExpiry })
+    .where(eq(users.id, id))
+    .returning();
+  return updated;
+}
+
 export async function deleteUser(id: string): Promise<void> {
   await db.delete(users).where(eq(users.id, id));
 }
