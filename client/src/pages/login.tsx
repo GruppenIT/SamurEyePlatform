@@ -208,7 +208,7 @@ export default function Login() {
                   </h1>
                   <p className="text-sm text-muted-foreground text-center mb-6">
                     Preencha seus dados para receber credenciais de acesso válidas por{' '}
-                    <span className="font-semibold text-amber-600 dark:text-amber-400">24 horas</span>.
+                    <span className="font-semibold text-amber-600 dark:text-amber-400">72 horas</span>.
                   </p>
 
                   {registerMutation.isError && (
@@ -307,7 +307,7 @@ export default function Login() {
                     Acesso criado com sucesso!
                   </h1>
                   <p className="text-sm text-muted-foreground text-center mb-6">
-                    Guarde suas credenciais. O acesso expira em 24 horas.
+                    Guarde suas credenciais. O acesso expira em 72 horas.
                   </p>
 
                   <div className="rounded-lg border border-green-400/40 bg-green-50 dark:bg-green-950/30 p-4 mb-4">
